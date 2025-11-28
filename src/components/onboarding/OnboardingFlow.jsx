@@ -14,6 +14,7 @@ export default function OnboardingFlow({ onComplete }) {
   const { t } = useTranslation();
   const { state, updateSection, nextStep, previousStep, markComplete } = useOnboardingFlow();
 
+  // Reduces onboarding overwhelm for autism per research: Predictable steps
   const steps = useMemo(
     () => [
       {
@@ -85,6 +86,7 @@ export default function OnboardingFlow({ onComplete }) {
       }}
     >
       <header style={{ marginBottom: '1rem' }}>
+        <p style={{ margin: 0, color: '#333', fontWeight: 600 }}>{t('welcome')}</p>
         <p style={{ margin: 0, color: '#555' }}>{t('onboarding.badge')}</p>
         <h2 style={{ margin: '0.25rem 0 0.5rem 0' }}>{t('onboarding.title')}</h2>
         <p style={{ margin: 0 }}>{t('onboarding.subtitle')}</p>
