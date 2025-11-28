@@ -19,5 +19,83 @@
   "settingsThemeOption": "Toggle light/dark mode.",
   "settingsMotionOption": "Reduce or enable animations.",
   "settingsTtsOption": "Enable or disable text‑to‑speech reminders.",
-  "settingsGamificationOption": "Show or hide points and streaks."
+  "settingsGamificationOption": "Show or hide points and streaks.",
+  "ttsToggle": "Toggle text to speech",
+  "ttsOn": "TTS: On",
+  "ttsOff": "TTS: Off",
+  "ttsEnabledConfirmation": "Text to speech has been enabled.",
+  "languages": {
+    "english": "English",
+    "spanish": "Español (Perú)"
+  },
+  "onboarding": {
+    "badge": "Personalized setup",
+    "title": "Welcome! Let's tailor GYLIO",
+    "subtitle": "We will capture accessibility choices, neurodivergent presets, a quick goal, and a short tour.",
+    "previous": "Previous",
+    "next": "Next",
+    "finish": "Finish",
+    "validation": {
+      "language": "Pick a language to continue.",
+      "goalLength": "Goal descriptions should stay under 120 characters.",
+      "positiveNumber": "Please enter a positive number."
+    },
+    "accessibility": {
+      "title": "Accessibility",
+      "helper": "Choose baseline accessibility preferences. You can revisit them anytime in Settings.",
+      "highContrast": "High contrast colors",
+      "reduceMotion": "Reduce motion and animation",
+      "dyslexiaFont": "Use dyslexia-friendly typeface",
+      "ttsEnabled": "Enable text-to-speech prompts",
+      "language": "Preferred language"
+    },
+    "neuro": {
+      "title": "Neurodivergence presets",
+      "helper": "Select the preset that matches you best. We'll pre-enable supportive options.",
+      "presets": {
+        "adhd": {
+          "title": "ADHD mode",
+          "desc": "Chunk tasks, add timeboxing, and offer dopamine-friendly wins."
+        },
+        "autism": {
+          "title": "Autism mode",
+          "desc": "Predictable layouts with quieter alerts and sensory controls."
+        },
+        "dyslexia": {
+          "title": "Dyslexia mode",
+          "desc": "Enable dyslexia font, high contrast, and narration cues."
+        }
+      },
+      "features": {
+        "chunking": "Break tasks into small chunks",
+        "timeboxing": "Show timeboxing suggestions",
+        "stimBreaks": "Suggest movement and stim breaks",
+        "predictableLayouts": "Keep layouts predictable",
+        "quietAlerts": "Use quieter alerts",
+        "sensoryControl": "Offer sensory toggles",
+        "dyslexiaFont": "Use dyslexia-friendly font",
+        "highContrast": "High contrast palette",
+        "ttsEnabled": "Narrate key information"
+      }
+    },
+    "goals": {
+      "title": "Goal & budget",
+      "helper": "We will use this to tune reminders and pacing.",
+      "primaryGoal": "Primary goal",
+      "primaryGoalPlaceholder": "e.g., Prepare for next week's exam",
+      "monthlyBudget": "Monthly budget",
+      "savingsTarget": "Monthly savings target"
+    },
+    "tour": {
+      "title": "Mini tour",
+      "helper": "Check off what you've glanced at so we know you feel oriented.",
+      "copy": {
+        "tasks": "Plan tasks and break them into steps",
+        "calendar": "Color-coded schedule with TTS reminders",
+        "budget": "Track spending, debts, and cushions",
+        "rewards": "Earn optional points and streaks",
+        "settings": "Adjust accessibility and pacing"
+      }
+    }
+  }
 }

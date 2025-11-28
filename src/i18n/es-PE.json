@@ -1,23 +1,101 @@
 {
   "appName": "GYLIO",
-  "welcome": "Bienvenido",
+  "welcome": "Bienvenida",
   "tasks": "Tareas",
   "calendar": "Calendario",
   "budget": "Presupuesto",
   "rewards": "Recompensas",
   "settings": "Configuración",
   "addTask": "Agregar tarea",
-  "taskPlaceholder": "Ingresa el título de la tarea",
+  "taskPlaceholder": "Ingresa un título",
   "breakIntoSteps": "Dividir en pasos",
   "stepPrompt": "Ingresa un sub-paso",
-  "pomodoroSection": "Los temporizadores Pomodoro y las barras de progreso aparecerán aquí.",
+  "pomodoroSection": "Aquí verás temporizadores Pomodoro y barras de progreso.",
   "languageToggle": "English",
-  "calendarPlaceholder": "El calendario mostrará eventos codificados por colores con recordatorios de TTS.",
-  "budgetPlaceholder": "Las herramientas de presupuesto seguirán ingresos y gastos, los categorizarán y simularán el pago de deudas.",
-  "rewardsPlaceholder": "Aquí aparecerán puntos y rachas. La gamificación es opcional.",
-  "settingsFontOption": "Elegir entre fuente estándar y amigable para dislexia.",
-  "settingsThemeOption": "Alternar modo claro/oscuro.",
-  "settingsMotionOption": "Reducir o habilitar animaciones.",
-  "settingsTtsOption": "Activar o desactivar recordatorios de texto a voz.",
-  "settingsGamificationOption": "Mostrar u ocultar puntos y rachas."
+  "calendarPlaceholder": "El calendario mostrará eventos codificados por color con recordatorios TTS.",
+  "budgetPlaceholder": "Las herramientas de presupuesto seguirán ingresos y gastos, categorizándolos y simulando pago de deudas.",
+  "rewardsPlaceholder": "Los puntos y rachas aparecerán aquí. La gamificación es opcional.",
+  "settingsFontOption": "Elige entre tipografía estándar y amigable con dislexia.",
+  "settingsThemeOption": "Alterna tema claro/oscuro.",
+  "settingsMotionOption": "Reduce o habilita animaciones.",
+  "settingsTtsOption": "Activa o desactiva recordatorios por voz.",
+  "settingsGamificationOption": "Mostrar u ocultar puntos y rachas.",
+  "ttsToggle": "Alternar lectura en voz alta",
+  "ttsOn": "TTS: Activo",
+  "ttsOff": "TTS: Inactivo",
+  "ttsEnabledConfirmation": "La lectura en voz alta está activada.",
+  "languages": {
+    "english": "English",
+    "spanish": "Español (Perú)"
+  },
+  "onboarding": {
+    "badge": "Configuración personalizada",
+    "title": "¡Hola! Ajustemos GYLIO",
+    "subtitle": "Capturaremos accesibilidad, preset neurodivergente, una meta rápida y un mini tour.",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "finish": "Listo",
+    "validation": {
+      "language": "Elige un idioma para continuar.",
+      "goalLength": "La meta debe tener menos de 120 caracteres.",
+      "positiveNumber": "Ingresa un número positivo."
+    },
+    "accessibility": {
+      "title": "Accesibilidad",
+      "helper": "Elige tus preferencias base. Siempre puedes cambiarlas en Configuración.",
+      "highContrast": "Colores de alto contraste",
+      "reduceMotion": "Reducir movimiento y animaciones",
+      "dyslexiaFont": "Fuente amigable con dislexia",
+      "ttsEnabled": "Habilitar indicaciones por voz",
+      "language": "Idioma preferido"
+    },
+    "neuro": {
+      "title": "Presets neurodivergentes",
+      "helper": "Selecciona el preset que más se ajuste. Activaremos opciones de apoyo.",
+      "presets": {
+        "adhd": {
+          "title": "Modo TDAH",
+          "desc": "Divide tareas, sugiere timeboxing y ofrece pequeños logros."
+        },
+        "autism": {
+          "title": "Modo Autismo",
+          "desc": "Disposición predecible, alertas suaves y controles sensoriales."
+        },
+        "dyslexia": {
+          "title": "Modo Dislexia",
+          "desc": "Activa fuente amigable, alto contraste y narración."
+        }
+      },
+      "features": {
+        "chunking": "Divide tareas en bloques pequeños",
+        "timeboxing": "Sugiere bloques de tiempo",
+        "stimBreaks": "Sugiere pausas de movimiento",
+        "predictableLayouts": "Mantén disposiciones predecibles",
+        "quietAlerts": "Alertas más suaves",
+        "sensoryControl": "Ofrece controles sensoriales",
+        "dyslexiaFont": "Usa fuente amigable con dislexia",
+        "highContrast": "Paleta de alto contraste",
+        "ttsEnabled": "Narra información clave"
+      }
+    },
+    "goals": {
+      "title": "Meta y presupuesto",
+      "helper": "Usaremos esto para ajustar recordatorios y ritmo.",
+      "primaryGoal": "Meta principal",
+      "primaryGoalPlaceholder": "Ej.: Preparar el examen de la próxima semana",
+      "monthlyBudget": "Presupuesto mensual",
+      "savingsTarget": "Ahorro mensual"
+    },
+    "tour": {
+      "title": "Mini tour",
+      "helper": "Marca lo que ya revisaste para asegurarnos de que estás orientada.",
+      "copy": {
+        "tasks": "Planifica tareas y divídelas en pasos",
+        "calendar": "Agenda con colores y recordatorios por voz",
+        "budget": "Seguimiento de gastos, deudas y colchones",
+        "rewards": "Gana puntos y rachas opcionales",
+        "settings": "Ajusta accesibilidad y ritmo"
+      }
+    }
+  }
 }
