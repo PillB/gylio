@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 // Import view components
@@ -7,34 +7,57 @@ import CalendarView from './components/CalendarView.jsx';
 import BudgetView from './components/BudgetView.jsx';
 import RewardsView from './components/RewardsView.jsx';
 import SettingsView from './components/SettingsView.jsx';
+import OnboardingFlow from './components/onboarding/OnboardingFlow.jsx';
+import { OnboardingProvider, useOnboardingFlow } from './hooks/useOnboardingFlow';
+import { useSpeech } from './hooks/useSpeech';
 
-/**
- * Root application component.
- *
- * Provides navigation between modules (Tasks, Calendar, Budget, Rewards, Settings) and
- * includes a language toggle.  The layout emphasises simplicity: a header with nav
- * buttons and a main area that displays one view at a time.  Buttons are large and
- * spaced for accessible touch targets, and text is drawn from translation dictionaries
- * via react‑i18next.
- */
-function App() {
+function AppContent() {
   const { t, i18n } = useTranslation();
+  const { state, updateSection } = useOnboardingFlow();
+  const speak = useSpeech();
   const [view, setView] = useState('tasks');
 
-  /**
-   * Toggle between English and Peruvian Spanish.  Persisting the selection can be
-   * added later (e.g. in localStorage).
-   */
+  useEffect(() => {
+    if (state.accessibility?.language) {
+      i18n.changeLanguage(state.accessibility.language);
+    }
+  }, [i18n, state.accessibility?.language]);
+
   const toggleLanguage = () => {
     const newLng = i18n.language === 'en' ? 'es-PE' : 'en';
+    updateSection('accessibility', { language: newLng });
     i18n.changeLanguage(newLng);
   };
+
+  const toggleTts = () => {
+    const nextValue = !state.accessibility?.ttsEnabled;
+    updateSection('accessibility', { ttsEnabled: nextValue });
+    if (nextValue) {
+      speak(t('ttsEnabledConfirmation'));
+    }
+  };
+
+  const handleComplete = () => {
+    if (state.accessibility?.language) {
+      i18n.changeLanguage(state.accessibility.language);
+    }
+  };
+
+  if (!state.completed) {
+    return (
+      <div className="app-container" style={{ padding: '1rem', maxWidth: '1200px', margin: '0 auto' }}>
+        <OnboardingFlow onComplete={handleComplete} />
+      </div>
+    );
+  }
 
   return (
     <div
       className="app-container"
       style={{
-        fontFamily: 'OpenDyslexic, Open Sans, sans-serif',
+        fontFamily: state.accessibility?.dyslexiaFont
+          ? 'OpenDyslexic, Open Sans, sans-serif'
+          : 'Open Sans, sans-serif',
         padding: '1rem',
         maxWidth: '1200px',
         margin: '0 auto'
@@ -68,6 +91,9 @@ function App() {
           <button onClick={toggleLanguage} aria-label="Toggle language">
             {t('languageToggle')}
           </button>
+          <button onClick={toggleTts} aria-pressed={state.accessibility?.ttsEnabled} aria-label={t('ttsToggle')}>
+            {state.accessibility?.ttsEnabled ? t('ttsOn') : t('ttsOff')}
+          </button>
         </nav>
       </header>
       <main>
@@ -78,6 +104,22 @@ function App() {
         {view === 'settings' && <SettingsView />}
       </main>
     </div>
+  );
+}
+
+/**
+ * Root application component.
+ *
+ * Provides navigation between modules (Tasks, Calendar, Budget, Rewards, Settings) and
+ * includes a language and TTS toggle. The layout emphasises simplicity: a header with nav
+ * buttons and a main area that displays one view at a time. Onboarding gates the main
+ * views until the user completes required accessibility and preference choices.
+ */
+function App() {
+  return (
+    <OnboardingProvider>
+      <AppContent />
+    </OnboardingProvider>
   );
 }
 
