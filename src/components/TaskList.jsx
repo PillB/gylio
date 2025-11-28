@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import SectionCard from './SectionCard.jsx';
 
 /**
  * TaskList component
  *
- * Allows users to create tasks and break them into smaller steps.  It keeps
- * everything in local state for now.  In future iterations tasks will be persisted
- * via API calls and synchronised with a backend.  Buttons and inputs use
- * clear labels for screen readers and large hit areas to aid dyspraxia.  A
+ * Allows users to create tasks and break them into smaller steps. It keeps
+ * everything in local state for now. In future iterations tasks will be persisted
+ * via API calls and synchronised with a backend. Buttons and inputs use
+ * clear labels for screen readers and large hit areas to aid dyspraxia. A
  * placeholder callout indicates where Pomodoro timers and checklist progress
  * bars will appear.
  */
@@ -35,8 +36,11 @@ const TaskList = () => {
   };
 
   return (
-    <section aria-label={t('tasks') + ' module'}>
-      <h2>{t('tasks')}</h2>
+    <SectionCard
+      ariaLabel={`${t('tasks')} module`}
+      title={t('tasks')}
+      subtitle={t('tasksDescription') || ''}
+    >
       <div style={{ marginBottom: '1rem' }}>
         <label htmlFor="taskTitle" style={{ display: 'block' }}>
           {t('addTask')}
@@ -50,8 +54,9 @@ const TaskList = () => {
           style={{ padding: '0.5rem', width: '100%', maxWidth: '300px' }}
         />
         <button
+          type="button"
           onClick={addTask}
-          style={{ marginLeft: '0.5rem' }}
+          style={{ marginLeft: '0.5rem', padding: '0.5rem 0.75rem' }}
         >
           {t('addTask')}
         </button>
@@ -77,7 +82,11 @@ const TaskList = () => {
                 ))}
               </ul>
             )}
-            <button onClick={() => breakIntoSteps(idx)} style={{ marginTop: '0.5rem' }}>
+            <button
+              type="button"
+              onClick={() => breakIntoSteps(idx)}
+              style={{ marginTop: '0.5rem', padding: '0.35rem 0.6rem' }}
+            >
               {t('breakIntoSteps')}
             </button>
           </li>
@@ -85,7 +94,7 @@ const TaskList = () => {
       </ul>
       {/* Placeholder for Pomodoro timer and progress bars */}
       <p>{t('pomodoroSection') || 'Pomodoro timers and checklist progress bars will appear here.'}</p>
-    </section>
+    </SectionCard>
   );
 };
 

@@ -4,8 +4,8 @@ import en from './en.json';
 import esPE from './es-PE.json';
 
 // i18n initialisation
-// We load English and Peruvian Spanish translations from JSON files.  The
-// default language is English.  The fallback language is also English.  To
+// We load English and Peruvian Spanish translations from JSON files. The
+// default language is English. The fallback language is also English. To
 // support additional locales, add a new import and resource entry below.
 
 const resources = {
