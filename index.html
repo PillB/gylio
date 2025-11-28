@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GYLIO – Get Your Life In Order</title>
+    <!-- Use a dyslexia‑friendly font as a fallback; ensure that the system also supports sans‑serif fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap" rel="stylesheet" />
+    <style>
+      body {
+        margin: 0;
+        font-family: 'Open Sans', sans-serif;
+        background-color: #f9fafb;
+        color: #222;
+        min-height: 100vh;
+      }
+      button {
+        font-size: 1rem;
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+      button:focus {
+        outline: 2px solid #005fcc;
+        outline-offset: 2px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <!-- Vite will inject the compiled JavaScript here -->
+    <script type="module" src="/src/index.js"></script>
+  </body>
+</html>

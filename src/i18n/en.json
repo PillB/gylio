@@ -1,0 +1,23 @@
+{
+  "appName": "GYLIO",
+  "welcome": "Welcome",
+  "tasks": "Tasks",
+  "calendar": "Calendar",
+  "budget": "Budget",
+  "rewards": "Rewards",
+  "settings": "Settings",
+  "addTask": "Add Task",
+  "taskPlaceholder": "Enter task title",
+  "breakIntoSteps": "Break into steps",
+  "stepPrompt": "Enter a sub-step",
+  "pomodoroSection": "Pomodoro timers and checklist progress bars will appear here.",
+  "languageToggle": "Español",
+  "calendarPlaceholder": "The calendar will display colour‑coded events with TTS reminders.",
+  "budgetPlaceholder": "Budget tools will track income and expenses, categorize them and simulate debt payoff.",
+  "rewardsPlaceholder": "Points and streaks will appear here. Gamification is optional.",
+  "settingsFontOption": "Choose between standard and dyslexia‑friendly fonts.",
+  "settingsThemeOption": "Toggle light/dark mode.",
+  "settingsMotionOption": "Reduce or enable animations.",
+  "settingsTtsOption": "Enable or disable text‑to‑speech reminders.",
+  "settingsGamificationOption": "Show or hide points and streaks."
+}
