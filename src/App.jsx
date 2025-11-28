@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 // Import view components
@@ -7,13 +7,14 @@ import CalendarView from './components/CalendarView.jsx';
 import BudgetView from './components/BudgetView.jsx';
 import RewardsView from './components/RewardsView.jsx';
 import SettingsView from './components/SettingsView.jsx';
+import NavBar from './components/NavBar.jsx';
 
 /**
  * Root application component.
  *
  * Provides navigation between modules (Tasks, Calendar, Budget, Rewards, Settings) and
- * includes a language toggle.  The layout emphasises simplicity: a header with nav
- * buttons and a main area that displays one view at a time.  Buttons are large and
+ * includes a language toggle. The layout emphasises simplicity: a header with nav
+ * buttons and a main area that displays one view at a time. Buttons are large and
  * spaced for accessible touch targets, and text is drawn from translation dictionaries
  * via react‑i18next.
  */
@@ -21,8 +22,30 @@ function App() {
   const { t, i18n } = useTranslation();
   const [view, setView] = useState('tasks');
 
+  const views = useMemo(
+    () => ({
+      tasks: <TaskList />,
+      calendar: <CalendarView />,
+      budget: <BudgetView />,
+      rewards: <RewardsView />,
+      settings: <SettingsView />
+    }),
+    []
+  );
+
+  const navItems = useMemo(
+    () => [
+      { key: 'tasks', label: t('tasks') },
+      { key: 'calendar', label: t('calendar') },
+      { key: 'budget', label: t('budget') },
+      { key: 'rewards', label: t('rewards') },
+      { key: 'settings', label: t('settings') }
+    ],
+    [t]
+  );
+
   /**
-   * Toggle between English and Peruvian Spanish.  Persisting the selection can be
+   * Toggle between English and Peruvian Spanish. Persisting the selection can be
    * added later (e.g. in localStorage).
    */
   const toggleLanguage = () => {
@@ -42,41 +65,15 @@ function App() {
     >
       <header>
         <h1>{t('appName')}</h1>
-        <nav
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '0.5rem',
-            marginBottom: '1rem'
-          }}
-        >
-          <button onClick={() => setView('tasks')} aria-label={t('tasks')}>
-            {t('tasks')}
-          </button>
-          <button onClick={() => setView('calendar')} aria-label={t('calendar')}>
-            {t('calendar')}
-          </button>
-          <button onClick={() => setView('budget')} aria-label={t('budget')}>
-            {t('budget')}
-          </button>
-          <button onClick={() => setView('rewards')} aria-label={t('rewards')}>
-            {t('rewards')}
-          </button>
-          <button onClick={() => setView('settings')} aria-label={t('settings')}>
-            {t('settings')}
-          </button>
-          <button onClick={toggleLanguage} aria-label="Toggle language">
-            {t('languageToggle')}
-          </button>
-        </nav>
+        <NavBar
+          items={navItems}
+          activeKey={view}
+          onNavigate={setView}
+          onToggleLanguage={toggleLanguage}
+          languageLabel={t('languageToggle')}
+        />
       </header>
-      <main>
-        {view === 'tasks' && <TaskList />}
-        {view === 'calendar' && <CalendarView />}
-        {view === 'budget' && <BudgetView />}
-        {view === 'rewards' && <RewardsView />}
-        {view === 'settings' && <SettingsView />}
-      </main>
+      <main>{views[view]}</main>
     </div>
   );
 }
