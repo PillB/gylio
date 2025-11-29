@@ -10,7 +10,7 @@
     "expo": "expo start"
   },
   "dependencies": {
-    "@react-native-async-storage/async-storage": "^1.23.1",
+    "@react-native-async-storage/async-storage": "^1.24.0",
     "cors": "^2.8.5",
     "expo": "^50.0.0",
     "expo-av": "~13.0.2",
