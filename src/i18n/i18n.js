@@ -15,7 +15,8 @@ const resources = {
 };
 
 const detectionOptions = {
-  order: ['navigator', 'localStorage', 'htmlTag', 'path', 'subdomain'],
+  // Read from localStorage first so a user-selected language persists between reloads.
+  order: ['localStorage', 'navigator', 'htmlTag', 'path', 'subdomain'],
   caches: ['localStorage'],
   lookupLocalStorage: 'i18nextLng'
 };
