@@ -6,6 +6,11 @@
     "description": "Create tasks, break them into steps, and keep progress lightweight."
   },
   "calendar": "Calendar",
+  "theme": {
+    "light": "Light",
+    "dark": "Dark",
+    "highContrast": "High contrast"
+  },
   "budget": {
     "title": "Budget",
     "placeholder": "Budget tools will track income and expenses, categorize them and simulate debt payoff.",
@@ -49,6 +54,15 @@
   "settingsMotionOption": "Reduce or enable animations.",
   "settingsTtsOption": "Enable or disable text‑to‑speech reminders.",
   "settingsGamificationOption": "Show or hide points and streaks.",
+  "settingsThemeLabel": "Theme mode",
+  "settingsThemeHelper": "Choose light, dark, or high-contrast to reduce visual strain.",
+  "settingsFontLabel": "Reading style",
+  "settingsFontHelper": "Switch to dyslexia-friendly fonts or larger text for steadier reading.",
+  "settingsMotionLabel": "Motion preference",
+  "settingsMotionHelper": "Reduce motion to lower sensory load; we only animate essentials.",
+  "settingsTtsLabel": "Text-to-speech reminders",
+  "settingsTtsHelper": "Keep audible cues on if you prefer reminders read aloud.",
+  "settingsCurrentValue": "Current: {{value}}",
   "onboarding": {
     "intro": "Complete this quick onboarding to unlock Tasks, Calendar, Budget, Rewards, and Settings.",
     "progress": "Step {{current}} of {{total}}",
