@@ -2,7 +2,7 @@
   "appName": "GYLIO",
   "welcome": "Bienvenido",
   "tasks": {
-    "title": "Chamba",
+    "title": "Tareas",
     "description": "Crea tareas, divídelas en pasos y mantén el progreso ligero."
   },
   "calendar": "Calendario",
@@ -14,7 +14,7 @@
   "budget": {
     "title": "Presupuesto",
     "placeholder": "Las herramientas de presupuesto seguirán ingresos y gastos, los categorizarán y simularán el pago de deudas.",
-    "debtSnowball": "Proyecciones de pago con método bola de nieve y coaching de presupuesto aparecerán aquí."
+    "debtSnowball": "Bola de nieve de deuda (Pagar más pequeña primero): el coaching y las proyecciones de pago aparecerán aquí junto a tu resumen de presupuesto."
   },
   "rewards": "Recompensas",
   "settings": "Configuración",

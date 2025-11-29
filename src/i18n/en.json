@@ -14,7 +14,7 @@
   "budget": {
     "title": "Budget",
     "placeholder": "Budget tools will track income and expenses, categorize them and simulate debt payoff.",
-    "debtSnowball": "Debt snowball coaching and payoff projections will appear here alongside your budget overview."
+    "debtSnowball": "Debt snowball (pay smallest balance first) coaching and payoff projections will appear here alongside your budget overview."
   },
   "rewards": "Rewards",
   "settings": "Settings",
