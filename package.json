@@ -10,6 +10,7 @@
     "expo": "expo start"
   },
   "dependencies": {
+    "@react-native-async-storage/async-storage": "^1.23.1",
     "cors": "^2.8.5",
     "expo": "^50.0.0",
     "expo-av": "~13.0.2",
@@ -26,6 +27,7 @@
     "react-dom": "18.2.0",
     "react-i18next": "^13.5.0",
     "react-native": "0.73.0",
+    "react-native-paper": "^5.12.5",
     "react-native-web": "^0.19.10",
     "react-router-dom": "^6.22.3",
     "sqlite3": "^5.1.6"

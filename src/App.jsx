@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { Provider as PaperProvider } from 'react-native-paper';
 import {
   Navigate,
   Outlet,
@@ -17,17 +18,12 @@ import SettingsView from './components/SettingsView.jsx';
 import OnboardingFlow from './onboarding/OnboardingFlow.jsx';
 import useOnboardingFlow from './hooks/useOnboardingFlow.jsx';
 import LanguageToggle from './components/atoms/LanguageToggle.tsx';
-
-const appShellStyle = {
-  fontFamily: 'OpenDyslexic, Open Sans, sans-serif',
-  padding: '1rem',
-  maxWidth: '1200px',
-  margin: '0 auto'
-};
+import { useTheme } from './core/context/ThemeContext';
 
 function AppHeader() {
   const { t } = useTranslation();
   const { selections, updateSelections } = useOnboardingFlow();
+  const { theme } = useTheme();
 
   const ttsEnabled = selections?.accessibility?.tts ?? false;
   const toggleTts = () => updateSelections('accessibility', { tts: !ttsEnabled });
@@ -38,12 +34,28 @@ function AppHeader() {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        gap: '0.75rem',
+        gap: theme.spacing.md,
         flexWrap: 'wrap'
       }}
     >
-      <h1 style={{ margin: 0 }}>{t('appName')}</h1>
-      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+      <h1
+        style={{
+          margin: 0,
+          color: theme.colors.text,
+          fontFamily: theme.typography.heading.family,
+          fontWeight: theme.typography.heading.weight
+        }}
+      >
+        {t('appName')}
+      </h1>
+      <div
+        style={{
+          display: 'flex',
+          gap: theme.spacing.sm,
+          alignItems: 'center',
+          flexWrap: 'wrap'
+        }}
+      >
         {/* Predictable header control: keep the language toggle pinned in the same place. */}
         <LanguageToggle placement="header" />
         {/* Predictable header control: align the TTS toggle with the language control. */}
@@ -52,12 +64,13 @@ function AppHeader() {
           onClick={toggleTts}
           aria-label={t('onboarding.ttsToggle.aria')}
           style={{
-            padding: '0.5rem 0.75rem',
-            border: '1px solid #ccc',
-            borderRadius: '8px',
+            padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
+            border: `1px solid ${theme.colors.border}`,
+            borderRadius: theme.shape.radiusSm,
             cursor: 'pointer',
-            background: ttsEnabled ? '#eef2ff' : '#fff',
-            color: ttsEnabled ? '#1d2f6f' : '#222'
+            background: ttsEnabled ? theme.colors.surface : theme.colors.background,
+            color: ttsEnabled ? theme.colors.accent : theme.colors.text,
+            fontFamily: theme.typography.body.family
           }}
         >
           {t('onboarding.accessibility.tts')}
@@ -68,8 +81,20 @@ function AppHeader() {
 }
 
 function AppLayout() {
+  const { theme } = useTheme();
+
   return (
-    <div className="app-container" style={appShellStyle}>
+    <div
+      className="app-container"
+      style={{
+        fontFamily: theme.typography.body.family,
+        padding: theme.spacing.lg,
+        maxWidth: '1200px',
+        margin: '0 auto',
+        color: theme.colors.text,
+        backgroundColor: theme.colors.background
+      }}
+    >
       <AppHeader />
       <Outlet />
     </div>
@@ -85,14 +110,15 @@ function OnboardingRoute() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { isOnboardingComplete } = useOnboardingFlow();
+  const { theme } = useTheme();
 
   if (isOnboardingComplete) {
     return <Navigate to="/tasks" replace />;
   }
 
   return (
-    <section style={{ marginTop: '1rem' }}>
-      <p style={{ color: '#444' }}>{t('onboarding.intro')}</p>
+    <section style={{ marginTop: theme.spacing.lg }}>
+      <p style={{ color: theme.colors.muted }}>{t('onboarding.intro')}</p>
       <OnboardingFlow onComplete={() => navigate('/tasks', { replace: true })} />
     </section>
   );
@@ -103,6 +129,7 @@ function TabsLayout() {
   const { isOnboardingComplete } = useOnboardingFlow();
   const navigate = useNavigate();
   const location = useLocation();
+  const { theme } = useTheme();
 
   const navItems = useMemo(
     () => [
@@ -120,14 +147,14 @@ function TabsLayout() {
   }
 
   return (
-    <div style={{ marginTop: '1rem' }}>
+    <div style={{ marginTop: theme.spacing.lg }}>
       <NavBar
         items={navItems}
         activeKey={location.pathname.replace('/', '') || 'tasks'}
         onNavigate={(key) => navigate(`/${key}`)}
         languageToggle={<LanguageToggle placement="nav" />}
       />
-      <main style={{ marginTop: '1rem' }}>
+      <main style={{ marginTop: theme.spacing.lg }}>
         <Outlet />
       </main>
     </div>
@@ -170,5 +197,11 @@ function AppRouter() {
 }
 
 export default function App() {
-  return <AppRouter />;
+  const { paperTheme } = useTheme();
+
+  return (
+    <PaperProvider theme={paperTheme}>
+      <AppRouter />
+    </PaperProvider>
+  );
 }
