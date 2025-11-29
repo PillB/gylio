@@ -3,7 +3,20 @@
   "welcome": "Bienvenido",
   "tasks": {
     "title": "Chamba",
-    "description": "Crea tareas, divídelas en pasos y mantén el progreso ligero."
+    "description": "Crea tareas, divídelas en pasos y mantén el progreso ligero.",
+    "chunkedListAria": "Lista de tareas en bloques",
+    "chunkLabel": "Bloque {{index}}",
+    "empty": "Aún no hay tareas.",
+    "stepCount": "{{count}} pasos",
+    "checkboxAria": "Alternar finalización para {{title}}",
+    "focusAreaAria": "Controles de Pomodoro y enfoque",
+    "focusHeading": "Bloques de enfoque",
+    "focusHelper": "Elige un preset para acompañar tu checklist.",
+    "focusDuration": "{{minutes}} min",
+    "startFocus": "Iniciar enfoque de {{minutes}} minutos",
+    "completedLabel": "completada",
+    "reopenedLabel": "reabierta",
+    "completionAnnouncement": "{{title}} marcada como {{status}}"
   },
   "calendar": "Calendario",
   "theme": {

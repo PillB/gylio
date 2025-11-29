@@ -10,7 +10,7 @@ import {
 } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import NavBar from './components/NavBar.jsx';
-import TaskList from './components/TaskList.jsx';
+import TaskList from './features/tasks/components/TaskList';
 import CalendarView from './components/CalendarView.jsx';
 import BudgetView from './components/BudgetView.jsx';
 import RewardsView from './components/RewardsView.jsx';
