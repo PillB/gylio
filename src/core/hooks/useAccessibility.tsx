@@ -89,12 +89,16 @@ function useAccessibilityInternal(): AccessibilityContextValue {
   }, [isTinted]);
 
   useEffect(() => {
+    if (!hasHydratedPrefsRef.current) return;
+
     AsyncStorage.setItem(REDUCE_MOTION_STORAGE_KEY, reduceMotionEnabled ? 'true' : 'false').catch(() => {
       // Ignore persistence issues to avoid blocking UI.
     });
   }, [reduceMotionEnabled]);
 
   useEffect(() => {
+    if (!hasHydratedPrefsRef.current) return;
+
     AsyncStorage.setItem(ANIMATIONS_STORAGE_KEY, animationsEnabled ? 'true' : 'false').catch(() => {
       // Ignore persistence issues to avoid blocking UI.
     });
