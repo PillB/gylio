@@ -10,7 +10,8 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      'react-native$': 'react-native-web'
+      'react-native$': 'react-native-web',
+      'expo-sqlite': '/src/core/shims/expo-sqlite-web'
     }
   },
   server: {
