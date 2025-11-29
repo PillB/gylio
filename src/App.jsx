@@ -19,7 +19,7 @@ import OnboardingFlow from './onboarding/OnboardingFlow.jsx';
 import useOnboardingFlow from './hooks/useOnboardingFlow.jsx';
 import LanguageToggle from './components/atoms/LanguageToggle.tsx';
 import { useTheme } from './core/context/ThemeContext';
-import useAccessibility from './core/hooks/useAccessibility';
+import TintLayer from './components/TintLayer.jsx';
 
 function AppHeader() {
   const { t } = useTranslation();
@@ -83,23 +83,10 @@ function AppHeader() {
 
 function AppLayout() {
   const { theme } = useTheme();
-  const { isTinted } = useAccessibility();
 
   return (
     <div style={{ position: 'relative' }}>
-      {isTinted && (
-        <div
-          aria-hidden
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(255, 140, 0, 0.12)',
-            mixBlendMode: 'multiply',
-            pointerEvents: 'none',
-            zIndex: 1
-          }}
-        />
-      )}
+      <TintLayer />
       <div
         className="app-container"
         style={{
