@@ -8,6 +8,8 @@
     "chunkLabel": "Chunk {{index}}",
     "empty": "No tasks yet.",
     "stepCount": "{{count}} steps",
+    "complete": "Mark {{title}} complete",
+    "uncomplete": "Mark {{title}} incomplete",
     "checkboxAria": "Toggle completion for {{title}}",
     "focusAreaAria": "Pomodoro and focus controls",
     "focusHeading": "Focus blocks",

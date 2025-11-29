@@ -135,27 +135,36 @@ const TaskList: React.FC = () => {
                   {t('tasks.chunkLabel', { index: index + 1 })}
                 </p>
                 <div style={{ display: 'grid', gap: '0.5rem' }}>
-                  {group.map((task) => (
-                    <div key={task.id} role="listitem">
-                      <Checkbox
-                        id={`task-${task.id}`}
-                        label={task.title}
-                        helperText={task.steps.length ? t('tasks.stepCount', { count: task.steps.length }) : undefined}
-                        ariaLabel={t('tasks.checkboxAria', { title: task.title })}
-                        checked={task.status === 'completed'}
-                        onChange={() => toggleTaskStatus(task.id)}
-                      />
-                      {task.steps.length > 0 && (
-                        <ul style={{ margin: '0 0 0 2.25rem', padding: 0, listStyle: 'disc', color: '#444' }}>
-                          {task.steps.map((step, idx) => (
-                            <li key={`${task.id}-step-${idx.toString()}`} style={{ marginBottom: '0.25rem' }}>
-                              {step}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  ))}
+                  {group.map((task) => {
+                    const isCompleted = task.status === 'completed';
+                    const actionLabel = isCompleted
+                      ? t('tasks.uncomplete', { title: task.title })
+                      : t('tasks.complete', { title: task.title });
+
+                    return (
+                      <div key={task.id} role="listitem">
+                        <Checkbox
+                          id={`task-${task.id}`}
+                          label={task.title}
+                          helperText={task.steps.length ? t('tasks.stepCount', { count: task.steps.length }) : undefined}
+                          ariaLabel={actionLabel}
+                          checked={isCompleted}
+                          checkedAnnouncement={t('tasks.complete', { title: task.title })}
+                          uncheckedAnnouncement={t('tasks.uncomplete', { title: task.title })}
+                          onChange={() => toggleTaskStatus(task.id)}
+                        />
+                        {task.steps.length > 0 && (
+                          <ul style={{ margin: '0 0 0 2.25rem', padding: 0, listStyle: 'disc', color: '#444' }}>
+                            {task.steps.map((step, idx) => (
+                              <li key={`${task.id}-step-${idx.toString()}`} style={{ marginBottom: '0.25rem' }}>
+                                {step}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             ))

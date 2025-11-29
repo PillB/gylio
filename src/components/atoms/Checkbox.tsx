@@ -11,6 +11,8 @@ export type CheckboxProps = {
   helperTextKey?: string;
   checked: boolean;
   ariaLabel?: string;
+  checkedAnnouncement?: string;
+  uncheckedAnnouncement?: string;
   disabled?: boolean;
   onChange: (checked: boolean) => void;
 };
@@ -91,6 +93,8 @@ const Checkbox: React.FC<CheckboxProps> = ({
   helperTextKey,
   checked,
   ariaLabel,
+  checkedAnnouncement,
+  uncheckedAnnouncement,
   disabled = false,
   onChange
 }) => {
@@ -120,15 +124,21 @@ const Checkbox: React.FC<CheckboxProps> = ({
       const nextChecked = event.target.checked;
       onChange(nextChecked);
 
-      const statusText = nextChecked ? t('checkbox.checked') : t('checkbox.unchecked');
-      const announcement = t('checkbox.stateChange', {
-        label: resolvedLabel,
-        state: statusText
-      });
+      const announcement = nextChecked
+        ? checkedAnnouncement ||
+          t('checkbox.stateChange', {
+            label: resolvedLabel,
+            state: t('checkbox.checked')
+          })
+        : uncheckedAnnouncement ||
+          t('checkbox.stateChange', {
+            label: resolvedLabel,
+            state: t('checkbox.unchecked')
+          });
 
       void speak(announcement);
     },
-    [onChange, resolvedLabel, speak, t]
+    [checkedAnnouncement, onChange, resolvedLabel, speak, t, uncheckedAnnouncement]
   );
 
   return (
