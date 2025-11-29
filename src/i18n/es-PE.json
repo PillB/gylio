@@ -8,6 +8,8 @@
     "chunkLabel": "Bloque {{index}}",
     "empty": "Aún no hay tareas.",
     "stepCount": "{{count}} pasos",
+    "complete": "Marcar {{title}} como completada",
+    "uncomplete": "Marcar {{title}} como pendiente",
     "checkboxAria": "Alternar finalización para {{title}}",
     "focusAreaAria": "Controles de Pomodoro y enfoque",
     "focusHeading": "Bloques de enfoque",
