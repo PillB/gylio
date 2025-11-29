@@ -31,6 +31,8 @@ function OnboardingFlow({ onComplete, onToggleLanguage, languageLabel }) {
 
   const stepKey = currentStepKey;
   const CurrentStepComponent = useMemo(() => stepComponents[stepKey], [stepKey]);
+  const stepPredictableNote = t(`onboarding.predictableSteps.${stepKey}`);
+  const languageAriaLabel = t('onboarding.languageToggle.aria', { language: languageLabel });
 
   const handleNext = () => {
     if (!validators[stepKey](selections[stepKey])) {
@@ -84,6 +86,8 @@ function OnboardingFlow({ onComplete, onToggleLanguage, languageLabel }) {
           <button
             type="button"
             onClick={onToggleLanguage}
+            aria-label={languageAriaLabel}
+            title={t('onboarding.languageToggle.helper')}
             style={{
               alignSelf: 'flex-start',
               padding: '0.4rem 0.75rem',
@@ -91,11 +95,16 @@ function OnboardingFlow({ onComplete, onToggleLanguage, languageLabel }) {
               borderRadius: '8px',
               cursor: 'pointer'
             }}
-            aria-label={languageLabel}
           >
             {languageLabel}
           </button>
         </header>
+
+        <div style={{ margin: '0.35rem 0 0.75rem', color: '#4a4a4a' }}>
+          <p style={{ margin: 0 }}>{t('onboarding.flow.autosave')}</p>
+          <p style={{ margin: '0.25rem 0 0' }}>{t('onboarding.flow.resume')}</p>
+          <p style={{ margin: '0.25rem 0 0' }}>{stepPredictableNote}</p>
+        </div>
 
         <CurrentStepComponent
           data={selections[stepKey]}
@@ -138,6 +147,9 @@ function OnboardingFlow({ onComplete, onToggleLanguage, languageLabel }) {
               : t('onboarding.next')}
           </button>
         </footer>
+        {!canProceed && (
+          <p style={{ margin: '0.5rem 0 0', color: '#a33' }}>{t('onboarding.flow.validationReminder')}</p>
+        )}
       </section>
 
       <OnboardingSummary selections={selections} t={t} />

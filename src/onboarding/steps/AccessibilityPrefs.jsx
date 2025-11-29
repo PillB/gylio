@@ -31,6 +31,8 @@ function AccessibilityPrefs({ data, onUpdate, t }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <p style={{ margin: 0, color: '#4a4a4a' }}>{t('onboarding.accessibility.helper')}</p>
+
       <div>
         <h3 style={{ margin: '0 0 0.5rem' }}>{t('onboarding.accessibility.readability')}</h3>
         <div style={{ display: 'grid', gap: '0.5rem', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
@@ -61,9 +63,11 @@ function AccessibilityPrefs({ data, onUpdate, t }) {
           type="checkbox"
           checked={data.tts}
           onChange={(e) => onUpdate({ tts: e.target.checked })}
+          aria-label={t('onboarding.ttsToggle.aria')}
         />
         <span>{t('onboarding.accessibility.tts')}</span>
       </label>
+      <small style={{ color: '#666' }}>{t('onboarding.accessibility.ttsHelper')}</small>
     </div>
   );
 }

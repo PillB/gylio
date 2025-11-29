@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 function MiniTour({ data, onUpdate, t }) {
   return (
     <div style={{ display: 'grid', gap: '0.75rem' }}>
+      <p style={{ margin: 0, color: '#4a4a4a' }}>{t('onboarding.tour.helper')}</p>
       <p style={{ margin: 0, color: '#333' }}>{t('onboarding.tour.summary')}</p>
       <ul style={{ margin: 0, paddingLeft: '1.2rem', color: '#444' }}>
         <li>{t('onboarding.tour.items.tasks')}</li>

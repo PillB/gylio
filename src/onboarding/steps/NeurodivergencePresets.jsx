@@ -15,6 +15,7 @@ function NeurodivergencePresets({ data, onUpdate, t }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <p style={{ margin: 0, color: '#4a4a4a' }}>{t('onboarding.neurodivergence.helper')}</p>
       <div>
         <h3 style={{ margin: '0 0 0.5rem' }}>{t('onboarding.neurodivergence.presetHeading')}</h3>
         <div style={{ display: 'grid', gap: '0.5rem', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>

@@ -12,6 +12,8 @@
   "stepPrompt": "Enter a sub-step",
   "pomodoroSection": "Pomodoro timers and checklist progress bars will appear here.",
   "languageToggle": "Español",
+  "languageToggleHelper": "Switch languages without leaving onboarding. The toggle stays in the same predictable spot.",
+  "ttsToggleHelper": "Turn text-to-speech reminders on or off from accessibility preferences.",
   "tasksDescription": "Create tasks, break them into steps, and keep progress lightweight.",
   "calendarPlaceholder": "The calendar will display colour‑coded events with TTS reminders.",
   "budgetPlaceholder": "Budget tools will track income and expenses, categorize them and simulate debt payoff.",
@@ -26,12 +28,33 @@
     "intro": "Complete this quick onboarding to unlock Tasks, Calendar, Budget, Rewards, and Settings.",
     "progress": "Step {{current}} of {{total}}",
     "stepSection": "Onboarding step",
+    "flow": {
+      "autosave": "Your progress saves after each change so you can pause and return.",
+      "resume": "We reopen the exact step you left on to keep the sequence predictable.",
+      "validationReminder": "Finish the current step to enable Next.",
+      "reset": "Start over"
+    },
+    "predictableSteps": {
+      "accessibility": "Step 1 of 4: Choose text, contrast, motion, and TTS before moving on.",
+      "neurodivergence": "Step 2 of 4: Pick a preset and supports to seed recommendations.",
+      "quickSetup": "Step 3 of 4: Enter one goal and a starter budget to populate dashboards.",
+      "tour": "Step 4 of 4: Confirm navigation and reminder preferences so you know where to return."
+    },
+    "languageToggle": {
+      "aria": "Toggle app language. Button shows the destination language: {{language}}.",
+      "helper": "Keep the language toggle visible for predictable navigation."
+    },
+    "ttsToggle": {
+      "aria": "Toggle text-to-speech reminders for accessible alerts.",
+      "helper": "Spoken reminders can be switched on or off at any time."
+    },
     "next": "Next",
     "back": "Back",
     "finish": "Finish",
     "accessibility": {
       "title": "Accessibility preferences",
       "subtitle": "Select the reading and sensory options that keep you comfortable.",
+      "helper": "We apply these readability and sensory settings everywhere for a consistent, predictable layout.",
       "readability": "Readability",
       "dyslexicFont": "OpenDyslexic style",
       "standardFont": "Standard body text",
@@ -42,11 +65,13 @@
       "motion": "Motion",
       "reduceMotion": "Reduce motion",
       "allowMotion": "Allow gentle motion",
-      "tts": "Enable text-to-speech reminders"
+      "tts": "Enable text-to-speech reminders",
+      "ttsHelper": "Keep audible cues on if you prefer reminders read aloud."
     },
     "neurodivergence": {
       "title": "Neurodivergence presets",
       "subtitle": "Choose a preset to pre-load supportive defaults.",
+      "helper": "Pick one starting point; you can adjust supports later without losing predictability.",
       "presetHeading": "Pick a preset",
       "supportsHeading": "Which supports help most?",
       "adhd": {
@@ -75,6 +100,7 @@
     "quickSetup": {
       "title": "Quick goals and budget",
       "subtitle": "Capture one goal and a starter budget to populate your dashboards.",
+      "helper": "We only ask for one goal and a simple budget so you can finish quickly and keep steps predictable.",
       "goalLabel": "What should we help you achieve first?",
       "goalPlaceholder": "Example: Finish the midterm project before Friday",
       "goalHint": "We will create a starter task and reminders based on this goal.",
@@ -88,6 +114,7 @@
     "tour": {
       "title": "Mini tour",
       "subtitle": "Confirm you know where things live and if you want gentle reminders.",
+      "helper": "This final step confirms navigation so the app always opens to predictable dashboards.",
       "summary": "You will see dashboards for Tasks, Calendar, Budget, and Rewards once you finish this step.",
       "items": {
         "tasks": "Tasks: break projects into friendly steps.",

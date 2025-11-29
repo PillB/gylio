@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 function QuickSetup({ data, onUpdate, t }) {
   return (
     <div style={{ display: 'grid', gap: '1rem' }}>
+      <p style={{ margin: 0, color: '#4a4a4a' }}>{t('onboarding.quickSetup.helper')}</p>
       <div>
         <label style={{ display: 'grid', gap: '0.35rem' }}>
           <span style={{ fontWeight: 600 }}>{t('onboarding.quickSetup.goalLabel')}</span>
