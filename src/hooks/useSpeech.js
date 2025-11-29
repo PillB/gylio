@@ -1,5 +1,3 @@
-import * as Speech from 'expo-speech';
-
 /**
  * useSpeech
  *
@@ -9,9 +7,23 @@ import * as Speech from 'expo-speech';
  * should guard against undefined behaviour by checking for Speech.speak.
  */
 export function useSpeech() {
+  let speechModule;
+
   const speak = (text) => {
-    if (Speech && typeof Speech.speak === 'function') {
-      Speech.speak(text, { language: 'en' });
+    if (!speechModule) {
+      try {
+        // Lazy-load to avoid import errors in environments without Expo Speech
+        // support (e.g., web). This keeps the API synchronous for consumers.
+        // eslint-disable-next-line global-require
+        speechModule = require('expo-speech');
+      } catch (error) {
+        console.warn('TTS is not available in this environment');
+        return;
+      }
+    }
+
+    if (speechModule && typeof speechModule.speak === 'function') {
+      speechModule.speak(text, { language: 'en' });
     } else {
       console.warn('TTS is not available in this environment');
     }
