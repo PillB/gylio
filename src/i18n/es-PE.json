@@ -6,6 +6,11 @@
     "description": "Crea tareas, divídelas en pasos y mantén el progreso ligero."
   },
   "calendar": "Calendario",
+  "theme": {
+    "light": "Claro",
+    "dark": "Oscuro",
+    "highContrast": "Alto contraste"
+  },
   "budget": {
     "title": "Presupuesto",
     "placeholder": "Las herramientas de presupuesto seguirán ingresos y gastos, los categorizarán y simularán el pago de deudas.",
@@ -49,6 +54,15 @@
   "settingsMotionOption": "Reducir o habilitar animaciones.",
   "settingsTtsOption": "Activar o desactivar recordatorios de texto a voz.",
   "settingsGamificationOption": "Mostrar u ocultar puntos y rachas.",
+  "settingsThemeLabel": "Modo de tema",
+  "settingsThemeHelper": "Elige claro, oscuro o alto contraste para reducir el esfuerzo visual.",
+  "settingsFontLabel": "Estilo de lectura",
+  "settingsFontHelper": "Cambia a fuentes amigables con la dislexia o texto más grande para una lectura estable.",
+  "settingsMotionLabel": "Preferencia de movimiento",
+  "settingsMotionHelper": "Reduce el movimiento para bajar la carga sensorial; solo animamos lo esencial.",
+  "settingsTtsLabel": "Recordatorios de texto a voz",
+  "settingsTtsHelper": "Mantén las señales audibles si prefieres que te lean los recordatorios.",
+  "settingsCurrentValue": "Actual: {{value}}",
   "onboarding": {
     "intro": "Completa este onboarding rápido para desbloquear Tareas, Calendario, Presupuesto, Recompensas y Configuración.",
     "progress": "Paso {{current}} de {{total}}",

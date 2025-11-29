@@ -14,12 +14,21 @@ type AccessibilityContextValue = {
   isSpeaking: boolean;
   toggleTint: () => void;
   isTinted: boolean;
+  motionPreference: MotionPreference;
+  setMotionPreference: (preference: MotionPreference) => void;
+  textStylePreference: TextStylePreference;
+  setTextStylePreference: (preference: TextStylePreference) => void;
+  ttsEnabled: boolean;
+  setTtsEnabled: (enabled: boolean) => void;
 };
+
+type MotionPreference = 'reduced' | 'standard' | '';
+type TextStylePreference = 'dyslexic' | 'standard' | 'large' | '';
 
 const AccessibilityContext = createContext<AccessibilityContextValue | null>(null);
 
 function useAccessibilityInternal(): AccessibilityContextValue {
-  const { selections, hydrated } = useOnboardingFlow();
+  const { selections, hydrated, updateSelections } = useOnboardingFlow();
   const [isTinted, setIsTinted] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const speechModuleRef = useRef<SpeechModule | null>(null);
@@ -46,7 +55,16 @@ function useAccessibilityInternal(): AccessibilityContextValue {
     isSpeakingRef.current = isSpeaking;
   }, [isSpeaking]);
 
-  const ttsOptIn = useMemo(() => hydrated && Boolean(selections?.accessibility?.tts), [hydrated, selections]);
+  const motionPreference = useMemo<MotionPreference>(
+    () => selections?.accessibility?.motion ?? '',
+    [selections]
+  );
+  const textStylePreference = useMemo<TextStylePreference>(
+    () => selections?.accessibility?.textStyle ?? '',
+    [selections]
+  );
+  const ttsEnabled = useMemo(() => Boolean(selections?.accessibility?.tts), [selections]);
+  const ttsOptIn = useMemo(() => hydrated && ttsEnabled, [hydrated, ttsEnabled]);
 
   const loadSpeechModule = useCallback(async () => {
     if (speechModuleRef.current) return speechModuleRef.current;
@@ -113,11 +131,32 @@ function useAccessibilityInternal(): AccessibilityContextValue {
     setIsTinted((prev) => !prev);
   }, []);
 
+  const setMotionPreference = useCallback(
+    (preference: MotionPreference) => updateSelections('accessibility', { motion: preference }),
+    [updateSelections]
+  );
+
+  const setTextStylePreference = useCallback(
+    (preference: TextStylePreference) => updateSelections('accessibility', { textStyle: preference }),
+    [updateSelections]
+  );
+
+  const setTtsEnabled = useCallback(
+    (enabled: boolean) => updateSelections('accessibility', { tts: enabled }),
+    [updateSelections]
+  );
+
   return {
     speak,
     isSpeaking,
     toggleTint,
-    isTinted
+    isTinted,
+    motionPreference,
+    setMotionPreference,
+    textStylePreference,
+    setTextStylePreference,
+    ttsEnabled,
+    setTtsEnabled
   };
 }
 
