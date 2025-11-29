@@ -1,9 +1,16 @@
 {
   "appName": "GYLIO",
   "welcome": "Bienvenido",
-  "tasks": "Tareas",
+  "tasks": {
+    "title": "Chamba",
+    "description": "Crea tareas, divídelas en pasos y mantén el progreso ligero."
+  },
   "calendar": "Calendario",
-  "budget": "Presupuesto",
+  "budget": {
+    "title": "Presupuesto",
+    "placeholder": "Las herramientas de presupuesto seguirán ingresos y gastos, los categorizarán y simularán el pago de deudas.",
+    "debtSnowball": "Proyecciones de pago con método bola de nieve y coaching de presupuesto aparecerán aquí."
+  },
   "rewards": "Recompensas",
   "settings": "Configuración",
   "addTask": "Agregar tarea",
@@ -14,9 +21,7 @@
   "languageToggle": "English",
   "languageToggleHelper": "Cambia de idioma sin salir del onboarding. El conmutador se mantiene en el mismo lugar predecible.",
   "ttsToggleHelper": "Activa o desactiva recordatorios de texto a voz desde accesibilidad.",
-  "tasksDescription": "Crea tareas, divídelas en pasos y mantén el progreso ligero.",
   "calendarPlaceholder": "El calendario mostrará eventos codificados por colores con recordatorios de TTS.",
-  "budgetPlaceholder": "Las herramientas de presupuesto seguirán ingresos y gastos, los categorizarán y simularán el pago de deudas.",
   "rewardsPlaceholder": "Aquí aparecerán puntos y rachas. La gamificación es opcional.",
   "settingsDescription": "Personaliza accesibilidad y controla la gamificación.",
   "settingsFontOption": "Elegir entre fuente estándar y amigable para dislexia.",

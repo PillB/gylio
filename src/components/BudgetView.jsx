@@ -14,9 +14,9 @@ const BudgetView = () => {
   const { t } = useTranslation();
   return (
     <SectionCard
-      ariaLabel={`${t('budget')} module`}
-      title={t('budget')}
-      subtitle={t('budgetPlaceholder') || ''}
+      ariaLabel={`${t('budget.title')} module`}
+      title={t('budget.title')}
+      subtitle={`${t('budget.placeholder')} ${t('budget.debtSnowball')}`}
     />
   );
 };

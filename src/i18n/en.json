@@ -1,9 +1,16 @@
 {
   "appName": "GYLIO",
   "welcome": "Welcome",
-  "tasks": "Tasks",
+  "tasks": {
+    "title": "Tasks",
+    "description": "Create tasks, break them into steps, and keep progress lightweight."
+  },
   "calendar": "Calendar",
-  "budget": "Budget",
+  "budget": {
+    "title": "Budget",
+    "placeholder": "Budget tools will track income and expenses, categorize them and simulate debt payoff.",
+    "debtSnowball": "Debt snowball coaching and payoff projections will appear here alongside your budget overview."
+  },
   "rewards": "Rewards",
   "settings": "Settings",
   "addTask": "Add Task",
@@ -14,9 +21,7 @@
   "languageToggle": "Español",
   "languageToggleHelper": "Switch languages without leaving onboarding. The toggle stays in the same predictable spot.",
   "ttsToggleHelper": "Turn text-to-speech reminders on or off from accessibility preferences.",
-  "tasksDescription": "Create tasks, break them into steps, and keep progress lightweight.",
   "calendarPlaceholder": "The calendar will display colour‑coded events with TTS reminders.",
-  "budgetPlaceholder": "Budget tools will track income and expenses, categorize them and simulate debt payoff.",
   "rewardsPlaceholder": "Points and streaks will appear here. Gamification is optional.",
   "settingsDescription": "Personalise accessibility preferences and control gamification.",
   "settingsFontOption": "Choose between standard and dyslexia‑friendly fonts.",

@@ -7,6 +7,7 @@ import NeurodivergencePresets from './steps/NeurodivergencePresets.jsx';
 import QuickSetup from './steps/QuickSetup.jsx';
 import MiniTour from './steps/MiniTour.jsx';
 import OnboardingSummary from './OnboardingSummary.jsx';
+import LanguageToggle from '../components/atoms/LanguageToggle.tsx';
 
 const validators = {
   accessibility: (state) =>
@@ -24,7 +25,7 @@ const stepComponents = {
   tour: MiniTour
 };
 
-function OnboardingFlow({ onComplete, onToggleLanguage, languageLabel }) {
+function OnboardingFlow({ onComplete }) {
   const { t } = useTranslation();
   const { currentStep, currentStepKey, selections, updateSelections, completeStep, goToPreviousStep } =
     useOnboardingFlow();
@@ -32,7 +33,6 @@ function OnboardingFlow({ onComplete, onToggleLanguage, languageLabel }) {
   const stepKey = currentStepKey;
   const CurrentStepComponent = useMemo(() => stepComponents[stepKey], [stepKey]);
   const stepPredictableNote = t(`onboarding.predictableSteps.${stepKey}`);
-  const languageAriaLabel = t('onboarding.languageToggle.aria', { language: languageLabel });
 
   const handleNext = () => {
     if (!validators[stepKey](selections[stepKey])) {
@@ -83,21 +83,7 @@ function OnboardingFlow({ onComplete, onToggleLanguage, languageLabel }) {
             <h2 style={{ margin: '0.25rem 0' }}>{t(`onboarding.${stepKey}.title`)}</h2>
             <p style={{ margin: 0, color: '#555' }}>{t(`onboarding.${stepKey}.subtitle`)}</p>
           </div>
-          <button
-            type="button"
-            onClick={onToggleLanguage}
-            aria-label={languageAriaLabel}
-            title={t('onboarding.languageToggle.helper')}
-            style={{
-              alignSelf: 'flex-start',
-              padding: '0.4rem 0.75rem',
-              border: '1px solid #ccc',
-              borderRadius: '8px',
-              cursor: 'pointer'
-            }}
-          >
-            {languageLabel}
-          </button>
+          <LanguageToggle placement="inline" />
         </header>
 
         <div style={{ margin: '0.35rem 0 0.75rem', color: '#4a4a4a' }}>
@@ -158,9 +144,7 @@ function OnboardingFlow({ onComplete, onToggleLanguage, languageLabel }) {
 }
 
 OnboardingFlow.propTypes = {
-  onComplete: PropTypes.func.isRequired,
-  onToggleLanguage: PropTypes.func.isRequired,
-  languageLabel: PropTypes.string.isRequired
+  onComplete: PropTypes.func.isRequired
 };
 
 export default OnboardingFlow;
