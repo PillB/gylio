@@ -252,6 +252,8 @@ const useDB = () => {
           const next: Task = {
             ...current,
             ...updates,
+            title: updates.title ?? current.title,
+            status: updates.status ?? current.status,
             description: updates.description ?? current.description,
             dueDate: updates.dueDate ?? current.dueDate,
           };
@@ -359,6 +361,8 @@ const useDB = () => {
           const next: Event = {
             ...current,
             ...updates,
+            title: updates.title ?? current.title,
+            startDate: updates.startDate ?? current.startDate,
             description: updates.description ?? current.description,
             endDate: updates.endDate ?? current.endDate,
             location: updates.location ?? current.location,
@@ -461,6 +465,9 @@ const useDB = () => {
           const next: Budget = {
             ...current,
             ...updates,
+            category: updates.category ?? current.category,
+            amount: updates.amount ?? current.amount,
+            period: updates.period ?? current.period,
             notes: updates.notes ?? current.notes,
           };
           tx.executeSql(
@@ -561,6 +568,8 @@ const useDB = () => {
           const next: Reward = {
             ...current,
             ...updates,
+            title: updates.title ?? current.title,
+            pointsRequired: updates.pointsRequired ?? current.pointsRequired,
             description: updates.description ?? current.description,
             redeemed: updates.redeemed ?? current.redeemed,
           };
