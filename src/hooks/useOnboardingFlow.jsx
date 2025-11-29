@@ -6,6 +6,7 @@ import React, {
   useMemo,
   useState
 } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const stepOrder = ['accessibility', 'neurodivergence', 'quickSetup', 'tour'];
 
@@ -41,94 +42,77 @@ const createInitialState = () => ({
   isOnboardingComplete: false
 });
 
-const persistLocalState = (payload) => {
-  if (typeof window === 'undefined' || !window.localStorage) return;
+const getStorage = () => {
+  if (AsyncStorage && typeof AsyncStorage.getItem === 'function') {
+    return AsyncStorage;
+  }
+
+  if (typeof window !== 'undefined' && window?.localStorage) {
+    return {
+      getItem: (key) => Promise.resolve(window.localStorage.getItem(key)),
+      setItem: (key, value) => Promise.resolve(window.localStorage.setItem(key, value)),
+      removeItem: (key) => Promise.resolve(window.localStorage.removeItem(key))
+    };
+  }
+
+  return null;
+};
+
+const loadPersistedState = async () => {
+  const storage = getStorage();
+  if (!storage) return null;
+
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    const stored = await storage.getItem(STORAGE_KEY);
+    return stored ? JSON.parse(stored) : null;
   } catch (error) {
-    console.error('Unable to persist onboarding flow state to localStorage', error);
+    console.warn('Failed to parse onboarding flow state from storage', error);
+    return null;
   }
 };
 
-const persistSqliteState = (payload) => {
-  if (typeof window === 'undefined' || typeof window.openDatabase !== 'function') return;
+const persistStateToStorage = async (payload) => {
+  const storage = getStorage();
+  if (!storage) return;
 
-  const db = window.openDatabase('onboardingFlow', '1.0', 'Onboarding flow cache', 2 * 1024 * 1024);
-  db.transaction((tx) => {
-    tx.executeSql('CREATE TABLE IF NOT EXISTS onboarding_state (id INTEGER PRIMARY KEY, state TEXT)');
-    tx.executeSql('DELETE FROM onboarding_state WHERE id = 1');
-    tx.executeSql('INSERT INTO onboarding_state (id, state) VALUES (1, ?)', [JSON.stringify(payload)]);
-  });
+  try {
+    await storage.setItem(STORAGE_KEY, JSON.stringify(payload));
+  } catch (error) {
+    console.error('Unable to persist onboarding flow state to storage', error);
+  }
 };
-
-const readSqliteState = () =>
-  new Promise((resolve) => {
-    if (typeof window === 'undefined' || typeof window.openDatabase !== 'function') {
-      resolve(null);
-      return;
-    }
-
-    const db = window.openDatabase('onboardingFlow', '1.0', 'Onboarding flow cache', 2 * 1024 * 1024);
-    db.transaction((tx) => {
-      tx.executeSql(
-        'CREATE TABLE IF NOT EXISTS onboarding_state (id INTEGER PRIMARY KEY, state TEXT)',
-        [],
-        () => {
-          tx.executeSql('SELECT state FROM onboarding_state WHERE id = 1', [], (_tx, result) => {
-            if (result.rows.length === 0) {
-              resolve(null);
-              return;
-            }
-
-            resolve(JSON.parse(result.rows.item(0).state));
-          });
-        },
-        () => resolve(null)
-      );
-    });
-  });
 
 export function OnboardingFlowProvider({ children }) {
   const [state, setState] = useState(createInitialState);
   const [hydrated, setHydrated] = useState(false);
 
   const persistState = useCallback((nextState) => {
-    persistLocalState(nextState);
-    persistSqliteState(nextState);
+    persistStateToStorage(nextState);
   }, []);
 
   useEffect(() => {
-    if (typeof window === 'undefined') {
-      setHydrated(true);
-      return;
-    }
+    let isMounted = true;
 
-    const stored = window.localStorage?.getItem(STORAGE_KEY);
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        setState({
-          currentStep: parsed.currentStep ?? 0,
-          selections: parsed.selections ?? cloneSelections(),
-          isOnboardingComplete: Boolean(parsed.isOnboardingComplete)
-        });
-        setHydrated(true);
-        return;
-      } catch (error) {
-        console.warn('Failed to parse onboarding flow state from localStorage', error);
-      }
-    }
+    const hydrate = async () => {
+      const persistedState = await loadPersistedState();
+      if (!isMounted) return;
 
-    readSqliteState().then((sqliteState) => {
-      if (sqliteState) {
+      if (persistedState) {
         setState({
-          currentStep: sqliteState.currentStep ?? 0,
-          selections: sqliteState.selections ?? cloneSelections(),
-          isOnboardingComplete: Boolean(sqliteState.isOnboardingComplete)
+          currentStep: persistedState.currentStep ?? 0,
+          selections: persistedState.selections ?? cloneSelections(),
+          isOnboardingComplete: Boolean(persistedState.isOnboardingComplete)
         });
       }
+
       setHydrated(true);
-    });
+    };
+
+    hydrate();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   useEffect(() => {
