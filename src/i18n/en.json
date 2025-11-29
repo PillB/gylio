@@ -21,5 +21,104 @@
   "settingsThemeOption": "Toggle light/dark mode.",
   "settingsMotionOption": "Reduce or enable animations.",
   "settingsTtsOption": "Enable or disable text‑to‑speech reminders.",
-  "settingsGamificationOption": "Show or hide points and streaks."
+  "settingsGamificationOption": "Show or hide points and streaks.",
+  "onboarding": {
+    "intro": "Complete this quick onboarding to unlock Tasks, Calendar, Budget, Rewards, and Settings.",
+    "progress": "Step {{current}} of {{total}}",
+    "stepSection": "Onboarding step",
+    "next": "Next",
+    "back": "Back",
+    "finish": "Finish",
+    "accessibility": {
+      "title": "Accessibility preferences",
+      "subtitle": "Select the reading and sensory options that keep you comfortable.",
+      "readability": "Readability",
+      "dyslexicFont": "OpenDyslexic style",
+      "standardFont": "Standard body text",
+      "largeText": "Larger text size",
+      "contrast": "Contrast",
+      "highContrast": "High contrast",
+      "balancedContrast": "Balanced contrast",
+      "motion": "Motion",
+      "reduceMotion": "Reduce motion",
+      "allowMotion": "Allow gentle motion",
+      "tts": "Enable text-to-speech reminders"
+    },
+    "neurodivergence": {
+      "title": "Neurodivergence presets",
+      "subtitle": "Choose a preset to pre-load supportive defaults.",
+      "presetHeading": "Pick a preset",
+      "supportsHeading": "Which supports help most?",
+      "adhd": {
+        "title": "ADHD",
+        "desc": "Chunk tasks, focus timers, gentle alerts."
+      },
+      "asd": {
+        "title": "Autistic",
+        "desc": "Predictable layouts, sensory calm, routine helpers."
+      },
+      "dyslexia": {
+        "title": "Dyslexia",
+        "desc": "Readable fonts, pacing cues, simplified steps."
+      },
+      "auditory": {
+        "title": "Auditory processing",
+        "desc": "Visual cues, captions, and slower speech rate."
+      },
+      "supports": {
+        "focus": "Focus and pacing prompts",
+        "sensory": "Sensory breaks and quiet themes",
+        "time": "Time blindness support",
+        "money": "Money management coaching"
+      }
+    },
+    "quickSetup": {
+      "title": "Quick goals and budget",
+      "subtitle": "Capture one goal and a starter budget to populate your dashboards.",
+      "goalLabel": "What should we help you achieve first?",
+      "goalPlaceholder": "Example: Finish the midterm project before Friday",
+      "goalHint": "We will create a starter task and reminders based on this goal.",
+      "budgetLabel": "Monthly budget focus",
+      "budgetPlaceholder": "Enter an amount",
+      "budgetHint": "Use a round number—we will help you refine categories later.",
+      "preview": "Preview of what will be created:",
+      "previewTasks": "Task list seeded with: {{goal}}",
+      "previewBudget": "Budget tracker set to: {{budget}}"
+    },
+    "tour": {
+      "title": "Mini tour",
+      "subtitle": "Confirm you know where things live and if you want gentle reminders.",
+      "summary": "You will see dashboards for Tasks, Calendar, Budget, and Rewards once you finish this step.",
+      "items": {
+        "tasks": "Tasks: break projects into friendly steps.",
+        "calendar": "Calendar: colour-coded events with reminders.",
+        "budget": "Budget: track income, spending, and payoff progress.",
+        "rewards": "Rewards: optional streaks and points."
+      },
+      "reminders": "Send a brief reminder to return if I pause",
+      "acknowledge": "I understand how to open these sections"
+    },
+    "summary": {
+      "title": "Your selections",
+      "accessibility": "Accessibility",
+      "neurodivergence": "Neurodivergence",
+      "quickSetup": "Quick setup",
+      "tour": "Tour confirmation",
+      "textStyle": "Text style: {{value}}",
+      "contrast": "Contrast: {{value}}",
+      "motion": "Motion: {{value}}",
+      "tts": "Text to speech: {{value}}",
+      "preset": "Preset: {{value}}",
+      "supports": "Supports: {{value}}",
+      "goal": "Goal: {{value}}",
+      "budget": "Budget: {{value}}",
+      "reminders": "Reminders: {{value}}",
+      "acknowledged": "Understands navigation: {{value}}",
+      "none": "None selected",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "yes": "Yes",
+      "no": "No"
+    }
+  }
 }

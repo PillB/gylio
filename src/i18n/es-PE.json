@@ -21,5 +21,104 @@
   "settingsThemeOption": "Alternar modo claro/oscuro.",
   "settingsMotionOption": "Reducir o habilitar animaciones.",
   "settingsTtsOption": "Activar o desactivar recordatorios de texto a voz.",
-  "settingsGamificationOption": "Mostrar u ocultar puntos y rachas."
+  "settingsGamificationOption": "Mostrar u ocultar puntos y rachas.",
+  "onboarding": {
+    "intro": "Completa este onboarding rápido para desbloquear Tareas, Calendario, Presupuesto, Recompensas y Configuración.",
+    "progress": "Paso {{current}} de {{total}}",
+    "stepSection": "Paso de onboarding",
+    "next": "Siguiente",
+    "back": "Atrás",
+    "finish": "Finalizar",
+    "accessibility": {
+      "title": "Preferencias de accesibilidad",
+      "subtitle": "Selecciona las opciones de lectura y sensoriales que te den comodidad.",
+      "readability": "Legibilidad",
+      "dyslexicFont": "Estilo OpenDyslexic",
+      "standardFont": "Texto estándar",
+      "largeText": "Texto más grande",
+      "contrast": "Contraste",
+      "highContrast": "Alto contraste",
+      "balancedContrast": "Contraste equilibrado",
+      "motion": "Movimiento",
+      "reduceMotion": "Reducir movimiento",
+      "allowMotion": "Permitir movimiento suave",
+      "tts": "Activar recordatorios de texto a voz"
+    },
+    "neurodivergence": {
+      "title": "Presets de neurodivergencia",
+      "subtitle": "Elige un preset para precargar ajustes de apoyo.",
+      "presetHeading": "Elige un preset",
+      "supportsHeading": "¿Qué apoyos ayudan más?",
+      "adhd": {
+        "title": "TDAH",
+        "desc": "Dividir tareas, temporizadores de enfoque y alertas suaves."
+      },
+      "asd": {
+        "title": "Autista",
+        "desc": "Diseños predecibles, calma sensorial y ayudantes de rutina."
+      },
+      "dyslexia": {
+        "title": "Dislexia",
+        "desc": "Fuentes legibles, pistas de ritmo y pasos simplificados."
+      },
+      "auditory": {
+        "title": "Procesamiento auditivo",
+        "desc": "Pistas visuales, subtítulos y habla más lenta."
+      },
+      "supports": {
+        "focus": "Pistas de enfoque y ritmo",
+        "sensory": "Pausas sensoriales y temas tranquilos",
+        "time": "Apoyo para ceguera al tiempo",
+        "money": "Coaching de manejo de dinero"
+      }
+    },
+    "quickSetup": {
+      "title": "Meta rápida y presupuesto",
+      "subtitle": "Captura una meta y un presupuesto inicial para poblar tus tableros.",
+      "goalLabel": "¿Qué debemos ayudarte a lograr primero?",
+      "goalPlaceholder": "Ejemplo: Terminar el proyecto del viernes",
+      "goalHint": "Crearemos una tarea inicial y recordatorios basados en esta meta.",
+      "budgetLabel": "Enfoque del presupuesto mensual",
+      "budgetPlaceholder": "Ingresa un monto",
+      "budgetHint": "Usa un número redondo; luego afinaremos categorías.",
+      "preview": "Vista previa de lo que se creará:",
+      "previewTasks": "Lista de tareas con: {{goal}}",
+      "previewBudget": "Seguimiento de presupuesto en: {{budget}}"
+    },
+    "tour": {
+      "title": "Mini tour",
+      "subtitle": "Confirma que sabes dónde está todo y si deseas recordatorios suaves.",
+      "summary": "Verás los tableros de Tareas, Calendario, Presupuesto y Recompensas cuando termines este paso.",
+      "items": {
+        "tasks": "Tareas: divide proyectos en pasos amables.",
+        "calendar": "Calendario: eventos con colores y recordatorios.",
+        "budget": "Presupuesto: seguimiento de ingresos, gastos y pago de deudas.",
+        "rewards": "Recompensas: rachas y puntos opcionales."
+      },
+      "reminders": "Enviar un recordatorio breve si me detengo",
+      "acknowledge": "Entiendo cómo abrir estas secciones"
+    },
+    "summary": {
+      "title": "Tus selecciones",
+      "accessibility": "Accesibilidad",
+      "neurodivergence": "Neurodivergencia",
+      "quickSetup": "Configuración rápida",
+      "tour": "Confirmación del tour",
+      "textStyle": "Estilo de texto: {{value}}",
+      "contrast": "Contraste: {{value}}",
+      "motion": "Movimiento: {{value}}",
+      "tts": "Texto a voz: {{value}}",
+      "preset": "Preset: {{value}}",
+      "supports": "Apoyos: {{value}}",
+      "goal": "Meta: {{value}}",
+      "budget": "Presupuesto: {{value}}",
+      "reminders": "Recordatorios: {{value}}",
+      "acknowledged": "Entiende la navegación: {{value}}",
+      "none": "Nada seleccionado",
+      "enabled": "Habilitado",
+      "disabled": "Deshabilitado",
+      "yes": "Sí",
+      "no": "No"
+    }
+  }
 }

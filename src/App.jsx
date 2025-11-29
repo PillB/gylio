@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 // Import view components
@@ -8,6 +8,7 @@ import BudgetView from './components/BudgetView.jsx';
 import RewardsView from './components/RewardsView.jsx';
 import SettingsView from './components/SettingsView.jsx';
 import NavBar from './components/NavBar.jsx';
+import OnboardingFlow from './onboarding/OnboardingFlow.jsx';
 
 /**
  * Root application component.
@@ -21,6 +22,16 @@ import NavBar from './components/NavBar.jsx';
 function App() {
   const { t, i18n } = useTranslation();
   const [view, setView] = useState('tasks');
+  const [onboardingComplete, setOnboardingComplete] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem('onboardingComplete') === 'true';
+  });
+
+  useEffect(() => {
+    if (onboardingComplete) {
+      localStorage.setItem('onboardingComplete', 'true');
+    }
+  }, [onboardingComplete]);
 
   const views = useMemo(
     () => ({
@@ -52,6 +63,33 @@ function App() {
     const newLng = i18n.language === 'en' ? 'es-PE' : 'en';
     i18n.changeLanguage(newLng);
   };
+
+  if (!onboardingComplete) {
+    return (
+      <div
+        className="app-container"
+        style={{
+          fontFamily: 'OpenDyslexic, Open Sans, sans-serif',
+          padding: '1rem',
+          maxWidth: '1200px',
+          margin: '0 auto'
+        }}
+      >
+        <header>
+          <h1>{t('appName')}</h1>
+          <p style={{ color: '#444' }}>{t('onboarding.intro')}</p>
+        </header>
+        <OnboardingFlow
+          onComplete={() => {
+            setOnboardingComplete(true);
+            setView('tasks');
+          }}
+          onToggleLanguage={toggleLanguage}
+          languageLabel={t('languageToggle')}
+        />
+      </div>
+    );
+  }
 
   return (
     <div
