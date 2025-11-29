@@ -5,14 +5,17 @@ import { I18nextProvider } from 'react-i18next';
 import App from './App.jsx';
 import { OnboardingFlowProvider } from './hooks/useOnboardingFlow.jsx';
 import i18n from './i18n/i18n.js';
+import { ThemeProvider } from './core/context/ThemeContext';
 
 // Render the application at the #root element defined in index.html.
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <I18nextProvider i18n={i18n}>
-      <OnboardingFlowProvider>
-        <App />
-      </OnboardingFlowProvider>
+      <ThemeProvider>
+        <OnboardingFlowProvider>
+          <App />
+        </OnboardingFlowProvider>
+      </ThemeProvider>
     </I18nextProvider>
   </React.StrictMode>,
 );
