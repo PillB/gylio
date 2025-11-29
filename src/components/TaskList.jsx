@@ -37,9 +37,9 @@ const TaskList = () => {
 
   return (
     <SectionCard
-      ariaLabel={`${t('tasks')} module`}
-      title={t('tasks')}
-      subtitle={t('tasksDescription') || ''}
+      ariaLabel={`${t('tasks.title')} module`}
+      title={t('tasks.title')}
+      subtitle={t('tasks.description') || ''}
     >
       <div style={{ marginBottom: '1rem' }}>
         <label htmlFor="taskTitle" style={{ display: 'block' }}>

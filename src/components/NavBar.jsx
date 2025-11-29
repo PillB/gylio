@@ -7,7 +7,7 @@ import PropTypes from 'prop-types';
  * Uses aria-pressed to announce the active section for screen readers and
  * groups buttons in a flex container that wraps for small screens.
  */
-const NavBar = ({ items, activeKey, onNavigate, onToggleLanguage, languageLabel }) => (
+const NavBar = ({ items, activeKey, onNavigate, languageToggle }) => (
   <nav
     aria-label="Primary navigation"
     style={{
@@ -35,20 +35,7 @@ const NavBar = ({ items, activeKey, onNavigate, onToggleLanguage, languageLabel 
         {label}
       </button>
     ))}
-    <button
-      type="button"
-      onClick={onToggleLanguage}
-      aria-label={languageLabel}
-      style={{
-        padding: '0.6rem 1rem',
-        borderRadius: '8px',
-        border: '1px solid #ccc',
-        backgroundColor: '#fff',
-        cursor: 'pointer'
-      }}
-    >
-      {languageLabel}
-    </button>
+    {languageToggle}
   </nav>
 );
 
@@ -61,8 +48,11 @@ NavBar.propTypes = {
   ).isRequired,
   activeKey: PropTypes.string.isRequired,
   onNavigate: PropTypes.func.isRequired,
-  onToggleLanguage: PropTypes.func.isRequired,
-  languageLabel: PropTypes.string.isRequired
+  languageToggle: PropTypes.node
+};
+
+NavBar.defaultProps = {
+  languageToggle: null
 };
 
 export default NavBar;

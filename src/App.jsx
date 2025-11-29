@@ -16,6 +16,7 @@ import RewardsView from './components/RewardsView.jsx';
 import SettingsView from './components/SettingsView.jsx';
 import OnboardingFlow from './onboarding/OnboardingFlow.jsx';
 import useOnboardingFlow from './hooks/useOnboardingFlow.jsx';
+import LanguageToggle from './components/atoms/LanguageToggle.tsx';
 
 const appShellStyle = {
   fontFamily: 'OpenDyslexic, Open Sans, sans-serif',
@@ -25,13 +26,8 @@ const appShellStyle = {
 };
 
 function AppHeader() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { selections, updateSelections } = useOnboardingFlow();
-
-  const toggleLanguage = () => {
-    const newLng = i18n.language === 'en' ? 'es-PE' : 'en';
-    i18n.changeLanguage(newLng);
-  };
 
   const ttsEnabled = selections?.accessibility?.tts ?? false;
   const toggleTts = () => updateSelections('accessibility', { tts: !ttsEnabled });
@@ -49,20 +45,7 @@ function AppHeader() {
       <h1 style={{ margin: 0 }}>{t('appName')}</h1>
       <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
         {/* Predictable header control: keep the language toggle pinned in the same place. */}
-        <button
-          type="button"
-          onClick={toggleLanguage}
-          aria-label={t('languageToggleHelper')}
-          style={{
-            padding: '0.5rem 0.75rem',
-            border: '1px solid #ccc',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            background: '#fff'
-          }}
-        >
-          {t('languageToggle')}
-        </button>
+        <LanguageToggle placement="header" />
         {/* Predictable header control: align the TTS toggle with the language control. */}
         <button
           type="button"
@@ -99,7 +82,7 @@ function RootRedirect() {
 }
 
 function OnboardingRoute() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { isOnboardingComplete } = useOnboardingFlow();
 
@@ -110,14 +93,7 @@ function OnboardingRoute() {
   return (
     <section style={{ marginTop: '1rem' }}>
       <p style={{ color: '#444' }}>{t('onboarding.intro')}</p>
-      <OnboardingFlow
-        onComplete={() => navigate('/tasks', { replace: true })}
-        onToggleLanguage={() => {
-          const newLng = i18n.language === 'en' ? 'es-PE' : 'en';
-          i18n.changeLanguage(newLng);
-        }}
-        languageLabel={t('languageToggle')}
-      />
+      <OnboardingFlow onComplete={() => navigate('/tasks', { replace: true })} />
     </section>
   );
 }
@@ -130,9 +106,9 @@ function TabsLayout() {
 
   const navItems = useMemo(
     () => [
-      { key: 'tasks', label: t('tasks') },
+      { key: 'tasks', label: t('tasks.title') },
       { key: 'calendar', label: t('calendar') },
-      { key: 'budget', label: t('budget') },
+      { key: 'budget', label: t('budget.title') },
       { key: 'rewards', label: t('rewards') },
       { key: 'settings', label: t('settings') }
     ],
@@ -149,8 +125,7 @@ function TabsLayout() {
         items={navItems}
         activeKey={location.pathname.replace('/', '') || 'tasks'}
         onNavigate={(key) => navigate(`/${key}`)}
-        onToggleLanguage={() => {}}
-        languageLabel={t('languageToggle')}
+        languageToggle={<LanguageToggle placement="nav" />}
       />
       <main style={{ marginTop: '1rem' }}>
         <Outlet />

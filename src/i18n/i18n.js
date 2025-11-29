@@ -14,6 +14,12 @@ const resources = {
   'es-PE': { translation: esPE }
 };
 
+const detectionOptions = {
+  order: ['navigator', 'localStorage', 'htmlTag', 'path', 'subdomain'],
+  caches: ['localStorage'],
+  lookupLocalStorage: 'i18nextLng'
+};
+
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)
@@ -21,11 +27,7 @@ i18n
     resources,
     fallbackLng: 'en',
     supportedLngs: ['en', 'es-PE'],
-    useDeviceLanguage: true,
-    detection: {
-      order: ['navigator', 'htmlTag', 'path', 'subdomain'],
-      caches: ['localStorage', 'cookie']
-    },
+    detection: detectionOptions,
     interpolation: {
       escapeValue: false // react already escapes by default
     }
