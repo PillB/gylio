@@ -1,34 +1,12 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
+import useOnboardingFlow, { stepOrder } from '../hooks/useOnboardingFlow.jsx';
 import AccessibilityPrefs from './steps/AccessibilityPrefs.jsx';
 import NeurodivergencePresets from './steps/NeurodivergencePresets.jsx';
 import QuickSetup from './steps/QuickSetup.jsx';
 import MiniTour from './steps/MiniTour.jsx';
 import OnboardingSummary from './OnboardingSummary.jsx';
-
-const defaultSelections = {
-  accessibility: {
-    textStyle: '',
-    contrast: '',
-    motion: '',
-    tts: false
-  },
-  neurodivergence: {
-    preset: '',
-    supports: []
-  },
-  quickSetup: {
-    starterGoal: '',
-    monthlyBudget: ''
-  },
-  tour: {
-    acknowledged: false,
-    reminders: false
-  }
-};
-
-const stepOrder = ['accessibility', 'neurodivergence', 'quickSetup', 'tour'];
 
 const validators = {
   accessibility: (state) =>
@@ -48,37 +26,27 @@ const stepComponents = {
 
 function OnboardingFlow({ onComplete, onToggleLanguage, languageLabel }) {
   const { t } = useTranslation();
-  const [currentStep, setCurrentStep] = useState(0);
-  const [selections, setSelections] = useState(defaultSelections);
+  const { currentStep, currentStepKey, selections, updateSelections, completeStep, goToPreviousStep } =
+    useOnboardingFlow();
 
-  const stepKey = stepOrder[currentStep];
+  const stepKey = currentStepKey;
   const CurrentStepComponent = useMemo(() => stepComponents[stepKey], [stepKey]);
-
-  const updateSelections = (section, payload) => {
-    setSelections((prev) => ({
-      ...prev,
-      [section]: {
-        ...prev[section],
-        ...payload
-      }
-    }));
-  };
 
   const handleNext = () => {
     if (!validators[stepKey](selections[stepKey])) {
       return;
     }
 
-    if (currentStep < stepOrder.length - 1) {
-      setCurrentStep((prev) => prev + 1);
-      return;
-    }
+    const isFinalStep = currentStep >= stepOrder.length - 1;
+    completeStep();
 
-    onComplete(selections);
+    if (isFinalStep) {
+      onComplete(selections);
+    }
   };
 
   const handleBack = () => {
-    setCurrentStep((prev) => Math.max(0, prev - 1));
+    goToPreviousStep();
   };
 
   const progressLabel = t('onboarding.progress', {

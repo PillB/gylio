@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import useOnboardingFlow from './hooks/useOnboardingFlow.jsx';
 
 // Import view components
 import TaskList from './components/TaskList.jsx';
@@ -22,16 +23,13 @@ import OnboardingFlow from './onboarding/OnboardingFlow.jsx';
 function App() {
   const { t, i18n } = useTranslation();
   const [view, setView] = useState('tasks');
-  const [onboardingComplete, setOnboardingComplete] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return localStorage.getItem('onboardingComplete') === 'true';
-  });
+  const { isOnboardingComplete, hydrated } = useOnboardingFlow();
 
   useEffect(() => {
-    if (onboardingComplete) {
-      localStorage.setItem('onboardingComplete', 'true');
+    if (isOnboardingComplete) {
+      setView('tasks');
     }
-  }, [onboardingComplete]);
+  }, [isOnboardingComplete]);
 
   const views = useMemo(
     () => ({
@@ -64,7 +62,11 @@ function App() {
     i18n.changeLanguage(newLng);
   };
 
-  if (!onboardingComplete) {
+  if (!hydrated) {
+    return null;
+  }
+
+  if (!isOnboardingComplete) {
     return (
       <div
         className="app-container"
@@ -81,7 +83,6 @@ function App() {
         </header>
         <OnboardingFlow
           onComplete={() => {
-            setOnboardingComplete(true);
             setView('tasks');
           }}
           onToggleLanguage={toggleLanguage}
