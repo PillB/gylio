@@ -18,6 +18,12 @@
     "reopenedLabel": "reabierta",
     "completionAnnouncement": "{{title}} marcada como {{status}}"
   },
+  "checkbox": {
+    "ariaLabel": "Casilla de {{label}}",
+    "checked": "marcada",
+    "unchecked": "desmarcada",
+    "stateChange": "{{label}} {{state}}"
+  },
   "calendar": "Calendario",
   "theme": {
     "light": "Claro",

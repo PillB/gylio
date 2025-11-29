@@ -18,6 +18,12 @@
     "reopenedLabel": "reopened",
     "completionAnnouncement": "{{title}} marked {{status}}"
   },
+  "checkbox": {
+    "ariaLabel": "{{label}} checkbox",
+    "checked": "checked",
+    "unchecked": "unchecked",
+    "stateChange": "{{label}} {{state}}"
+  },
   "calendar": "Calendar",
   "theme": {
     "light": "Light",
