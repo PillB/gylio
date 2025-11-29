@@ -15,6 +15,7 @@ const defaultSelections = {
     textStyle: '',
     contrast: '',
     motion: '',
+    animations: true,
     tts: false
   },
   neurodivergence: {

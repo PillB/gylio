@@ -3,6 +3,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import useOnboardingFlow from '../../hooks/useOnboardingFlow.jsx';
 
 const TINT_STORAGE_KEY = 'accessibility:tint';
+const REDUCE_MOTION_STORAGE_KEY = 'accessibility:reduceMotion';
+const ANIMATIONS_STORAGE_KEY = 'accessibility:animationsEnabled';
 
 type SpeechModule = {
   speak: (text: string, options?: Record<string, any>) => void;
@@ -14,6 +16,10 @@ type AccessibilityContextValue = {
   isSpeaking: boolean;
   toggleTint: () => void;
   isTinted: boolean;
+  reduceMotionEnabled: boolean;
+  setReduceMotionEnabled: (enabled: boolean) => void;
+  animationsEnabled: boolean;
+  setAnimationsEnabled: (enabled: boolean) => void;
   motionPreference: MotionPreference;
   setMotionPreference: (preference: MotionPreference) => void;
   textStylePreference: TextStylePreference;
@@ -30,26 +36,69 @@ const AccessibilityContext = createContext<AccessibilityContextValue | null>(nul
 function useAccessibilityInternal(): AccessibilityContextValue {
   const { selections, hydrated, updateSelections } = useOnboardingFlow();
   const [isTinted, setIsTinted] = useState(false);
+  const [reduceMotionEnabled, setReduceMotionEnabled] = useState(
+    () => selections?.accessibility?.motion === 'reduced'
+  );
+  const [animationsEnabled, setAnimationsEnabled] = useState(true);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const speechModuleRef = useRef<SpeechModule | null>(null);
   const activeUtteranceRef = useRef(0);
   const isSpeakingRef = useRef(false);
+  const hasHydratedPrefsRef = useRef(false);
 
   useEffect(() => {
-    AsyncStorage.getItem(TINT_STORAGE_KEY)
-      .then((stored) => {
-        setIsTinted(stored === 'true');
-      })
-      .catch(() => {
+    if (hasHydratedPrefsRef.current || !hydrated) return;
+
+    const hydratePreferences = async () => {
+      try {
+        const storedEntries = await AsyncStorage.multiGet([
+          TINT_STORAGE_KEY,
+          REDUCE_MOTION_STORAGE_KEY,
+          ANIMATIONS_STORAGE_KEY
+        ]);
+
+        const storedTint = storedEntries.find(([key]) => key === TINT_STORAGE_KEY)?.[1];
+        const storedReduceMotion = storedEntries.find(([key]) => key === REDUCE_MOTION_STORAGE_KEY)?.[1];
+        const storedAnimations = storedEntries.find(([key]) => key === ANIMATIONS_STORAGE_KEY)?.[1];
+
+        setIsTinted(storedTint === 'true');
+        setReduceMotionEnabled(
+          storedReduceMotion === null || storedReduceMotion === undefined
+            ? selections?.accessibility?.motion === 'reduced'
+            : storedReduceMotion === 'true'
+        );
+        setAnimationsEnabled(
+          storedAnimations === null || storedAnimations === undefined
+            ? selections?.accessibility?.animations ?? true
+            : storedAnimations === 'true'
+        );
+        hasHydratedPrefsRef.current = true;
+      } catch (error) {
         // Non-blocking persistence failure.
-      });
-  }, []);
+        hasHydratedPrefsRef.current = true;
+      }
+    };
+
+    hydratePreferences();
+  }, [hydrated, selections]);
 
   useEffect(() => {
     AsyncStorage.setItem(TINT_STORAGE_KEY, isTinted ? 'true' : 'false').catch(() => {
       // Ignore persistence issues to avoid blocking UI.
     });
   }, [isTinted]);
+
+  useEffect(() => {
+    AsyncStorage.setItem(REDUCE_MOTION_STORAGE_KEY, reduceMotionEnabled ? 'true' : 'false').catch(() => {
+      // Ignore persistence issues to avoid blocking UI.
+    });
+  }, [reduceMotionEnabled]);
+
+  useEffect(() => {
+    AsyncStorage.setItem(ANIMATIONS_STORAGE_KEY, animationsEnabled ? 'true' : 'false').catch(() => {
+      // Ignore persistence issues to avoid blocking UI.
+    });
+  }, [animationsEnabled]);
 
   useEffect(() => {
     isSpeakingRef.current = isSpeaking;
@@ -132,7 +181,26 @@ function useAccessibilityInternal(): AccessibilityContextValue {
   }, []);
 
   const setMotionPreference = useCallback(
-    (preference: MotionPreference) => updateSelections('accessibility', { motion: preference }),
+    (preference: MotionPreference) => {
+      setReduceMotionEnabled(preference === 'reduced');
+      updateSelections('accessibility', { motion: preference });
+    },
+    [updateSelections]
+  );
+
+  const setMotionReduction = useCallback(
+    (enabled: boolean) => {
+      setReduceMotionEnabled(enabled);
+      updateSelections('accessibility', { motion: enabled ? 'reduced' : 'standard' });
+    },
+    [updateSelections]
+  );
+
+  const setAnimationPreference = useCallback(
+    (enabled: boolean) => {
+      setAnimationsEnabled(enabled);
+      updateSelections('accessibility', { animations: enabled });
+    },
     [updateSelections]
   );
 
@@ -151,6 +219,10 @@ function useAccessibilityInternal(): AccessibilityContextValue {
     isSpeaking,
     toggleTint,
     isTinted,
+    reduceMotionEnabled,
+    setReduceMotionEnabled: setMotionReduction,
+    animationsEnabled,
+    setAnimationsEnabled: setAnimationPreference,
     motionPreference,
     setMotionPreference,
     textStylePreference,

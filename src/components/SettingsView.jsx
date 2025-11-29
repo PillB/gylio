@@ -22,7 +22,10 @@ const SettingsView = () => {
     speak,
     isSpeaking,
     motionPreference,
-    setMotionPreference,
+    reduceMotionEnabled,
+    setReduceMotionEnabled,
+    animationsEnabled,
+    setAnimationsEnabled,
     textStylePreference,
     setTextStylePreference,
     ttsEnabled,
@@ -172,37 +175,57 @@ const SettingsView = () => {
             background: theme.colors.surface
           }}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: theme.spacing.md, flexWrap: 'wrap' }}>
+          <div style={{ display: 'grid', gap: theme.spacing.sm }}>
             <div>
               <p style={{ margin: 0, fontWeight: 600 }}>{t('settingsMotionLabel') || 'Motion preference'}</p>
-              <small style={{ color: theme.colors.muted }}>
-                {t('settingsMotionHelper') || 'Reduce motion to lower sensory load; we only animate essentials.'}
+              <small id="motion-helper" style={{ color: theme.colors.muted }}>
+                {t('settingsMotionHelper') ||
+                  'Reduce motion to lower sensory load; we only animate essentials.'}
               </small>
-              <p style={{ margin: '0.25rem 0', color: theme.colors.text }}>
-                {t('settingsCurrentValue', {
-                  value:
-                    motionPreference === 'reduced'
-                      ? t('onboarding.accessibility.reduceMotion')
-                      : t('onboarding.accessibility.allowMotion')
-                }) ||
-                  `Current: ${motionPreference === 'reduced' ? 'Reduced motion' : 'Standard motion'}`}
-              </p>
             </div>
-            <select
-              value={motionPreference || 'standard'}
-              onChange={(e) => setMotionPreference(e.target.value)}
-              aria-label={t('settingsMotionLabel') || 'Motion preference'}
-              style={{
-                padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
-                borderRadius: theme.shape.radiusSm,
-                border: `1px solid ${theme.colors.border}`,
-                background: theme.colors.background,
-                color: theme.colors.text
-              }}
-            >
-              <option value="reduced">{t('onboarding.accessibility.reduceMotion')}</option>
-              <option value="standard">{t('onboarding.accessibility.allowMotion')}</option>
-            </select>
+            <label style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm }}>
+              <input
+                type="checkbox"
+                checked={reduceMotionEnabled}
+                onChange={(e) => setReduceMotionEnabled(e.target.checked)}
+                aria-label={t('settingsMotionLabel') || 'Motion preference'}
+                aria-describedby="motion-helper"
+                style={{ width: 20, height: 20 }}
+              />
+              <span>
+                {reduceMotionEnabled
+                  ? t('onboarding.accessibility.reduceMotion')
+                  : t('onboarding.accessibility.allowMotion')}
+              </span>
+            </label>
+            <small style={{ color: theme.colors.muted }}>
+              {t('settingsCurrentValue', {
+                value:
+                  motionPreference === 'reduced'
+                    ? t('onboarding.accessibility.reduceMotion')
+                    : t('onboarding.accessibility.allowMotion')
+              }) ||
+                `Current: ${motionPreference === 'reduced' ? 'Reduced motion' : 'Standard motion'}`}
+            </small>
+            <label style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm }}>
+              <input
+                type="checkbox"
+                checked={animationsEnabled}
+                onChange={(e) => setAnimationsEnabled(e.target.checked)}
+                aria-label={t('settingsAnimationLabel') || 'Allow animations'}
+                aria-describedby="animation-helper"
+                style={{ width: 20, height: 20 }}
+              />
+              <span>
+                {animationsEnabled
+                  ? t('settingsAnimationOn') || 'Animations enabled'
+                  : t('settingsAnimationOff') || 'Animations limited'}
+              </span>
+            </label>
+            <small id="animation-helper" style={{ color: theme.colors.muted }}>
+              {t('settingsAnimationHelper') ||
+                'Disable non-essential animations to keep the interface calm.'}
+            </small>
           </div>
         </div>
 
