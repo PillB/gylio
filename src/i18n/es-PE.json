@@ -12,6 +12,8 @@
   "stepPrompt": "Ingresa un sub-paso",
   "pomodoroSection": "Los temporizadores Pomodoro y las barras de progreso aparecerán aquí.",
   "languageToggle": "English",
+  "languageToggleHelper": "Cambia de idioma sin salir del onboarding. El conmutador se mantiene en el mismo lugar predecible.",
+  "ttsToggleHelper": "Activa o desactiva recordatorios de texto a voz desde accesibilidad.",
   "tasksDescription": "Crea tareas, divídelas en pasos y mantén el progreso ligero.",
   "calendarPlaceholder": "El calendario mostrará eventos codificados por colores con recordatorios de TTS.",
   "budgetPlaceholder": "Las herramientas de presupuesto seguirán ingresos y gastos, los categorizarán y simularán el pago de deudas.",
@@ -26,12 +28,33 @@
     "intro": "Completa este onboarding rápido para desbloquear Tareas, Calendario, Presupuesto, Recompensas y Configuración.",
     "progress": "Paso {{current}} de {{total}}",
     "stepSection": "Paso de onboarding",
+    "flow": {
+      "autosave": "Guardamos tu progreso tras cada cambio para que puedas pausar y volver.",
+      "resume": "Reabrimos exactamente el paso donde quedaste para mantener la secuencia predecible.",
+      "validationReminder": "Completa el paso actual para habilitar Siguiente.",
+      "reset": "Empezar de nuevo"
+    },
+    "predictableSteps": {
+      "accessibility": "Paso 1 de 4: Elige texto, contraste, movimiento y TTS antes de avanzar.",
+      "neurodivergence": "Paso 2 de 4: Selecciona un preset y apoyos para preparar las recomendaciones.",
+      "quickSetup": "Paso 3 de 4: Ingresa una meta y un presupuesto inicial para poblar los tableros.",
+      "tour": "Paso 4 de 4: Confirma navegación y recordatorios para saber a dónde volver."
+    },
+    "languageToggle": {
+      "aria": "Cambiar el idioma de la app. El botón muestra el idioma de destino: {{language}}.",
+      "helper": "Mantén visible el cambio de idioma para una navegación predecible."
+    },
+    "ttsToggle": {
+      "aria": "Activar o desactivar recordatorios de texto a voz para alertas accesibles.",
+      "helper": "Puedes alternar recordatorios hablados en cualquier momento."
+    },
     "next": "Siguiente",
     "back": "Atrás",
     "finish": "Finalizar",
     "accessibility": {
       "title": "Preferencias de accesibilidad",
       "subtitle": "Selecciona las opciones de lectura y sensoriales que te den comodidad.",
+      "helper": "Aplicamos estas configuraciones de lectura y sensoriales en todo el app para un diseño consistente y predecible.",
       "readability": "Legibilidad",
       "dyslexicFont": "Estilo OpenDyslexic",
       "standardFont": "Texto estándar",
@@ -42,11 +65,13 @@
       "motion": "Movimiento",
       "reduceMotion": "Reducir movimiento",
       "allowMotion": "Permitir movimiento suave",
-      "tts": "Activar recordatorios de texto a voz"
+      "tts": "Activar recordatorios de texto a voz",
+      "ttsHelper": "Mantén las señales audibles si prefieres que te lean los recordatorios."
     },
     "neurodivergence": {
       "title": "Presets de neurodivergencia",
       "subtitle": "Elige un preset para precargar ajustes de apoyo.",
+      "helper": "Elige un punto de partida; luego podrás ajustar apoyos sin perder previsibilidad.",
       "presetHeading": "Elige un preset",
       "supportsHeading": "¿Qué apoyos ayudan más?",
       "adhd": {
@@ -75,6 +100,7 @@
     "quickSetup": {
       "title": "Meta rápida y presupuesto",
       "subtitle": "Captura una meta y un presupuesto inicial para poblar tus tableros.",
+      "helper": "Solo pedimos una meta y un presupuesto simple para que termines rápido y mantengas los pasos predecibles.",
       "goalLabel": "¿Qué debemos ayudarte a lograr primero?",
       "goalPlaceholder": "Ejemplo: Terminar el proyecto del viernes",
       "goalHint": "Crearemos una tarea inicial y recordatorios basados en esta meta.",
@@ -88,6 +114,7 @@
     "tour": {
       "title": "Mini tour",
       "subtitle": "Confirma que sabes dónde está todo y si deseas recordatorios suaves.",
+      "helper": "Este paso final confirma la navegación para que la app siempre abra tableros predecibles.",
       "summary": "Verás los tableros de Tareas, Calendario, Presupuesto y Recompensas cuando termines este paso.",
       "items": {
         "tasks": "Tareas: divide proyectos en pasos amables.",
