@@ -6,6 +6,7 @@ import App from './App.jsx';
 import { OnboardingFlowProvider } from './hooks/useOnboardingFlow.jsx';
 import i18n from './i18n/i18n.js';
 import { ThemeProvider } from './core/context/ThemeContext';
+import { AccessibilityProvider } from './core/hooks/useAccessibility';
 
 // Render the application at the #root element defined in index.html.
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -13,7 +14,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <I18nextProvider i18n={i18n}>
       <ThemeProvider>
         <OnboardingFlowProvider>
-          <App />
+          <AccessibilityProvider>
+            <App />
+          </AccessibilityProvider>
         </OnboardingFlowProvider>
       </ThemeProvider>
     </I18nextProvider>

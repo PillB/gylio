@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import SectionCard from './SectionCard.jsx';
+import useAccessibility from '../core/hooks/useAccessibility';
 
 /**
  * SettingsView component
@@ -13,12 +14,31 @@ import SectionCard from './SectionCard.jsx';
  */
 const SettingsView = () => {
   const { t } = useTranslation();
+  const { toggleTint, isTinted, speak, isSpeaking } = useAccessibility();
+
+  const announceSettings = () => {
+    speak(t('settingsDescription'));
+  };
+
   return (
     <SectionCard
       ariaLabel={`${t('settings')} module`}
       title={t('settings')}
       subtitle={t('settingsDescription') || ''}
     >
+      <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+        <button type="button" onClick={toggleTint} style={{ padding: '0.5rem 0.75rem' }}>
+          {isTinted ? t('disableTint') || 'Disable screen tint' : t('enableTint') || 'Enable screen tint'}
+        </button>
+        <button
+          type="button"
+          onClick={announceSettings}
+          disabled={isSpeaking}
+          style={{ padding: '0.5rem 0.75rem' }}
+        >
+          {isSpeaking ? t('speaking') || 'Speaking…' : t('announceSettings') || 'Announce settings'}
+        </button>
+      </div>
       <ul>
         <li>{t('settingsFontOption') || 'Choose between standard and dyslexia‑friendly fonts.'}</li>
         <li>{t('settingsThemeOption') || 'Toggle light/dark mode.'}</li>
