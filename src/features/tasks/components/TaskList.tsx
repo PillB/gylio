@@ -45,26 +45,25 @@ const focusButtonStyle: React.CSSProperties = {
 const TaskList: React.FC = () => {
   const { t } = useTranslation();
   const { speak } = useAccessibility();
-  const { tasks, loading, toggleTaskStatus, addTask } = useTasks();
+  const { tasks, loading, toggleTaskStatus, addTask, startPomodoro } = useTasks();
   const [selectedDuration, setSelectedDuration] = useState<number>(25);
   const [newTaskTitle, setNewTaskTitle] = useState('');
 
   const chunks = useMemo(() => chunkTasks(tasks), [tasks]);
 
   const handleStartFocus = useCallback(() => {
-    const message = t('tasks.startFocus', { minutes: selectedDuration });
-    speak(message);
-  }, [selectedDuration, speak, t]);
+    startPomodoro({ durationMinutes: selectedDuration });
+  }, [selectedDuration, startPomodoro]);
 
   const handleAddTask = useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
-      const created = await addTask(newTaskTitle);
+      const created = await addTask(newTaskTitle, selectedDuration);
       if (created) {
         setNewTaskTitle('');
       }
     },
-    [addTask, newTaskTitle]
+    [addTask, newTaskTitle, selectedDuration]
   );
 
   return (
