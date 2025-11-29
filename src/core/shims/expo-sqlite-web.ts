@@ -12,8 +12,8 @@ export type SQLResultSet = {
 export type SQLTransaction = {
   executeSql: (
     sql: string,
-    params: any[] | undefined,
-    success: (tx: SQLTransaction, result: SQLResultSet) => void,
+    params?: any[] | ((tx: SQLTransaction, result: SQLResultSet) => void),
+    success?: (tx: SQLTransaction, result: SQLResultSet) => void,
     error?: (tx: SQLTransaction, error: Error) => boolean | void
   ) => void;
 };
@@ -44,6 +44,8 @@ const createRows = (items: any[]): SQLResultSetRowList => ({
 });
 
 const now = () => new Date().toISOString();
+
+const isSchemaStatement = (sql: string) => sql.trim().toUpperCase().startsWith('CREATE TABLE');
 
 const handlers: Record<string, (params: any[]) => SQLResultSet> = {
   'INSERT INTO tasks (title, status, description, dueDate) VALUES (?, ?, ?, ?);': (params) => {
@@ -193,20 +195,32 @@ export const openDatabase = (): SQLiteDatabase => ({
   transaction: (callback, error, success) => {
     try {
       const tx: SQLTransaction = {
-        executeSql: (sql, params = [], successCallback, errorCallback) => {
+        executeSql: (sql, paramsOrSuccess, successCallback, errorCallback) => {
+          const params = Array.isArray(paramsOrSuccess) ? paramsOrSuccess : [];
+          const resolvedSuccess =
+            typeof paramsOrSuccess === 'function' ? paramsOrSuccess : successCallback;
+
           const handler = handlers[sql];
-          if (!handler) {
+
+          const handleUnsupportedStatement = (): SQLResultSet | null => {
             const err = new Error(`Unsupported SQL statement: ${sql}`);
             if (errorCallback) {
               const shouldProceed = errorCallback(tx, err);
-              if (shouldProceed === false) return;
+              if (shouldProceed === false) return null;
             }
             throw err;
-          }
+          };
+
+          const runHandler = (): SQLResultSet | null => {
+            if (handler) return handler(params);
+            if (isSchemaStatement(sql)) return { rowsAffected: 0, rows: createRows([]) };
+            handleUnsupportedStatement();
+            return null;
+          };
 
           try {
-            const result = handler(params);
-            successCallback(tx, result);
+            const result = runHandler();
+            if (result && resolvedSuccess) resolvedSuccess(tx, result);
           } catch (handlerError) {
             if (errorCallback && errorCallback(tx, handlerError as Error) === false) return;
             throw handlerError;
