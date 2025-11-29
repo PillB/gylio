@@ -3,7 +3,20 @@
   "welcome": "Welcome",
   "tasks": {
     "title": "Tasks",
-    "description": "Create tasks, break them into steps, and keep progress lightweight."
+    "description": "Create tasks, break them into steps, and keep progress lightweight.",
+    "chunkedListAria": "Chunked checklist",
+    "chunkLabel": "Chunk {{index}}",
+    "empty": "No tasks yet.",
+    "stepCount": "{{count}} steps",
+    "checkboxAria": "Toggle completion for {{title}}",
+    "focusAreaAria": "Pomodoro and focus controls",
+    "focusHeading": "Focus blocks",
+    "focusHelper": "Pick a preset to pair with your checklist.",
+    "focusDuration": "{{minutes}} min",
+    "startFocus": "Start {{minutes}} minute focus",
+    "completedLabel": "complete",
+    "reopenedLabel": "reopened",
+    "completionAnnouncement": "{{title}} marked {{status}}"
   },
   "calendar": "Calendar",
   "theme": {
