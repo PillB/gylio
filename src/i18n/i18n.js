@@ -1,4 +1,5 @@
 import i18n from 'i18next';
+import LanguageDetector from 'i18next-browser-languagedetector';
 import { initReactI18next } from 'react-i18next';
 import en from './en.json';
 import esPE from './es-PE.json';
@@ -13,13 +14,21 @@ const resources = {
   'es-PE': { translation: esPE }
 };
 
-i18n.use(initReactI18next).init({
-  resources,
-  lng: 'en',
-  fallbackLng: 'en',
-  interpolation: {
-    escapeValue: false // react already escapes by default
-  }
-});
+i18n
+  .use(LanguageDetector)
+  .use(initReactI18next)
+  .init({
+    resources,
+    fallbackLng: 'en',
+    supportedLngs: ['en', 'es-PE'],
+    useDeviceLanguage: true,
+    detection: {
+      order: ['navigator', 'htmlTag', 'path', 'subdomain'],
+      caches: ['localStorage', 'cookie']
+    },
+    interpolation: {
+      escapeValue: false // react already escapes by default
+    }
+  });
 
 export default i18n;
