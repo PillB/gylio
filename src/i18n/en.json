@@ -14,6 +14,8 @@
     "focusHelper": "Pick a preset to pair with your checklist.",
     "focusDuration": "{{minutes}} min",
     "startFocus": "Start {{minutes}} minute focus",
+    "focusComplete": "{{minutes}} minute focus for {{title}} finished.",
+    "focusBlockLabel": "focus block",
     "completedLabel": "complete",
     "reopenedLabel": "reopened",
     "completionAnnouncement": "{{title}} marked {{status}}"

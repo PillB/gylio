@@ -8,6 +8,7 @@ export type Task = {
   status: string;
   description: string | null;
   dueDate: string | null;
+  duration: number | null;
   createdAt: string | null;
 };
 
@@ -76,6 +77,7 @@ const mapTask = (row: any): Task => ({
   status: row.status,
   description: row.description ?? null,
   dueDate: row.dueDate ?? null,
+  duration: row.duration !== undefined && row.duration !== null ? Number(row.duration) : null,
   createdAt: row.createdAt ?? null,
 });
 
@@ -132,8 +134,8 @@ const useDB = () => {
 
   const statements = useMemo<StatementSet>(
     () => ({
-      insertTask: 'INSERT INTO tasks (title, status, description, dueDate) VALUES (?, ?, ?, ?);',
-      updateTask: 'UPDATE tasks SET title = ?, status = ?, description = ?, dueDate = ? WHERE id = ?;',
+      insertTask: 'INSERT INTO tasks (title, status, description, dueDate, duration) VALUES (?, ?, ?, ?, ?);',
+      updateTask: 'UPDATE tasks SET title = ?, status = ?, description = ?, dueDate = ?, duration = ? WHERE id = ?;',
       deleteTask: 'DELETE FROM tasks WHERE id = ?;',
       selectTaskById: 'SELECT * FROM tasks WHERE id = ?;',
       selectTasks: 'SELECT * FROM tasks ORDER BY createdAt DESC;',
@@ -218,11 +220,17 @@ const useDB = () => {
   );
 
   const insertTask = useCallback(
-    (title: string, status: string, description: string | null = null, dueDate: string | null = null) =>
+    (
+      title: string,
+      status: string,
+      description: string | null = null,
+      dueDate: string | null = null,
+      duration: number | null = null
+    ) =>
       runTransaction<Task>((tx, resolve, reject) => {
         tx.executeSql(
           statements.insertTask,
-          [title, status, description, dueDate],
+          [title, status, description, dueDate, duration],
           (_, result) => {
             const insertId = result.insertId;
             if (insertId == null) {
@@ -254,10 +262,11 @@ const useDB = () => {
             ...updates,
             description: updates.description ?? current.description,
             dueDate: updates.dueDate ?? current.dueDate,
+            duration: updates.duration ?? current.duration,
           };
           tx.executeSql(
             statements.updateTask,
-            [next.title, next.status, next.description, next.dueDate, id],
+            [next.title, next.status, next.description, next.dueDate, next.duration, id],
             () => {
               resolve(next);
               return true;

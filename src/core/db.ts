@@ -22,6 +22,7 @@ const TABLE_CREATION_STATEMENTS = [
     status TEXT NOT NULL DEFAULT 'pending',
     description TEXT,
     dueDate TEXT,
+    duration INTEGER NOT NULL DEFAULT 25,
     createdAt TEXT DEFAULT (datetime('now'))
   );`,
   `CREATE TABLE IF NOT EXISTS events (
@@ -51,12 +52,42 @@ const TABLE_CREATION_STATEMENTS = [
   );`
 ];
 
+const INDEX_CREATION_STATEMENTS = [
+  'CREATE INDEX IF NOT EXISTS idx_tasks_createdAt ON tasks(createdAt);',
+  'CREATE INDEX IF NOT EXISTS idx_events_createdAt ON events(createdAt);',
+  'CREATE INDEX IF NOT EXISTS idx_budgets_createdAt ON budgets(createdAt);',
+  'CREATE INDEX IF NOT EXISTS idx_rewards_createdAt ON rewards(createdAt);'
+];
+
+const ensureTaskDurationColumn = (tx: SQLite.SQLTransaction) => {
+  tx.executeSql(
+    'PRAGMA table_info(tasks);',
+    [],
+    (_, result) => {
+      for (let i = 0; i < result.rows.length; i += 1) {
+        if (result.rows.item(i)?.name === 'duration') {
+          return true;
+        }
+      }
+
+      tx.executeSql("ALTER TABLE tasks ADD COLUMN duration INTEGER NOT NULL DEFAULT 25;");
+      return true;
+    }
+  );
+};
+
 export const runMigrations = (): Promise<void> =>
   new Promise((resolve, reject) => {
     const db = getDatabase();
     db.transaction(
       (tx) => {
         TABLE_CREATION_STATEMENTS.forEach((statement) => {
+          tx.executeSql(statement);
+        });
+
+        ensureTaskDurationColumn(tx);
+
+        INDEX_CREATION_STATEMENTS.forEach((statement) => {
           tx.executeSql(statement);
         });
       },

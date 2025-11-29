@@ -23,7 +23,15 @@ export default defineConfig({
         find: 'react-native/Libraries/Utilities/codegenNativeComponent',
         replacement: path.resolve(__dirname, 'src/shims/codegenNativeComponent.js')
       },
-      { find: 'react-native', replacement: 'react-native-web' }
+      {
+        find: '@react-native/assets-registry/registry',
+        replacement: path.resolve(__dirname, 'src/shims/assets-registry.js')
+      },
+      { find: 'react-native', replacement: 'react-native-web' },
+      {
+        find: 'expo-notifications',
+        replacement: path.resolve(__dirname, 'src/shims/expo-notifications.ts')
+      }
     ]
   },
   server: {
