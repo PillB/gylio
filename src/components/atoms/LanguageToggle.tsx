@@ -1,5 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '../../core/context/ThemeContext';
+import type { ThemeTokens } from '../../core/themes';
 
 export type LanguageToggleProps = {
   ariaLabel?: string;
@@ -9,14 +11,17 @@ export type LanguageToggleProps = {
   style?: React.CSSProperties;
 };
 
-const baseStyle: React.CSSProperties = {
+const baseStyle = (
+  colors: ThemeTokens['colors'],
+  shape: ThemeTokens['shape']
+): React.CSSProperties => ({
   padding: '0.5rem 0.75rem',
-  border: '1px solid #ccc',
-  borderRadius: '8px',
+  border: `1px solid ${colors.border}`,
+  borderRadius: shape.radiusSm,
   cursor: 'pointer',
-  background: '#fff',
-  color: '#222'
-};
+  background: colors.surface,
+  color: colors.text,
+});
 
 const placementStyles: Record<NonNullable<LanguageToggleProps['placement']>, React.CSSProperties> = {
   header: {
@@ -36,6 +41,7 @@ const LanguageToggle: React.FC<LanguageToggleProps> = ({
   style
 }) => {
   const { t, i18n } = useTranslation();
+  const { theme } = useTheme();
   const nextLanguage = i18n.language === 'es-PE' ? 'en' : 'es-PE';
   const destinationLabel = t('languageToggle');
   const computedAriaLabel =
@@ -51,7 +57,7 @@ const LanguageToggle: React.FC<LanguageToggleProps> = ({
       onClick={handleToggle}
       aria-label={computedAriaLabel}
       title={title || t('languageToggleHelper')}
-      style={{ ...baseStyle, ...placementStyles[placement], ...style }}
+      style={{ ...baseStyle(theme.colors, theme.shape), ...placementStyles[placement], ...style }}
       className={className}
     >
       {destinationLabel}

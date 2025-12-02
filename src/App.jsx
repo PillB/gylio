@@ -142,7 +142,7 @@ function TabsLayout() {
       { key: 'tasks', label: t('tasks.title') },
       { key: 'calendar', label: t('calendar') },
       { key: 'budget', label: t('budget.title') },
-      { key: 'rewards', label: t('rewards') },
+      { key: 'rewards', label: t('rewards.title') },
       { key: 'settings', label: t('settings') }
     ],
     [t]
@@ -172,26 +172,29 @@ function AppRouter() {
 
   const router = useMemo(
     () =>
-      createBrowserRouter([
-        {
-          path: '/',
-          element: <AppLayout />,
-          children: [
-            { index: true, element: <RootRedirect /> },
-            { path: 'onboarding', element: <OnboardingRoute /> },
-            {
-              element: <TabsLayout />,
-              children: [
-                { path: 'tasks', element: <TaskList /> },
-                { path: 'calendar', element: <CalendarView /> },
-                { path: 'budget', element: <BudgetView /> },
-                { path: 'rewards', element: <RewardsView /> },
-                { path: 'settings', element: <SettingsView /> }
-              ]
-            }
-          ]
-        }
-      ]),
+      createBrowserRouter(
+        [
+          {
+            path: '/',
+            element: <AppLayout />,
+            children: [
+              { index: true, element: <RootRedirect /> },
+              { path: 'onboarding', element: <OnboardingRoute /> },
+              {
+                element: <TabsLayout />,
+                children: [
+                  { path: 'tasks', element: <TaskList /> },
+                  { path: 'calendar', element: <CalendarView /> },
+                  { path: 'budget', element: <BudgetView /> },
+                  { path: 'rewards', element: <RewardsView /> },
+                  { path: 'settings', element: <SettingsView /> }
+                ]
+              }
+            ]
+          }
+        ],
+        { basename: import.meta.env.BASE_URL }
+      ),
     []
   );
 
