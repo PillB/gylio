@@ -28,6 +28,15 @@
     "unchecked": "unchecked",
     "stateChange": "{{label}} {{state}}"
   },
+  "validation": {
+    "titleRequired": "Title is required.",
+    "durationPositive": "Duration must be greater than zero.",
+    "categoryRequired": "Category is required.",
+    "amountPositive": "Enter a positive amount.",
+    "invalidNumber": "Enter a valid number.",
+    "periodRequired": "Period is required.",
+    "pointsPositive": "Points must be greater than zero."
+  },
   "calendar": "Calendar",
   "theme": {
     "light": "Light",
@@ -37,9 +46,13 @@
   "budget": {
     "title": "Budget",
     "placeholder": "Budget tools will track income and expenses, categorize them and simulate debt payoff.",
-    "debtSnowball": "Debt snowball coaching and payoff projections will appear here alongside your budget overview."
+    "debtSnowball": "Debt snowball coaching and payoff projections will appear here alongside your budget overview.",
+    "confirmDelete": "Delete {{category}}? This cannot be undone."
   },
-  "rewards": "Rewards",
+  "rewards": {
+    "title": "Rewards",
+    "confirmDelete": "Delete reward {{title}}?"
+  },
   "settings": "Settings",
   "loading": "Loading…",
   "deleteLabel": "Delete",

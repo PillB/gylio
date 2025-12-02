@@ -28,6 +28,15 @@
     "unchecked": "desmarcada",
     "stateChange": "{{label}} {{state}}"
   },
+  "validation": {
+    "titleRequired": "El título es obligatorio.",
+    "durationPositive": "La duración debe ser mayor que cero.",
+    "categoryRequired": "La categoría es obligatoria.",
+    "amountPositive": "Ingresa un monto positivo.",
+    "invalidNumber": "Ingresa un número válido.",
+    "periodRequired": "El período es obligatorio.",
+    "pointsPositive": "Los puntos deben ser mayores que cero."
+  },
   "calendar": "Calendario",
   "theme": {
     "light": "Claro",
@@ -37,9 +46,13 @@
   "budget": {
     "title": "Presupuesto",
     "placeholder": "Las herramientas de presupuesto seguirán ingresos y gastos, los categorizarán y simularán el pago de deudas.",
-    "debtSnowball": "Proyecciones de pago con método bola de nieve y coaching de presupuesto aparecerán aquí."
+    "debtSnowball": "Proyecciones de pago con método bola de nieve y coaching de presupuesto aparecerán aquí.",
+    "confirmDelete": "¿Eliminar {{category}}? Esta acción no se puede deshacer."
   },
-  "rewards": "Recompensas",
+  "rewards": {
+    "title": "Recompensas",
+    "confirmDelete": "¿Eliminar la recompensa {{title}}?"
+  },
   "settings": "Configuración",
   "loading": "Cargando…",
   "deleteLabel": "Eliminar",

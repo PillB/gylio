@@ -10,11 +10,16 @@ const __dirname = path.dirname(__filename);
 // - Enables React support
 // - Maps 'react-native' imports to 'react-native-web' so that React Native components can run in the browser
 // - Configures Vite to allow serving files from the parent directory (docs, assets)
-
+// - Sets base for GitHub Pages deployment
 export default defineConfig({
+  base: '/gylio/',
   plugins: [react()],
   resolve: {
     alias: [
+      {
+        find: '/gylio/',
+        replacement: `${path.resolve(__dirname, '.')}/`
+      },
       {
         find: 'react-native-web/Libraries/Utilities/codegenNativeComponent',
         replacement: path.resolve(__dirname, 'src/shims/codegenNativeComponent.js')

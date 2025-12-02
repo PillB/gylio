@@ -75,7 +75,7 @@ export const CheckedIndicator: React.FC<IndicatorProps> = ({ size = 22, color, b
         <polyline
           points="4,11 8,15 16,5"
           fill="none"
-          stroke={theme.mode === 'highContrast' ? theme.colors.background : '#fff'}
+          stroke={theme.mode === 'highContrast' ? theme.colors.background : theme.colors.surface}
           strokeWidth="2.5"
           strokeLinecap="round"
           strokeLinejoin="round"
