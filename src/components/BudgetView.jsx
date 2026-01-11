@@ -18,17 +18,18 @@ const BudgetView = () => {
   const { theme } = useTheme();
   const [budgets, setBudgets] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState({ category: '', amount: '', period: '', notes: '' });
+  const [form, setForm] = useState({ category: '', amount: '', month: '' });
   const [editingId, setEditingId] = useState(null);
-  const [editFields, setEditFields] = useState({ category: '', amount: '', period: '', notes: '' });
-  const [touched, setTouched] = useState({ category: false, amount: false, period: false });
-  const [editTouched, setEditTouched] = useState({ category: false, amount: false, period: false });
+  const [editFields, setEditFields] = useState({ category: '', amount: '', month: '' });
+  const [touched, setTouched] = useState({ category: false, amount: false, month: false });
+  const [editTouched, setEditTouched] = useState({ category: false, amount: false, month: false });
+  const DEFAULT_CATEGORY_TYPE = 'NEED';
 
   const validateFields = useCallback(
     (fields) => {
-      const validation = { category: '', amount: '', period: '' };
+      const validation = { category: '', amount: '', month: '' };
       const trimmedCategory = fields.category.trim();
-      const trimmedPeriod = fields.period.trim();
+      const trimmedMonth = fields.month.trim();
       const amountValue = Number.parseFloat(fields.amount);
 
       if (!trimmedCategory) {
@@ -41,8 +42,8 @@ const BudgetView = () => {
         validation.amount = t('validation.amountPositive');
       }
 
-      if (!trimmedPeriod) {
-        validation.period = t('validation.periodRequired');
+      if (!trimmedMonth) {
+        validation.month = t('validation.periodRequired');
       }
 
       return validation;
@@ -51,15 +52,15 @@ const BudgetView = () => {
   );
 
   const addValidation = useMemo(() => {
-    if (!touched.category && !touched.amount && !touched.period) {
-      return { category: '', amount: '', period: '' };
+    if (!touched.category && !touched.amount && !touched.month) {
+      return { category: '', amount: '', month: '' };
     }
     return validateFields(form);
   }, [form, touched, validateFields]);
 
   const editValidation = useMemo(() => {
-    if (!editTouched.category && !editTouched.amount && !editTouched.period) {
-      return { category: '', amount: '', period: '' };
+    if (!editTouched.category && !editTouched.amount && !editTouched.month) {
+      return { category: '', amount: '', month: '' };
     }
     return validateFields(editFields);
   }, [editFields, editTouched, validateFields]);
@@ -76,15 +77,15 @@ const BudgetView = () => {
   }, [getBudgets, ready]);
 
   const resetForm = () => {
-    setForm({ category: '', amount: '', period: '', notes: '' });
-    setTouched({ category: false, amount: false, period: false });
+    setForm({ category: '', amount: '', month: '' });
+    setTouched({ category: false, amount: false, month: false });
   };
 
   const hasErrors = (validation) => Object.values(validation).some(Boolean);
 
   const handleAdd = () => {
     const validation = validateFields(form);
-    setTouched({ category: true, amount: true, period: true });
+    setTouched({ category: true, amount: true, month: true });
 
     if (hasErrors(validation)) {
       return;
@@ -92,7 +93,9 @@ const BudgetView = () => {
 
     const amount = Number.parseFloat(form.amount);
 
-    insertBudget(form.category.trim(), amount, form.period.trim(), form.notes.trim() || null)
+    insertBudget(form.month.trim(), [], [
+      { name: form.category.trim(), type: DEFAULT_CATEGORY_TYPE, plannedAmount: amount }
+    ])
       .then((created) => {
         setBudgets((prev) => (prev.length ? [created, ...prev] : [created]));
         resetForm();
@@ -103,30 +106,28 @@ const BudgetView = () => {
   };
 
   const startEdit = (budget) => {
+    const primaryCategory = budget.categories[0];
     setEditingId(budget.id);
     setEditFields({
-      category: budget.category,
-      amount: String(budget.amount),
-      period: budget.period,
-      notes: budget.notes ?? ''
+      category: primaryCategory?.name ?? '',
+      amount: primaryCategory ? String(primaryCategory.plannedAmount) : '',
+      month: budget.month
     });
-    setEditTouched({ category: false, amount: false, period: false });
+    setEditTouched({ category: false, amount: false, month: false });
   };
 
   const saveEdit = () => {
     if (editingId == null) return;
     const validation = validateFields(editFields);
-    setEditTouched({ category: true, amount: true, period: true });
+    setEditTouched({ category: true, amount: true, month: true });
 
     if (hasErrors(validation)) return;
 
     const amount = Number.parseFloat(editFields.amount);
 
     updateBudget(editingId, {
-      category: editFields.category.trim(),
-      amount,
-      period: editFields.period.trim(),
-      notes: editFields.notes.trim() || null
+      month: editFields.month.trim(),
+      categories: [{ name: editFields.category.trim(), type: DEFAULT_CATEGORY_TYPE, plannedAmount: amount }]
     })
       .then((updated) => {
         if (!updated) return;
@@ -140,7 +141,8 @@ const BudgetView = () => {
 
   const removeBudget = (id) => {
     const target = budgets.find((entry) => entry.id === id);
-    const confirmed = window.confirm(t('budget.confirmDelete', { category: target?.category ?? '' }));
+    const categoryName = target?.categories?.[0]?.name ?? '';
+    const confirmed = window.confirm(t('budget.confirmDelete', { category: categoryName }));
     if (!confirmed) return;
 
     deleteBudget(id)
@@ -221,10 +223,10 @@ const BudgetView = () => {
               {t('periodLabel') || 'Period'}
               <input
                 type="text"
-                value={editFields.period}
+                value={editFields.month}
                 onChange={(e) => {
-                  setEditFields((prev) => ({ ...prev, period: e.target.value }));
-                  setEditTouched((prev) => ({ ...prev, period: true }));
+                  setEditFields((prev) => ({ ...prev, month: e.target.value }));
+                  setEditTouched((prev) => ({ ...prev, month: true }));
                 }}
                 style={{
                   width: '100%',
@@ -236,25 +238,9 @@ const BudgetView = () => {
                   fontFamily: theme.typography.body.family,
                 }}
               />
-              {editTouched.period && editValidation.period ? (
-                <span style={{ color: theme.colors.accent }}>{editValidation.period}</span>
+              {editTouched.month && editValidation.month ? (
+                <span style={{ color: theme.colors.accent }}>{editValidation.month}</span>
               ) : null}
-            </label>
-            <label>
-              {t('notesLabel') || 'Notes'}
-              <textarea
-                value={editFields.notes}
-                onChange={(e) => setEditFields((prev) => ({ ...prev, notes: e.target.value }))}
-                style={{
-                  width: '100%',
-                  padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
-                  border: `1px solid ${theme.colors.border}`,
-                  borderRadius: theme.shape.radiusSm,
-                  backgroundColor: theme.colors.background,
-                  color: theme.colors.text,
-                  fontFamily: theme.typography.body.family,
-                }}
-              />
             </label>
             <div style={{ display: 'flex', gap: `${theme.spacing.sm}px`, justifyContent: 'flex-end' }}>
               <button
@@ -307,10 +293,13 @@ const BudgetView = () => {
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: `${theme.spacing.sm}px` }}>
           <div>
-            <div style={{ fontWeight: 'bold' }}>{budget.category}</div>
-            <div>{budget.period}</div>
-            <div>{budget.amount}</div>
-            {budget.notes ? <p style={{ marginTop: '0.25rem' }}>{budget.notes}</p> : null}
+            <div style={{ fontWeight: 'bold' }}>{budget.categories[0]?.name ?? ''}</div>
+            <div>{budget.month}</div>
+            {budget.categories[0] ? (
+              <div>
+                {budget.categories[0].plannedAmount} · {budget.categories[0].type}
+              </div>
+            ) : null}
           </div>
           <div style={{ display: 'flex', gap: `${theme.spacing.sm}px`, alignItems: 'flex-start' }}>
             <button
@@ -406,10 +395,10 @@ const BudgetView = () => {
           {t('periodLabel') || 'Period'}
           <input
             type="text"
-            value={form.period}
+            value={form.month}
             onChange={(e) => {
-              setForm((prev) => ({ ...prev, period: e.target.value }));
-              setTouched((prev) => ({ ...prev, period: true }));
+              setForm((prev) => ({ ...prev, month: e.target.value }));
+              setTouched((prev) => ({ ...prev, month: true }));
             }}
             style={{
               width: '100%',
@@ -421,25 +410,9 @@ const BudgetView = () => {
               fontFamily: theme.typography.body.family,
             }}
           />
-          {touched.period && addValidation.period ? (
-            <span style={{ color: theme.colors.accent }}>{addValidation.period}</span>
+          {touched.month && addValidation.month ? (
+            <span style={{ color: theme.colors.accent }}>{addValidation.month}</span>
           ) : null}
-        </label>
-        <label>
-          {t('notesLabel') || 'Notes'}
-          <textarea
-            value={form.notes}
-            onChange={(e) => setForm((prev) => ({ ...prev, notes: e.target.value }))}
-            style={{
-              width: '100%',
-              padding: `${theme.spacing.sm}px`,
-              border: `1px solid ${theme.colors.border}`,
-              borderRadius: theme.shape.radiusSm,
-              backgroundColor: theme.colors.background,
-              color: theme.colors.text,
-              fontFamily: theme.typography.body.family,
-            }}
-          />
         </label>
         <button
           type="button"
