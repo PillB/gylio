@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import useDB from '../core/hooks/useDB';
 import { useTheme } from '../core/context/ThemeContext';
@@ -24,35 +24,45 @@ const BudgetView = () => {
   const [touched, setTouched] = useState({ category: false, amount: false, period: false });
   const [editTouched, setEditTouched] = useState({ category: false, amount: false, period: false });
 
-  const addValidation = useMemo(() => validateFields(form), [form, validateFields]);
-  const editValidation = useMemo(() => validateFields(editFields), [editFields, validateFields]);
+  const validateFields = useCallback(
+    (fields) => {
+      const validation = { category: '', amount: '', period: '' };
+      const trimmedCategory = fields.category.trim();
+      const trimmedPeriod = fields.period.trim();
+      const amountValue = Number.parseFloat(fields.amount);
 
-  const validateFields = useMemo(
-    () =>
-      (fields) => {
-        const validation = { category: '', amount: '', period: '' };
-        const trimmedCategory = fields.category.trim();
-        const trimmedPeriod = fields.period.trim();
-        const amountValue = Number.parseFloat(fields.amount);
+      if (!trimmedCategory) {
+        validation.category = t('validation.categoryRequired');
+      }
 
-        if (!trimmedCategory) {
-          validation.category = t('validation.categoryRequired');
-        }
+      if (Number.isNaN(amountValue)) {
+        validation.amount = t('validation.invalidNumber');
+      } else if (amountValue <= 0) {
+        validation.amount = t('validation.amountPositive');
+      }
 
-        if (Number.isNaN(amountValue)) {
-          validation.amount = t('validation.invalidNumber');
-        } else if (amountValue <= 0) {
-          validation.amount = t('validation.amountPositive');
-        }
+      if (!trimmedPeriod) {
+        validation.period = t('validation.periodRequired');
+      }
 
-        if (!trimmedPeriod) {
-          validation.period = t('validation.periodRequired');
-        }
-
-        return validation;
-      },
+      return validation;
+    },
     [t]
   );
+
+  const addValidation = useMemo(() => {
+    if (!touched.category && !touched.amount && !touched.period) {
+      return { category: '', amount: '', period: '' };
+    }
+    return validateFields(form);
+  }, [form, touched, validateFields]);
+
+  const editValidation = useMemo(() => {
+    if (!editTouched.category && !editTouched.amount && !editTouched.period) {
+      return { category: '', amount: '', period: '' };
+    }
+    return validateFields(editFields);
+  }, [editFields, editTouched, validateFields]);
 
   useEffect(() => {
     if (!ready) return;
