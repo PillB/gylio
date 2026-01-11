@@ -1,9 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import useDB, { type Task } from '../../../core/hooks/useDB';
+import useDB, { type Subtask, type Task } from '../../../core/hooks/useDB';
 import useAccessibility from '../../../core/hooks/useAccessibility';
 
-export type ChecklistTask = Task & { steps: string[] };
+export type ChecklistTask = Task & {
+  steps: string[];
+  completedSteps: number;
+  totalSteps: number;
+};
 
 type NotificationsModule = typeof import('expo-notifications');
 
@@ -11,20 +15,52 @@ type UseTasksResult = {
   tasks: ChecklistTask[];
   loading: boolean;
   toggleTaskStatus: (taskId: number) => Promise<void>;
+  toggleSubtask: (taskId: number, subtaskIndex: number) => Promise<void>;
   refreshTasks: () => Promise<void>;
-  addTask: (title: string, durationMinutes?: number) => Promise<Task | null>;
+  addTask: (options: {
+    title: string;
+    durationMinutes?: number;
+    subtasks?: Subtask[];
+    plannedDate?: string | null;
+    calendarEventId?: number | null;
+  }) => Promise<Task | null>;
+  updateTaskDetails: (taskId: number, updates: Partial<Omit<Task, 'id'>>) => Promise<Task | null>;
+  removeTask: (taskId: number) => Promise<boolean>;
   startPomodoro: (options: { durationMinutes: number; taskId?: number }) => Promise<void>;
 };
 
 const MIN_DURATION = 1;
 const DEFAULT_DURATION = 25;
+const TASK_COMPLETION_POINTS = 10;
+const SUBTASK_COMPLETION_POINTS = 5;
+const FOCUS_COMPLETION_POINTS = 10;
 
 const parseSteps = (task: Task): string[] => task.subtasks.map((subtask) => subtask.label).filter(Boolean);
+
+const calculateLevel = (points: number) => Math.max(1, Math.floor(points / 100) + 1);
+
+const formatDateKey = (date: Date) => date.toISOString().slice(0, 10);
+
+const parseDateKey = (value: string) => {
+  const date = new Date(`${value}T00:00:00`);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
+const getNextStreak = (lastDate: string | null, todayKey: string, currentStreak: number) => {
+  if (!lastDate) return 1;
+  if (lastDate === todayKey) return currentStreak;
+  const lastDateValue = parseDateKey(lastDate);
+  const todayValue = parseDateKey(todayKey);
+  if (!lastDateValue || !todayValue) return 1;
+  const diffDays = Math.round((todayValue.getTime() - lastDateValue.getTime()) / 86400000);
+  if (diffDays === 1) return currentStreak + 1;
+  return 1;
+};
 
 const useTasks = (): UseTasksResult => {
   const { t } = useTranslation();
   const { speak } = useAccessibility();
-  const { ready, getTasks, insertTask, updateTask } = useDB();
+  const { ready, getTasks, insertTask, updateTask, deleteTask, getRewardsProgress, updateRewardsProgress } = useDB();
   const [loading, setLoading] = useState(true);
   const [tasks, setTasks] = useState<Task[]>([]);
   const notificationModuleRef = useRef<NotificationsModule | null>(null);
@@ -36,8 +72,56 @@ const useTasks = (): UseTasksResult => {
       tasks.map((task) => ({
         ...task,
         steps: parseSteps(task),
+        completedSteps: task.subtasks.filter((subtask) => subtask.done).length,
+        totalSteps: task.subtasks.length,
       })),
     [tasks]
+  );
+
+  const applyRewardsProgress = useCallback(
+    async ({
+      points,
+      focusCompleted,
+      taskCompleted,
+    }: {
+      points: number;
+      focusCompleted?: boolean;
+      taskCompleted?: boolean;
+    }) => {
+      try {
+        const current = await getRewardsProgress();
+        const todayKey = formatDateKey(new Date());
+        const nextPoints = current.points + points;
+        const updates = {
+          points: nextPoints,
+          level: calculateLevel(nextPoints),
+          focusStreakDays: current.focusStreakDays,
+          lastFocusDate: current.lastFocusDate,
+          taskStreakDays: current.taskStreakDays,
+          lastTaskCompletionDate: current.lastTaskCompletionDate,
+          skipTokens: current.skipTokens,
+        };
+
+        if (focusCompleted) {
+          updates.focusStreakDays = getNextStreak(current.lastFocusDate, todayKey, current.focusStreakDays);
+          updates.lastFocusDate = todayKey;
+        }
+
+        if (taskCompleted) {
+          updates.taskStreakDays = getNextStreak(
+            current.lastTaskCompletionDate,
+            todayKey,
+            current.taskStreakDays
+          );
+          updates.lastTaskCompletionDate = todayKey;
+        }
+
+        await updateRewardsProgress(updates);
+      } catch (error) {
+        console.warn('Failed to update rewards progress', error);
+      }
+    },
+    [getRewardsProgress, updateRewardsProgress]
   );
 
   const loadNotificationsModule = useCallback(async (): Promise<NotificationsModule | null> => {
@@ -108,6 +192,10 @@ const useTasks = (): UseTasksResult => {
 
         setTasks((prev) => prev.map((entry) => (entry.id === taskId ? { ...entry, status: nextStatus } : entry)));
 
+        if (nextStatus === 'completed') {
+          await applyRewardsProgress({ points: TASK_COMPLETION_POINTS, taskCompleted: true });
+        }
+
         const statusLabel = nextStatus === 'completed' ? t('tasks.completedLabel') : t('tasks.reopenedLabel');
         const announcement = t('tasks.completionAnnouncement', {
           title: updated.title,
@@ -120,11 +208,23 @@ const useTasks = (): UseTasksResult => {
         console.error('Failed to toggle task status', error);
       }
     },
-    [refreshTasks, speak, t, tasks, updateTask]
+    [applyRewardsProgress, refreshTasks, speak, t, tasks, updateTask]
   );
 
   const addTask = useCallback(
-    async (title: string, durationMinutes: number = DEFAULT_DURATION) => {
+    async ({
+      title,
+      durationMinutes = DEFAULT_DURATION,
+      subtasks = [],
+      plannedDate = null,
+      calendarEventId = null,
+    }: {
+      title: string;
+      durationMinutes?: number;
+      subtasks?: Subtask[];
+      plannedDate?: string | null;
+      calendarEventId?: number | null;
+    }) => {
       const trimmed = title.trim();
       if (!trimmed) return null;
 
@@ -133,7 +233,7 @@ const useTasks = (): UseTasksResult => {
         : DEFAULT_DURATION;
 
       try {
-        const created = await insertTask(trimmed, 'pending', [], null, null, normalizedDuration);
+        const created = await insertTask(trimmed, 'pending', subtasks, plannedDate, calendarEventId, normalizedDuration);
         setTasks((prev) => [created, ...prev]);
         await refreshTasks();
         return created;
@@ -143,6 +243,65 @@ const useTasks = (): UseTasksResult => {
       }
     },
     [insertTask, refreshTasks]
+  );
+
+  const updateTaskDetails = useCallback(
+    async (taskId: number, updates: Partial<Omit<Task, 'id'>>) => {
+      try {
+        const updated = await updateTask(taskId, updates);
+        if (!updated) return null;
+        setTasks((prev) => prev.map((entry) => (entry.id === taskId ? updated : entry)));
+        await refreshTasks();
+        return updated;
+      } catch (error) {
+        console.error('Failed to update task', error);
+        return null;
+      }
+    },
+    [refreshTasks, updateTask]
+  );
+
+  const removeTask = useCallback(
+    async (taskId: number) => {
+      try {
+        const removed = await deleteTask(taskId);
+        if (removed) {
+          setTasks((prev) => prev.filter((task) => task.id !== taskId));
+        }
+        return removed;
+      } catch (error) {
+        console.error('Failed to delete task', error);
+        return false;
+      }
+    },
+    [deleteTask]
+  );
+
+  const toggleSubtask = useCallback(
+    async (taskId: number, subtaskIndex: number) => {
+      const target = tasks.find((task) => task.id === taskId);
+      if (!target) return;
+      const currentSubtask = target.subtasks[subtaskIndex];
+      if (!currentSubtask) return;
+
+      const updatedSubtasks = target.subtasks.map((subtask, index) =>
+        index === subtaskIndex ? { ...subtask, done: !subtask.done } : subtask
+      );
+
+      try {
+        const updated = await updateTask(taskId, { subtasks: updatedSubtasks });
+        if (!updated) return;
+        setTasks((prev) => prev.map((entry) => (entry.id === taskId ? updated : entry)));
+        await refreshTasks();
+
+        if (!currentSubtask.done) {
+          await applyRewardsProgress({ points: SUBTASK_COMPLETION_POINTS });
+        }
+      } catch (error) {
+        console.error('Failed to update subtask', error);
+      }
+    },
+    [applyRewardsProgress, refreshTasks, tasks, updateTask]
   );
 
   const scheduleCompletionNotification = useCallback(
@@ -199,19 +358,23 @@ const useTasks = (): UseTasksResult => {
 
       const timeoutId = setTimeout(() => {
         speak(completionMessage);
+        applyRewardsProgress({ points: FOCUS_COMPLETION_POINTS, focusCompleted: true });
       }, seconds * 1000);
 
       timersRef.current.push(timeoutId);
     },
-    [refreshTasks, scheduleCompletionNotification, speak, t, tasks, updateTask]
+    [applyRewardsProgress, refreshTasks, scheduleCompletionNotification, speak, t, tasks, updateTask]
   );
 
   return {
     tasks: mappedTasks,
     loading,
     toggleTaskStatus,
+    toggleSubtask,
     refreshTasks,
     addTask,
+    updateTaskDetails,
+    removeTask,
     startPomodoro,
   };
 };

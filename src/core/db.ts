@@ -82,6 +82,16 @@ const TABLE_CREATION_STATEMENTS = [
     description TEXT,
     redeemed INTEGER NOT NULL DEFAULT 0,
     createdAt TEXT DEFAULT (datetime('now'))
+  );`,
+  `CREATE TABLE IF NOT EXISTS rewards_progress (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    points INTEGER NOT NULL DEFAULT 0,
+    level INTEGER NOT NULL DEFAULT 1,
+    focusStreakDays INTEGER NOT NULL DEFAULT 0,
+    lastFocusDate TEXT,
+    taskStreakDays INTEGER NOT NULL DEFAULT 0,
+    lastTaskCompletionDate TEXT,
+    skipTokens INTEGER NOT NULL DEFAULT 0
   );`
 ];
 
@@ -147,6 +157,16 @@ export const runMigrations = (): Promise<void> =>
           { name: 'month', definition: "TEXT NOT NULL DEFAULT ''" },
           { name: 'income', definition: "TEXT NOT NULL DEFAULT '[]'" },
           { name: 'categories', definition: "TEXT NOT NULL DEFAULT '[]'" },
+        ]);
+
+        ensureColumns(tx, 'rewards_progress', [
+          { name: 'points', definition: 'INTEGER NOT NULL DEFAULT 0' },
+          { name: 'level', definition: 'INTEGER NOT NULL DEFAULT 1' },
+          { name: 'focusStreakDays', definition: 'INTEGER NOT NULL DEFAULT 0' },
+          { name: 'lastFocusDate', definition: 'TEXT' },
+          { name: 'taskStreakDays', definition: 'INTEGER NOT NULL DEFAULT 0' },
+          { name: 'lastTaskCompletionDate', definition: 'TEXT' },
+          { name: 'skipTokens', definition: 'INTEGER NOT NULL DEFAULT 0' },
         ]);
 
         INDEX_CREATION_STATEMENTS.forEach((statement) => {
