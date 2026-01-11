@@ -97,6 +97,17 @@ export type Reward = {
   createdAt: string | null;
 };
 
+export type RewardsProgress = {
+  id: number;
+  points: number;
+  level: number;
+  focusStreakDays: number;
+  lastFocusDate: string | null;
+  taskStreakDays: number;
+  lastTaskCompletionDate: string | null;
+  skipTokens: number;
+};
+
 type StatementSet = {
   insertTask: string;
   updateTask: string;
@@ -133,6 +144,9 @@ type StatementSet = {
   deleteReward: string;
   selectRewardById: string;
   selectRewards: string;
+  insertRewardsProgress: string;
+  updateRewardsProgress: string;
+  selectRewardsProgress: string;
 };
 
 const mapRows = <T>(rows: SQLResultSetRowList, transformer: (row: any) => T): T[] => {
@@ -307,6 +321,17 @@ const mapReward = (row: any): Reward => ({
   createdAt: row.createdAt ?? null,
 });
 
+const mapRewardsProgress = (row: any): RewardsProgress => ({
+  id: row.id,
+  points: Number(row.points ?? 0),
+  level: Number(row.level ?? 1),
+  focusStreakDays: Number(row.focusStreakDays ?? 0),
+  lastFocusDate: row.lastFocusDate ?? null,
+  taskStreakDays: Number(row.taskStreakDays ?? 0),
+  lastTaskCompletionDate: row.lastTaskCompletionDate ?? null,
+  skipTokens: Number(row.skipTokens ?? 0),
+});
+
 const useDB = () => {
   const [db, setDb] = useState<Database | null>(null);
   const [ready, setReady] = useState(false);
@@ -375,6 +400,11 @@ const useDB = () => {
       deleteReward: 'DELETE FROM rewards WHERE id = ?;',
       selectRewardById: 'SELECT * FROM rewards WHERE id = ?;',
       selectRewards: 'SELECT * FROM rewards ORDER BY createdAt DESC;',
+      insertRewardsProgress:
+        'INSERT OR IGNORE INTO rewards_progress (id, points, level, focusStreakDays, lastFocusDate, taskStreakDays, lastTaskCompletionDate, skipTokens) VALUES (1, 0, 1, 0, NULL, 0, NULL, 0);',
+      updateRewardsProgress:
+        'UPDATE rewards_progress SET points = ?, level = ?, focusStreakDays = ?, lastFocusDate = ?, taskStreakDays = ?, lastTaskCompletionDate = ?, skipTokens = ? WHERE id = 1;',
+      selectRewardsProgress: 'SELECT * FROM rewards_progress WHERE id = ?;',
     }),
     []
   );
@@ -1184,6 +1214,73 @@ const useDB = () => {
     [runTransaction, statements.deleteReward]
   );
 
+  const getRewardsProgress = useCallback(
+    () =>
+      runTransaction<RewardsProgress>((tx, resolve, reject) => {
+        tx.executeSql(
+          statements.insertRewardsProgress,
+          [],
+          () => {
+            selectSingle(tx, statements.selectRewardsProgress, [1], mapRewardsProgress, resolve, reject);
+          },
+          (_, error) => {
+            reject(error);
+            return false;
+          }
+        );
+      }),
+    [runTransaction, selectSingle, statements.insertRewardsProgress, statements.selectRewardsProgress]
+  );
+
+  const updateRewardsProgress = useCallback(
+    (updates: Partial<Omit<RewardsProgress, 'id'>>) =>
+      runTransaction<RewardsProgress | null>((tx, resolve, reject) => {
+        tx.executeSql(
+          statements.insertRewardsProgress,
+          [],
+          () => {
+            selectSingle(tx, statements.selectRewardsProgress, [1], mapRewardsProgress, (current) => {
+              if (!current) {
+                resolve(null);
+                return;
+              }
+              const next: RewardsProgress = {
+                ...current,
+                ...updates,
+                lastFocusDate: updates.lastFocusDate ?? current.lastFocusDate,
+                lastTaskCompletionDate: updates.lastTaskCompletionDate ?? current.lastTaskCompletionDate,
+              };
+              tx.executeSql(
+                statements.updateRewardsProgress,
+                [
+                  next.points,
+                  next.level,
+                  next.focusStreakDays,
+                  next.lastFocusDate,
+                  next.taskStreakDays,
+                  next.lastTaskCompletionDate,
+                  next.skipTokens,
+                ],
+                () => {
+                  resolve(next);
+                  return true;
+                },
+                (_, error) => {
+                  reject(error);
+                  return false;
+                }
+              );
+            }, reject);
+          },
+          (_, error) => {
+            reject(error);
+            return false;
+          }
+        );
+      }),
+    [runTransaction, selectSingle, statements.insertRewardsProgress, statements.selectRewardsProgress, statements.updateRewardsProgress]
+  );
+
   return {
     ready,
     insertTask,
@@ -1221,6 +1318,8 @@ const useDB = () => {
     deleteReward,
     getRewards,
     getRewardById,
+    getRewardsProgress,
+    updateRewardsProgress,
   } as const;
 };
 
