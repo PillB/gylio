@@ -19,22 +19,7 @@ type UseTasksResult = {
 const MIN_DURATION = 1;
 const DEFAULT_DURATION = 25;
 
-const parseSteps = (description: string | null): string[] => {
-  if (!description) return [];
-
-  try {
-    const parsed = JSON.parse(description);
-    if (Array.isArray(parsed)) return parsed.filter(Boolean).map((entry) => String(entry));
-    if (parsed && Array.isArray(parsed.steps)) return parsed.steps.filter(Boolean).map((entry) => String(entry));
-  } catch (error) {
-    // Fall back to newline-delimited content
-  }
-
-  return description
-    .split('\n')
-    .map((entry) => entry.trim())
-    .filter(Boolean);
-};
+const parseSteps = (task: Task): string[] => task.subtasks.map((subtask) => subtask.label).filter(Boolean);
 
 const useTasks = (): UseTasksResult => {
   const { t } = useTranslation();
@@ -50,7 +35,7 @@ const useTasks = (): UseTasksResult => {
     () =>
       tasks.map((task) => ({
         ...task,
-        steps: parseSteps(task.description),
+        steps: parseSteps(task),
       })),
     [tasks]
   );
@@ -148,7 +133,7 @@ const useTasks = (): UseTasksResult => {
         : DEFAULT_DURATION;
 
       try {
-        const created = await insertTask(trimmed, 'pending', JSON.stringify([]), null, normalizedDuration);
+        const created = await insertTask(trimmed, 'pending', [], null, null, normalizedDuration);
         setTasks((prev) => [created, ...prev]);
         await refreshTasks();
         return created;
@@ -198,7 +183,7 @@ const useTasks = (): UseTasksResult => {
 
       if (taskId) {
         try {
-          await updateTask(taskId, { duration });
+          await updateTask(taskId, { focusPresetMinutes: duration });
           await refreshTasks();
         } catch (error) {
           console.error('Failed to record focus duration on task', error);
