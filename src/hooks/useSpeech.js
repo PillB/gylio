@@ -1,3 +1,5 @@
+import i18n from 'i18next';
+
 /**
  * useSpeech
  *
@@ -23,7 +25,9 @@ export function useSpeech() {
     }
 
     if (speechModule && typeof speechModule.speak === 'function') {
-      speechModule.speak(text, { language: 'en' });
+      const locale = i18n.language || 'en';
+      const voice = locale.startsWith('es') ? 'nova' : undefined;
+      speechModule.speak(text, { language: locale, voice });
     } else {
       console.warn('TTS is not available in this environment');
     }
