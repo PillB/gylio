@@ -1,9 +1,12 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import SectionCard from './SectionCard.jsx';
 import useAccessibility from '../core/hooks/useAccessibility';
 import useGamification from '../core/hooks/useGamification';
 import { useTheme } from '../core/context/ThemeContext';
+import useDB from '../core/hooks/useDB';
+import { requestBackgroundSync } from '../core/utils/backgroundSync';
+import { enqueueSyncAction, listSyncConflicts, removeSyncConflict } from '../core/utils/offlineSync';
 
 /**
  * SettingsView component
@@ -33,6 +36,23 @@ const SettingsView = () => {
     setTtsEnabled
   } = useAccessibility();
   const { gamificationEnabled, setGamificationEnabled } = useGamification();
+  const { updateTask, deleteTask, updateEvent, deleteEvent, updateTransaction, deleteTransaction } = useDB();
+  const [syncConflicts, setSyncConflicts] = useState([]);
+  const [isResolving, setIsResolving] = useState(null);
+
+  const loadSyncConflicts = useCallback(() => {
+    listSyncConflicts()
+      .then((entries) => setSyncConflicts(entries))
+      .catch((error) => {
+        console.warn('Unable to load sync conflicts', error);
+      });
+  }, []);
+
+  useEffect(() => {
+    loadSyncConflicts();
+    const intervalId = window.setInterval(loadSyncConflicts, 30000);
+    return () => window.clearInterval(intervalId);
+  }, [loadSyncConflicts]);
 
   const themeLabels = useMemo(
     () => ({
@@ -41,6 +61,108 @@ const SettingsView = () => {
       highContrast: t('theme.highContrast', 'High contrast')
     }),
     [t]
+  );
+
+  const syncEntityLabels = useMemo(
+    () => ({
+      task: t('sync.entity.task'),
+      event: t('sync.entity.event'),
+      transaction: t('sync.entity.transaction')
+    }),
+    [t]
+  );
+
+  const normalizeSubtasks = (value) => {
+    if (!Array.isArray(value)) return [];
+    return value
+      .map((entry) => {
+        if (typeof entry === 'string') return { label: entry, done: false };
+        if (entry && typeof entry === 'object') {
+          const label = typeof entry.label === 'string' ? entry.label : '';
+          if (!label) return null;
+          return { label, done: Boolean(entry.done) };
+        }
+        return null;
+      })
+      .filter(Boolean);
+  };
+
+  const applyRemoteConflict = useCallback(
+    async (conflict) => {
+      const remote = conflict.remoteData ?? null;
+      const fallbackId = conflict.localData?.id;
+      const entityId = Number(remote?.id ?? fallbackId);
+
+      if (!Number.isFinite(entityId)) return;
+
+      if (!remote) {
+        if (conflict.entityType === 'task') await deleteTask(entityId, { skipSync: true });
+        if (conflict.entityType === 'event') await deleteEvent(entityId, { skipSync: true });
+        if (conflict.entityType === 'transaction') await deleteTransaction(entityId, { skipSync: true });
+        return;
+      }
+
+      if (conflict.entityType === 'task') {
+        await updateTask(entityId, {
+          title: String(remote.title ?? ''),
+          status: String(remote.status ?? 'pending'),
+          subtasks: normalizeSubtasks(remote.subtasks),
+          plannedDate: remote.plannedDate ?? null,
+          calendarEventId: remote.calendarEventId ?? null,
+          focusPresetMinutes: remote.focusPresetMinutes ?? null,
+        }, { skipSync: true });
+      }
+
+      if (conflict.entityType === 'event') {
+        await updateEvent(entityId, {
+          title: String(remote.title ?? ''),
+          description: remote.description ?? null,
+          startDate: String(remote.startDate ?? ''),
+          endDate: remote.endDate ?? null,
+          location: remote.location ?? null,
+          taskId: remote.taskId ?? null,
+          reminderMinutesBefore: remote.reminderMinutesBefore ?? null,
+        }, { skipSync: true });
+      }
+
+      if (conflict.entityType === 'transaction') {
+        await updateTransaction(entityId, {
+          budgetMonth: String(remote.budgetMonth ?? ''),
+          amount: Number(remote.amount ?? 0),
+          categoryName: String(remote.categoryName ?? ''),
+          isNeed: Boolean(remote.isNeed),
+          date: String(remote.date ?? ''),
+          note: remote.note ?? null,
+        }, { skipSync: true });
+      }
+    },
+    [deleteEvent, deleteTask, deleteTransaction, updateEvent, updateTask, updateTransaction]
+  );
+
+  const handleResolveConflict = useCallback(
+    async (conflict, resolution) => {
+      setIsResolving(conflict.id);
+      try {
+        if (resolution === 'local') {
+          await enqueueSyncAction({
+            entityType: conflict.entityType,
+            action: conflict.action,
+            payload: conflict.localData ?? {},
+            clientUpdatedAt: new Date().toISOString(),
+          });
+          await requestBackgroundSync();
+        } else {
+          await applyRemoteConflict(conflict);
+        }
+        await removeSyncConflict(conflict.id);
+        loadSyncConflicts();
+      } catch (error) {
+        console.warn('Failed to resolve conflict', error);
+      } finally {
+        setIsResolving(null);
+      }
+    },
+    [applyRemoteConflict, loadSyncConflicts]
   );
 
   const announceSettings = () => {
@@ -295,6 +417,80 @@ const SettingsView = () => {
               />
               <span>{gamificationEnabled ? t('onboarding.summary.enabled') : t('onboarding.summary.disabled')}</span>
             </label>
+          </div>
+        </div>
+
+        <div
+          style={{
+            border: `1px solid ${theme.colors.border}`,
+            borderRadius: theme.shape.radiusMd,
+            padding: theme.spacing.md,
+            background: theme.colors.surface
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: theme.spacing.md, flexWrap: 'wrap' }}>
+            <div>
+              <p style={{ margin: 0, fontWeight: 600 }}>{t('sync.reviewTitle')}</p>
+              <small style={{ color: theme.colors.muted }}>{t('sync.reviewHelper')}</small>
+            </div>
+          </div>
+          <div style={{ display: 'grid', gap: theme.spacing.sm, marginTop: theme.spacing.sm }}>
+            {syncConflicts.length === 0 ? (
+              <p style={{ margin: 0, color: theme.colors.muted }}>{t('sync.reviewEmpty')}</p>
+            ) : (
+              syncConflicts.map((conflict) => (
+                <div
+                  key={conflict.id}
+                  style={{
+                    border: `1px solid ${theme.colors.border}`,
+                    borderRadius: theme.shape.radiusSm,
+                    padding: theme.spacing.sm,
+                    background: theme.colors.background
+                  }}
+                >
+                  <p style={{ margin: 0, fontWeight: 600 }}>
+                    {t('sync.reviewConflictLabel', {
+                      entity: syncEntityLabels[conflict.entityType] ?? conflict.entityType
+                    })}
+                  </p>
+                  <small style={{ color: theme.colors.muted }}>
+                    {t('sync.reviewDetected', {
+                      timestamp: new Date(conflict.detectedAt).toLocaleString()
+                    })}
+                  </small>
+                  <div style={{ display: 'flex', gap: theme.spacing.sm, marginTop: theme.spacing.sm, flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      onClick={() => handleResolveConflict(conflict, 'local')}
+                      disabled={isResolving === conflict.id}
+                      style={{
+                        padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
+                        borderRadius: theme.shape.radiusSm,
+                        border: `1px solid ${theme.colors.border}`,
+                        background: theme.colors.surface,
+                        color: theme.colors.text
+                      }}
+                    >
+                      {t('sync.reviewKeepLocal')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleResolveConflict(conflict, 'remote')}
+                      disabled={isResolving === conflict.id}
+                      style={{
+                        padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
+                        borderRadius: theme.shape.radiusSm,
+                        border: `1px solid ${theme.colors.border}`,
+                        background: theme.colors.surface,
+                        color: theme.colors.text
+                      }}
+                    >
+                      {t('sync.reviewUseRemote')}
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>

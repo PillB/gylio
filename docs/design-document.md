@@ -271,6 +271,12 @@ function simulateDebtSnowball(debts, extraPayment) {
 - Run backend with SQLite adapter; serve React static build locally.
 - Service worker pre-caches assets; IndexedDB stores queued writes (tasks, events, transactions).
 - Sync worker reconciles when connectivity returns; conflicts resolved by latest timestamp with user review prompt for collisions.
+- Offline workflow details:
+  - **Precache**: service worker caches build assets via the Vite manifest plus the app shell (`index.html`) for predictable offline launch.
+  - **Write queue**: task/event/transaction mutations enqueue into IndexedDB with `clientUpdatedAt`, retry counters, and `nextAttemptAt` scheduling.
+  - **Background sync**: on reconnect (and via the background sync tag) the queue replays to REST endpoints, removing entries on success.
+  - **Retry/backoff**: failures trigger exponential backoff (2s → 4s → 8s … capped at 5 min) with jitter to avoid repeated spikes.
+  - **Conflict review**: 409 responses store a conflict record (local + server payloads) and surface a Settings review card so users choose which version to keep.
 
 ---
 

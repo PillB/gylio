@@ -428,5 +428,19 @@
       "yes": "Yes",
       "no": "No"
     }
+  },
+  "sync": {
+    "entity": {
+      "task": "Task",
+      "event": "Event",
+      "transaction": "Transaction"
+    },
+    "reviewTitle": "Offline sync review",
+    "reviewHelper": "Review changes that could not sync yet and choose which version to keep.",
+    "reviewEmpty": "No sync conflicts to review.",
+    "reviewConflictLabel": "Conflict in {{entity}}",
+    "reviewDetected": "Detected: {{timestamp}}",
+    "reviewKeepLocal": "Keep my changes",
+    "reviewUseRemote": "Use server version"
   }
 }

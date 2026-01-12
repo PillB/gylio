@@ -23,6 +23,7 @@ import { useTheme } from './core/context/ThemeContext';
 import TintLayer from './components/TintLayer.jsx';
 import useDB from './core/hooks/useDB';
 import { getDefaultBudgetMonth } from './core/utils/date';
+import useBackgroundSync from './core/hooks/useBackgroundSync';
 
 function AppHeader() {
   const { t } = useTranslation();
@@ -267,6 +268,7 @@ function AppRouter() {
 
 export default function App() {
   const { paperTheme } = useTheme();
+  useBackgroundSync();
 
   return (
     <PaperProvider theme={paperTheme}>
