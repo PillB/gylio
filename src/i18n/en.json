@@ -114,6 +114,100 @@
     "title": "Rewards",
     "confirmDelete": "Delete reward {{title}}?"
   },
+  "social": {
+    "title": "Social",
+    "description": "Plan social moments with gentle prompts and reminders.",
+    "templatesHeading": "Prompt templates",
+    "templatesHelper": "Choose a template to prefill a plan.",
+    "addHeading": "Create a social plan",
+    "addPlan": "Add plan",
+    "plansHeading": "Your social plans",
+    "empty": "No social plans yet.",
+    "typeLabel": "Plan type",
+    "energyLabel": "Energy level",
+    "dateTimeLabel": "Date & time (optional)",
+    "dateTimeOptional": "No date/time set",
+    "reminderLabel": "Reminder minutes before",
+    "reminderHelperTtsOn": "Reminders can include sound while text-to-speech is on.",
+    "reminderHelperTtsOff": "Reminders stay silent while text-to-speech is off.",
+    "reminderSummary": "Reminder {{minutes}} minutes before.",
+    "reminderNone": "No reminder set.",
+    "stepsLabel": "Steps",
+    "stepsHelper": "Optional: add small steps to reduce friction.",
+    "stepPlaceholder": "Add a small step",
+    "addStep": "Add step",
+    "removeStep": "Remove",
+    "readPlan": "Read plan",
+    "confirmDelete": "Delete social plan {{title}}?",
+    "typeSummary": "Type: {{type}}",
+    "energySummary": "Energy: {{energy}}",
+    "readSummary": "{{title}}. Type {{type}}. Energy {{energy}}. {{dateTime}}.",
+    "reminderTitle": "Social plan reminder",
+    "reminderBody": "Upcoming: {{title}}",
+    "applyTemplate": "Apply template",
+    "generateSuggestions": "Suggest steps",
+    "aiOptIn": "Use optional AI suggestions",
+    "aiPrivacy": "If enabled, we only send the template summary and energy level. No personal data.",
+    "aiFallbackUsed": "AI unavailable. Using the offline template instead.",
+    "aiSelectTemplate": "Select a template to continue.",
+    "type": {
+      "call": "Call",
+      "meetup": "Meetup",
+      "message": "Message",
+      "event": "Event"
+    },
+    "energy": {
+      "low": "Low",
+      "med": "Medium",
+      "high": "High"
+    },
+    "templates": {
+      "checkIn": {
+        "label": "Quick check-in",
+        "description": "Send a short, friendly hello without pressure.",
+        "title": "Check in with someone",
+        "notes": "Keep it light—one sentence is enough.",
+        "steps": {
+          "first": "Pick one person to reach out to.",
+          "second": "Write a simple message like “Hey, thinking of you.”",
+          "third": "Send it and mark done."
+        }
+      },
+      "birthday": {
+        "label": "Birthday reminder",
+        "description": "Send a warm message or small plan for a birthday.",
+        "title": "Send a birthday message",
+        "notes": "Short and kind counts.",
+        "steps": {
+          "first": "Draft a short birthday greeting.",
+          "second": "Add a memory or emoji if you want.",
+          "third": "Send or schedule the message."
+        }
+      },
+      "meetup": {
+        "label": "Low-key meetup",
+        "description": "Invite someone to a simple, low-pressure hangout.",
+        "title": "Plan a gentle meetup",
+        "notes": "Offer two options so it’s easy to say yes or no.",
+        "steps": {
+          "first": "Choose a calm place or activity.",
+          "second": "Suggest a time window instead of a fixed slot.",
+          "third": "Send the invite and wait for a reply."
+        }
+      },
+      "support": {
+        "label": "Supportive call",
+        "description": "Prepare for a caring call or voice note.",
+        "title": "Offer support",
+        "notes": "You can keep it brief and gentle.",
+        "steps": {
+          "first": "Note one thing you want to say.",
+          "second": "Ask if they have time for a quick call.",
+          "third": "Follow up with a supportive message."
+        }
+      }
+    }
+  },
   "settings": "Settings",
   "loading": "Loading…",
   "deleteLabel": "Delete",

@@ -114,6 +114,100 @@
     "title": "Recompensas",
     "confirmDelete": "¿Eliminar la recompensa {{title}}?"
   },
+  "social": {
+    "title": "Social",
+    "description": "Planifica momentos sociales con prompts suaves y recordatorios.",
+    "templatesHeading": "Plantillas de prompts",
+    "templatesHelper": "Elige una plantilla para completar un plan.",
+    "addHeading": "Crear un plan social",
+    "addPlan": "Agregar plan",
+    "plansHeading": "Tus planes sociales",
+    "empty": "Aún no hay planes sociales.",
+    "typeLabel": "Tipo de plan",
+    "energyLabel": "Nivel de energía",
+    "dateTimeLabel": "Fecha y hora (opcional)",
+    "dateTimeOptional": "Sin fecha u hora",
+    "reminderLabel": "Minutos antes del recordatorio",
+    "reminderHelperTtsOn": "Los recordatorios pueden incluir sonido mientras TTS esté activado.",
+    "reminderHelperTtsOff": "Los recordatorios serán silenciosos mientras TTS esté desactivado.",
+    "reminderSummary": "Recordatorio {{minutes}} minutos antes.",
+    "reminderNone": "Sin recordatorio.",
+    "stepsLabel": "Pasos",
+    "stepsHelper": "Opcional: agrega pasos pequeños para reducir la fricción.",
+    "stepPlaceholder": "Agrega un paso pequeño",
+    "addStep": "Agregar paso",
+    "removeStep": "Quitar",
+    "readPlan": "Leer plan",
+    "confirmDelete": "¿Eliminar el plan social {{title}}?",
+    "typeSummary": "Tipo: {{type}}",
+    "energySummary": "Energía: {{energy}}",
+    "readSummary": "{{title}}. Tipo {{type}}. Energía {{energy}}. {{dateTime}}.",
+    "reminderTitle": "Recordatorio de plan social",
+    "reminderBody": "Próximo: {{title}}",
+    "applyTemplate": "Aplicar plantilla",
+    "generateSuggestions": "Sugerir pasos",
+    "aiOptIn": "Usar sugerencias opcionales con IA",
+    "aiPrivacy": "Si se activa, solo enviamos el resumen de la plantilla y el nivel de energía. Sin datos personales.",
+    "aiFallbackUsed": "IA no disponible. Usamos la plantilla sin conexión.",
+    "aiSelectTemplate": "Selecciona una plantilla para continuar.",
+    "type": {
+      "call": "Llamada",
+      "meetup": "Encuentro",
+      "message": "Mensaje",
+      "event": "Evento"
+    },
+    "energy": {
+      "low": "Baja",
+      "med": "Media",
+      "high": "Alta"
+    },
+    "templates": {
+      "checkIn": {
+        "label": "Saludo rápido",
+        "description": "Envía un hola corto y amable sin presión.",
+        "title": "Saludar a alguien",
+        "notes": "Manténlo simple: una frase basta.",
+        "steps": {
+          "first": "Elige a una persona para escribirle.",
+          "second": "Redacta un mensaje simple como “Hola, estaba pensando en ti”.",
+          "third": "Envíalo y marca como listo."
+        }
+      },
+      "birthday": {
+        "label": "Recordatorio de cumpleaños",
+        "description": "Envía un mensaje cálido o un pequeño plan de cumpleaños.",
+        "title": "Enviar saludo de cumpleaños",
+        "notes": "Breve y amable cuenta.",
+        "steps": {
+          "first": "Redacta un saludo corto de cumpleaños.",
+          "second": "Agrega un recuerdo o emoji si quieres.",
+          "third": "Envía o programa el mensaje."
+        }
+      },
+      "meetup": {
+        "label": "Encuentro tranquilo",
+        "description": "Invita a alguien a un plan simple y sin presión.",
+        "title": "Planear un encuentro suave",
+        "notes": "Ofrece dos opciones para que responder sea fácil.",
+        "steps": {
+          "first": "Elige un lugar o actividad tranquila.",
+          "second": "Sugiere una ventana de tiempo en lugar de una hora exacta.",
+          "third": "Envía la invitación y espera respuesta."
+        }
+      },
+      "support": {
+        "label": "Llamada de apoyo",
+        "description": "Prepárate para una llamada o nota de voz con cariño.",
+        "title": "Ofrecer apoyo",
+        "notes": "Puedes mantenerlo breve y gentil.",
+        "steps": {
+          "first": "Anota una cosa que quieras decir.",
+          "second": "Pregunta si tiene tiempo para una llamada rápida.",
+          "third": "Haz un seguimiento con un mensaje de apoyo."
+        }
+      }
+    }
+  },
   "settings": "Configuración",
   "loading": "Cargando…",
   "deleteLabel": "Eliminar",
