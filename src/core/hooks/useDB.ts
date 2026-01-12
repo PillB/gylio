@@ -105,6 +105,8 @@ export type RewardsProgress = {
   lastFocusDate: string | null;
   taskStreakDays: number;
   lastTaskCompletionDate: string | null;
+  budgetStreakWeeks: number;
+  lastBudgetReviewWeek: string | null;
   skipTokens: number;
 };
 
@@ -329,6 +331,8 @@ const mapRewardsProgress = (row: any): RewardsProgress => ({
   lastFocusDate: row.lastFocusDate ?? null,
   taskStreakDays: Number(row.taskStreakDays ?? 0),
   lastTaskCompletionDate: row.lastTaskCompletionDate ?? null,
+  budgetStreakWeeks: Number(row.budgetStreakWeeks ?? 0),
+  lastBudgetReviewWeek: row.lastBudgetReviewWeek ?? null,
   skipTokens: Number(row.skipTokens ?? 0),
 });
 
@@ -401,9 +405,9 @@ const useDB = () => {
       selectRewardById: 'SELECT * FROM rewards WHERE id = ?;',
       selectRewards: 'SELECT * FROM rewards ORDER BY createdAt DESC;',
       insertRewardsProgress:
-        'INSERT OR IGNORE INTO rewards_progress (id, points, level, focusStreakDays, lastFocusDate, taskStreakDays, lastTaskCompletionDate, skipTokens) VALUES (1, 0, 1, 0, NULL, 0, NULL, 0);',
+        'INSERT OR IGNORE INTO rewards_progress (id, points, level, focusStreakDays, lastFocusDate, taskStreakDays, lastTaskCompletionDate, budgetStreakWeeks, lastBudgetReviewWeek, skipTokens) VALUES (1, 0, 1, 0, NULL, 0, NULL, 0, NULL, 0);',
       updateRewardsProgress:
-        'UPDATE rewards_progress SET points = ?, level = ?, focusStreakDays = ?, lastFocusDate = ?, taskStreakDays = ?, lastTaskCompletionDate = ?, skipTokens = ? WHERE id = 1;',
+        'UPDATE rewards_progress SET points = ?, level = ?, focusStreakDays = ?, lastFocusDate = ?, taskStreakDays = ?, lastTaskCompletionDate = ?, budgetStreakWeeks = ?, lastBudgetReviewWeek = ?, skipTokens = ? WHERE id = 1;',
       selectRewardsProgress: 'SELECT * FROM rewards_progress WHERE id = ?;',
     }),
     []
@@ -1249,6 +1253,7 @@ const useDB = () => {
                 ...updates,
                 lastFocusDate: updates.lastFocusDate ?? current.lastFocusDate,
                 lastTaskCompletionDate: updates.lastTaskCompletionDate ?? current.lastTaskCompletionDate,
+                lastBudgetReviewWeek: updates.lastBudgetReviewWeek ?? current.lastBudgetReviewWeek,
               };
               tx.executeSql(
                 statements.updateRewardsProgress,
@@ -1259,6 +1264,8 @@ const useDB = () => {
                   next.lastFocusDate,
                   next.taskStreakDays,
                   next.lastTaskCompletionDate,
+                  next.budgetStreakWeeks,
+                  next.lastBudgetReviewWeek,
                   next.skipTokens,
                 ],
                 () => {

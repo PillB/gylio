@@ -62,6 +62,8 @@
     "dark": "Dark",
     "highContrast": "High contrast"
   },
+  "settingsGamificationLabel": "Gamification",
+  "settingsGamificationHelper": "Opt in to XP, streaks, and cosmetic unlocks. You can disable this any time.",
   "budget": {
     "title": "Budget",
     "placeholder": "Budget tools will track income and expenses, categorize them and simulate debt payoff.",
@@ -103,6 +105,11 @@
     "payoffInterest": "Estimated interest: {{interest}}",
     "payoffExtraHint": "Includes extra payment from remaining: {{extra}}",
     "payoffEmpty": "Add debts and minimum payments to simulate payoff.",
+    "reviewHeading": "Weekly review",
+    "reviewHelper": "Log a gentle check-in to keep your budget streak steady.",
+    "reviewDisabled": "Enable gamification to track your weekly budget streak.",
+    "reviewLogged": "Logged for this week.",
+    "logReview": "Log weekly review",
     "categoryType": {
       "need": "Need",
       "want": "Want",
@@ -112,8 +119,25 @@
   },
   "rewards": {
     "title": "Rewards",
-    "confirmDelete": "Delete reward {{title}}?"
+    "confirmDelete": "Delete reward {{title}}?",
+    "gamificationLabel": "Gamification",
+    "gamificationHelper": "Toggle XP, streaks, and unlocks on or off. Your data stays local.",
+    "gamificationOn": "Enabled",
+    "gamificationOff": "Disabled",
+    "gamificationDisabled": "Gamification is off.",
+    "levelLabel": "Level",
+    "levelSummary": "Level {{level}}",
+    "xpSummary": "{{points}} XP / {{target}} XP",
+    "skipTokensLabel": "Skip tokens",
+    "skipTokensHelper": "Use a token to preserve a streak after a missed day.",
+    "streakHeading": "Streak status",
+    "focusStreak": "Daily focus streak: {{days}} days",
+    "taskStreak": "Task completion streak: {{days}} days",
+    "budgetStreak": "Weekly budget review streak: {{weeks}} weeks",
+    "unlocked": "Unlocked",
+    "locked": "Locked"
   },
+  "rewardsPlaceholder": "Gentle, opt-in progress tracking with XP and unlocks.",
   "social": {
     "title": "Social",
     "description": "Plan social moments with gentle prompts and reminders.",
