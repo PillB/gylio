@@ -15,6 +15,7 @@ import CalendarView from './components/CalendarView.jsx';
 import BudgetView from './components/BudgetView.jsx';
 import RewardsView from './components/RewardsView.jsx';
 import SettingsView from './components/SettingsView.jsx';
+import SocialPlansView from './features/social/components/SocialPlansView';
 import OnboardingFlow from './onboarding/OnboardingFlow.jsx';
 import useOnboardingFlow from './hooks/useOnboardingFlow.jsx';
 import LanguageToggle from './components/atoms/LanguageToggle.tsx';
@@ -141,6 +142,7 @@ function TabsLayout() {
     () => [
       { key: 'tasks', label: t('tasks.title') },
       { key: 'calendar', label: t('calendar') },
+      { key: 'social', label: t('social.title') },
       { key: 'budget', label: t('budget.title') },
       { key: 'rewards', label: t('rewards.title') },
       { key: 'settings', label: t('settings') }
@@ -185,6 +187,7 @@ function AppRouter() {
                 children: [
                   { path: 'tasks', element: <TaskList /> },
                   { path: 'calendar', element: <CalendarView /> },
+                  { path: 'social', element: <SocialPlansView /> },
                   { path: 'budget', element: <BudgetView /> },
                   { path: 'rewards', element: <RewardsView /> },
                   { path: 'settings', element: <SettingsView /> }
