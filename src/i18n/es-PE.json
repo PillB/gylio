@@ -387,6 +387,7 @@
       "budgetLabel": "Enfoque del presupuesto mensual",
       "budgetPlaceholder": "Ingresa un monto",
       "budgetHint": "Usa un número redondo; luego afinaremos categorías.",
+      "seedIncomeSource": "Ingreso inicial",
       "preview": "Vista previa de lo que se creará:",
       "previewTasks": "Lista de tareas con: {{goal}}",
       "previewBudget": "Seguimiento de presupuesto en: {{budget}}"
