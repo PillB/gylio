@@ -1,6 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useOnboardingFlow from '../../hooks/useOnboardingFlow.jsx';
+import { getSpeechOptions } from '../../utils/speechOptions.js';
 
 const TINT_STORAGE_KEY = 'accessibility:tint';
 const REDUCE_MOTION_STORAGE_KEY = 'accessibility:reduceMotion';
@@ -153,9 +154,8 @@ function useAccessibilityInternal(): AccessibilityContextValue {
       const utteranceId = activeUtteranceRef.current + 1;
       activeUtteranceRef.current = utteranceId;
       setIsSpeaking(true);
-
       speechModule.speak(text.trim(), {
-        language: 'en',
+        ...getSpeechOptions(),
         onDone: () => {
           if (activeUtteranceRef.current === utteranceId) {
             setIsSpeaking(false);
