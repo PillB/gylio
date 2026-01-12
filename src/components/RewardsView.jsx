@@ -23,6 +23,7 @@ const RewardsView = () => {
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({ title: '', pointsRequired: '', description: '' });
   const [touched, setTouched] = useState({ title: false, pointsRequired: false });
+  const [rewardDeleteConfirmId, setRewardDeleteConfirmId] = useState(null);
 
   const validation = useMemo(() => {
     const errors = { title: '', pointsRequired: '' };
@@ -117,15 +118,12 @@ const RewardsView = () => {
   };
 
   const removeReward = (id) => {
-    const target = rewards.find((entry) => entry.id === id);
-    const confirmed = window.confirm(t('rewards.confirmDelete', { title: target?.title ?? '' }));
-    if (!confirmed) return;
-
     deleteReward(id)
       .then((deleted) => {
         if (deleted) {
           setRewards((prev) => prev.filter((entry) => entry.id !== id));
         }
+        setRewardDeleteConfirmId(null);
       })
       .catch((error) => {
         console.error('Failed to delete reward', error);
@@ -360,21 +358,70 @@ const RewardsView = () => {
                         >
                           {t('toggleRedeemed') || 'Toggle redeemed'}
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => removeReward(reward.id)}
-                          style={{
-                            padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
-                            borderRadius: theme.shape.radiusSm,
-                            border: `1px solid ${theme.colors.border}`,
-                            backgroundColor: theme.colors.background,
-                            color: theme.colors.text,
-                            cursor: 'pointer',
-                            fontFamily: theme.typography.body.family,
-                          }}
-                        >
-                          {t('deleteLabel') || 'Delete'}
-                        </button>
+                        {rewardDeleteConfirmId === reward.id ? (
+                          <div
+                            role="group"
+                            aria-label={t('rewards.confirmDelete', { title: reward.title })}
+                            style={{
+                              display: 'grid',
+                              gap: `${theme.spacing.xs}px`,
+                              padding: `${theme.spacing.xs}px`,
+                              borderRadius: theme.shape.radiusSm,
+                              border: `1px solid ${theme.colors.border}`,
+                              backgroundColor: theme.colors.surface,
+                            }}
+                          >
+                            <span>{t('rewards.confirmDelete', { title: reward.title })}</span>
+                            <div style={{ display: 'flex', gap: `${theme.spacing.xs}px`, flexWrap: 'wrap' }}>
+                              <button
+                                type="button"
+                                onClick={() => removeReward(reward.id)}
+                                style={{
+                                  padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
+                                  borderRadius: theme.shape.radiusSm,
+                                  border: `1px solid ${theme.colors.primary}`,
+                                  backgroundColor: theme.colors.primary,
+                                  color: theme.colors.background,
+                                  cursor: 'pointer',
+                                  fontFamily: theme.typography.body.family,
+                                }}
+                              >
+                                {t('confirmLabel') || 'Confirm'}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setRewardDeleteConfirmId(null)}
+                                style={{
+                                  padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
+                                  borderRadius: theme.shape.radiusSm,
+                                  border: `1px solid ${theme.colors.border}`,
+                                  backgroundColor: theme.colors.background,
+                                  color: theme.colors.text,
+                                  cursor: 'pointer',
+                                  fontFamily: theme.typography.body.family,
+                                }}
+                              >
+                                {t('cancelLabel') || 'Cancel'}
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setRewardDeleteConfirmId(reward.id)}
+                            style={{
+                              padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
+                              borderRadius: theme.shape.radiusSm,
+                              border: `1px solid ${theme.colors.border}`,
+                              backgroundColor: theme.colors.background,
+                              color: theme.colors.text,
+                              cursor: 'pointer',
+                              fontFamily: theme.typography.body.family,
+                            }}
+                          >
+                            {t('deleteLabel') || 'Delete'}
+                          </button>
+                        )}
                       </div>
                     </div>
                   </li>
