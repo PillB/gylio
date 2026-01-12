@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import i18n from 'i18next';
 import useOnboardingFlow from '../../hooks/useOnboardingFlow.jsx';
 import { getSpeechOptions } from '../../utils/speechOptions.js';
 
@@ -154,8 +155,12 @@ function useAccessibilityInternal(): AccessibilityContextValue {
       const utteranceId = activeUtteranceRef.current + 1;
       activeUtteranceRef.current = utteranceId;
       setIsSpeaking(true);
+      const locale = i18n.language || 'en';
+      const voice = locale.startsWith('es') ? 'nova' : undefined;
+
       speechModule.speak(text.trim(), {
-        ...getSpeechOptions(),
+        language: locale,
+        voice,
         onDone: () => {
           if (activeUtteranceRef.current === utteranceId) {
             setIsSpeaking(false);
