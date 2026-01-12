@@ -2,6 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useR
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import i18n from 'i18next';
 import useOnboardingFlow from '../../hooks/useOnboardingFlow.jsx';
+import { getSpeechOptions } from '../../utils/speechOptions.js';
 
 const TINT_STORAGE_KEY = 'accessibility:tint';
 const REDUCE_MOTION_STORAGE_KEY = 'accessibility:reduceMotion';

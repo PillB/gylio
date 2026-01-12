@@ -12,6 +12,10 @@ export function useSpeech() {
   let speechModule;
 
   const speak = (text) => {
+    if (!text?.trim()) {
+      return;
+    }
+
     if (!speechModule) {
       try {
         // Lazy-load to avoid import errors in environments without Expo Speech
