@@ -237,6 +237,7 @@
   "deleteLabel": "Eliminar",
   "editLabel": "Editar",
   "saveLabel": "Guardar",
+  "confirmLabel": "Confirmar",
   "cancelLabel": "Cancelar",
   "addTask": "Agregar tarea",
   "taskPlaceholder": "Ingresa el título de la tarea",

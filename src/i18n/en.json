@@ -237,6 +237,7 @@
   "deleteLabel": "Delete",
   "editLabel": "Edit",
   "saveLabel": "Save",
+  "confirmLabel": "Confirm",
   "cancelLabel": "Cancel",
   "addTask": "Add Task",
   "taskPlaceholder": "Enter task title",

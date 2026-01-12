@@ -82,6 +82,7 @@ const BudgetView = () => {
 
   const [payoffStrategy, setPayoffStrategy] = useState(PAYOFF_STRATEGIES.SNOWBALL);
   const [reviewLogged, setReviewLogged] = useState(false);
+  const [budgetDeleteConfirm, setBudgetDeleteConfirm] = useState(false);
 
   useEffect(() => {
     if (!ready) return;
@@ -107,6 +108,10 @@ const BudgetView = () => {
     const timerId = setTimeout(() => setReviewLogged(false), 2000);
     return () => clearTimeout(timerId);
   }, [reviewLogged]);
+
+  useEffect(() => {
+    setBudgetDeleteConfirm(false);
+  }, [activeBudgetId]);
 
   useEffect(() => {
     if (!budgets.length) return;
@@ -483,13 +488,12 @@ const BudgetView = () => {
 
   const handleDeleteBudget = () => {
     if (!activeBudget) return;
-    const confirmed = window.confirm(t('budget.confirmDelete', { category: activeBudget.month }));
-    if (!confirmed) return;
     deleteBudget(activeBudget.id)
       .then((deleted) => {
         if (!deleted) return;
         setBudgets((prev) => prev.filter((entry) => entry.id !== activeBudget.id));
         setActiveBudgetId(null);
+        setBudgetDeleteConfirm(false);
       })
       .catch((error) => {
         console.error('Failed to delete budget', error);
@@ -706,21 +710,70 @@ const BudgetView = () => {
                 {t('budget.openBudget') || 'Open budget'}
               </button>
               {activeBudget ? (
-                <button
-                  type="button"
-                  onClick={handleDeleteBudget}
-                  style={{
-                    padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
-                    borderRadius: theme.shape.radiusSm,
-                    border: `1px solid ${theme.colors.border}`,
-                    backgroundColor: theme.colors.background,
-                    color: theme.colors.text,
-                    cursor: 'pointer',
-                    fontFamily: theme.typography.body.family,
-                  }}
-                >
-                  {t('deleteLabel') || 'Delete'}
-                </button>
+                budgetDeleteConfirm ? (
+                  <div
+                    role="group"
+                    aria-label={t('budget.confirmDelete', { category: activeBudget.month })}
+                    style={{
+                      display: 'grid',
+                      gap: `${theme.spacing.xs}px`,
+                      padding: `${theme.spacing.xs}px`,
+                      borderRadius: theme.shape.radiusSm,
+                      border: `1px solid ${theme.colors.border}`,
+                      backgroundColor: theme.colors.surface,
+                    }}
+                  >
+                    <span>{t('budget.confirmDelete', { category: activeBudget.month })}</span>
+                    <div style={{ display: 'flex', gap: `${theme.spacing.xs}px`, flexWrap: 'wrap' }}>
+                      <button
+                        type="button"
+                        onClick={handleDeleteBudget}
+                        style={{
+                          padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
+                          borderRadius: theme.shape.radiusSm,
+                          border: `1px solid ${theme.colors.primary}`,
+                          backgroundColor: theme.colors.primary,
+                          color: theme.colors.background,
+                          cursor: 'pointer',
+                          fontFamily: theme.typography.body.family,
+                        }}
+                      >
+                        {t('confirmLabel') || 'Confirm'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setBudgetDeleteConfirm(false)}
+                        style={{
+                          padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
+                          borderRadius: theme.shape.radiusSm,
+                          border: `1px solid ${theme.colors.border}`,
+                          backgroundColor: theme.colors.background,
+                          color: theme.colors.text,
+                          cursor: 'pointer',
+                          fontFamily: theme.typography.body.family,
+                        }}
+                      >
+                        {t('cancelLabel') || 'Cancel'}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setBudgetDeleteConfirm(true)}
+                    style={{
+                      padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
+                      borderRadius: theme.shape.radiusSm,
+                      border: `1px solid ${theme.colors.border}`,
+                      backgroundColor: theme.colors.background,
+                      color: theme.colors.text,
+                      cursor: 'pointer',
+                      fontFamily: theme.typography.body.family,
+                    }}
+                  >
+                    {t('deleteLabel') || 'Delete'}
+                  </button>
+                )
               ) : null}
             </div>
           </section>
