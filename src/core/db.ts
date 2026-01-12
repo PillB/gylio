@@ -91,6 +91,8 @@ const TABLE_CREATION_STATEMENTS = [
     lastFocusDate TEXT,
     taskStreakDays INTEGER NOT NULL DEFAULT 0,
     lastTaskCompletionDate TEXT,
+    budgetStreakWeeks INTEGER NOT NULL DEFAULT 0,
+    lastBudgetReviewWeek TEXT,
     skipTokens INTEGER NOT NULL DEFAULT 0
   );`
 ];
@@ -183,6 +185,8 @@ export const runMigrations = (): Promise<void> =>
           { name: 'lastFocusDate', definition: 'TEXT' },
           { name: 'taskStreakDays', definition: 'INTEGER NOT NULL DEFAULT 0' },
           { name: 'lastTaskCompletionDate', definition: 'TEXT' },
+          { name: 'budgetStreakWeeks', definition: 'INTEGER NOT NULL DEFAULT 0' },
+          { name: 'lastBudgetReviewWeek', definition: 'TEXT' },
           { name: 'skipTokens', definition: 'INTEGER NOT NULL DEFAULT 0' },
         ]);
 

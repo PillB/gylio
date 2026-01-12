@@ -62,6 +62,8 @@
     "dark": "Oscuro",
     "highContrast": "Alto contraste"
   },
+  "settingsGamificationLabel": "Gamificación",
+  "settingsGamificationHelper": "Activa XP, rachas y desbloqueos cosméticos. Puedes desactivarlo cuando quieras.",
   "budget": {
     "title": "Presupuesto",
     "placeholder": "Las herramientas de presupuesto seguirán ingresos y gastos, los categorizarán y simularán el pago de deudas.",
@@ -103,6 +105,11 @@
     "payoffInterest": "Interés estimado: {{interest}}",
     "payoffExtraHint": "Incluye pago extra del restante: {{extra}}",
     "payoffEmpty": "Agrega deudas y pagos mínimos para simular el pago.",
+    "reviewHeading": "Revisión semanal",
+    "reviewHelper": "Registra un check-in suave para mantener tu racha de presupuesto.",
+    "reviewDisabled": "Activa la gamificación para registrar tu racha semanal de presupuesto.",
+    "reviewLogged": "Registrado para esta semana.",
+    "logReview": "Registrar revisión semanal",
     "categoryType": {
       "need": "Necesidad",
       "want": "Deseo",
@@ -112,8 +119,25 @@
   },
   "rewards": {
     "title": "Recompensas",
-    "confirmDelete": "¿Eliminar la recompensa {{title}}?"
+    "confirmDelete": "¿Eliminar la recompensa {{title}}?",
+    "gamificationLabel": "Gamificación",
+    "gamificationHelper": "Activa o desactiva XP, rachas y desbloqueos. Tus datos quedan en local.",
+    "gamificationOn": "Activado",
+    "gamificationOff": "Desactivado",
+    "gamificationDisabled": "La gamificación está desactivada.",
+    "levelLabel": "Nivel",
+    "levelSummary": "Nivel {{level}}",
+    "xpSummary": "{{points}} XP / {{target}} XP",
+    "skipTokensLabel": "Pases de omisión",
+    "skipTokensHelper": "Usa un pase para conservar una racha tras un día perdido.",
+    "streakHeading": "Estado de rachas",
+    "focusStreak": "Racha de enfoque diario: {{days}} días",
+    "taskStreak": "Racha de tareas completadas: {{days}} días",
+    "budgetStreak": "Racha de revisión semanal: {{weeks}} semanas",
+    "unlocked": "Desbloqueado",
+    "locked": "Bloqueado"
   },
+  "rewardsPlaceholder": "Seguimiento opcional con XP y desbloqueos suaves.",
   "social": {
     "title": "Social",
     "description": "Planifica momentos sociales con prompts suaves y recordatorios.",

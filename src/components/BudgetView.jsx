@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import useDB from '../core/hooks/useDB';
+import useGamification from '../core/hooks/useGamification';
+import useRewards from '../core/hooks/useRewards';
 import { useTheme } from '../core/context/ThemeContext';
 import SectionCard from './SectionCard.jsx';
 
@@ -10,6 +12,7 @@ const PAYOFF_STRATEGIES = {
   SNOWBALL: 'SNOWBALL',
   AVALANCHE: 'AVALANCHE',
 };
+const BUDGET_REVIEW_POINTS = 15;
 
 const getDefaultMonth = () => {
   const now = new Date();
@@ -37,6 +40,8 @@ const BudgetView = () => {
     insertDebt,
     deleteDebt,
   } = useDB();
+  const { applyRewardsProgress } = useRewards();
+  const { gamificationEnabled } = useGamification();
   const { theme } = useTheme();
 
   const [budgets, setBudgets] = useState([]);
@@ -81,6 +86,7 @@ const BudgetView = () => {
   });
 
   const [payoffStrategy, setPayoffStrategy] = useState(PAYOFF_STRATEGIES.SNOWBALL);
+  const [reviewLogged, setReviewLogged] = useState(false);
 
   useEffect(() => {
     if (!ready) return;
@@ -100,6 +106,12 @@ const BudgetView = () => {
       })
       .finally(() => setLoading(false));
   }, [getBudgets, getDebts, getTransactions, ready]);
+
+  useEffect(() => {
+    if (!reviewLogged) return undefined;
+    const timerId = setTimeout(() => setReviewLogged(false), 2000);
+    return () => clearTimeout(timerId);
+  }, [reviewLogged]);
 
   useEffect(() => {
     if (!budgets.length) return;
@@ -252,6 +264,11 @@ const BudgetView = () => {
     },
     [t]
   );
+
+  const logWeeklyReview = async () => {
+    await applyRewardsProgress({ points: BUDGET_REVIEW_POINTS, budgetReviewed: true });
+    setReviewLogged(true);
+  };
 
   const monthValidation = useMemo(() => (monthTouched ? validateMonth(budgetMonthInput) : ''), [budgetMonthInput, monthTouched, validateMonth]);
 
@@ -575,6 +592,49 @@ const BudgetView = () => {
         <p>{t('loading') || 'Loading…'}</p>
       ) : (
         <div style={{ display: 'grid', gap: `${theme.spacing.lg}px` }}>
+          <section
+            style={{
+              border: `1px solid ${theme.colors.border}`,
+              borderRadius: theme.shape.radiusMd,
+              padding: theme.spacing.md,
+              background: theme.colors.surface,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: theme.spacing.md,
+            }}
+          >
+            <div>
+              <p style={{ margin: 0, fontWeight: 600 }}>{t('budget.reviewHeading') || 'Weekly review'}</p>
+              <small style={{ color: theme.colors.muted }}>
+                {gamificationEnabled
+                  ? t('budget.reviewHelper') || 'Log a gentle check-in to keep your budget streak steady.'
+                  : t('budget.reviewDisabled') || 'Enable gamification to track your weekly budget streak.'}
+              </small>
+              {reviewLogged ? (
+                <p style={{ margin: `${theme.spacing.xs}px 0 0`, color: theme.colors.primary }}>
+                  {t('budget.reviewLogged') || 'Logged for this week.'}
+                </p>
+              ) : null}
+            </div>
+            <button
+              type="button"
+              onClick={logWeeklyReview}
+              disabled={!gamificationEnabled}
+              style={{
+                padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
+                borderRadius: theme.shape.radiusSm,
+                border: `1px solid ${theme.colors.primary}`,
+                backgroundColor: gamificationEnabled ? theme.colors.primary : theme.colors.border,
+                color: gamificationEnabled ? theme.colors.background : theme.colors.muted,
+                cursor: gamificationEnabled ? 'pointer' : 'not-allowed',
+                fontFamily: theme.typography.body.family,
+              }}
+            >
+              {t('budget.logReview') || 'Log weekly review'}
+            </button>
+          </section>
           <section style={{ display: 'grid', gap: `${theme.spacing.sm}px` }}>
             <h3 style={{ margin: 0 }}>{t('budget.monthHeading') || 'Budget month'}</h3>
             <label>

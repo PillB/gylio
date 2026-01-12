@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import useDB, { type Subtask, type Task } from '../../../core/hooks/useDB';
 import useAccessibility from '../../../core/hooks/useAccessibility';
+import useRewards from '../../../core/hooks/useRewards';
 
 export type ChecklistTask = Task & {
   steps: string[];
@@ -37,30 +38,11 @@ const FOCUS_COMPLETION_POINTS = 10;
 
 const parseSteps = (task: Task): string[] => task.subtasks.map((subtask) => subtask.label).filter(Boolean);
 
-const calculateLevel = (points: number) => Math.max(1, Math.floor(points / 100) + 1);
-
-const formatDateKey = (date: Date) => date.toISOString().slice(0, 10);
-
-const parseDateKey = (value: string) => {
-  const date = new Date(`${value}T00:00:00`);
-  return Number.isNaN(date.getTime()) ? null : date;
-};
-
-const getNextStreak = (lastDate: string | null, todayKey: string, currentStreak: number) => {
-  if (!lastDate) return 1;
-  if (lastDate === todayKey) return currentStreak;
-  const lastDateValue = parseDateKey(lastDate);
-  const todayValue = parseDateKey(todayKey);
-  if (!lastDateValue || !todayValue) return 1;
-  const diffDays = Math.round((todayValue.getTime() - lastDateValue.getTime()) / 86400000);
-  if (diffDays === 1) return currentStreak + 1;
-  return 1;
-};
-
 const useTasks = (): UseTasksResult => {
   const { t } = useTranslation();
   const { speak } = useAccessibility();
-  const { ready, getTasks, insertTask, updateTask, deleteTask, getRewardsProgress, updateRewardsProgress } = useDB();
+  const { ready, getTasks, insertTask, updateTask, deleteTask } = useDB();
+  const { applyRewardsProgress } = useRewards();
   const [loading, setLoading] = useState(true);
   const [tasks, setTasks] = useState<Task[]>([]);
   const notificationModuleRef = useRef<NotificationsModule | null>(null);
@@ -76,52 +58,6 @@ const useTasks = (): UseTasksResult => {
         totalSteps: task.subtasks.length,
       })),
     [tasks]
-  );
-
-  const applyRewardsProgress = useCallback(
-    async ({
-      points,
-      focusCompleted,
-      taskCompleted,
-    }: {
-      points: number;
-      focusCompleted?: boolean;
-      taskCompleted?: boolean;
-    }) => {
-      try {
-        const current = await getRewardsProgress();
-        const todayKey = formatDateKey(new Date());
-        const nextPoints = current.points + points;
-        const updates = {
-          points: nextPoints,
-          level: calculateLevel(nextPoints),
-          focusStreakDays: current.focusStreakDays,
-          lastFocusDate: current.lastFocusDate,
-          taskStreakDays: current.taskStreakDays,
-          lastTaskCompletionDate: current.lastTaskCompletionDate,
-          skipTokens: current.skipTokens,
-        };
-
-        if (focusCompleted) {
-          updates.focusStreakDays = getNextStreak(current.lastFocusDate, todayKey, current.focusStreakDays);
-          updates.lastFocusDate = todayKey;
-        }
-
-        if (taskCompleted) {
-          updates.taskStreakDays = getNextStreak(
-            current.lastTaskCompletionDate,
-            todayKey,
-            current.taskStreakDays
-          );
-          updates.lastTaskCompletionDate = todayKey;
-        }
-
-        await updateRewardsProgress(updates);
-      } catch (error) {
-        console.warn('Failed to update rewards progress', error);
-      }
-    },
-    [getRewardsProgress, updateRewardsProgress]
   );
 
   const loadNotificationsModule = useCallback(async (): Promise<NotificationsModule | null> => {

@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import SectionCard from './SectionCard.jsx';
 import useAccessibility from '../core/hooks/useAccessibility';
+import useGamification from '../core/hooks/useGamification';
 import { useTheme } from '../core/context/ThemeContext';
 
 /**
@@ -31,6 +32,7 @@ const SettingsView = () => {
     ttsEnabled,
     setTtsEnabled
   } = useAccessibility();
+  const { gamificationEnabled, setGamificationEnabled } = useGamification();
 
   const themeLabels = useMemo(
     () => ({
@@ -258,6 +260,40 @@ const SettingsView = () => {
                 style={{ width: 20, height: 20 }}
               />
               <span>{ttsEnabled ? t('onboarding.summary.enabled') : t('onboarding.summary.disabled')}</span>
+            </label>
+          </div>
+        </div>
+
+        <div
+          style={{
+            border: `1px solid ${theme.colors.border}`,
+            borderRadius: theme.shape.radiusMd,
+            padding: theme.spacing.md,
+            background: theme.colors.surface
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: theme.spacing.md, flexWrap: 'wrap' }}>
+            <div>
+              <p style={{ margin: 0, fontWeight: 600 }}>{t('settingsGamificationLabel') || 'Gamification'}</p>
+              <small style={{ color: theme.colors.muted }}>
+                {t('settingsGamificationHelper') ||
+                  'Opt in to XP, streaks, and cosmetic unlocks. You can disable this any time.'}
+              </small>
+              <p style={{ margin: '0.25rem 0', color: theme.colors.text }}>
+                {t('settingsCurrentValue', {
+                  value: gamificationEnabled ? t('onboarding.summary.enabled') : t('onboarding.summary.disabled')
+                }) || `Current: ${gamificationEnabled ? 'Enabled' : 'Disabled'}`}
+              </p>
+            </div>
+            <label style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm }}>
+              <input
+                type="checkbox"
+                checked={gamificationEnabled}
+                onChange={(e) => setGamificationEnabled(e.target.checked)}
+                aria-label={t('settingsGamificationLabel') || 'Gamification'}
+                style={{ width: 20, height: 20 }}
+              />
+              <span>{gamificationEnabled ? t('onboarding.summary.enabled') : t('onboarding.summary.disabled')}</span>
             </label>
           </div>
         </div>
