@@ -387,6 +387,7 @@
       "budgetLabel": "Monthly budget focus",
       "budgetPlaceholder": "Enter an amount",
       "budgetHint": "Use a round number—we will help you refine categories later.",
+      "seedIncomeSource": "Starter income",
       "preview": "Preview of what will be created:",
       "previewTasks": "Task list seeded with: {{goal}}",
       "previewBudget": "Budget tracker set to: {{budget}}"

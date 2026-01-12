@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Provider as PaperProvider } from 'react-native-paper';
 import {
   Navigate,
@@ -21,6 +21,8 @@ import useOnboardingFlow from './hooks/useOnboardingFlow.jsx';
 import LanguageToggle from './components/atoms/LanguageToggle.tsx';
 import { useTheme } from './core/context/ThemeContext';
 import TintLayer from './components/TintLayer.jsx';
+import useDB from './core/hooks/useDB';
+import { getDefaultBudgetMonth } from './core/utils/date';
 
 function AppHeader() {
   const { t } = useTranslation();
@@ -118,15 +120,70 @@ function OnboardingRoute() {
   const navigate = useNavigate();
   const { isOnboardingComplete } = useOnboardingFlow();
   const { theme } = useTheme();
+  const { ready, getTasks, insertTask, getBudgets, insertBudget } = useDB();
+  const [pendingSeed, setPendingSeed] = useState(null);
+  const [isSeeding, setIsSeeding] = useState(false);
 
-  if (isOnboardingComplete) {
+  const seedStarterData = useCallback(
+    async (flowSelections) => {
+      const starterGoal = flowSelections?.quickSetup?.starterGoal?.trim() ?? '';
+      const budgetInput = flowSelections?.quickSetup?.monthlyBudget ?? '';
+      const budgetValue = Number.parseFloat(String(budgetInput));
+      const shouldSeedBudget = Number.isFinite(budgetValue) && budgetValue >= 0;
+
+      if (starterGoal) {
+        const existingTasks = await getTasks();
+        const normalizedGoal = starterGoal.toLowerCase();
+        const hasGoalTask = existingTasks.some(
+          (task) => task.title.trim().toLowerCase() === normalizedGoal
+        );
+        if (!hasGoalTask) {
+          await insertTask(starterGoal, 'pending', [], null, null, null);
+        }
+      }
+
+      if (shouldSeedBudget) {
+        const month = getDefaultBudgetMonth();
+        const existingBudgets = await getBudgets();
+        const hasMonthBudget = existingBudgets.some((budget) => budget.month === month);
+        if (!hasMonthBudget) {
+          await insertBudget(
+            month,
+            [{ source: t('onboarding.quickSetup.seedIncomeSource'), amount: budgetValue }],
+            [{ name: t('budget.needsLabel'), type: 'NEED', plannedAmount: budgetValue }]
+          );
+        }
+      }
+    },
+    [getBudgets, getTasks, insertBudget, insertTask, t]
+  );
+
+  const handleOnboardingComplete = useCallback((selections) => {
+    setPendingSeed(selections);
+  }, []);
+
+  useEffect(() => {
+    if (!pendingSeed || !ready || isSeeding) return;
+    setIsSeeding(true);
+    seedStarterData(pendingSeed)
+      .catch((error) => {
+        console.error('Failed to seed onboarding data', error);
+      })
+      .finally(() => {
+        setIsSeeding(false);
+        setPendingSeed(null);
+        navigate('/tasks', { replace: true });
+      });
+  }, [isSeeding, navigate, pendingSeed, ready, seedStarterData]);
+
+  if (isOnboardingComplete && !pendingSeed && !isSeeding) {
     return <Navigate to="/tasks" replace />;
   }
 
   return (
     <section style={{ marginTop: theme.spacing.lg }}>
       <p style={{ color: theme.colors.muted }}>{t('onboarding.intro')}</p>
-      <OnboardingFlow onComplete={() => navigate('/tasks', { replace: true })} />
+      <OnboardingFlow onComplete={handleOnboardingComplete} />
     </section>
   );
 }

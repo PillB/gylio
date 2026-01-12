@@ -4,6 +4,7 @@ import useDB from '../core/hooks/useDB';
 import useGamification from '../core/hooks/useGamification';
 import useRewards from '../core/hooks/useRewards';
 import { useTheme } from '../core/context/ThemeContext';
+import { getDefaultBudgetMonth } from '../core/utils/date';
 import SectionCard from './SectionCard.jsx';
 
 const DEFAULT_CATEGORY_TYPE = 'NEED';
@@ -13,12 +14,6 @@ const PAYOFF_STRATEGIES = {
   AVALANCHE: 'AVALANCHE',
 };
 const BUDGET_REVIEW_POINTS = 15;
-
-const getDefaultMonth = () => {
-  const now = new Date();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  return `${now.getFullYear()}-${month}`;
-};
 
 const parseNumber = (value) => {
   const parsed = Number.parseFloat(value);
@@ -50,7 +45,7 @@ const BudgetView = () => {
   const [loading, setLoading] = useState(true);
   const [activeBudgetId, setActiveBudgetId] = useState(null);
 
-  const [budgetMonthInput, setBudgetMonthInput] = useState(getDefaultMonth());
+  const [budgetMonthInput, setBudgetMonthInput] = useState(getDefaultBudgetMonth());
   const [monthTouched, setMonthTouched] = useState(false);
 
   const [incomeForm, setIncomeForm] = useState({ source: '', amount: '' });
