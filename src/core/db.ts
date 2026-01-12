@@ -159,6 +159,23 @@ export const runMigrations = (): Promise<void> =>
           { name: 'categories', definition: "TEXT NOT NULL DEFAULT '[]'" },
         ]);
 
+        ensureColumns(tx, 'transactions', [
+          { name: 'budgetMonth', definition: "TEXT NOT NULL DEFAULT ''" },
+          { name: 'amount', definition: 'REAL NOT NULL DEFAULT 0' },
+          { name: 'categoryName', definition: "TEXT NOT NULL DEFAULT ''" },
+          { name: 'isNeed', definition: 'INTEGER NOT NULL DEFAULT 0' },
+          { name: 'date', definition: "TEXT NOT NULL DEFAULT ''" },
+          { name: 'note', definition: 'TEXT' },
+        ]);
+
+        ensureColumns(tx, 'debts', [
+          { name: 'name', definition: "TEXT NOT NULL DEFAULT ''" },
+          { name: 'balance', definition: 'REAL NOT NULL DEFAULT 0' },
+          { name: 'annualRate', definition: 'REAL NOT NULL DEFAULT 0' },
+          { name: 'minPayment', definition: 'REAL NOT NULL DEFAULT 0' },
+          { name: 'categoryName', definition: 'TEXT' },
+        ]);
+
         ensureColumns(tx, 'rewards_progress', [
           { name: 'points', definition: 'INTEGER NOT NULL DEFAULT 0' },
           { name: 'level', definition: 'INTEGER NOT NULL DEFAULT 1' },
