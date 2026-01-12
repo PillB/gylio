@@ -7,6 +7,9 @@ import { OnboardingFlowProvider } from './hooks/useOnboardingFlow.jsx';
 import i18n from './i18n/i18n.js';
 import { ThemeProvider } from './core/context/ThemeContext';
 import { AccessibilityProvider } from './core/hooks/useAccessibility';
+import { registerServiceWorker } from './core/utils/serviceWorker';
+
+registerServiceWorker();
 
 // Render the application at the #root element defined in index.html.
 ReactDOM.createRoot(document.getElementById('root')).render(

@@ -428,5 +428,19 @@
       "yes": "Sí",
       "no": "No"
     }
+  },
+  "sync": {
+    "entity": {
+      "task": "Tarea",
+      "event": "Evento",
+      "transaction": "Transacción"
+    },
+    "reviewTitle": "Revisión de sincronización offline",
+    "reviewHelper": "Revisa los cambios que no pudieron sincronizarse y elige qué versión conservar.",
+    "reviewEmpty": "No hay conflictos de sincronización pendientes.",
+    "reviewConflictLabel": "Conflicto en {{entity}}",
+    "reviewDetected": "Detectado: {{timestamp}}",
+    "reviewKeepLocal": "Mantener mis cambios",
+    "reviewUseRemote": "Usar versión del servidor"
   }
 }

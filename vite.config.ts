@@ -14,6 +14,19 @@ const __dirname = path.dirname(__filename);
 export default defineConfig({
   base: '/gylio/',
   plugins: [react()],
+  build: {
+    manifest: true,
+    rollupOptions: {
+      input: {
+        main: path.resolve(__dirname, 'index.html'),
+        'service-worker': path.resolve(__dirname, 'src/service-worker.ts')
+      },
+      output: {
+        entryFileNames: (chunk) =>
+          chunk.name === 'service-worker' ? 'service-worker.js' : 'assets/[name]-[hash].js'
+      }
+    }
+  },
   resolve: {
     alias: [
       {

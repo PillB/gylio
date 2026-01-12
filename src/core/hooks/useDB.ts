@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { SQLResultSetRowList, SQLTransaction } from 'expo-sqlite';
 import { initializeDatabase, type Database } from '../db';
+import { requestBackgroundSync } from '../utils/backgroundSync';
+import { enqueueSyncAction, type SyncActionType, type SyncEntityType } from '../utils/offlineSync';
 
 export type Subtask = {
   label: string;
@@ -359,6 +361,27 @@ const useDB = () => {
     };
   }, []);
 
+  const queueSyncAction = useCallback(
+    (
+      entityType: SyncEntityType,
+      action: SyncActionType,
+      payload: Record<string, unknown>,
+      clientUpdatedAt = new Date().toISOString()
+    ) => {
+      enqueueSyncAction({
+        entityType,
+        action,
+        payload,
+        clientUpdatedAt,
+      })
+        .then(() => requestBackgroundSync())
+        .catch((error) => {
+          console.warn('Failed to queue sync action', error);
+        });
+    },
+    []
+  );
+
   const statements = useMemo<StatementSet>(
     () => ({
       insertTask:
@@ -500,7 +523,20 @@ const useDB = () => {
               reject(new Error('Task insert failed'));
               return false;
             }
-            selectSingle(tx, statements.selectTaskById, [insertId], mapTask, resolve, reject);
+            selectSingle(
+              tx,
+              statements.selectTaskById,
+              [insertId],
+              mapTask,
+              (created) => {
+                if (created) {
+                  const timestamp = created.updatedAt ?? created.createdAt ?? new Date().toISOString();
+                  queueSyncAction('task', 'create', created as unknown as Record<string, unknown>, timestamp);
+                }
+                resolve(created);
+              },
+              reject
+            );
             return true;
           },
           (_, error) => {
@@ -513,7 +549,7 @@ const useDB = () => {
   );
 
   const updateTask = useCallback(
-    (id: number, updates: Partial<Omit<Task, 'id'>>) =>
+    (id: number, updates: Partial<Omit<Task, 'id'>>, options: { skipSync?: boolean } = {}) =>
       runTransaction<Task | null>((tx, resolve, reject) => {
         selectSingle(tx, statements.selectTaskById, [id], mapTask, (current) => {
           if (!current) {
@@ -542,6 +578,14 @@ const useDB = () => {
               id,
             ],
             () => {
+              if (!options.skipSync) {
+                queueSyncAction(
+                  'task',
+                  'update',
+                  next as unknown as Record<string, unknown>,
+                  next.updatedAt ?? new Date().toISOString()
+                );
+              }
               resolve(next);
               return true;
             },
@@ -552,17 +596,21 @@ const useDB = () => {
           );
         }, reject);
       }),
-    [runTransaction, selectSingle, statements.selectTaskById, statements.updateTask]
+    [queueSyncAction, runTransaction, selectSingle, statements.selectTaskById, statements.updateTask]
   );
 
   const deleteTask = useCallback(
-    (id: number) =>
+    (id: number, options: { skipSync?: boolean } = {}) =>
       runTransaction<boolean>((tx, resolve, reject) => {
         tx.executeSql(
           statements.deleteTask,
           [id],
           (_, result) => {
-            resolve(result.rowsAffected > 0);
+            const didDelete = result.rowsAffected > 0;
+            if (didDelete && !options.skipSync) {
+              queueSyncAction('task', 'delete', { id }, new Date().toISOString());
+            }
+            resolve(didDelete);
             return true;
           },
           (_, error) => {
@@ -571,7 +619,7 @@ const useDB = () => {
           }
         );
       }),
-    [runTransaction, statements.deleteTask]
+    [queueSyncAction, runTransaction, statements.deleteTask]
   );
 
   const getEvents = useCallback(
@@ -621,7 +669,20 @@ const useDB = () => {
               reject(new Error('Event insert failed'));
               return false;
             }
-            selectSingle(tx, statements.selectEventById, [insertId], mapEvent, resolve, reject);
+            selectSingle(
+              tx,
+              statements.selectEventById,
+              [insertId],
+              mapEvent,
+              (created) => {
+                if (created) {
+                  const timestamp = created.createdAt ?? new Date().toISOString();
+                  queueSyncAction('event', 'create', created as unknown as Record<string, unknown>, timestamp);
+                }
+                resolve(created);
+              },
+              reject
+            );
             return true;
           },
           (_, error) => {
@@ -634,7 +695,7 @@ const useDB = () => {
   );
 
   const updateEvent = useCallback(
-    (id: number, updates: Partial<Omit<Event, 'id'>>) =>
+    (id: number, updates: Partial<Omit<Event, 'id'>>, options: { skipSync?: boolean } = {}) =>
       runTransaction<Event | null>((tx, resolve, reject) => {
         selectSingle(tx, statements.selectEventById, [id], mapEvent, (current) => {
           if (!current) {
@@ -663,6 +724,9 @@ const useDB = () => {
               id,
             ],
             () => {
+              if (!options.skipSync) {
+                queueSyncAction('event', 'update', next as unknown as Record<string, unknown>, new Date().toISOString());
+              }
               resolve(next);
               return true;
             },
@@ -673,17 +737,21 @@ const useDB = () => {
           );
         }, reject);
       }),
-    [runTransaction, selectSingle, statements.selectEventById, statements.updateEvent]
+    [queueSyncAction, runTransaction, selectSingle, statements.selectEventById, statements.updateEvent]
   );
 
   const deleteEvent = useCallback(
-    (id: number) =>
+    (id: number, options: { skipSync?: boolean } = {}) =>
       runTransaction<boolean>((tx, resolve, reject) => {
         tx.executeSql(
           statements.deleteEvent,
           [id],
           (_, result) => {
-            resolve(result.rowsAffected > 0);
+            const didDelete = result.rowsAffected > 0;
+            if (didDelete && !options.skipSync) {
+              queueSyncAction('event', 'delete', { id }, new Date().toISOString());
+            }
+            resolve(didDelete);
             return true;
           },
           (_, error) => {
@@ -692,7 +760,7 @@ const useDB = () => {
           }
         );
       }),
-    [runTransaction, statements.deleteEvent]
+    [queueSyncAction, runTransaction, statements.deleteEvent]
   );
 
   const getBudgets = useCallback(
@@ -835,7 +903,20 @@ const useDB = () => {
               reject(new Error('Transaction insert failed'));
               return false;
             }
-            selectSingle(tx, statements.selectTransactionById, [insertId], mapTransaction, resolve, reject);
+            selectSingle(
+              tx,
+              statements.selectTransactionById,
+              [insertId],
+              mapTransaction,
+              (created) => {
+                if (created) {
+                  const timestamp = created.createdAt ?? new Date().toISOString();
+                  queueSyncAction('transaction', 'create', created as unknown as Record<string, unknown>, timestamp);
+                }
+                resolve(created);
+              },
+              reject
+            );
             return true;
           },
           (_, error) => {
@@ -848,7 +929,7 @@ const useDB = () => {
   );
 
   const updateTransaction = useCallback(
-    (id: number, updates: Partial<Omit<Transaction, 'id'>>) =>
+    (id: number, updates: Partial<Omit<Transaction, 'id'>>, options: { skipSync?: boolean } = {}) =>
       runTransaction<Transaction | null>((tx, resolve, reject) => {
         selectSingle(tx, statements.selectTransactionById, [id], mapTransaction, (current) => {
           if (!current) {
@@ -864,6 +945,14 @@ const useDB = () => {
             statements.updateTransaction,
             [next.budgetMonth, next.amount, next.categoryName, next.isNeed ? 1 : 0, next.date, next.note, id],
             () => {
+              if (!options.skipSync) {
+                queueSyncAction(
+                  'transaction',
+                  'update',
+                  next as unknown as Record<string, unknown>,
+                  new Date().toISOString()
+                );
+              }
               resolve(next);
               return true;
             },
@@ -874,17 +963,21 @@ const useDB = () => {
           );
         }, reject);
       }),
-    [runTransaction, selectSingle, statements.selectTransactionById, statements.updateTransaction]
+    [queueSyncAction, runTransaction, selectSingle, statements.selectTransactionById, statements.updateTransaction]
   );
 
   const deleteTransaction = useCallback(
-    (id: number) =>
+    (id: number, options: { skipSync?: boolean } = {}) =>
       runTransaction<boolean>((tx, resolve, reject) => {
         tx.executeSql(
           statements.deleteTransaction,
           [id],
           (_, result) => {
-            resolve(result.rowsAffected > 0);
+            const didDelete = result.rowsAffected > 0;
+            if (didDelete && !options.skipSync) {
+              queueSyncAction('transaction', 'delete', { id }, new Date().toISOString());
+            }
+            resolve(didDelete);
             return true;
           },
           (_, error) => {
@@ -893,7 +986,7 @@ const useDB = () => {
           }
         );
       }),
-    [runTransaction, statements.deleteTransaction]
+    [queueSyncAction, runTransaction, statements.deleteTransaction]
   );
 
   const getDebts = useCallback(
