@@ -3,7 +3,13 @@ import { useTranslation } from 'react-i18next';
 import useDB from '../core/hooks/useDB';
 import useAccessibility from '../core/hooks/useAccessibility';
 import { useTheme } from '../core/context/ThemeContext';
+import {
+  collectValidationMessages,
+  hasValidationErrors,
+  logValidationSummary
+} from '../core/utils/validationSummary';
 import SectionCard from './SectionCard.jsx';
+import ValidationSummary from './ValidationSummary.jsx';
 
 const getDateKey = (value) => {
   if (!value) return null;
@@ -83,6 +89,8 @@ const CalendarView = () => {
     endDate: false,
     reminderMinutesBefore: false
   });
+  const [addSummary, setAddSummary] = useState([]);
+  const [editSummary, setEditSummary] = useState([]);
 
   const softPalette = useMemo(
     () =>
@@ -146,6 +154,18 @@ const CalendarView = () => {
   }, [editFields, editTouched, validateFields]);
 
   useEffect(() => {
+    if (!hasValidationErrors(addValidation)) {
+      setAddSummary([]);
+    }
+  }, [addValidation]);
+
+  useEffect(() => {
+    if (!hasValidationErrors(editValidation)) {
+      setEditSummary([]);
+    }
+  }, [editValidation]);
+
+  useEffect(() => {
     if (!ready) return;
     setLoading(true);
     Promise.all([getEvents(), getTasks()])
@@ -177,8 +197,6 @@ const CalendarView = () => {
     });
   };
 
-  const hasErrors = (validation) => Object.values(validation).some(Boolean);
-
   const syncTaskLink = async (taskId, eventId) => {
     if (!taskId) return;
     const updated = await updateTask(Number(taskId), { calendarEventId: eventId });
@@ -208,7 +226,12 @@ const CalendarView = () => {
       reminderMinutesBefore: true
     });
 
-    if (hasErrors(validation)) return;
+    const messages = collectValidationMessages(validation);
+    if (messages.length) {
+      setAddSummary(messages);
+      logValidationSummary('calendar-add', messages);
+      return;
+    }
 
     const taskId = form.taskId ? Number(form.taskId) : null;
     const reminder =
@@ -229,6 +252,7 @@ const CalendarView = () => {
           await syncTaskLink(taskId, created.id);
         }
         resetForm();
+        setAddSummary([]);
       })
       .catch((error) => {
         console.error('Failed to add event', error);
@@ -265,7 +289,12 @@ const CalendarView = () => {
       reminderMinutesBefore: true
     });
 
-    if (hasErrors(validation)) return;
+    const messages = collectValidationMessages(validation);
+    if (messages.length) {
+      setEditSummary(messages);
+      logValidationSummary('calendar-edit', messages);
+      return;
+    }
 
     const nextTaskId = editFields.taskId ? Number(editFields.taskId) : null;
     const reminder =
@@ -293,6 +322,7 @@ const CalendarView = () => {
           await syncTaskLink(nextTaskId, updated.id);
         }
         setEditingId(null);
+        setEditSummary([]);
       })
       .catch((error) => {
         console.error('Failed to update event', error);
@@ -680,6 +710,7 @@ const CalendarView = () => {
       <div style={{ display: 'grid', gap: `${theme.spacing.md}px` }}>
         <div>
           <h3 style={{ marginTop: 0 }}>{t('calendarAddEvent')}</h3>
+          <ValidationSummary messages={addSummary} id="calendar-add-summary" />
           {renderEventFormFields(form, setForm, addValidation, touched, setTouched)}
           <div style={{ display: 'flex', gap: `${theme.spacing.sm}px`, marginTop: `${theme.spacing.sm}px` }}>
             <button
@@ -780,6 +811,7 @@ const CalendarView = () => {
                       backgroundColor: theme.colors.surface
                     }}
                   >
+                    <ValidationSummary messages={editSummary} id={`calendar-edit-summary-${event.id}`} />
                     {renderEventFormFields(editFields, setEditFields, editValidation, editTouched, setEditTouched)}
                     <div style={{ display: 'flex', gap: `${theme.spacing.sm}px`, marginTop: `${theme.spacing.sm}px` }}>
                       <button

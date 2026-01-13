@@ -3,7 +3,13 @@ import { useTranslation } from 'react-i18next';
 import useDB from '../core/hooks/useDB';
 import useGamification from '../core/hooks/useGamification';
 import { useTheme } from '../core/context/ThemeContext';
+import {
+  collectValidationMessages,
+  hasValidationErrors,
+  logValidationSummary
+} from '../core/utils/validationSummary';
 import SectionCard from './SectionCard.jsx';
+import ValidationSummary from './ValidationSummary.jsx';
 
 /**
  * RewardsView component
@@ -24,6 +30,7 @@ const RewardsView = () => {
   const [form, setForm] = useState({ title: '', pointsRequired: '', description: '' });
   const [touched, setTouched] = useState({ title: false, pointsRequired: false });
   const [rewardDeleteConfirmId, setRewardDeleteConfirmId] = useState(null);
+  const [rewardSummary, setRewardSummary] = useState([]);
 
   const validation = useMemo(() => {
     const errors = { title: '', pointsRequired: '' };
@@ -42,6 +49,12 @@ const RewardsView = () => {
 
     return errors;
   }, [form.pointsRequired, form.title, t]);
+
+  useEffect(() => {
+    if (!hasValidationErrors(validation)) {
+      setRewardSummary([]);
+    }
+  }, [validation]);
 
   const progressSummary = useMemo(() => {
     const points = progress?.points ?? 0;
@@ -91,8 +104,13 @@ const RewardsView = () => {
   const handleAdd = () => {
     if (!gamificationEnabled) return;
     setTouched({ title: true, pointsRequired: true });
-    const hasErrors = Object.values(validation).some(Boolean);
-    if (hasErrors) return;
+    const messages = collectValidationMessages(validation);
+    if (messages.length) {
+      setRewardSummary(messages);
+      logValidationSummary('rewards-add', messages);
+      return;
+    }
+    setRewardSummary([]);
 
     const points = Number.parseInt(form.pointsRequired, 10);
 
@@ -228,6 +246,7 @@ const RewardsView = () => {
             </section>
 
             <div style={{ display: 'grid', gap: `${theme.spacing.sm}px`, marginBottom: `${theme.spacing.md}px` }}>
+              <ValidationSummary messages={rewardSummary} id="rewards-summary" />
               <label>
                 {t('titleLabel') || 'Title'}
                 <input

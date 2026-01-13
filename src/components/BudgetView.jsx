@@ -5,7 +5,13 @@ import useGamification from '../core/hooks/useGamification';
 import useRewards from '../core/hooks/useRewards';
 import { useTheme } from '../core/context/ThemeContext';
 import { getDefaultBudgetMonth } from '../core/utils/date';
+import {
+  collectValidationMessages,
+  hasValidationErrors,
+  logValidationSummary,
+} from '../core/utils/validationSummary';
 import SectionCard from './SectionCard.jsx';
+import ValidationSummary from './ValidationSummary.jsx';
 
 const DEFAULT_CATEGORY_TYPE = 'NEED';
 const CATEGORY_TYPES = ['NEED', 'WANT', 'GOAL', 'DEBT'];
@@ -50,9 +56,11 @@ const BudgetView = () => {
 
   const [incomeForm, setIncomeForm] = useState({ source: '', amount: '' });
   const [incomeTouched, setIncomeTouched] = useState({ source: false, amount: false });
+  const [incomeSummary, setIncomeSummary] = useState([]);
 
   const [categoryForm, setCategoryForm] = useState({ name: '', type: DEFAULT_CATEGORY_TYPE, plannedAmount: '' });
   const [categoryTouched, setCategoryTouched] = useState({ name: false, type: false, plannedAmount: false });
+  const [categorySummary, setCategorySummary] = useState([]);
 
   const [transactionForm, setTransactionForm] = useState({
     amount: '',
@@ -65,6 +73,7 @@ const BudgetView = () => {
     categoryName: false,
     date: false,
   });
+  const [transactionSummary, setTransactionSummary] = useState([]);
 
   const [debtForm, setDebtForm] = useState({
     name: '',
@@ -79,6 +88,7 @@ const BudgetView = () => {
     annualRate: false,
     minPayment: false,
   });
+  const [debtSummary, setDebtSummary] = useState([]);
 
   const [payoffStrategy, setPayoffStrategy] = useState(PAYOFF_STRATEGIES.SNOWBALL);
   const [reviewLogged, setReviewLogged] = useState(false);
@@ -301,7 +311,29 @@ const BudgetView = () => {
     [debtForm, debtTouched, validateDebt]
   );
 
-  const hasErrors = (validation) => Object.values(validation).some(Boolean);
+  useEffect(() => {
+    if (!hasValidationErrors(incomeValidation)) {
+      setIncomeSummary([]);
+    }
+  }, [incomeValidation]);
+
+  useEffect(() => {
+    if (!hasValidationErrors(categoryValidation)) {
+      setCategorySummary([]);
+    }
+  }, [categoryValidation]);
+
+  useEffect(() => {
+    if (!hasValidationErrors(transactionValidation)) {
+      setTransactionSummary([]);
+    }
+  }, [transactionValidation]);
+
+  useEffect(() => {
+    if (!hasValidationErrors(debtValidation)) {
+      setDebtSummary([]);
+    }
+  }, [debtValidation]);
 
   const ensureActiveBudget = useCallback(() => {
     if (activeBudget) return Promise.resolve(activeBudget);
@@ -331,7 +363,13 @@ const BudgetView = () => {
     const validation = validateIncome(incomeForm);
     setIncomeTouched({ source: true, amount: true });
 
-    if (hasErrors(validation)) return;
+    const messages = collectValidationMessages(validation);
+    if (messages.length) {
+      setIncomeSummary(messages);
+      logValidationSummary('budget-income', messages);
+      return;
+    }
+    setIncomeSummary([]);
 
     ensureActiveBudget()
       .then((budget) => {
@@ -366,7 +404,13 @@ const BudgetView = () => {
     const validation = validateCategory(categoryForm);
     setCategoryTouched({ name: true, type: true, plannedAmount: true });
 
-    if (hasErrors(validation)) return;
+    const messages = collectValidationMessages(validation);
+    if (messages.length) {
+      setCategorySummary(messages);
+      logValidationSummary('budget-category', messages);
+      return;
+    }
+    setCategorySummary([]);
 
     ensureActiveBudget()
       .then((budget) => {
@@ -408,10 +452,19 @@ const BudgetView = () => {
     const validation = validateTransaction(transactionForm);
     setTransactionTouched({ amount: true, categoryName: true, date: true });
 
-    if (hasErrors(validation)) return;
+    const messages = collectValidationMessages(validation);
+    if (messages.length) {
+      setTransactionSummary(messages);
+      logValidationSummary('budget-transaction', messages);
+      return;
+    }
+    setTransactionSummary([]);
 
     if (!activeBudget) {
       setMonthTouched(true);
+      const summary = [t('validation.periodRequired')];
+      setTransactionSummary(summary);
+      logValidationSummary('budget-transaction', summary);
       return;
     }
 
@@ -420,6 +473,9 @@ const BudgetView = () => {
     );
     if (!selectedCategory) {
       setTransactionTouched((prev) => ({ ...prev, categoryName: true }));
+      const summary = [t('validation.categoryRequired')];
+      setTransactionSummary(summary);
+      logValidationSummary('budget-transaction', summary);
       return;
     }
 
@@ -456,7 +512,13 @@ const BudgetView = () => {
     const validation = validateDebt(debtForm);
     setDebtTouched({ name: true, balance: true, annualRate: true, minPayment: true });
 
-    if (hasErrors(validation)) return;
+    const messages = collectValidationMessages(validation);
+    if (messages.length) {
+      setDebtSummary(messages);
+      logValidationSummary('budget-debt', messages);
+      return;
+    }
+    setDebtSummary([]);
 
     insertDebt(
       debtForm.name.trim(),
@@ -780,6 +842,7 @@ const BudgetView = () => {
 
           <section style={{ display: 'grid', gap: `${theme.spacing.sm}px` }}>
             <h3 style={{ margin: 0 }}>{t('budget.incomeHeading') || 'Income'}</h3>
+            <ValidationSummary messages={incomeSummary} id="budget-income-summary" />
             <div
               style={{
                 padding: `${theme.spacing.sm}px`,
@@ -898,6 +961,7 @@ const BudgetView = () => {
 
           <section style={{ display: 'grid', gap: `${theme.spacing.sm}px` }}>
             <h3 style={{ margin: 0 }}>{t('budget.categoryHeading') || 'Categories'}</h3>
+            <ValidationSummary messages={categorySummary} id="budget-category-summary" />
             <div style={{ display: 'grid', gap: `${theme.spacing.sm}px` }}>
               <label>
                 {t('categoryLabel') || 'Category'}
@@ -1031,6 +1095,7 @@ const BudgetView = () => {
 
           <section style={{ display: 'grid', gap: `${theme.spacing.sm}px` }}>
             <h3 style={{ margin: 0 }}>{t('budget.transactionsHeading') || 'Transactions'}</h3>
+            <ValidationSummary messages={transactionSummary} id="budget-transaction-summary" />
             <div style={{ display: 'grid', gap: `${theme.spacing.sm}px` }}>
               <label>
                 {t('amountLabel') || 'Amount'}
@@ -1230,6 +1295,7 @@ const BudgetView = () => {
 
           <section style={{ display: 'grid', gap: `${theme.spacing.sm}px` }}>
             <h3 style={{ margin: 0 }}>{t('budget.debtsHeading') || 'Debts'}</h3>
+            <ValidationSummary messages={debtSummary} id="budget-debt-summary" />
             <div style={{ display: 'grid', gap: `${theme.spacing.sm}px` }}>
               <label>
                 {t('titleLabel') || 'Title'}
