@@ -2,9 +2,11 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import SectionCard from '../../../components/SectionCard.jsx';
 import Checkbox from '../../../components/atoms/Checkbox';
+import ValidationSummary from '../../../components/ValidationSummary.jsx';
 import { useTheme } from '../../../core/context/ThemeContext';
 import type { Subtask } from '../../../core/hooks/useDB';
 import type { ThemeTokens } from '../../../core/themes';
+import { logValidationSummary } from '../../../core/utils/validationSummary';
 import useTasks from '../hooks/useTasks';
 
 type ViewFilter = 'today' | 'week' | 'backlog';
@@ -193,7 +195,7 @@ const TaskList: React.FC = () => {
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [plannedDate, setPlannedDate] = useState('');
   const [newTaskSubtasks, setNewTaskSubtasks] = useState<Subtask[]>(createEmptySubtasks());
-  const [formErrors, setFormErrors] = useState<string | null>(null);
+  const [formErrors, setFormErrors] = useState<string[]>([]);
   const [titleTouched, setTitleTouched] = useState(false);
   const [subtasksTouched, setSubtasksTouched] = useState(false);
   const [showSubtaskEditor, setShowSubtaskEditor] = useState(false);
@@ -203,7 +205,7 @@ const TaskList: React.FC = () => {
   const [editPlannedDate, setEditPlannedDate] = useState('');
   const [editSubtasks, setEditSubtasks] = useState<Subtask[]>(createEmptySubtasks());
   const [editTouched, setEditTouched] = useState({ title: false, subtasks: false });
-  const [editErrors, setEditErrors] = useState<string | null>(null);
+  const [editErrors, setEditErrors] = useState<string[]>([]);
 
   const todayKey = useMemo(() => new Date().toISOString().slice(0, 10), []);
   const formatter = useMemo(() => new Intl.DateTimeFormat(i18n.language, { month: 'short', day: 'numeric' }), [i18n.language]);
@@ -257,7 +259,8 @@ const TaskList: React.FC = () => {
       setSubtasksTouched(true);
 
       if (errors.length) {
-        setFormErrors(errors.join(' '));
+        setFormErrors(errors);
+        logValidationSummary('tasks-add', errors);
         return;
       }
 
@@ -272,7 +275,7 @@ const TaskList: React.FC = () => {
         setNewTaskTitle('');
         setPlannedDate('');
         setNewTaskSubtasks(createEmptySubtasks());
-        setFormErrors(null);
+        setFormErrors([]);
         setTitleTouched(false);
         setSubtasksTouched(false);
         setShowSubtaskEditor(false);
@@ -289,7 +292,7 @@ const TaskList: React.FC = () => {
     setEditPlannedDate(target.plannedDate ?? '');
     setEditSubtasks(target.subtasks.length ? target.subtasks : createEmptySubtasks());
     setEditTouched({ title: false, subtasks: false });
-    setEditErrors(null);
+    setEditErrors([]);
   }, [tasks]);
 
   const handleSaveEdit = useCallback(async () => {
@@ -309,7 +312,8 @@ const TaskList: React.FC = () => {
     setEditTouched((prev) => ({ ...prev, title: true, subtasks: true }));
 
     if (errors.length) {
-      setEditErrors(errors.join(' '));
+      setEditErrors(errors);
+      logValidationSummary('tasks-edit', errors);
       return;
     }
 
@@ -321,13 +325,13 @@ const TaskList: React.FC = () => {
     });
     if (updated) {
       setEditingTaskId(null);
-      setEditErrors(null);
+      setEditErrors([]);
     }
   }, [editPlannedDate, editSubtasks, editTitle, editTouched.subtasks, editingTaskId, t, updateTaskDetails]);
 
   const handleCancelEdit = useCallback(() => {
     setEditingTaskId(null);
-    setEditErrors(null);
+    setEditErrors([]);
   }, []);
 
   const handleDeleteTask = useCallback(async (taskId: number, title: string) => {
@@ -390,7 +394,7 @@ const TaskList: React.FC = () => {
           onChange={(event) => {
             setNewTaskTitle(event.target.value);
             setTitleTouched(true);
-            setFormErrors(null);
+            setFormErrors([]);
           }}
           placeholder={t('taskPlaceholder')}
           style={{
@@ -417,7 +421,7 @@ const TaskList: React.FC = () => {
           value={plannedDate}
           onChange={(event) => {
             setPlannedDate(event.target.value);
-            setFormErrors(null);
+            setFormErrors([]);
           }}
           style={{
             minHeight: '44px',
@@ -481,9 +485,7 @@ const TaskList: React.FC = () => {
           {t('addTask')}
         </button>
       </form>
-      {formErrors ? (
-        <p style={{ color: theme.colors.accent, marginTop: 0 }}>{formErrors}</p>
-      ) : null}
+      <ValidationSummary messages={formErrors} id="tasks-add-summary" />
       <div
         style={{
           display: 'grid',
@@ -557,7 +559,7 @@ const TaskList: React.FC = () => {
                               onChange={(event) => {
                                 setEditTitle(event.target.value);
                                 setEditTouched((prev) => ({ ...prev, title: true }));
-                                setEditErrors(null);
+                                setEditErrors([]);
                               }}
                               style={{
                                 minHeight: '44px',
@@ -581,7 +583,7 @@ const TaskList: React.FC = () => {
                               value={editPlannedDate}
                               onChange={(event) => {
                                 setEditPlannedDate(event.target.value);
-                                setEditErrors(null);
+                                setEditErrors([]);
                               }}
                               style={{
                                 minHeight: '44px',
@@ -606,7 +608,7 @@ const TaskList: React.FC = () => {
                               theme={theme}
                               idPrefix={`edit-task-${task.id}`}
                             />
-                            {editErrors ? <p style={{ color: theme.colors.accent }}>{editErrors}</p> : null}
+                            <ValidationSummary messages={editErrors} id={`tasks-edit-summary-${task.id}`} />
                             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                               <button
                                 type="button"
@@ -761,7 +763,7 @@ const TaskList: React.FC = () => {
                 aria-label={t('tasks.focusDuration', { minutes })}
                 onClick={() => {
                   setSelectedDuration(minutes);
-                  setFormErrors(null);
+                  setFormErrors([]);
                 }}
                 style={{
                   ...focusButtonStyle,

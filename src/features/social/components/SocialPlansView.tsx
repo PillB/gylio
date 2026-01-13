@@ -1,12 +1,18 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import SectionCard from '../../../components/SectionCard.jsx';
+import ValidationSummary from '../../../components/ValidationSummary.jsx';
 import { useTheme } from '../../../core/context/ThemeContext';
 import type { SocialPlan, SocialStep } from '../../../core/hooks/useDB';
 import useAccessibility from '../../../core/hooks/useAccessibility';
 import useSocialPlans from '../hooks/useSocialPlans';
 import { fetchSocialSuggestions } from '../utils/openAiSocial';
 import { SOCIAL_TEMPLATES, type SocialTemplate } from '../utils/socialTemplates';
+import {
+  collectValidationMessages,
+  hasValidationErrors,
+  logValidationSummary
+} from '../../../core/utils/validationSummary';
 
 type SocialPlanFormState = {
   title: string;
@@ -81,8 +87,6 @@ const buildValidation = (
   return validation;
 };
 
-const hasErrors = (validation: ValidationState) => Object.values(validation).some(Boolean);
-
 const SocialPlansView: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
@@ -120,6 +124,8 @@ const SocialPlansView: React.FC = () => {
     dateTime: false,
     reminderMinutesBefore: false
   });
+  const [addSummary, setAddSummary] = useState<string[]>([]);
+  const [editSummary, setEditSummary] = useState<string[]>([]);
   const [aiOptIn, setAiOptIn] = useState(false);
   const [aiStatus, setAiStatus] = useState({ loading: false, message: '' });
 
@@ -138,6 +144,18 @@ const SocialPlansView: React.FC = () => {
     }
     return buildValidation(editForm, t);
   }, [editForm, editTouched, t]);
+
+  useEffect(() => {
+    if (!hasValidationErrors(addValidation)) {
+      setAddSummary([]);
+    }
+  }, [addValidation]);
+
+  useEffect(() => {
+    if (!hasValidationErrors(editValidation)) {
+      setEditSummary([]);
+    }
+  }, [editValidation]);
 
   const selectedTemplate = templateOptions.find((template) => template.id === form.templateId);
 
@@ -207,7 +225,13 @@ const SocialPlansView: React.FC = () => {
     const validation = buildValidation(form, t);
     setTouched({ title: true, dateTime: true, reminderMinutesBefore: true });
 
-    if (hasErrors(validation)) return;
+    const messages = collectValidationMessages(validation);
+    if (messages.length) {
+      setAddSummary(messages);
+      logValidationSummary('social-add', messages);
+      return;
+    }
+    setAddSummary([]);
 
     const created = await addPlan({
       title: form.title.trim(),
@@ -232,6 +256,7 @@ const SocialPlansView: React.FC = () => {
       });
       setTouched({ title: false, dateTime: false, reminderMinutesBefore: false });
       setAiStatus({ loading: false, message: '' });
+      setAddSummary([]);
     }
   };
 
@@ -256,7 +281,13 @@ const SocialPlansView: React.FC = () => {
     const validation = buildValidation(editForm, t);
     setEditTouched({ title: true, dateTime: true, reminderMinutesBefore: true });
 
-    if (hasErrors(validation)) return;
+    const messages = collectValidationMessages(validation);
+    if (messages.length) {
+      setEditSummary(messages);
+      logValidationSummary('social-edit', messages);
+      return;
+    }
+    setEditSummary([]);
 
     const updated = await updatePlan(editingId, {
       title: editForm.title.trim(),
@@ -272,6 +303,7 @@ const SocialPlansView: React.FC = () => {
 
     if (updated) {
       setEditingId(null);
+      setEditSummary([]);
     }
   };
 
@@ -600,6 +632,7 @@ const SocialPlansView: React.FC = () => {
 
         <section style={{ display: 'grid', gap: `${theme.spacing.sm}px` }}>
           <h3 style={{ margin: 0 }}>{t('social.addHeading')}</h3>
+          <ValidationSummary messages={addSummary} id="social-add-summary" />
           {renderPlanForm(form, setForm, addValidation, touched, setTouched)}
           <button
             type="button"
@@ -637,6 +670,7 @@ const SocialPlansView: React.FC = () => {
                       backgroundColor: theme.colors.surface
                     }}
                   >
+                    <ValidationSummary messages={editSummary} id={`social-edit-summary-${plan.id}`} />
                     {renderPlanForm(editForm, setEditForm, editValidation, editTouched, setEditTouched)}
                     <div style={{ display: 'flex', gap: `${theme.spacing.sm}px`, marginTop: `${theme.spacing.sm}px` }}>
                       <button

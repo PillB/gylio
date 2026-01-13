@@ -54,7 +54,8 @@
     "pointsPositive": "Los puntos deben ser mayores que cero.",
     "subtasksRange": "Ingresa entre {{min}} y {{max}} pasos, o déjalo en blanco.",
     "endAfterStart": "La hora de fin debe ser posterior a la hora de inicio.",
-    "nonNegativeNumber": "Ingresa un número igual o mayor a cero."
+    "nonNegativeNumber": "Ingresa un número igual o mayor a cero.",
+    "summaryHeading": "Revisa los campos resaltados."
   },
   "calendar": "Calendario",
   "theme": {

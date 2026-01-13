@@ -54,7 +54,8 @@
     "pointsPositive": "Points must be greater than zero.",
     "subtasksRange": "Enter between {{min}} and {{max}} steps, or leave blank.",
     "endAfterStart": "End time must be after the start time.",
-    "nonNegativeNumber": "Enter a zero or positive number."
+    "nonNegativeNumber": "Enter a zero or positive number.",
+    "summaryHeading": "Please review the highlighted fields."
   },
   "calendar": "Calendar",
   "theme": {
