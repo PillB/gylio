@@ -12,7 +12,7 @@
   "dependencies": {
     "@react-native-async-storage/async-storage": "^1.24.0",
     "cors": "^2.8.5",
-    "expo": "^50.0.0",
+    "expo": "^54.0.31",
     "expo-av": "~13.0.2",
     "expo-notifications": "^0.32.13",
     "expo-router": "^3.0.0",
@@ -27,7 +27,7 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-i18next": "^13.5.0",
-    "react-native": "0.73.0",
+    "react-native": "^0.73.11",
     "react-native-paper": "^5.12.5",
     "react-native-web": "^0.19.10",
     "react-router-dom": "^6.22.3",
@@ -35,6 +35,6 @@
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.2.1",
-    "vite": "^4.3.9"
+    "vite": "^7.3.1"
   }
 }
