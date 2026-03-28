@@ -116,7 +116,9 @@
       "want": "Deseo",
       "goal": "Meta",
       "debt": "Deuda"
-    }
+    },
+    "payoffInfeasible": "Los pagos actuales son demasiado bajos para reducir esta deuda. Aumenta el pago mínimo o extra.",
+    "payoffCompare": "Bola de nieve: {{snowballMonths}} meses • Avalancha: {{avalancheMonths}} meses"
   },
   "rewards": {
     "title": "Recompensas",

@@ -158,3 +158,26 @@
 - Updated `CalendarView` to use shared conversion utilities and added a new “Schedule this window” action on each suggested focus card.
 - Added localized `calendarScheduleSuggestion` copy in English and es-PE.
 - Expanded quality-gate scope so lint/typecheck cover both tasks and calendar utility modules; test/lint/typecheck/build all pass (bundle warning unchanged).
+
+### CHG-014 – 2026-03-28 17:13:27 UTC
+**Type:** [CHANGE]
+**Files changed:** src/features/budget/utils/debtPayoff.ts, src/features/budget/utils/debtPayoff.test.ts, src/components/BudgetView.jsx, src/i18n/en.json, src/i18n/es-PE.json, package.json, tsconfig.tasks.json
+**Reasoning:** Continue Phase 2 with tests-first hardening of debt payoff simulation by extracting deterministic budget logic into typed utilities, surfacing infeasible payment detection, and exposing side-by-side snowball vs avalanche payoff comparison.
+**Expected result:** Budget payoff projections become reusable/tested and safer for edge cases (zero balances, non-viable minimum payments), while UI provides clearer strategy tradeoff guidance with localized copy.
+**Future considerations:** Add component-level interaction tests for the debt simulator UI and persist user-selected payoff strategy per profile for continuity.
+**References:** CHG-013, CHG-012 | [SUMMARY-007]
+
+### CHG-015 – 2026-03-28 17:13:27 UTC
+**Type:** [SUMMARY]
+**Files changed:** Claude_changes.md
+**Reasoning:** Compress current Phase 2 state after debt-payoff extraction and quality gate expansion to preserve deterministic restart context.
+**Expected result:** Next phase can resume with exact knowledge of new budget utility behavior, simulator UX changes, and verification status.
+**Future considerations:** Expand lint/typecheck coverage from utility modules into feature components and reduce overall bundle size warning through route-level splits.
+**References:** CHG-014, CHG-013 | [SUMMARY-008]
+
+[SUMMARY-008]
+- Added `src/features/budget/utils/debtPayoff.ts` for deterministic debt simulation and side-by-side payoff comparison (`SNOWBALL` vs `AVALANCHE`).
+- Added `src/features/budget/utils/debtPayoff.test.ts` covering empty debt handling, infeasible minimum-payment scenarios, successful payoff simulation, and comparison output.
+- Updated `BudgetView` to consume shared payoff utilities, show infeasible-plan guidance, and display a compact strategy comparison hint for decision simplification.
+- Added new localized budget keys (`payoffInfeasible`, `payoffCompare`) for English and es-PE.
+- Expanded lint/typecheck scope to include budget utility modules.

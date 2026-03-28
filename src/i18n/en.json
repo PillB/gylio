@@ -116,7 +116,9 @@
       "want": "Want",
       "goal": "Goal",
       "debt": "Debt"
-    }
+    },
+    "payoffInfeasible": "Current payments are too low to reduce this debt. Increase minimum or extra payment.",
+    "payoffCompare": "Snowball: {{snowballMonths}} months • Avalanche: {{avalancheMonths}} months"
   },
   "rewards": {
     "title": "Rewards",

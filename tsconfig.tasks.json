@@ -13,6 +13,7 @@
   },
   "include": [
     "src/features/tasks/utils/**/*.ts",
-    "src/features/calendar/utils/**/*.ts"
+    "src/features/calendar/utils/**/*.ts",
+    "src/features/budget/utils/**/*.ts"
   ]
 }
