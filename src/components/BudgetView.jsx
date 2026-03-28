@@ -6,6 +6,7 @@ import useRewards from '../core/hooks/useRewards';
 import { useTheme } from '../core/context/ThemeContext';
 import { getDefaultBudgetMonth } from '../core/utils/date';
 import SectionCard from './SectionCard.jsx';
+import { buildPayoffComparison } from '../features/budget/utils/debtPayoff';
 
 const DEFAULT_CATEGORY_TYPE = 'NEED';
 const CATEGORY_TYPES = ['NEED', 'WANT', 'GOAL', 'DEBT'];
@@ -500,67 +501,11 @@ const BudgetView = () => {
       });
   };
 
-  const simulatePayoff = useCallback(
-    (items, strategy, extraPayment) => {
-      const balances = items
-        .filter((debt) => debt.balance > 0)
-        .map((debt) => ({
-          id: debt.id,
-          balance: debt.balance,
-          annualRate: debt.annualRate,
-          minPayment: Math.max(0, debt.minPayment),
-        }));
+  const extraPayment = useMemo(() => Math.max(0, remaining), [remaining]);
 
-      const monthlyPayment = balances.reduce((sum, debt) => sum + debt.minPayment, 0) + extraPayment;
-      if (balances.length === 0 || monthlyPayment <= 0) return null;
+  const payoffComparison = useMemo(() => buildPayoffComparison(debts, extraPayment), [debts, extraPayment]);
 
-      const sortFn = strategy === PAYOFF_STRATEGIES.SNOWBALL
-        ? (a, b) => a.balance - b.balance
-        : (a, b) => b.annualRate - a.annualRate;
-
-      let months = 0;
-      let totalInterest = 0;
-      const maxMonths = 600;
-
-      while (months < maxMonths && balances.some((debt) => debt.balance > 0.01)) {
-        balances.sort(sortFn);
-        let available = monthlyPayment;
-
-        balances.forEach((debt) => {
-          if (debt.balance <= 0) return;
-          const monthlyRate = debt.annualRate / 12 / 100;
-          const interest = debt.balance * monthlyRate;
-          debt.balance += interest;
-          totalInterest += interest;
-          const minPay = Math.min(debt.balance, debt.minPayment);
-          debt.balance -= minPay;
-          available -= minPay;
-        });
-
-        let index = 0;
-        while (available > 0.01 && balances.some((debt) => debt.balance > 0.01)) {
-          if (index >= balances.length) index = 0;
-          const target = balances[index];
-          if (target.balance > 0.01) {
-            const payment = Math.min(target.balance, available);
-            target.balance -= payment;
-            available -= payment;
-          }
-          index += 1;
-        }
-
-        months += 1;
-      }
-
-      return { months, totalInterest };
-    },
-    []
-  );
-
-  const payoffResult = useMemo(() => {
-    const extraPayment = Math.max(0, remaining);
-    return simulatePayoff(debts, payoffStrategy, extraPayment);
-  }, [debts, payoffStrategy, remaining, simulatePayoff]);
+  const payoffResult = payoffComparison[payoffStrategy];
 
   const chartMax = Math.max(
     plannedByType.NEED,
@@ -1457,19 +1402,34 @@ const BudgetView = () => {
                 </button>
               </div>
               {payoffResult ? (
-                <div>
-                  <div>
-                    {t('budget.payoffTimeline', { months: payoffResult.months }) ||
-                      `Projected payoff: ${payoffResult.months} months`}
-                  </div>
-                  <div>
-                    {t('budget.payoffInterest', { interest: payoffResult.totalInterest.toFixed(2) }) ||
-                      `Estimated interest: ${payoffResult.totalInterest.toFixed(2)}`}
-                  </div>
+                <div style={{ display: 'grid', gap: `${theme.spacing.xs}px` }}>
+                  {payoffResult.paidOff ? (
+                    <>
+                      <div>
+                        {t('budget.payoffTimeline', { months: payoffResult.months }) ||
+                          `Projected payoff: ${payoffResult.months} months`}
+                      </div>
+                      <div>
+                        {t('budget.payoffInterest', { interest: payoffResult.totalInterest.toFixed(2) }) ||
+                          `Estimated interest: ${payoffResult.totalInterest.toFixed(2)}`}
+                      </div>
+                    </>
+                  ) : (
+                    <div>{t('budget.payoffInfeasible') || 'Current payments are too low to pay this debt down.'}</div>
+                  )}
                   <small>
-                    {t('budget.payoffExtraHint', { extra: Math.max(0, remaining).toFixed(2) }) ||
-                      `Includes extra payment from remaining: ${Math.max(0, remaining).toFixed(2)}`}
+                    {t('budget.payoffExtraHint', { extra: extraPayment.toFixed(2) }) ||
+                      `Includes extra payment from remaining: ${extraPayment.toFixed(2)}`}
                   </small>
+                  {payoffComparison.SNOWBALL && payoffComparison.AVALANCHE ? (
+                    <small>
+                      {t('budget.payoffCompare', {
+                        snowballMonths: payoffComparison.SNOWBALL.months,
+                        avalancheMonths: payoffComparison.AVALANCHE.months,
+                      }) ||
+                        `Snowball: ${payoffComparison.SNOWBALL.months} months • Avalanche: ${payoffComparison.AVALANCHE.months} months`}
+                    </small>
+                  ) : null}
                 </div>
               ) : (
                 <small>{t('budget.payoffEmpty') || 'Add debts and minimum payments to simulate payoff.'}</small>
