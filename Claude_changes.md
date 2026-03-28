@@ -45,3 +45,25 @@
 - Baseline is file-grounded to current repository layout (React/Vite + Express + Mongo/SQLite + i18n + Expo bridge).
 - Repository remains WIP with limited verification scripts (`build` only); lint/test/typecheck still pending as explicit future work.
 - Next required phase is analysis/planning-only: read summary, AGENTS, README, and product manual; produce prioritized XML plan and await approval.
+
+### CHG-004 – 2026-03-28 16:15:01 UTC
+**Type:** [CHANGE]
+**Files changed:** src/features/tasks/components/TaskList.tsx, src/features/tasks/utils/taskForm.ts, src/features/tasks/utils/taskForm.test.ts, package.json, package-lock.json, eslint.config.js, tsconfig.tasks.json, AGENTS.md
+**Reasoning:** Begin Phase 2 with tests-first extraction of deterministic task form/chunking helpers and add runnable quality scripts (`lint`, `test`, `typecheck`) requested by repository guidance.
+**Expected result:** Task validation logic is reusable/tested, and the repo now has executable verification commands for incremental hardening.
+**Future considerations:** Expand lint/typecheck scope after existing baseline issues are remediated; resolve Expo/Vite web build incompatibility (`TurboModuleRegistry` import) in a dedicated stabilization change.
+**References:** CHG-003, CHG-002 | [SUMMARY-002]
+
+### CHG-005 – 2026-03-28 16:15:01 UTC
+**Type:** [SUMMARY]
+**Files changed:** Claude_changes.md
+**Reasoning:** Compress Phase 2 progress and verification outcomes to protect context continuity before next implementation slice.
+**Expected result:** Next session can start from a precise status snapshot including passing checks and known blocker.
+**Future considerations:** Target next change on build pipeline compatibility and broaden CI-grade checks once baseline build is fixed.
+**References:** CHG-004, CHG-003 | [SUMMARY-003]
+
+[SUMMARY-003]
+- Extracted task form helper logic into `src/features/tasks/utils/taskForm.ts` and wired `TaskList` to consume shared deterministic helpers.
+- Added tests in `src/features/tasks/utils/taskForm.test.ts`; `npm run test` now passes for 6 helper behavior cases.
+- Added project scripts and configs for `npm run lint`, `npm run typecheck`, and `npm run test` with scoped initial coverage; updated AGENTS command section accordingly.
+- Verification status: test/lint/typecheck pass; build still fails due to existing Expo + react-native-web `TurboModuleRegistry` incompatibility.
