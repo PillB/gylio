@@ -7,10 +7,17 @@ const eventsRouter = require('./routes/events');
 const budgetsRouter = require('./routes/budgets');
 const transactionsRouter = require('./routes/transactions');
 const debtsRouter = require('./routes/debts');
+const aiRouter = require('./routes/ai');
 
 const { sqlite } = require('./db/sqliteClient');
 const { ensureSqliteSchema } = require('./lib/sqlite');
 const { notFoundHandler, errorHandler } = require('./middleware/errorHandler');
+
+const requiredAiEnvVars = ['OPENAI_API_KEY'];
+const missingAiEnvVars = requiredAiEnvVars.filter((envVar) => !process.env[envVar]);
+if (missingAiEnvVars.length) {
+  console.warn(`AI features disabled. Missing env vars: ${missingAiEnvVars.join(', ')}`);
+}
 
 const app = express();
 app.use(cors());
@@ -40,6 +47,7 @@ app.use('/api/budgets', budgetsRouter);
 app.use('/api/budget', budgetsRouter);
 app.use('/api/transactions', transactionsRouter);
 app.use('/api/debts', debtsRouter);
+app.use('/api/ai', aiRouter);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

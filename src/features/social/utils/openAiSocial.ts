@@ -9,24 +9,22 @@ type FetchSocialSuggestionsArgs = {
   locale: string;
 };
 
-const OPENAI_URL = 'https://api.openai.com/v1/chat/completions';
-const OPENAI_MODEL = import.meta.env.VITE_OPENAI_MODEL ?? 'gpt-4o-mini';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 
 const ensureStringArray = (value: unknown): string[] => {
   if (!Array.isArray(value)) return [];
   return value.map((entry) => String(entry ?? '').trim()).filter(Boolean);
 };
 
-const parseSuggestion = (payload: string): SocialSuggestion | null => {
-  try {
-    const parsed = JSON.parse(payload) as { steps?: unknown; notes?: unknown };
-    const steps = ensureStringArray(parsed.steps);
-    if (!steps.length) return null;
-    const notes = typeof parsed.notes === 'string' ? parsed.notes.trim() : undefined;
-    return { steps, notes };
-  } catch (error) {
-    return null;
-  }
+const parseSuggestion = (payload: unknown): SocialSuggestion | null => {
+  if (!payload || typeof payload !== 'object') return null;
+
+  const parsed = payload as { steps?: unknown; notes?: unknown };
+  const steps = ensureStringArray(parsed.steps).slice(0, 5);
+  if (steps.length < 3) return null;
+
+  const notes = typeof parsed.notes === 'string' ? parsed.notes.trim() : undefined;
+  return { steps, notes };
 };
 
 export const fetchSocialSuggestions = async ({
@@ -34,33 +32,16 @@ export const fetchSocialSuggestions = async ({
   energyLevel,
   locale
 }: FetchSocialSuggestionsArgs): Promise<SocialSuggestion | null> => {
-  const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-  if (!apiKey) return null;
-
-  const systemPrompt =
-    'You are helping generate short, supportive social planning steps. ' +
-    'Do not include any personal data, names, or contact info. ' +
-    'Keep outputs concise and low-pressure.';
-
-  const userPrompt =
-    `Locale: ${locale}. Energy level: ${energyLevel}. ` +
-    `Template summary: ${templateSummary}. ` +
-    'Return JSON with keys "steps" (array of 3-5 short steps) and optional "notes". ' +
-    'Avoid personal data and keep tone gentle.';
-
-  const response = await fetch(OPENAI_URL, {
+  const endpoint = `${API_BASE_URL}/api/ai/social-suggestions`;
+  const response = await fetch(endpoint, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`
+      'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      model: OPENAI_MODEL,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt }
-      ],
-      temperature: 0.4
+      templateSummary,
+      energyLevel,
+      locale
     })
   });
 
@@ -68,9 +49,6 @@ export const fetchSocialSuggestions = async ({
     return null;
   }
 
-  const data = (await response.json()) as {
-    choices?: Array<{ message?: { content?: string } }>;
-  };
-  const content = data.choices?.[0]?.message?.content ?? '';
-  return parseSuggestion(content);
+  const data = (await response.json()) as unknown;
+  return parseSuggestion(data);
 };
