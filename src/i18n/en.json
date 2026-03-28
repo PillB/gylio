@@ -138,7 +138,7 @@
     "unlocked": "Unlocked",
     "locked": "Locked"
   },
-  "rewardsPlaceholder": "Gentle, opt-in progress tracking with XP and unlocks.",
+  "rewardsPlaceholder": "Points and streaks will appear here. Gamification is optional.",
   "social": {
     "title": "Social",
     "description": "Plan social moments with gentle prompts and reminders.",
@@ -290,7 +290,6 @@
   "calendarAtLocation": "At {{location}}",
   "calendarTimeUnknown": "Time unavailable",
   "calendarConfirmDelete": "Delete event {{title}}? This will not delete the linked task.",
-  "rewardsPlaceholder": "Points and streaks will appear here. Gamification is optional.",
   "settingsDescription": "Personalise accessibility preferences and control gamification.",
   "settingsFontOption": "Choose between standard and dyslexia‑friendly fonts.",
   "settingsThemeOption": "Toggle light/dark mode.",
@@ -444,5 +443,9 @@
     "reviewDetected": "Detected: {{timestamp}}",
     "reviewKeepLocal": "Keep my changes",
     "reviewUseRemote": "Use server version"
-  }
+  },
+  "calendarSuggestedFocusHeading": "Suggested focus windows",
+  "calendarSuggestedFocusHelper": "We auto-place up to three unscheduled tasks into open time blocks for this day.",
+  "calendarSuggestedFocusWindow": "{{window}} · {{minutes}} min",
+  "calendarSuggestedFocusEmpty": "No open window fits your unscheduled tasks right now."
 }
