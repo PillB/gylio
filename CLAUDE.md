@@ -1,42 +1,44 @@
 # CLAUDE.md
 
-## Tech Stack
-- Frontend: React 18 + Vite (JS/TS mixed), react-router, i18next.
-- Mobile/Web bridge: Expo + react-native-web shims.
-- Backend: Node.js + Express.
-- Data: MongoDB via Mongoose with SQLite fallback.
-- Offline-first direction: service worker + IndexedDB queue/sync hooks in `src/core`.
+## Tech Stack (file-grounded)
+- Frontend: React 18 + Vite (`src/App.jsx`, `vite.config.ts`).
+- Language mix: JavaScript + TypeScript (`.jsx/.js` and `.tsx/.ts`).
+- Mobile bridge: Expo + React Native Web shims (`app.json`, `src/shims/*`).
+- Backend: Node.js + Express (`server/server.js`, `server/routes/*`).
+- Data: MongoDB (Mongoose) with SQLite fallback (`server/db/models.js`).
+- i18n: `react-i18next` with English + es-PE dictionaries (`src/i18n`).
 
 ## Architecture Snapshot
-- `src/` UI and client logic split by features (`tasks`, `social`, `core`, components).
-- `server/` REST routes (`tasks`, `events`, `budget`) and DB models.
-- i18n dictionaries in `src/i18n` (en + es-PE); user-facing strings should be localized.
-- Current state is early-stage/WIP; several modules are skeleton implementations.
+- `src/components`: primary views (Tasks, Calendar, Budget, Rewards, Settings).
+- `src/features/tasks` and `src/features/social`: feature-scoped hooks/components.
+- `src/core`: themes, IndexedDB hooks, background sync/service worker helpers.
+- `server/routes`: REST endpoints for tasks/events/budget.
+- `docs/`: product and research context for neurodivergent-friendly design.
 
-## Coding Style & Engineering Rules
-- Prefer small functional components with explicit prop/types.
-- Accessibility-first: semantic HTML, keyboard navigation, clear focus states, low-sensory UI.
-- No hard-coded user-facing strings; route through i18n keys.
-- Keep logic deterministic and testable; avoid hidden side effects.
-- Keep commits focused and traceable with CHG IDs from changelog.
+## Coding & Product Rules
+- Prefer small functional components and explicit types for TS modules.
+- Accessibility-first by default: semantic HTML, keyboard-first flow, low-sensory UI.
+- All user-facing strings must go through i18n keys (`en.json`, `es-PE.json`).
+- Avoid surprise UX changes; keep interactions predictable and gentle.
+- Keep logic deterministic and easy to test; avoid hidden side effects.
 
 ## Security Checklist
-- Validate all API inputs (types, ranges, required fields).
-- Minimize PII handling and never log sensitive data.
-- JWT auth required for protected APIs (planned/partial).
-- Sanitize external/AI content before rendering.
-- Use least-privilege config and environment-based secrets.
+- Validate/sanitize all API inputs in routes.
+- Never log/store sensitive personal or financial data unnecessarily.
+- Keep secrets in environment variables (no hardcoded tokens).
+- Plan JWT protection for protected endpoints.
+- Treat AI-generated text as untrusted input before rendering.
 
-## Scheduling/Planning Domain Rules
-- Schedule should be realistic: include buffers and avoid over-allocation.
-- Tasks should support micro-steps and explicit next action.
-- Calendar links must be non-destructive (deleting event must not delete task).
-- Time validations: end > start; reminders optional and low-friction.
-- Support restart paths without penalty after missed routines.
+## Scheduling & Domain Guardrails
+- Plans should be realistic and include buffers (no over-allocation by default).
+- Task creation must support micro-step breakdown and explicit “next action”.
+- Calendar validations: `end > start`; deletion of events must not delete linked tasks.
+- Budget flows should enforce clear category mapping and zero-based guidance.
+- Recovery/restart paths should be non-punitive (skip without shame).
 
-## Testing & Verification Strategy
-- Baseline checks each phase: `npm run build` + targeted runtime smoke checks.
-- Add missing scripts incrementally: `lint`, `test`, `typecheck`.
-- Prefer tests-first for new behavior (unit + integration for routes/hooks).
-- Verify accessibility for touched UI: keyboard path, labels, contrast intent.
-- Track every phase in `Claude_changes.md` with references and expected outcomes.
+## Testing Strategy (current + target)
+- Current available check: `npm run build`.
+- Add project scripts for `lint`, `test`, `typecheck` as implementation progresses.
+- Use tests-first for new behavior where feasible (unit/integration).
+- For UI changes, validate keyboard navigation and labels.
+- Record every phase in `Claude_changes.md` with CHG IDs and references.
