@@ -1,10 +1,12 @@
-import type { SocialPlan, SocialStep } from '../../../core/hooks/useDB';
 import type { SocialTemplate } from './socialTemplates';
+import type { SocialPlanEnergyLevel, SocialPlanType, SocialStep } from './socialTypes';
+
+export type { SocialPlanEnergyLevel, SocialPlanType, SocialStep };
 
 export type SocialPlanFormState = {
   title: string;
-  type: SocialPlan['type'];
-  energyLevel: SocialPlan['energyLevel'];
+  type: SocialPlanType;
+  energyLevel: SocialPlanEnergyLevel;
   dateTime: string;
   reminderMinutesBefore: string;
   notes: string;
@@ -67,8 +69,8 @@ export const buildSocialPlanValidation = (
 
   if (fields.reminderMinutesBefore) {
     const reminder = Number(fields.reminderMinutesBefore);
-    if (Number.isNaN(reminder) || reminder < 0) {
-      validation.reminderMinutesBefore = t('validation.nonNegativeNumber');
+    if (Number.isNaN(reminder) || reminder < 0 || !Number.isInteger(reminder)) {
+      validation.reminderMinutesBefore = t('validation.nonNegativeInteger');
     }
   }
 

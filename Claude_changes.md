@@ -203,3 +203,26 @@
 - Added `src/features/social/utils/socialPlanForm.test.ts` with 6 tests covering helper defaults, validation guards, and normalization behavior.
 - Refactored `SocialPlansView` to consume shared social-form utilities instead of inline duplicated helper logic.
 - Verification status: `npm run test`, `npm run lint`, `npm run typecheck`, and `npm run build` pass; build continues to emit existing >500 kB chunk-size warning.
+
+### CHG-018 – 2026-03-28 17:31:31 UTC
+**Type:** [CHANGE]
+**Files changed:** src/features/social/utils/socialPlanForm.ts, src/features/social/utils/socialPlanForm.test.ts, src/features/social/utils/socialTypes.ts, src/features/social/utils/socialTemplates.ts, package.json, tsconfig.tasks.json
+**Reasoning:** Continue Phase 2 by tightening social reminder validation to deterministic whole-minute inputs and decoupling social utility types from `useDB` to safely include social validation logic in quality gates.
+**Expected result:** Social plan reminder minutes now reject decimal values, validation is covered by tests, and lint/typecheck scripts can include social utility validation code without pulling broad app-level TS errors.
+**Future considerations:** Expand social utility lint/typecheck scope beyond `socialPlanForm.ts` after resolving `openAiSocial.ts` lint debt and introducing typed env declarations for shared modules.
+**References:** CHG-017, CHG-016 | [SUMMARY-009]
+
+### CHG-019 – 2026-03-28 17:31:31 UTC
+**Type:** [SUMMARY]
+**Files changed:** Claude_changes.md
+**Reasoning:** Compress latest social-validation hardening and quality-gate scoping outcomes for deterministic Phase 2 continuity.
+**Expected result:** Next phase restarts can quickly recover this increment’s behavior changes, dependency-boundary decision, and verification status.
+**Future considerations:** Add component-level interaction tests for social plan creation/editing and reduce build chunk-size warning through route-level code splitting.
+**References:** CHG-018, CHG-017 | [SUMMARY-010]
+
+[SUMMARY-010]
+- Social reminder validation now enforces non-negative integers (`validation.nonNegativeInteger`), preventing ambiguous decimal minute reminders.
+- Added a new social utility regression test covering decimal reminder rejection; social form utility tests now pass with 7 assertions.
+- Introduced `socialTypes.ts` and updated `socialPlanForm.ts`/`socialTemplates.ts` to remove direct `useDB` type dependency from social utilities.
+- Adjusted verification script scope so lint/typecheck include social form utility checks while keeping overall checks green.
+- Verification status: `npm run test`, `npm run lint`, `npm run typecheck`, and `npm run build` pass (build still warns about >500 kB main chunk).

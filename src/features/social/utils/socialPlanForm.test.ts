@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import type { SocialStep } from '../../../core/hooks/useDB';
 import {
   buildSocialPlanValidation,
   createEmptySocialSteps,
@@ -7,6 +6,7 @@ import {
   hasSocialPlanErrors,
   normalizeSocialPlanSteps,
   parseSocialPlanDateTime,
+  type SocialStep,
   type SocialPlanFormState
 } from './socialPlanForm';
 
@@ -64,16 +64,22 @@ describe('socialPlanForm utils', () => {
 
   it('validates required title, datetime, and reminder minutes', () => {
     const validation = buildSocialPlanValidation(
-      baseForm({ title: ' ', dateTime: 'invalid', reminderMinutesBefore: '-2' }),
+      baseForm({ title: ' ', dateTime: 'invalid', reminderMinutesBefore: '-2.5' }),
       t
     );
 
     expect(validation).toEqual({
       title: 'validation.titleRequired',
       dateTime: 'validation.invalidDateTime',
-      reminderMinutesBefore: 'validation.nonNegativeNumber'
+      reminderMinutesBefore: 'validation.nonNegativeInteger'
     });
     expect(hasSocialPlanErrors(validation)).toBe(true);
+  });
+
+  it('rejects decimal reminder minutes', () => {
+    const validation = buildSocialPlanValidation(baseForm({ reminderMinutesBefore: '2.5' }), t);
+
+    expect(validation.reminderMinutesBefore).toBe('validation.nonNegativeInteger');
   });
 
   it('accepts valid forms without validation errors', () => {
