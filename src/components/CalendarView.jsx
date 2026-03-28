@@ -371,7 +371,7 @@ const CalendarView = () => {
       tasks,
       events,
       selectedDate,
-      timezoneOffsetMinutes: new Date().getTimezoneOffset() * -1,
+      timezoneOffsetMinutes: new Date().getTimezoneOffset(),
       dayStartHour: 8,
       dayEndHour: 20,
       defaultDurationMinutes: 25,
