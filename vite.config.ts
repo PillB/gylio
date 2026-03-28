@@ -49,6 +49,18 @@ export default defineConfig({
       {
         find: 'expo-notifications',
         replacement: path.resolve(__dirname, 'src/shims/expo-notifications.ts')
+      },
+      {
+        find: 'expo-speech',
+        replacement: path.resolve(__dirname, 'src/shims/expo-speech.ts')
+      },
+      {
+        find: 'expo-av',
+        replacement: path.resolve(__dirname, 'src/shims/expo-av.ts')
+      },
+      {
+        find: 'expo-sqlite',
+        replacement: path.resolve(__dirname, 'src/shims/expo-sqlite.ts')
       }
     ]
   },

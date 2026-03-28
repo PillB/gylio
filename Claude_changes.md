@@ -67,3 +67,25 @@
 - Added tests in `src/features/tasks/utils/taskForm.test.ts`; `npm run test` now passes for 6 helper behavior cases.
 - Added project scripts and configs for `npm run lint`, `npm run typecheck`, and `npm run test` with scoped initial coverage; updated AGENTS command section accordingly.
 - Verification status: test/lint/typecheck pass; build still fails due to existing Expo + react-native-web `TurboModuleRegistry` incompatibility.
+
+### CHG-006 – 2026-03-28 16:22:30 UTC
+**Type:** [CHANGE]
+**Files changed:** vite.config.ts, src/shims/expo-speech.ts, src/shims/expo-av.ts, src/shims/expo-sqlite.ts, src/shims/expo-speech.test.ts
+**Reasoning:** Resolve the known production build blocker (`TurboModuleRegistry` export failure) by routing web bundles away from Expo native module paths and validating shim behavior with tests.
+**Expected result:** `npm run build` succeeds in web mode while preserving graceful browser fallbacks for speech/notification/sqlite-dependent flows.
+**Future considerations:** Replace the temporary `expo-sqlite` no-op shim with an IndexedDB-backed adapter to preserve offline data integrity on web.
+**References:** CHG-005, CHG-004 | [SUMMARY-003]
+
+### CHG-007 – 2026-03-28 16:22:30 UTC
+**Type:** [SUMMARY]
+**Files changed:** Claude_changes.md
+**Reasoning:** Compress the latest stabilization state and verification outcomes for deterministic phase restarts.
+**Expected result:** Next phase can resume from a build-green baseline with known remaining risks documented.
+**Future considerations:** Prioritize durable web persistence replacement and broaden lint/typecheck scope beyond task utils.
+**References:** CHG-006, CHG-005 | [SUMMARY-004]
+
+[SUMMARY-004]
+- Added Vite aliases for `expo-speech`, `expo-av`, and `expo-sqlite` to web shims to prevent Expo native module imports from entering browser builds.
+- Implemented web speech shim (`src/shims/expo-speech.ts`) and expo-av speech bridge (`src/shims/expo-av.ts`) with jsdom tests covering available/unavailable speech APIs.
+- Added temporary `expo-sqlite` compatibility shim (`src/shims/expo-sqlite.ts`) so web build completes without `expo-modules-core` native bindings.
+- Verification now passes for test/lint/typecheck/build; build still emits a chunk-size warning for the main bundle (>500 kB).
