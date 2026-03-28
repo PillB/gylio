@@ -1,20 +1,21 @@
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const sqlite3 = require('sqlite3').verbose();
 
 const tasksRouter = require('./routes/tasks');
 const eventsRouter = require('./routes/events');
-const budgetRouter = require('./routes/budget');
+const budgetsRouter = require('./routes/budgets');
+const transactionsRouter = require('./routes/transactions');
+const debtsRouter = require('./routes/debts');
+
+const { sqlite } = require('./db/sqliteClient');
+const { ensureSqliteSchema } = require('./lib/sqlite');
+const { notFoundHandler, errorHandler } = require('./middleware/errorHandler');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Attempt to connect to MongoDB if an environment variable is provided.  If not, we
-// fall back to using a local SQLite database.  This design allows the API to
-// operate completely offline for development or when the user does not have
-// network connectivity.
 const mongoUri = process.env.MONGODB_URI || '';
 if (mongoUri) {
   mongoose
@@ -25,22 +26,23 @@ if (mongoUri) {
   console.log('MongoDB URI not provided; API will use SQLite');
 }
 
-// Initialise SQLite database.  The database file will be created if it does not
-// exist.  Tables are created in the routes when needed.
-const sqlite = new sqlite3.Database('gylio.db');
-app.set('sqlite', sqlite);
+ensureSqliteSchema(sqlite)
+  .then(() => console.log('SQLite schema is ready'))
+  .catch((err) => console.error('SQLite schema init error:', err));
 
-// Basic health check
-app.get('/api', (req, res) => {
+app.get('/api', (_req, res) => {
   res.json({ message: 'GYLIO API is running' });
 });
 
-// Use routers for each domain.  The routers handle both MongoDB and SQLite
-// depending on availability.  A more advanced implementation might abstract
-// database operations behind a common interface.
 app.use('/api/tasks', tasksRouter);
 app.use('/api/events', eventsRouter);
-app.use('/api/budget', budgetRouter);
+app.use('/api/budgets', budgetsRouter);
+app.use('/api/budget', budgetsRouter);
+app.use('/api/transactions', transactionsRouter);
+app.use('/api/debts', debtsRouter);
+
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
