@@ -56,9 +56,9 @@ const SettingsView = () => {
 
   const themeLabels = useMemo(
     () => ({
-      light: t('theme.light', 'Light'),
-      dark: t('theme.dark', 'Dark'),
-      highContrast: t('theme.highContrast', 'High contrast')
+      light: t('theme.light'),
+      dark: t('theme.dark'),
+      highContrast: t('theme.highContrast')
     }),
     [t]
   );
@@ -171,9 +171,9 @@ const SettingsView = () => {
 
   return (
     <SectionCard
-      ariaLabel={`${t('settings')} module`}
+      ariaLabel={t('settingsModuleAriaLabel')}
       title={t('settings')}
-      subtitle={t('settingsDescription') || ''}
+      subtitle={t('settingsDescription')}
     >
       <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
         <button
@@ -181,7 +181,7 @@ const SettingsView = () => {
           onClick={toggleTint}
           style={{ padding: '0.5rem 0.75rem', borderRadius: theme.shape.radiusSm, border: `1px solid ${theme.colors.border}` }}
         >
-          {isTinted ? t('disableTint') || 'Disable screen tint' : t('enableTint') || 'Enable screen tint'}
+          {isTinted ? t('disableTint') : t('enableTint')}
         </button>
         <button
           type="button"
@@ -189,12 +189,11 @@ const SettingsView = () => {
           disabled={isSpeaking}
           style={{ padding: '0.5rem 0.75rem', borderRadius: theme.shape.radiusSm, border: `1px solid ${theme.colors.border}` }}
         >
-          {isSpeaking ? t('speaking') || 'Speaking…' : t('announceSettings') || 'Announce settings'}
+          {isSpeaking ? t('speaking') : t('announceSettings')}
         </button>
       </div>
       <p style={{ color: theme.colors.muted, marginTop: theme.spacing.sm }}>
-        {t('onboarding.accessibility.helper') ||
-          'We apply these readability and sensory settings everywhere for predictability.'}
+        {t('onboarding.accessibility.helper')}
       </p>
       <div
         style={{
@@ -213,18 +212,18 @@ const SettingsView = () => {
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: theme.spacing.md, flexWrap: 'wrap' }}>
             <div>
-              <p style={{ margin: 0, fontWeight: 600 }}>{t('settingsThemeLabel') || 'Theme mode'}</p>
+              <p style={{ margin: 0, fontWeight: 600 }}>{t('settingsThemeLabel')}</p>
               <small style={{ color: theme.colors.muted }}>
-                {t('settingsThemeHelper') || 'Choose light, dark, or high-contrast to reduce visual strain.'}
+                {t('settingsThemeHelper')}
               </small>
               <p style={{ margin: '0.25rem 0', color: theme.colors.text }}>
-                {t('settingsCurrentValue', { value: themeLabels[mode] }) || `Current: ${themeLabels[mode]}`}
+                {t('settingsCurrentValue', { value: themeLabels[mode] })}
               </p>
             </div>
             <select
               value={mode}
               onChange={(e) => setTheme(e.target.value)}
-              aria-label={t('settingsThemeLabel') || 'Theme mode'}
+              aria-label={t('settingsThemeLabel')}
               style={{
                 padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
                 borderRadius: theme.shape.radiusSm,
@@ -250,9 +249,9 @@ const SettingsView = () => {
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: theme.spacing.md, flexWrap: 'wrap' }}>
             <div>
-              <p style={{ margin: 0, fontWeight: 600 }}>{t('settingsFontLabel') || 'Reading style'}</p>
+              <p style={{ margin: 0, fontWeight: 600 }}>{t('settingsFontLabel')}</p>
               <small style={{ color: theme.colors.muted }}>
-                {t('settingsFontHelper') || 'Switch to dyslexia-friendly fonts or larger text for steadier reading.'}
+                {t('settingsFontHelper')}
               </small>
               <p style={{ margin: '0.25rem 0', color: theme.colors.text }}>
                 {t('settingsCurrentValue', {
@@ -262,20 +261,13 @@ const SettingsView = () => {
                       : textStylePreference === 'large'
                         ? t('onboarding.accessibility.largeText')
                         : t('onboarding.accessibility.standardFont')
-                }) ||
-                  `Current: ${
-                    textStylePreference === 'dyslexic'
-                      ? 'Dyslexia-friendly'
-                      : textStylePreference === 'large'
-                        ? 'Large text'
-                        : 'Standard'
-                  }`}
+                })}
               </p>
             </div>
             <select
               value={textStylePreference || 'standard'}
               onChange={(e) => setTextStylePreference(e.target.value)}
-              aria-label={t('settingsFontLabel') || 'Reading style'}
+              aria-label={t('settingsFontLabel')}
               style={{
                 padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
                 borderRadius: theme.shape.radiusSm,
@@ -301,10 +293,9 @@ const SettingsView = () => {
         >
           <div style={{ display: 'grid', gap: theme.spacing.sm }}>
             <div>
-              <p style={{ margin: 0, fontWeight: 600 }}>{t('settingsMotionLabel') || 'Motion preference'}</p>
+              <p style={{ margin: 0, fontWeight: 600 }}>{t('settingsMotionLabel')}</p>
               <small id="motion-helper" style={{ color: theme.colors.muted }}>
-                {t('settingsMotionHelper') ||
-                  'Reduce motion to lower sensory load; we only animate essentials.'}
+                {t('settingsMotionHelper')}
               </small>
             </div>
             <label style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm }}>
@@ -312,7 +303,7 @@ const SettingsView = () => {
                 type="checkbox"
                 checked={reduceMotionEnabled}
                 onChange={(e) => setReduceMotionEnabled(e.target.checked)}
-                aria-label={t('settingsMotionLabel') || 'Motion preference'}
+                aria-label={t('settingsMotionLabel')}
                 aria-describedby="motion-helper"
                 style={{ width: 20, height: 20 }}
               />
@@ -328,27 +319,25 @@ const SettingsView = () => {
                   motionPreference === 'reduced'
                     ? t('onboarding.accessibility.reduceMotion')
                     : t('onboarding.accessibility.allowMotion')
-              }) ||
-                `Current: ${motionPreference === 'reduced' ? 'Reduced motion' : 'Standard motion'}`}
+              })}
             </small>
             <label style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm }}>
               <input
                 type="checkbox"
                 checked={animationsEnabled}
                 onChange={(e) => setAnimationsEnabled(e.target.checked)}
-                aria-label={t('settingsAnimationLabel') || 'Allow animations'}
+                aria-label={t('settingsAnimationLabel')}
                 aria-describedby="animation-helper"
                 style={{ width: 20, height: 20 }}
               />
               <span>
                 {animationsEnabled
-                  ? t('settingsAnimationOn') || 'Animations enabled'
-                  : t('settingsAnimationOff') || 'Animations limited'}
+                  ? t('settingsAnimationOn')
+                  : t('settingsAnimationOff')}
               </span>
             </label>
             <small id="animation-helper" style={{ color: theme.colors.muted }}>
-              {t('settingsAnimationHelper') ||
-                'Disable non-essential animations to keep the interface calm.'}
+              {t('settingsAnimationHelper')}
             </small>
           </div>
         </div>
@@ -363,14 +352,14 @@ const SettingsView = () => {
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: theme.spacing.md, flexWrap: 'wrap' }}>
             <div>
-              <p style={{ margin: 0, fontWeight: 600 }}>{t('settingsTtsLabel') || t('onboarding.accessibility.tts')}</p>
+              <p style={{ margin: 0, fontWeight: 600 }}>{t('settingsTtsLabel')}</p>
               <small style={{ color: theme.colors.muted }}>
-                {t('settingsTtsHelper') || t('onboarding.accessibility.ttsHelper')}
+                {t('settingsTtsHelper')}
               </small>
               <p style={{ margin: '0.25rem 0', color: theme.colors.text }}>
                 {t('settingsCurrentValue', {
                   value: ttsEnabled ? t('onboarding.summary.enabled') : t('onboarding.summary.disabled')
-                }) || `Current: ${ttsEnabled ? 'Enabled' : 'Disabled'}`}
+                })}
               </p>
             </div>
             <label style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm }}>
@@ -378,7 +367,7 @@ const SettingsView = () => {
                 type="checkbox"
                 checked={ttsEnabled}
                 onChange={(e) => setTtsEnabled(e.target.checked)}
-                aria-label={t('settingsTtsLabel') || t('onboarding.accessibility.tts')}
+                aria-label={t('settingsTtsLabel')}
                 style={{ width: 20, height: 20 }}
               />
               <span>{ttsEnabled ? t('onboarding.summary.enabled') : t('onboarding.summary.disabled')}</span>
@@ -396,15 +385,14 @@ const SettingsView = () => {
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: theme.spacing.md, flexWrap: 'wrap' }}>
             <div>
-              <p style={{ margin: 0, fontWeight: 600 }}>{t('settingsGamificationLabel') || 'Gamification'}</p>
+              <p style={{ margin: 0, fontWeight: 600 }}>{t('settingsGamificationLabel')}</p>
               <small style={{ color: theme.colors.muted }}>
-                {t('settingsGamificationHelper') ||
-                  'Opt in to XP, streaks, and cosmetic unlocks. You can disable this any time.'}
+                {t('settingsGamificationHelper')}
               </small>
               <p style={{ margin: '0.25rem 0', color: theme.colors.text }}>
                 {t('settingsCurrentValue', {
                   value: gamificationEnabled ? t('onboarding.summary.enabled') : t('onboarding.summary.disabled')
-                }) || `Current: ${gamificationEnabled ? 'Enabled' : 'Disabled'}`}
+                })}
               </p>
             </div>
             <label style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm }}>
@@ -412,7 +400,7 @@ const SettingsView = () => {
                 type="checkbox"
                 checked={gamificationEnabled}
                 onChange={(e) => setGamificationEnabled(e.target.checked)}
-                aria-label={t('settingsGamificationLabel') || 'Gamification'}
+                aria-label={t('settingsGamificationLabel')}
                 style={{ width: 20, height: 20 }}
               />
               <span>{gamificationEnabled ? t('onboarding.summary.enabled') : t('onboarding.summary.disabled')}</span>

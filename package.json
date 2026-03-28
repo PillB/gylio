@@ -9,6 +9,7 @@
     "start": "node server/server.js",
     "expo": "expo start",
     "lint": "eslint src/features/tasks/utils src/features/calendar/utils src/features/budget/utils src/features/social/utils/socialPlanForm.ts --ext .ts",
+    "i18n:check": "node scripts/check-i18n-strings.mjs src/components/SettingsView.jsx",
     "test": "vitest run",
     "typecheck": "tsc --noEmit --project tsconfig.tasks.json"
   },
