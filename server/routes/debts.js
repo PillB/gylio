@@ -6,7 +6,7 @@ const models = require('../db/models');
 const { sqlite } = require('../db/sqliteClient');
 const { schemas } = require('../validation/schemas');
 
-const ENTITY_NAME = 'events';
+const ENTITY_NAME = 'debts';
 const repository = createEntityRepository(models, sqlite, ENTITY_CONFIG[ENTITY_NAME]);
 const service = createEntityService(repository);
 const schemaMap = {
