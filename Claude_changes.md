@@ -89,3 +89,26 @@
 - Implemented web speech shim (`src/shims/expo-speech.ts`) and expo-av speech bridge (`src/shims/expo-av.ts`) with jsdom tests covering available/unavailable speech APIs.
 - Added temporary `expo-sqlite` compatibility shim (`src/shims/expo-sqlite.ts`) so web build completes without `expo-modules-core` native bindings.
 - Verification now passes for test/lint/typecheck/build; build still emits a chunk-size warning for the main bundle (>500 kB).
+
+### CHG-008 – 2026-03-28 16:30:21 UTC
+**Type:** [CHANGE]
+**Files changed:** src/components/CalendarView.jsx, src/features/calendar/utils/eventForm.ts, src/features/calendar/utils/eventForm.test.ts, src/i18n/en.json, src/i18n/es-PE.json
+**Reasoning:** Continue Phase 2 by extracting calendar event-form validation/parsing into deterministic, testable utilities and enforcing integer reminder minutes to reduce scheduling input ambiguity.
+**Expected result:** Calendar form behaviors are now reusable and unit-tested; invalid reminder decimals/negatives are blocked with localized messages while existing end-after-start guardrails remain intact.
+**Future considerations:** Expand lint/typecheck scope to include `src/features/calendar` and add component-level interaction tests for add/edit event flows.
+**References:** CHG-007, CHG-006 | [SUMMARY-004]
+
+### CHG-009 – 2026-03-28 16:30:21 UTC
+**Type:** [SUMMARY]
+**Files changed:** Claude_changes.md
+**Reasoning:** Compress current state after calendar validation extraction to preserve deterministic restart context.
+**Expected result:** Next phase startup can quickly recover what changed, what passed, and what remains.
+**Future considerations:** Address bundle chunk-size warning via route/module splitting and broaden quality gates beyond task-only lint/typecheck scope.
+**References:** CHG-008, CHG-007 | [SUMMARY-005]
+
+[SUMMARY-005]
+- Added `src/features/calendar/utils/eventForm.ts` with pure helpers for datetime parsing and event form validation.
+- Added `src/features/calendar/utils/eventForm.test.ts` with 9 deterministic tests covering valid/invalid datetime and reminder integer rules.
+- Refactored `CalendarView` to consume shared validation helpers and empty-validation factory instead of inline logic.
+- Added localized validation key `validation.nonNegativeInteger` in English and es-PE dictionaries.
+- Verification after dependency install: test/lint/typecheck/build all pass; build still emits >500 kB chunk warning.
