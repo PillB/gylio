@@ -10,6 +10,11 @@ import {
   validateEventFormFields
 } from '../features/calendar/utils/eventForm';
 import { buildScheduleSuggestions } from '../features/calendar/utils/scheduleSuggestions';
+import {
+  buildQuickTaskEventInput,
+  buildSuggestedEventInput,
+  formatDateTimeInputValue,
+} from '../features/calendar/utils/eventConversions';
 
 const getDateKey = (value) => {
   if (!value) return null;
@@ -26,15 +31,6 @@ const formatDateInputValue = (date) => {
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
-};
-
-const formatDateTimeInputValue = (date) => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
 };
 
 const toDateTimeInputValue = (value) => {
@@ -289,18 +285,29 @@ const CalendarView = () => {
   };
 
   const handleConvertTask = (task) => {
-    const start = new Date();
-    const end = new Date(start.getTime() + 30 * 60 * 1000);
-    const startValue = formatDateTimeInputValue(start);
-    const endValue = formatDateTimeInputValue(end);
+    const eventInput = buildQuickTaskEventInput(task);
 
-    insertEvent(task.title, null, startValue, endValue, null, task.id, null)
+    insertEvent(eventInput.title, null, eventInput.startDate, eventInput.endDate, null, eventInput.taskId, null)
       .then(async (created) => {
         setEvents((prev) => (prev.length ? [created, ...prev] : [created]));
-        await syncTaskLink(task.id, created.id);
+        await syncTaskLink(eventInput.taskId, created.id);
       })
       .catch((error) => {
         console.error('Failed to convert task', error);
+      });
+  };
+
+  const handleScheduleSuggestion = (suggestion) => {
+    const eventInput = buildSuggestedEventInput(suggestion);
+    if (!eventInput.startDate || !eventInput.endDate) return;
+
+    insertEvent(eventInput.title, null, eventInput.startDate, eventInput.endDate, null, eventInput.taskId, null)
+      .then(async (created) => {
+        setEvents((prev) => (prev.length ? [created, ...prev] : [created]));
+        await syncTaskLink(eventInput.taskId, created.id);
+      })
+      .catch((error) => {
+        console.error('Failed to schedule suggestion', error);
       });
   };
 
@@ -722,6 +729,20 @@ const CalendarView = () => {
                         minutes: suggestion.durationMinutes
                       })}
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => handleScheduleSuggestion(suggestion)}
+                      style={{
+                        marginTop: `${theme.spacing.xs}px`,
+                        padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
+                        borderRadius: theme.shape.radiusSm,
+                        border: `1px solid ${theme.colors.primary}`,
+                        backgroundColor: theme.colors.surface,
+                        color: theme.colors.text
+                      }}
+                    >
+                      {t('calendarScheduleSuggestion')}
+                    </button>
                   </li>
                 );
               })}

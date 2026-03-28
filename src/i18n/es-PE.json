@@ -447,5 +447,6 @@
   "calendarSuggestedFocusHeading": "Bloques de enfoque sugeridos",
   "calendarSuggestedFocusHelper": "Ubicamos hasta tres tareas sin programar en bloques de tiempo libres para este día.",
   "calendarSuggestedFocusWindow": "{{window}} · {{minutes}} min",
-  "calendarSuggestedFocusEmpty": "Por ahora no hay un bloque libre que encaje con tus tareas sin programar."
+  "calendarSuggestedFocusEmpty": "Por ahora no hay un bloque libre que encaje con tus tareas sin programar.",
+  "calendarScheduleSuggestion": "Programar este bloque"
 }

@@ -7,7 +7,12 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "types": ["vitest/globals"]
+    "types": [
+      "vitest/globals"
+    ]
   },
-  "include": ["src/features/tasks/utils/**/*.ts"]
+  "include": [
+    "src/features/tasks/utils/**/*.ts",
+    "src/features/calendar/utils/**/*.ts"
+  ]
 }

@@ -135,3 +135,26 @@
 - Updated `CalendarView` to display localized “Suggested focus windows” cards for the selected day without changing existing add/edit/delete flows.
 - Added new localization keys in English and es-PE for suggested focus heading/helper/window/empty states.
 - Verification status: tests pass (20/20), lint and typecheck pass, build passes with existing >500 kB chunk warning unchanged.
+
+### CHG-012 – 2026-03-28 17:01:35 UTC
+**Type:** [CHANGE]
+**Files changed:** src/features/calendar/utils/eventConversions.ts, src/features/calendar/utils/eventConversions.test.ts, src/components/CalendarView.jsx, src/i18n/en.json, src/i18n/es-PE.json, package.json, tsconfig.tasks.json
+**Reasoning:** Continue Phase 2 by implementing one-tap conversion from schedule suggestions to calendar events using deterministic conversion helpers, while expanding lint/typecheck coverage to calendar utilities.
+**Expected result:** Users can promote a suggested focus window directly into a linked calendar event, and conversion logic is unit-tested for deterministic datetime mapping and duration fallback behavior.
+**Future considerations:** Add component-level interaction tests for suggestion scheduling flow and consider extracting shared event insertion/linking to a reusable hook.
+**References:** CHG-011, CHG-010 | [SUMMARY-006]
+
+### CHG-013 – 2026-03-28 17:01:35 UTC
+**Type:** [SUMMARY]
+**Files changed:** Claude_changes.md
+**Reasoning:** Compress Phase 2 continuation state after adding suggestion conversion and wider utility checks.
+**Expected result:** Next phase startup can quickly recover newly added scheduling capability, verification status, and remaining risks.
+**Future considerations:** Prioritize UI tests for calendar interactions and reduce large bundle warning via route-level code splitting.
+**References:** CHG-012, CHG-011 | [SUMMARY-007]
+
+[SUMMARY-007]
+- Added calendar event conversion utilities (`eventConversions.ts`) for deterministic datetime-local formatting, quick task conversion, and schedule-suggestion conversion.
+- Added unit tests (`eventConversions.test.ts`) covering formatting, focus-duration fallback, and invalid suggestion date handling.
+- Updated `CalendarView` to use shared conversion utilities and added a new “Schedule this window” action on each suggested focus card.
+- Added localized `calendarScheduleSuggestion` copy in English and es-PE.
+- Expanded quality-gate scope so lint/typecheck cover both tasks and calendar utility modules; test/lint/typecheck/build all pass (bundle warning unchanged).
