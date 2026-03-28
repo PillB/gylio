@@ -181,3 +181,25 @@
 - Updated `BudgetView` to consume shared payoff utilities, show infeasible-plan guidance, and display a compact strategy comparison hint for decision simplification.
 - Added new localized budget keys (`payoffInfeasible`, `payoffCompare`) for English and es-PE.
 - Expanded lint/typecheck scope to include budget utility modules.
+
+### CHG-016 – 2026-03-28 17:25:30 UTC
+**Type:** [CHANGE]
+**Files changed:** src/features/social/utils/socialPlanForm.ts, src/features/social/utils/socialPlanForm.test.ts, src/features/social/components/SocialPlansView.tsx
+**Reasoning:** Continue Phase 2 by extracting Social Plan form/date/step validation logic into deterministic utility helpers with tests-first coverage, reducing duplicated component logic and improving maintainability for social planning flows.
+**Expected result:** Social plan create/edit flows retain existing behavior while reusable utilities provide stable validation/date formatting/step normalization guarantees covered by unit tests.
+**Future considerations:** Expand lint/typecheck scope to social utilities after introducing typed interfaces that decouple social modules from broad `useDB` internals.
+**References:** CHG-015, CHG-014 | [SUMMARY-008]
+
+### CHG-017 – 2026-03-28 17:25:30 UTC
+**Type:** [SUMMARY]
+**Files changed:** Claude_changes.md
+**Reasoning:** Compress the latest Phase 2 increment so future restarts can recover social-module hardening status and verification results without relying on chat history.
+**Expected result:** Next iteration can resume from a clear snapshot of social utility extraction, passing checks, and known remaining scope decisions.
+**Future considerations:** Add component-level interaction tests for social plan add/edit/template actions and pursue broader TS coverage once shared type boundaries are narrowed.
+**References:** CHG-016, CHG-015 | [SUMMARY-009]
+
+[SUMMARY-009]
+- Added `src/features/social/utils/socialPlanForm.ts` with deterministic helpers for empty-step creation, datetime parse/format, step normalization, and form validation.
+- Added `src/features/social/utils/socialPlanForm.test.ts` with 6 tests covering helper defaults, validation guards, and normalization behavior.
+- Refactored `SocialPlansView` to consume shared social-form utilities instead of inline duplicated helper logic.
+- Verification status: `npm run test`, `npm run lint`, `npm run typecheck`, and `npm run build` pass; build continues to emit existing >500 kB chunk-size warning.
