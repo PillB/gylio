@@ -42,6 +42,43 @@ OPENAI_MODEL=gpt-4o-mini
 
 Do **not** expose OpenAI keys in Vite/frontend variables (for example, `VITE_OPENAI_API_KEY` is not used).
 
+### Authentication & API security
+
+All domain routes are now protected with JWT bearer authentication and user scoping.
+
+- `POST /api/auth/signup` creates a user and returns an access token + refresh token.
+- `POST /api/auth/login` authenticates credentials and rotates refresh tokens.
+- `POST /api/auth/refresh` exchanges a valid refresh token for a new token pair.
+- `GET /api/auth/me` returns the authenticated profile from the bearer token.
+
+Access tokens expire quickly (default `15m`) and refresh tokens expire in `7d` by default.
+Rate limiting is applied to auth routes and mutation endpoints (`POST`, `PUT`, `PATCH`, `DELETE`) to reduce abuse risk.
+
+Additional backend environment variables:
+
+```bash
+JWT_SECRET=replace_with_long_random_secret
+JWT_REFRESH_SECRET=replace_with_long_random_secret
+JWT_ACCESS_TTL=15m
+JWT_REFRESH_TTL=7d
+PASSWORD_HASH_ROUNDS=12
+AUTH_RATE_LIMIT_MAX=20
+MUTATION_RATE_LIMIT_MAX=120
+```
+
+Unauthorized and expired tokens return a consistent error payload shape:
+
+```json
+{
+  "error": {
+    "code": "UNAUTHORIZED",
+    "message": "Authorization header missing or malformed",
+    "details": null
+  }
+}
+```
+
+
 4. **Run on mobile with Expo**:
    ```bash
    npm install -g expo-cli

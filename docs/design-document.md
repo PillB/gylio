@@ -115,7 +115,7 @@ Top nav (persistent): Tasks & Focus | Calendar | Budget | Rewards | Settings (Ac
 - **Offline:** Cache static assets; queue writes locally; background sync when online.
 
 ### 5.2 API Design (REST)
-- **Auth:** `POST /api/auth/signup`, `POST /api/auth/login`, `GET /api/auth/me`.
+- **Auth:** `POST /api/auth/signup`, `POST /api/auth/login`, `POST /api/auth/refresh`, `GET /api/auth/me`.
 - **Tasks:** `GET/POST/PUT/DELETE /api/tasks`; `POST /api/tasks/:id/focus-sessions`.
 - **Events:** `GET /api/events?start&end`, `POST/PUT/DELETE /api/events/:id`.
 - **Rewards:** `GET /api/rewards/points`, `GET /api/rewards/unlocks`, `POST /api/rewards/redeem`.
@@ -317,7 +317,9 @@ function simulateDebtSnowball(debts, extraPayment) {
 ## 14. Extended Functional Details
 
 ### 14.1 Additional API Considerations
-- Rate limiting for auth and write endpoints.
+- All domain endpoints are JWT-protected and scoped by `userId` in both MongoDB and SQLite adapters.
+- Auth failures return consistent errors (`UNAUTHORIZED`, `TOKEN_EXPIRED`).
+- Rate limiting is enforced for auth and write endpoints (429 with consistent `{ error: { code, message, details } }` response shape).
 - Feature flag endpoints to toggle gamification and offline sync behaviors.
 - Export endpoints for budgets/tasks (CSV/JSON) for local backups.
 
@@ -326,7 +328,7 @@ function simulateDebtSnowball(debts, extraPayment) {
 - Date/time formatting respects locale; calendar week start configurable.
 
 ### 14.3 Security
-- Encrypt JWT secrets and DB credentials via environment variables.
+- Encrypt JWT secrets and DB credentials via environment variables; use short-lived access tokens plus rotating refresh tokens.
 - Input validation on all endpoints; sanitize HTML in notes to prevent XSS.
 - Role-based access for future collaboration features.
 
