@@ -4,6 +4,15 @@ const QUEUE_STORE = 'sync_queue';
 const CONFLICT_STORE = 'sync_conflicts';
 
 type SyncStatus = 'pending' | 'retry' | 'conflict';
+
+export type SyncErrorCode =
+  | 'HTTP_400_BAD_REQUEST'
+  | 'HTTP_401_UNAUTHORIZED'
+  | 'HTTP_404_NOT_FOUND'
+  | 'HTTP_409_CONFLICT'
+  | 'HTTP_500_SERVER_ERROR'
+  | 'HTTP_UNKNOWN'
+  | 'NETWORK_ERROR';
 export type SyncEntityType = 'task' | 'event' | 'transaction';
 export type SyncActionType = 'create' | 'update' | 'delete';
 
@@ -16,6 +25,10 @@ export type SyncAction = {
   attempts: number;
   nextAttemptAt: number;
   status: SyncStatus;
+  lastErrorCode?: SyncErrorCode;
+  lastStatusCode?: number;
+  lastErrorMessage?: string;
+  lastErrorAt?: string;
 };
 
 export type SyncConflict = {
@@ -26,6 +39,9 @@ export type SyncConflict = {
   remoteData: Record<string, unknown> | null;
   detectedAt: string;
   clientUpdatedAt: string;
+  errorCode?: SyncErrorCode;
+  statusCode?: number;
+  message?: string;
 };
 
 const supportsIndexedDB = () => typeof window !== 'undefined' && 'indexedDB' in window;
