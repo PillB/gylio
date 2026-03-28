@@ -2,86 +2,20 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import SectionCard from '../../../components/SectionCard.jsx';
 import { useTheme } from '../../../core/context/ThemeContext';
-import type { SocialPlan, SocialStep } from '../../../core/hooks/useDB';
+import type { SocialPlan } from '../../../core/hooks/useDB';
 import useAccessibility from '../../../core/hooks/useAccessibility';
 import useSocialPlans from '../hooks/useSocialPlans';
 import { fetchSocialSuggestions } from '../utils/openAiSocial';
+import {
+  buildSocialPlanValidation,
+  createEmptySocialSteps,
+  formatSocialPlanDateTime,
+  hasSocialPlanErrors,
+  normalizeSocialPlanSteps,
+  type SocialPlanFormState,
+  type SocialPlanValidationState
+} from '../utils/socialPlanForm';
 import { SOCIAL_TEMPLATES, type SocialTemplate } from '../utils/socialTemplates';
-
-type SocialPlanFormState = {
-  title: string;
-  type: SocialPlan['type'];
-  energyLevel: SocialPlan['energyLevel'];
-  dateTime: string;
-  reminderMinutesBefore: string;
-  notes: string;
-  steps: SocialStep[];
-  templateId: SocialTemplate['id'] | '';
-};
-
-type ValidationState = {
-  title: string;
-  dateTime: string;
-  reminderMinutesBefore: string;
-};
-
-const DEFAULT_STEPS_COUNT = 3;
-
-const createEmptySteps = (count = DEFAULT_STEPS_COUNT): SocialStep[] =>
-  Array.from({ length: count }, () => ({ label: '', done: false }));
-
-const parseDateTime = (value: string) => {
-  if (!value) return null;
-  const parsed = new Date(value);
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
-};
-
-const formatDateTime = (value: string, language: string) => {
-  const parsed = parseDateTime(value);
-  if (!parsed) return null;
-  return new Intl.DateTimeFormat(language, {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit'
-  }).format(parsed);
-};
-
-const normalizeSteps = (steps: SocialStep[]) =>
-  steps
-    .map((step) => ({ ...step, label: step.label.trim() }))
-    .filter((step) => step.label.length > 0);
-
-const buildValidation = (
-  fields: SocialPlanFormState,
-  t: (key: string, options?: Record<string, unknown>) => string
-): ValidationState => {
-  const validation: ValidationState = {
-    title: '',
-    dateTime: '',
-    reminderMinutesBefore: ''
-  };
-
-  if (!fields.title.trim()) {
-    validation.title = t('validation.titleRequired');
-  }
-
-  if (fields.dateTime && !parseDateTime(fields.dateTime)) {
-    validation.dateTime = t('validation.invalidDateTime');
-  }
-
-  if (fields.reminderMinutesBefore) {
-    const reminder = Number(fields.reminderMinutesBefore);
-    if (Number.isNaN(reminder) || reminder < 0) {
-      validation.reminderMinutesBefore = t('validation.nonNegativeNumber');
-    }
-  }
-
-  return validation;
-};
-
-const hasErrors = (validation: ValidationState) => Object.values(validation).some(Boolean);
 
 const SocialPlansView: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -96,7 +30,7 @@ const SocialPlansView: React.FC = () => {
     dateTime: '',
     reminderMinutesBefore: '',
     notes: '',
-    steps: createEmptySteps(),
+    steps: createEmptySocialSteps(),
     templateId: ''
   });
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -107,7 +41,7 @@ const SocialPlansView: React.FC = () => {
     dateTime: '',
     reminderMinutesBefore: '',
     notes: '',
-    steps: createEmptySteps(),
+    steps: createEmptySocialSteps(),
     templateId: ''
   });
   const [touched, setTouched] = useState({
@@ -129,14 +63,14 @@ const SocialPlansView: React.FC = () => {
     if (!touched.title && !touched.dateTime && !touched.reminderMinutesBefore) {
       return { title: '', dateTime: '', reminderMinutesBefore: '' };
     }
-    return buildValidation(form, t);
+    return buildSocialPlanValidation(form, t);
   }, [form, t, touched]);
 
   const editValidation = useMemo(() => {
     if (!editTouched.title && !editTouched.dateTime && !editTouched.reminderMinutesBefore) {
       return { title: '', dateTime: '', reminderMinutesBefore: '' };
     }
-    return buildValidation(editForm, t);
+    return buildSocialPlanValidation(editForm, t);
   }, [editForm, editTouched, t]);
 
   const selectedTemplate = templateOptions.find((template) => template.id === form.templateId);
@@ -204,16 +138,16 @@ const SocialPlansView: React.FC = () => {
   };
 
   const handleAddPlan = async () => {
-    const validation = buildValidation(form, t);
+    const validation = buildSocialPlanValidation(form, t);
     setTouched({ title: true, dateTime: true, reminderMinutesBefore: true });
 
-    if (hasErrors(validation)) return;
+    if (hasSocialPlanErrors(validation)) return;
 
     const created = await addPlan({
       title: form.title.trim(),
       type: form.type,
       dateTime: form.dateTime || null,
-      steps: normalizeSteps(form.steps),
+      steps: normalizeSocialPlanSteps(form.steps),
       reminderMinutesBefore: form.reminderMinutesBefore ? Number(form.reminderMinutesBefore) : null,
       energyLevel: form.energyLevel,
       notes: form.notes.trim() || null
@@ -227,7 +161,7 @@ const SocialPlansView: React.FC = () => {
         dateTime: '',
         reminderMinutesBefore: '',
         notes: '',
-        steps: createEmptySteps(),
+        steps: createEmptySocialSteps(),
         templateId: ''
       });
       setTouched({ title: false, dateTime: false, reminderMinutesBefore: false });
@@ -245,7 +179,7 @@ const SocialPlansView: React.FC = () => {
       reminderMinutesBefore:
         plan.reminderMinutesBefore != null ? String(plan.reminderMinutesBefore) : '',
       notes: plan.notes ?? '',
-      steps: plan.steps.length ? plan.steps : createEmptySteps(),
+      steps: plan.steps.length ? plan.steps : createEmptySocialSteps(),
       templateId: ''
     });
     setEditTouched({ title: false, dateTime: false, reminderMinutesBefore: false });
@@ -253,16 +187,16 @@ const SocialPlansView: React.FC = () => {
 
   const handleSaveEdit = async () => {
     if (editingId == null) return;
-    const validation = buildValidation(editForm, t);
+    const validation = buildSocialPlanValidation(editForm, t);
     setEditTouched({ title: true, dateTime: true, reminderMinutesBefore: true });
 
-    if (hasErrors(validation)) return;
+    if (hasSocialPlanErrors(validation)) return;
 
     const updated = await updatePlan(editingId, {
       title: editForm.title.trim(),
       type: editForm.type,
       dateTime: editForm.dateTime || null,
-      steps: normalizeSteps(editForm.steps),
+      steps: normalizeSocialPlanSteps(editForm.steps),
       reminderMinutesBefore: editForm.reminderMinutesBefore
         ? Number(editForm.reminderMinutesBefore)
         : null,
@@ -371,7 +305,7 @@ const SocialPlansView: React.FC = () => {
   const renderPlanForm = (
     fields: SocialPlanFormState,
     setFields: React.Dispatch<React.SetStateAction<SocialPlanFormState>>,
-    validation: ValidationState,
+    validation: SocialPlanValidationState,
     fieldTouched: { title: boolean; dateTime: boolean; reminderMinutesBefore: boolean },
     setFieldTouched: React.Dispatch<
       React.SetStateAction<{ title: boolean; dateTime: boolean; reminderMinutesBefore: boolean }>
@@ -670,7 +604,7 @@ const SocialPlansView: React.FC = () => {
                 );
               }
 
-              const dateLabel = plan.dateTime ? formatDateTime(plan.dateTime, i18n.language) : null;
+              const dateLabel = plan.dateTime ? formatSocialPlanDateTime(plan.dateTime, i18n.language) : null;
               const reminderLabel =
                 plan.reminderMinutesBefore != null
                   ? t('social.reminderSummary', { minutes: plan.reminderMinutesBefore })
