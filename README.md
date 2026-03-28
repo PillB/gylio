@@ -29,6 +29,19 @@ These instructions assume you have Node.js ≥14 installed.  The repository uses
    ```
    The Express server listens on port 3001 and provides a simple JSON API.  It writes to a local SQLite database if `MONGODB_URI` is not set.
 
+
+### Environment variables
+
+Backend AI suggestions are server-only. Configure these environment variables before `npm run start`:
+
+```bash
+OPENAI_API_KEY=your_server_side_key
+# Optional override (defaults to gpt-4o-mini)
+OPENAI_MODEL=gpt-4o-mini
+```
+
+Do **not** expose OpenAI keys in Vite/frontend variables (for example, `VITE_OPENAI_API_KEY` is not used).
+
 4. **Run on mobile with Expo**:
    ```bash
    npm install -g expo-cli
