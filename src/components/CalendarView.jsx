@@ -4,6 +4,11 @@ import useDB from '../core/hooks/useDB';
 import useAccessibility from '../core/hooks/useAccessibility';
 import { useTheme } from '../core/context/ThemeContext';
 import SectionCard from './SectionCard.jsx';
+import {
+  emptyEventFormValidation,
+  parseDateTime,
+  validateEventFormFields
+} from '../features/calendar/utils/eventForm';
 
 const getDateKey = (value) => {
   if (!value) return null;
@@ -29,12 +34,6 @@ const formatDateTimeInputValue = (date) => {
   const hours = String(date.getHours()).padStart(2, '0');
   const minutes = String(date.getMinutes()).padStart(2, '0');
   return `${year}-${month}-${day}T${hours}:${minutes}`;
-};
-
-const parseDateTime = (value) => {
-  if (!value) return null;
-  const parsed = new Date(value);
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
 };
 
 const toDateTimeInputValue = (value) => {
@@ -94,53 +93,21 @@ const CalendarView = () => {
 
   const validateFields = useCallback(
     (fields) => {
-      const validation = {
-        title: '',
-        startDate: '',
-        endDate: '',
-        reminderMinutesBefore: ''
-      };
-
-      if (!fields.title.trim()) {
-        validation.title = t('validation.titleRequired');
-      }
-
-      const start = parseDateTime(fields.startDate);
-      if (!start) {
-        validation.startDate = t('validation.invalidDateTime');
-      }
-
-      if (fields.endDate) {
-        const end = parseDateTime(fields.endDate);
-        if (!end) {
-          validation.endDate = t('validation.invalidDateTime');
-        } else if (start && end <= start) {
-          validation.endDate = t('validation.endAfterStart');
-        }
-      }
-
-      if (fields.reminderMinutesBefore !== '') {
-        const reminder = Number(fields.reminderMinutesBefore);
-        if (Number.isNaN(reminder) || reminder < 0) {
-          validation.reminderMinutesBefore = t('validation.nonNegativeNumber');
-        }
-      }
-
-      return validation;
+      return validateEventFormFields(fields, t);
     },
     [t]
   );
 
   const addValidation = useMemo(() => {
     if (!touched.title && !touched.startDate && !touched.endDate && !touched.reminderMinutesBefore) {
-      return { title: '', startDate: '', endDate: '', reminderMinutesBefore: '' };
+      return emptyEventFormValidation();
     }
     return validateFields(form);
   }, [form, touched, validateFields]);
 
   const editValidation = useMemo(() => {
     if (!editTouched.title && !editTouched.startDate && !editTouched.endDate && !editTouched.reminderMinutesBefore) {
-      return { title: '', startDate: '', endDate: '', reminderMinutesBefore: '' };
+      return emptyEventFormValidation();
     }
     return validateFields(editFields);
   }, [editFields, editTouched, validateFields]);
