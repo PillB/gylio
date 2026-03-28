@@ -26,24 +26,22 @@ export type SQLiteDatabase = {
   ) => void;
 };
 
-const emptyRows: SQLResultSetRowList = {
-  length: 0,
-  item: () => ({})
-};
-
-const emptyResult: SQLResultSet = {
-  rows: emptyRows,
-  rowsAffected: 0,
-  insertId: 0
-};
+const unsupportedSqlError = (statement: string): Error =>
+  new Error(
+    `[expo-sqlite shim] SQL execution is not supported on web fallback. Statement: ${statement}`
+  );
 
 const createTransaction = (): SQLTransaction => ({
-  executeSql: (_statement, _args = [], success, error) => {
-    try {
-      success?.(createTransaction(), emptyResult);
-    } catch (err) {
-      error?.(createTransaction(), err as Error);
+  executeSql: (statement, _args = [], _success, error) => {
+    const tx = createTransaction();
+    const executionError = unsupportedSqlError(statement);
+
+    if (error) {
+      error(tx, executionError);
+      return;
     }
+
+    throw executionError;
   }
 });
 
