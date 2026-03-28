@@ -8,7 +8,16 @@ const StepSchema = new mongoose.Schema(
   { _id: false }
 );
 
-const TaskSchema = new mongoose.Schema(
+const withUserScope = (definition, options = {}) =>
+  new mongoose.Schema(
+    {
+      userId: { type: String, required: true, index: true },
+      ...definition
+    },
+    options
+  );
+
+const TaskSchema = withUserScope(
   {
     title: { type: String, required: true },
     status: { type: String, enum: ['pending', 'in_progress', 'done'], default: 'pending' },
@@ -20,7 +29,7 @@ const TaskSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const EventSchema = new mongoose.Schema(
+const EventSchema = withUserScope(
   {
     title: { type: String, required: true },
     description: { type: String, default: null },
@@ -33,7 +42,7 @@ const EventSchema = new mongoose.Schema(
   { timestamps: { createdAt: true, updatedAt: false } }
 );
 
-const BudgetSchema = new mongoose.Schema(
+const BudgetSchema = withUserScope(
   {
     month: { type: String, required: true },
     income: [
@@ -53,7 +62,7 @@ const BudgetSchema = new mongoose.Schema(
   { timestamps: { createdAt: true, updatedAt: false } }
 );
 
-const TransactionSchema = new mongoose.Schema(
+const TransactionSchema = withUserScope(
   {
     budgetMonth: { type: String, required: true },
     amount: { type: Number, required: true },
@@ -65,7 +74,7 @@ const TransactionSchema = new mongoose.Schema(
   { timestamps: { createdAt: true, updatedAt: false } }
 );
 
-const DebtSchema = new mongoose.Schema(
+const DebtSchema = withUserScope(
   {
     name: { type: String, required: true },
     balance: { type: Number, required: true },
@@ -76,10 +85,20 @@ const DebtSchema = new mongoose.Schema(
   { timestamps: { createdAt: true, updatedAt: false } }
 );
 
+const UserSchema = new mongoose.Schema(
+  {
+    email: { type: String, required: true, unique: true, index: true },
+    passwordHash: { type: String, required: true },
+    refreshTokenHash: { type: String, default: null }
+  },
+  { timestamps: { createdAt: true, updatedAt: false } }
+);
+
 module.exports = {
   Task: mongoose.models.Task || mongoose.model('Task', TaskSchema),
   Event: mongoose.models.Event || mongoose.model('Event', EventSchema),
   Budget: mongoose.models.Budget || mongoose.model('Budget', BudgetSchema),
   Transaction: mongoose.models.Transaction || mongoose.model('Transaction', TransactionSchema),
-  Debt: mongoose.models.Debt || mongoose.model('Debt', DebtSchema)
+  Debt: mongoose.models.Debt || mongoose.model('Debt', DebtSchema),
+  User: mongoose.models.User || mongoose.model('User', UserSchema)
 };

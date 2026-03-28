@@ -81,28 +81,28 @@ const createEntityRepository = (models, sqlite, config) => {
   const mongoModel = models[config.mongoModel];
 
   return {
-    async list() {
+    async list(userId) {
       if (isMongoReady()) {
-        const docs = await mongoModel.find({}).sort({ createdAt: -1 }).lean().exec();
+        const docs = await mongoModel.find({ userId }).sort({ createdAt: -1 }).lean().exec();
         return docs.map(toApiRecord);
       }
-      const rows = await all(sqlite, `SELECT * FROM ${config.tableName} ORDER BY createdAt DESC, id DESC`);
+      const rows = await all(sqlite, `SELECT * FROM ${config.tableName} WHERE userId = ? ORDER BY createdAt DESC, id DESC`, [userId]);
       return rows.map((row) => parseSqliteRow(row, config.jsonFields, config.numericFields));
     },
 
-    async getById(id) {
+    async getById(id, userId) {
       if (isMongoReady()) {
-        const doc = await mongoModel.findById(String(id)).lean().exec();
+        const doc = await mongoModel.findOne({ _id: String(id), userId }).lean().exec();
         return toApiRecord(doc);
       }
       const sqliteId = Number(id);
       if (!Number.isInteger(sqliteId) || sqliteId <= 0) return null;
-      const row = await get(sqlite, `SELECT * FROM ${config.tableName} WHERE id = ?`, [sqliteId]);
+      const row = await get(sqlite, `SELECT * FROM ${config.tableName} WHERE id = ? AND userId = ?`, [sqliteId, userId]);
       return parseSqliteRow(row, config.jsonFields, config.numericFields);
     },
 
-    async create(payload) {
-      const data = buildCreatePayload(payload, config);
+    async create(payload, userId) {
+      const data = { ...buildCreatePayload(payload, config), userId };
       assertHasRequired(data, config.requiredOnCreate);
 
       if (isMongoReady()) {
@@ -120,18 +120,17 @@ const createEntityRepository = (models, sqlite, config) => {
         `INSERT INTO ${config.tableName} (${keys.join(', ')}) VALUES (${placeholders})`,
         values
       );
-      return this.getById(result.lastID);
+      return this.getById(result.lastID, userId);
     },
 
-    async replace(id, payload) {
-      const data = buildCreatePayload(payload, config);
+    async replace(id, payload, userId) {
+      const data = { ...buildCreatePayload(payload, config), userId };
       assertHasRequired(data, config.requiredOnCreate);
 
       if (isMongoReady()) {
         const updated = await mongoModel
-          .findByIdAndUpdate(String(id), data, {
+          .findOneAndReplace({ _id: String(id), userId }, data, {
             new: true,
-            overwrite: true,
             runValidators: true
           })
           .lean()
@@ -142,7 +141,7 @@ const createEntityRepository = (models, sqlite, config) => {
       const sqliteId = Number(id);
       if (!Number.isInteger(sqliteId) || sqliteId <= 0) return null;
 
-      const existing = await this.getById(sqliteId);
+      const existing = await this.getById(sqliteId, userId);
       if (!existing) return null;
 
       const encoded = encodeSqlitePayload(data, config.jsonFields);
@@ -150,14 +149,15 @@ const createEntityRepository = (models, sqlite, config) => {
       const assignments = columns.map((field) => `${field} = ?`).join(', ');
       const values = columns.map((key) => encoded[key]);
 
-      await run(sqlite, `UPDATE ${config.tableName} SET ${assignments}${config.tableName === 'tasks' ? ', updatedAt = CURRENT_TIMESTAMP' : ''} WHERE id = ?`, [
-        ...values,
-        sqliteId
-      ]);
-      return this.getById(sqliteId);
+      await run(
+        sqlite,
+        `UPDATE ${config.tableName} SET ${assignments}${config.tableName === 'tasks' ? ', updatedAt = CURRENT_TIMESTAMP' : ''} WHERE id = ? AND userId = ?`,
+        [...values, sqliteId, userId]
+      );
+      return this.getById(sqliteId, userId);
     },
 
-    async update(id, payload) {
+    async update(id, payload, userId) {
       const updates = buildUpdatePayload(payload, config);
       if (!Object.keys(updates).length) {
         throw new ApiError(400, 'VALIDATION_ERROR', 'At least one updatable field is required');
@@ -165,7 +165,7 @@ const createEntityRepository = (models, sqlite, config) => {
 
       if (isMongoReady()) {
         const updated = await mongoModel
-          .findByIdAndUpdate(String(id), updates, { new: true, runValidators: true })
+          .findOneAndUpdate({ _id: String(id), userId }, updates, { new: true, runValidators: true })
           .lean()
           .exec();
         return toApiRecord(updated);
@@ -174,7 +174,7 @@ const createEntityRepository = (models, sqlite, config) => {
       const sqliteId = Number(id);
       if (!Number.isInteger(sqliteId) || sqliteId <= 0) return null;
 
-      const existing = await this.getById(sqliteId);
+      const existing = await this.getById(sqliteId, userId);
       if (!existing) return null;
 
       const encoded = encodeSqlitePayload(updates, config.jsonFields);
@@ -182,21 +182,22 @@ const createEntityRepository = (models, sqlite, config) => {
       const assignments = columns.map((field) => `${field} = ?`).join(', ');
       const values = columns.map((key) => encoded[key]);
 
-      await run(sqlite, `UPDATE ${config.tableName} SET ${assignments}${config.tableName === 'tasks' ? ', updatedAt = CURRENT_TIMESTAMP' : ''} WHERE id = ?`, [
-        ...values,
-        sqliteId
-      ]);
-      return this.getById(sqliteId);
+      await run(
+        sqlite,
+        `UPDATE ${config.tableName} SET ${assignments}${config.tableName === 'tasks' ? ', updatedAt = CURRENT_TIMESTAMP' : ''} WHERE id = ? AND userId = ?`,
+        [...values, sqliteId, userId]
+      );
+      return this.getById(sqliteId, userId);
     },
 
-    async remove(id) {
+    async remove(id, userId) {
       if (isMongoReady()) {
-        const deleted = await mongoModel.findByIdAndDelete(String(id)).lean().exec();
+        const deleted = await mongoModel.findOneAndDelete({ _id: String(id), userId }).lean().exec();
         return Boolean(deleted);
       }
       const sqliteId = Number(id);
       if (!Number.isInteger(sqliteId) || sqliteId <= 0) return false;
-      const result = await run(sqlite, `DELETE FROM ${config.tableName} WHERE id = ?`, [sqliteId]);
+      const result = await run(sqlite, `DELETE FROM ${config.tableName} WHERE id = ? AND userId = ?`, [sqliteId, userId]);
       return result.changes > 0;
     }
   };
