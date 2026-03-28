@@ -138,7 +138,7 @@
     "unlocked": "Desbloqueado",
     "locked": "Bloqueado"
   },
-  "rewardsPlaceholder": "Seguimiento opcional con XP y desbloqueos suaves.",
+  "rewardsPlaceholder": "Aquí aparecerán puntos y rachas. La gamificación es opcional.",
   "social": {
     "title": "Social",
     "description": "Planifica momentos sociales con prompts suaves y recordatorios.",
@@ -290,7 +290,6 @@
   "calendarAtLocation": "En {{location}}",
   "calendarTimeUnknown": "Hora no disponible",
   "calendarConfirmDelete": "¿Eliminar el evento {{title}}? Esto no elimina la tarea vinculada.",
-  "rewardsPlaceholder": "Aquí aparecerán puntos y rachas. La gamificación es opcional.",
   "settingsDescription": "Personaliza accesibilidad y controla la gamificación.",
   "settingsFontOption": "Elegir entre fuente estándar y amigable para dislexia.",
   "settingsThemeOption": "Alternar modo claro/oscuro.",
@@ -444,5 +443,9 @@
     "reviewDetected": "Detectado: {{timestamp}}",
     "reviewKeepLocal": "Mantener mis cambios",
     "reviewUseRemote": "Usar versión del servidor"
-  }
+  },
+  "calendarSuggestedFocusHeading": "Bloques de enfoque sugeridos",
+  "calendarSuggestedFocusHelper": "Ubicamos hasta tres tareas sin programar en bloques de tiempo libres para este día.",
+  "calendarSuggestedFocusWindow": "{{window}} · {{minutes}} min",
+  "calendarSuggestedFocusEmpty": "Por ahora no hay un bloque libre que encaje con tus tareas sin programar."
 }

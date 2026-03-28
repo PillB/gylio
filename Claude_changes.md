@@ -112,3 +112,26 @@
 - Refactored `CalendarView` to consume shared validation helpers and empty-validation factory instead of inline logic.
 - Added localized validation key `validation.nonNegativeInteger` in English and es-PE dictionaries.
 - Verification after dependency install: test/lint/typecheck/build all pass; build still emits >500 kB chunk warning.
+
+### CHG-010 – 2026-03-28 16:40:03 UTC
+**Type:** [CHANGE]
+**Files changed:** src/features/calendar/utils/scheduleSuggestions.ts, src/features/calendar/utils/scheduleSuggestions.test.ts, src/components/CalendarView.jsx, src/i18n/en.json, src/i18n/es-PE.json
+**Reasoning:** Add deterministic schedule suggestion logic for unscheduled tasks so users get realistic focus windows derived from existing calendar load, aligned with Phase 2 scheduling/coordination priorities.
+**Expected result:** Calendar now surfaces up to three low-friction focus window suggestions using open time slots and task focus presets, with unit tests protecting placement/prioritization logic.
+**Future considerations:** Offer one-tap conversion from suggestion to event and add configurable working-hours preferences per user profile.
+**References:** CHG-009, CHG-008 | [SUMMARY-005]
+
+### CHG-011 – 2026-03-28 16:40:03 UTC
+**Type:** [SUMMARY]
+**Files changed:** Claude_changes.md
+**Reasoning:** Compress post-change state and verification outcomes for deterministic Phase 2 continuity.
+**Expected result:** Next iteration can restart with exact knowledge of scheduling helper behavior, UI exposure, and current check results.
+**Future considerations:** Expand lint/typecheck scope to include new calendar utilities and component files; continue reducing main bundle size warning.
+**References:** CHG-010, CHG-009 | [SUMMARY-006]
+
+[SUMMARY-006]
+- Added a new deterministic scheduling helper (`buildScheduleSuggestions`) that builds open windows from existing events and assigns unscheduled tasks by priority and focus duration.
+- Added calendar scheduling tests (`scheduleSuggestions.test.ts`) covering open-slot placement, planned-date prioritization, and filtering of linked/non-fitting tasks.
+- Updated `CalendarView` to display localized “Suggested focus windows” cards for the selected day without changing existing add/edit/delete flows.
+- Added new localization keys in English and es-PE for suggested focus heading/helper/window/empty states.
+- Verification status: tests pass (20/20), lint and typecheck pass, build passes with existing >500 kB chunk warning unchanged.

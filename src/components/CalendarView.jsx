@@ -9,6 +9,7 @@ import {
   parseDateTime,
   validateEventFormFields
 } from '../features/calendar/utils/eventForm';
+import { buildScheduleSuggestions } from '../features/calendar/utils/scheduleSuggestions';
 
 const getDateKey = (value) => {
   if (!value) return null;
@@ -365,6 +366,20 @@ const CalendarView = () => {
     return map;
   }, [softPalette, sortedEvents]);
 
+  const scheduleSuggestions = useMemo(() => {
+    return buildScheduleSuggestions({
+      tasks,
+      events,
+      selectedDate,
+      timezoneOffsetMinutes: new Date().getTimezoneOffset() * -1,
+      dayStartHour: 8,
+      dayEndHour: 20,
+      defaultDurationMinutes: 25,
+      maxSuggestions: 3
+    });
+  }, [events, selectedDate, tasks]);
+
+
   const describeEvent = (event) => {
     const start = parseDateTime(event.startDate);
     const end = parseDateTime(event.endDate);
@@ -676,6 +691,44 @@ const CalendarView = () => {
               {t('calendarResetForm')}
             </button>
           </div>
+        </div>
+
+        <div>
+          <h3 style={{ marginTop: 0 }}>{t('calendarSuggestedFocusHeading')}</h3>
+          <p style={{ color: theme.colors.muted }}>{t('calendarSuggestedFocusHelper')}</p>
+          {scheduleSuggestions.length ? (
+            <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: `${theme.spacing.sm}px` }}>
+              {scheduleSuggestions.map((suggestion) => {
+                const start = parseDateTime(suggestion.startDate);
+                const end = parseDateTime(suggestion.endDate);
+                const label = start
+                  ? `${timeFormatter.format(start)}${end ? `–${timeFormatter.format(end)}` : ''}`
+                  : t('calendarTimeUnknown');
+
+                return (
+                  <li
+                    key={`suggestion-${suggestion.taskId}`}
+                    style={{
+                      border: `1px solid ${theme.colors.border}`,
+                      borderRadius: theme.shape.radiusSm,
+                      padding: `${theme.spacing.sm}px`,
+                      backgroundColor: theme.colors.surface
+                    }}
+                  >
+                    <div style={{ fontWeight: theme.typography.heading.weight }}>{suggestion.title}</div>
+                    <div style={{ color: theme.colors.muted }}>
+                      {t('calendarSuggestedFocusWindow', {
+                        window: label,
+                        minutes: suggestion.durationMinutes
+                      })}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <p style={{ color: theme.colors.muted }}>{t('calendarSuggestedFocusEmpty')}</p>
+          )}
         </div>
 
         <div>
