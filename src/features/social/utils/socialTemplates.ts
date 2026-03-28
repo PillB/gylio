@@ -1,8 +1,8 @@
-import type { SocialPlan } from '../../../core/hooks/useDB';
+import type { SocialPlanType } from './socialTypes';
 
 export type SocialTemplate = {
   id: 'check-in' | 'birthday' | 'meetup' | 'support';
-  type: SocialPlan['type'];
+  type: SocialPlanType;
   labelKey: string;
   descriptionKey: string;
   titleKey: string;
