@@ -447,5 +447,6 @@
   "calendarSuggestedFocusHeading": "Suggested focus windows",
   "calendarSuggestedFocusHelper": "We auto-place up to three unscheduled tasks into open time blocks for this day.",
   "calendarSuggestedFocusWindow": "{{window}} · {{minutes}} min",
-  "calendarSuggestedFocusEmpty": "No open window fits your unscheduled tasks right now."
+  "calendarSuggestedFocusEmpty": "No open window fits your unscheduled tasks right now.",
+  "calendarScheduleSuggestion": "Schedule this window"
 }
