@@ -6,6 +6,14 @@ import { useTheme } from '../../../core/context/ThemeContext';
 import type { Subtask } from '../../../core/hooks/useDB';
 import type { ThemeTokens } from '../../../core/themes';
 import useTasks from '../hooks/useTasks';
+import {
+  MAX_SUBTASKS,
+  chunkTasks,
+  createEmptySubtasks,
+  getSubtaskError,
+  normalizeSubtasks,
+  parsePlannedDate,
+} from '../utils/taskForm';
 
 type ViewFilter = 'today' | 'week' | 'backlog';
 
@@ -21,63 +29,6 @@ type SubtaskEditorProps = {
   error?: string | null;
   theme: ThemeTokens;
   idPrefix: string;
-};
-
-const MIN_SUBTASKS = 3;
-const MAX_SUBTASKS = 7;
-
-const chunkTasks = (items: ReturnType<typeof useTasks>['tasks']) => {
-  const MAX = 7;
-  const MIN = 3;
-  const chunks: typeof items[] = [];
-  let index = 0;
-
-  while (index < items.length) {
-    const remaining = items.length - index;
-
-    if (remaining < MIN && chunks.length) {
-      chunks[chunks.length - 1].push(...items.slice(index));
-      break;
-    }
-
-    let size = Math.min(MAX, remaining);
-    if (remaining - size < MIN && remaining > size) {
-      size = Math.max(MIN, Math.ceil(remaining / 2));
-    }
-
-    chunks.push(items.slice(index, index + size));
-    index += size;
-  }
-
-  return chunks.length ? chunks : [items];
-};
-
-const createEmptySubtasks = (count = MIN_SUBTASKS): Subtask[] =>
-  Array.from({ length: count }, () => ({ label: '', done: false }));
-
-const normalizeSubtasks = (subtasks: Subtask[]) =>
-  subtasks
-    .map((subtask) => ({ ...subtask, label: subtask.label.trim() }))
-    .filter((subtask) => subtask.label.length > 0);
-
-const getSubtaskError = (
-  subtasks: Subtask[],
-  shouldValidate: boolean,
-  t: (key: string, options?: Record<string, unknown>) => string
-) => {
-  if (!shouldValidate) return null;
-  const normalized = normalizeSubtasks(subtasks);
-  if (normalized.length === 0) return null;
-  if (normalized.length < MIN_SUBTASKS || normalized.length > MAX_SUBTASKS) {
-    return t('validation.subtasksRange', { min: MIN_SUBTASKS, max: MAX_SUBTASKS });
-  }
-  return null;
-};
-
-const parsePlannedDate = (value: string | null) => {
-  if (!value) return null;
-  const parsed = new Date(`${value}T00:00:00`);
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
 };
 
 const SubtaskEditor: React.FC<SubtaskEditorProps> = ({

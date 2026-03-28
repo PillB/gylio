@@ -13,7 +13,9 @@ NeuroFlow is a **React + TypeScript** web app focused on **neurodivergent-friend
 - **Backend start**: `npm run start`
 - **Expo (mobile/web)**: `npm run expo`
 
-**Lint/Test/Typecheck:** Not currently defined in `package.json`. If you need them, add scripts such as `lint`, `test`, and `typecheck` and document them here.
+- **Lint**: `npm run lint`
+- **Test (Vitest)**: `npm run test`
+- **Typecheck**: `npm run typecheck`
 
 ## Code conventions
 - **React + TypeScript**: Prefer function components with hooks and explicit prop types or interfaces.
