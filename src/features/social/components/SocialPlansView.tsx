@@ -1,11 +1,16 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import SectionCard from '../../../components/SectionCard.jsx';
+import { useAppAuth } from '../../../core/context/AuthContext';
 import { useTheme } from '../../../core/context/ThemeContext';
-import type { SocialPlan } from '../../../core/hooks/useDB';
+import type { SocialPlan, SocialStep } from '../../../core/hooks/useDB';
 import useAccessibility from '../../../core/hooks/useAccessibility';
 import useSocialPlans from '../hooks/useSocialPlans';
+import { PostReflectionPrompt } from './PostReflectionPrompt';
+import { RelationshipTypePicker } from './RelationshipTypePicker';
+import { TemplateGallery } from './TemplateGallery';
 import { fetchSocialSuggestions } from '../utils/openAiSocial';
+import { getScheduleQuota } from '../../auth/useScheduleQuota';
 import {
   buildSocialPlanValidation,
   createEmptySocialSteps,
@@ -15,13 +20,14 @@ import {
   type SocialPlanFormState,
   type SocialPlanValidationState
 } from '../utils/socialPlanForm';
-import { SOCIAL_TEMPLATES, type SocialTemplate } from '../utils/socialTemplates';
+import type { RelationshipType, SocialTemplate as LibrarySocialTemplate } from '../data/socialTemplateLibrary';
 
 const SocialPlansView: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   const { ttsEnabled } = useAccessibility();
   const { plans, loading, addPlan, updatePlan, removePlan, toggleStep, readPlan } = useSocialPlans();
+  const { userId } = useAppAuth();
 
   const [form, setForm] = useState<SocialPlanFormState>({
     title: '',
@@ -54,10 +60,14 @@ const SocialPlansView: React.FC = () => {
     dateTime: false,
     reminderMinutesBefore: false
   });
+
+  // New relationship + template selection state
+  const [selectedRelationshipType, setSelectedRelationshipType] = useState<RelationshipType | null>(null);
+  const [selectedLibraryTemplate, setSelectedLibraryTemplate] = useState<LibrarySocialTemplate | null>(null);
+  const [showGallery, setShowGallery] = useState(false);
+
   const [aiOptIn, setAiOptIn] = useState(false);
   const [aiStatus, setAiStatus] = useState({ loading: false, message: '' });
-
-  const templateOptions = useMemo(() => SOCIAL_TEMPLATES, []);
 
   const addValidation = useMemo(() => {
     if (!touched.title && !touched.dateTime && !touched.reminderMinutesBefore) {
@@ -73,62 +83,70 @@ const SocialPlansView: React.FC = () => {
     return buildSocialPlanValidation(editForm, t);
   }, [editForm, editTouched, t]);
 
-  const selectedTemplate = templateOptions.find((template) => template.id === form.templateId);
-
-  const applyTemplate = useCallback(
-    (template: SocialTemplate, useFallbackNotes = true) => {
-      const steps = template.stepKeys.map((key) => ({ label: t(key), done: false }));
-      const notes = useFallbackNotes ? t(template.notesKey) : form.notes;
+  // Apply a library template to the form
+  const applyLibraryTemplate = useCallback(
+    (template: LibrarySocialTemplate, starter: string | null) => {
+      const steps = template.stepKeys.map((key) => ({ label: t(key, key.split('.').pop() ?? key), done: false }));
+      const notes = starter ?? t(template.notesKey, '');
       setForm((prev) => ({
         ...prev,
-        type: template.type,
-        title: prev.title || t(template.titleKey),
+        type: template.planType,
+        title: prev.title || t(template.titleKey, template.id),
+        energyLevel: template.energyLevel,
         notes: notes || prev.notes,
         steps,
         templateId: template.id
       }));
+      setSelectedLibraryTemplate(template);
+      setShowGallery(false);
       setAiStatus({ loading: false, message: '' });
     },
-    [form.notes, t]
+    [t]
   );
 
-  const handleApplyTemplate = () => {
-    if (!selectedTemplate) {
-      setAiStatus({ loading: false, message: t('social.aiSelectTemplate') });
-      return;
-    }
-    applyTemplate(selectedTemplate);
+  const handleRelationshipSelect = (type: RelationshipType) => {
+    setSelectedRelationshipType(type);
+    setShowGallery(true);
   };
 
   const handleGenerateSuggestions = async () => {
-    if (!selectedTemplate) {
+    if (!selectedLibraryTemplate) {
       setAiStatus({ loading: false, message: t('social.aiSelectTemplate') });
       return;
     }
 
     setAiStatus({ loading: true, message: '' });
 
-    const fallbackSteps = selectedTemplate.stepKeys.map((key) => t(key));
-    const fallbackNotes = t(selectedTemplate.notesKey);
+    const fallbackSteps = selectedLibraryTemplate.stepKeys.map((key) => t(key, key));
+    const fallbackNotes = t(selectedLibraryTemplate.notesKey, '');
 
-    const suggestion = aiOptIn
-      ? await fetchSocialSuggestions({
-          templateSummary: t(selectedTemplate.descriptionKey),
-          energyLevel: form.energyLevel,
-          locale: i18n.language
-        })
-      : null;
+    let suggestion = null;
+    if (aiOptIn) {
+      const quota = getScheduleQuota(userId);
+      if (quota.isExhausted) {
+        setAiStatus({ loading: false, message: t('social.aiQuotaExhausted') });
+        return;
+      }
+      suggestion = await fetchSocialSuggestions({
+        templateSummary: t(selectedLibraryTemplate.descriptionKey, ''),
+        energyLevel: form.energyLevel,
+        locale: i18n.language
+      });
+      if (suggestion) {
+        quota.consumeOne();
+      }
+    }
 
     const steps = (suggestion?.steps ?? fallbackSteps).map((label) => ({ label, done: false }));
     const notes = suggestion?.notes ?? fallbackNotes;
 
     setForm((prev) => ({
       ...prev,
-      type: selectedTemplate.type,
-      title: prev.title || t(selectedTemplate.titleKey),
+      type: selectedLibraryTemplate.planType,
+      title: prev.title || t(selectedLibraryTemplate.titleKey, selectedLibraryTemplate.id),
       notes: notes || prev.notes,
       steps,
-      templateId: selectedTemplate.id
+      templateId: selectedLibraryTemplate.id
     }));
 
     setAiStatus({
@@ -150,7 +168,8 @@ const SocialPlansView: React.FC = () => {
       steps: normalizeSocialPlanSteps(form.steps),
       reminderMinutesBefore: form.reminderMinutesBefore ? Number(form.reminderMinutesBefore) : null,
       energyLevel: form.energyLevel,
-      notes: form.notes.trim() || null
+      notes: form.notes.trim() || null,
+      relationshipType: selectedRelationshipType
     });
 
     if (created) {
@@ -166,6 +185,8 @@ const SocialPlansView: React.FC = () => {
       });
       setTouched({ title: false, dateTime: false, reminderMinutesBefore: false });
       setAiStatus({ loading: false, message: '' });
+      setSelectedLibraryTemplate(null);
+      setShowGallery(false);
     }
   };
 
@@ -449,32 +470,6 @@ const SocialPlansView: React.FC = () => {
     </div>
   );
 
-  const renderTemplateCard = (template: SocialTemplate) => (
-    <div
-      key={template.id}
-      style={{
-        border: `1px solid ${theme.colors.border}`,
-        borderRadius: theme.shape.radiusSm,
-        padding: `${theme.spacing.sm}px`,
-        backgroundColor: theme.colors.surface,
-        display: 'grid',
-        gap: `${theme.spacing.xs}px`
-      }}
-    >
-      <label style={{ display: 'flex', gap: `${theme.spacing.xs}px`, alignItems: 'center' }}>
-        <input
-          type="radio"
-          name="social-template"
-          value={template.id}
-          checked={form.templateId === template.id}
-          onChange={() => setForm((prev) => ({ ...prev, templateId: template.id }))}
-        />
-        <span style={{ fontWeight: 600 }}>{t(template.labelKey)}</span>
-      </label>
-      <p style={{ margin: 0, color: theme.colors.muted }}>{t(template.descriptionKey)}</p>
-    </div>
-  );
-
   return (
     <SectionCard
       ariaLabel={`${t('social.title')} module`}
@@ -482,41 +477,127 @@ const SocialPlansView: React.FC = () => {
       subtitle={t('social.description')}
     >
       <div style={{ display: 'grid', gap: `${theme.spacing.lg}px` }}>
+        {/* ── Step 1: Who is this for? ─────────────────────────────────── */}
         <section style={{ display: 'grid', gap: `${theme.spacing.sm}px` }}>
-          <h3 style={{ margin: 0 }}>{t('social.templatesHeading')}</h3>
-          <p style={{ margin: 0, color: theme.colors.muted }}>{t('social.templatesHelper')}</p>
-          <div style={{ display: 'grid', gap: `${theme.spacing.sm}px` }}>
-            {templateOptions.map(renderTemplateCard)}
-          </div>
-          <label style={{ display: 'flex', gap: `${theme.spacing.xs}px`, alignItems: 'center' }}>
-            <input
-              type="checkbox"
-              checked={aiOptIn}
-              onChange={(event) => setAiOptIn(event.target.checked)}
-            />
-            <span>{t('social.aiOptIn')}</span>
-          </label>
-          <p style={{ margin: 0, color: theme.colors.muted }}>{t('social.aiPrivacy')}</p>
-          {aiStatus.message ? <p style={{ margin: 0, color: theme.colors.accent }}>{aiStatus.message}</p> : null}
-          <div style={{ display: 'flex', gap: `${theme.spacing.sm}px`, flexWrap: 'wrap' }}>
+          <RelationshipTypePicker
+            selected={selectedRelationshipType}
+            onSelect={handleRelationshipSelect}
+            theme={theme}
+          />
+
+          {/* Step 2: Template gallery (appears when relationship is selected) */}
+          {selectedRelationshipType && showGallery && (
+            <div style={{ display: 'grid', gap: `${theme.spacing.sm}px` }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: `${theme.spacing.xs}px`
+              }}>
+                <p style={{ margin: 0, fontWeight: 600, color: theme.colors.text, fontSize: '0.9rem' }}>
+                  {t('social.gallery.browsing', 'Pick a ready-made plan:')}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setShowGallery(false)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: theme.colors.muted,
+                    cursor: 'pointer',
+                    fontSize: '0.8125rem',
+                    padding: 0,
+                    fontFamily: theme.typography.body.family
+                  }}
+                >
+                  {t('social.startFromScratch', 'Skip — start from scratch')}
+                </button>
+              </div>
+              <TemplateGallery
+                relationshipType={selectedRelationshipType}
+                onSelect={applyLibraryTemplate}
+                theme={theme}
+              />
+            </div>
+          )}
+
+          {/* Selected template indicator */}
+          {selectedLibraryTemplate && !showGallery && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: `${theme.spacing.xs}px`,
+              padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
+              borderRadius: theme.shape.radiusMd,
+              backgroundColor: `${theme.colors.primary}10`,
+              border: `1px solid ${theme.colors.primary}30`,
+            }}>
+              <span style={{ fontSize: '0.8125rem', color: theme.colors.primary, flex: 1 }}>
+                ✓ {t(selectedLibraryTemplate.titleKey, selectedLibraryTemplate.id)}
+              </span>
+              <button
+                type="button"
+                onClick={() => { setShowGallery(true); }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: theme.colors.primary,
+                  cursor: 'pointer',
+                  fontSize: '0.75rem',
+                  padding: 0,
+                  fontFamily: theme.typography.body.family
+                }}
+              >
+                {t('social.changeTemplate', 'Change')}
+              </button>
+            </div>
+          )}
+        </section>
+
+        {/* ── Step 3: Create plan form (always visible) ──────────────── */}
+        {!showGallery && (
+          <section style={{ display: 'grid', gap: `${theme.spacing.sm}px` }}>
+            <h3 style={{ margin: 0 }}>{t('social.addHeading')}</h3>
+            {renderPlanForm(form, setForm, addValidation, touched, setTouched)}
+
+            {/* AI enhancement */}
+            {selectedLibraryTemplate && (
+              <div style={{ display: 'grid', gap: `${theme.spacing.xs}px` }}>
+                <label style={{ display: 'flex', gap: `${theme.spacing.xs}px`, alignItems: 'center' }}>
+                  <input
+                    type="checkbox"
+                    checked={aiOptIn}
+                    onChange={(event) => setAiOptIn(event.target.checked)}
+                  />
+                  <span>{t('social.aiOptIn')}</span>
+                </label>
+                <p style={{ margin: 0, color: theme.colors.muted, fontSize: '0.8125rem' }}>{t('social.aiPrivacy')}</p>
+                {aiStatus.message ? <p style={{ margin: 0, color: theme.colors.accent, fontSize: '0.8125rem' }}>{aiStatus.message}</p> : null}
+                <button
+                  type="button"
+                  onClick={handleGenerateSuggestions}
+                  disabled={aiStatus.loading}
+                  style={{
+                    minHeight: '44px',
+                    padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
+                    borderRadius: theme.shape.radiusSm,
+                    border: `1px solid ${theme.colors.primary}`,
+                    backgroundColor: 'transparent',
+                    color: theme.colors.primary,
+                    fontWeight: 500,
+                    cursor: aiStatus.loading ? 'default' : 'pointer',
+                    opacity: aiStatus.loading ? 0.7 : 1
+                  }}
+                >
+                  {aiStatus.loading ? t('loading') : t('social.generateSuggestions')}
+                </button>
+              </div>
+            )}
+
             <button
               type="button"
-              onClick={handleApplyTemplate}
-              style={{
-                minHeight: '44px',
-                padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
-                borderRadius: theme.shape.radiusSm,
-                border: `1px solid ${theme.colors.border}`,
-                backgroundColor: theme.colors.surface,
-                color: theme.colors.text
-              }}
-            >
-              {t('social.applyTemplate')}
-            </button>
-            <button
-              type="button"
-              onClick={handleGenerateSuggestions}
-              disabled={aiStatus.loading}
+              onClick={handleAddPlan}
               style={{
                 minHeight: '44px',
                 padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
@@ -524,34 +605,15 @@ const SocialPlansView: React.FC = () => {
                 border: `1px solid ${theme.colors.primary}`,
                 backgroundColor: theme.colors.primary,
                 color: theme.colors.background,
-                opacity: aiStatus.loading ? 0.7 : 1
+                fontWeight: 600
               }}
             >
-              {aiStatus.loading ? t('loading') : t('social.generateSuggestions')}
+              {t('social.addPlan')}
             </button>
-          </div>
-        </section>
+          </section>
+        )}
 
-        <section style={{ display: 'grid', gap: `${theme.spacing.sm}px` }}>
-          <h3 style={{ margin: 0 }}>{t('social.addHeading')}</h3>
-          {renderPlanForm(form, setForm, addValidation, touched, setTouched)}
-          <button
-            type="button"
-            onClick={handleAddPlan}
-            style={{
-              minHeight: '44px',
-              padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
-              borderRadius: theme.shape.radiusSm,
-              border: `1px solid ${theme.colors.primary}`,
-              backgroundColor: theme.colors.primary,
-              color: theme.colors.background,
-              fontWeight: 600
-            }}
-          >
-            {t('social.addPlan')}
-          </button>
-        </section>
-
+        {/* ── Plans list ─────────────────────────────────────────────── */}
         <section>
           <h3 style={{ marginTop: 0 }}>{t('social.plansHeading')}</h3>
           {loading ? <p style={{ color: theme.colors.muted }}>{t('loading')}</p> : null}
@@ -621,7 +683,21 @@ const SocialPlansView: React.FC = () => {
                   }}
                 >
                   <div style={{ display: 'grid', gap: `${theme.spacing.xs}px` }}>
-                    <div style={{ fontWeight: theme.typography.heading.weight }}>{plan.title}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: `${theme.spacing.xs}px`, flexWrap: 'wrap' }}>
+                      <div style={{ fontWeight: theme.typography.heading.weight }}>{plan.title}</div>
+                      {plan.relationshipType && (
+                        <span style={{
+                          fontSize: '0.7rem',
+                          padding: '2px 8px',
+                          borderRadius: theme.shape.radiusFull,
+                          background: `${theme.colors.primary}15`,
+                          color: theme.colors.primary,
+                          fontWeight: 600,
+                        }}>
+                          {t(`social.relationship.${plan.relationshipType}`, plan.relationshipType)}
+                        </span>
+                      )}
+                    </div>
                     <div style={{ color: theme.colors.muted }}>
                       {t('social.typeSummary', { type: t(`social.type.${plan.type.toLowerCase()}`) })}
                     </div>
@@ -650,6 +726,11 @@ const SocialPlansView: React.FC = () => {
                       ))}
                     </ul>
                   ) : null}
+                  <PostReflectionPrompt
+                    plan={plan}
+                    theme={theme}
+                    onSubmit={(energy, note) => updatePlan(plan.id, { postReflection: { energy, note } })}
+                  />
                   <div style={{ display: 'flex', gap: `${theme.spacing.sm}px`, marginTop: `${theme.spacing.sm}px` }}>
                     <button
                       type="button"

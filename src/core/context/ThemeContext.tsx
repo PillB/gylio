@@ -58,6 +58,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const theme = useMemo(() => themes[mode] ?? themes.light, [mode]);
   const paperTheme = useMemo(() => mapToPaperTheme(theme), [theme]);
 
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.body.style.backgroundColor = theme.colors.background;
+      document.body.style.color = theme.colors.text;
+    }
+  }, [theme.colors.background, theme.colors.text]);
+
   const handleSetTheme = (nextMode: ThemeMode) => {
     setMode(nextMode);
   };

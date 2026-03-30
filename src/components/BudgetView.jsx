@@ -7,6 +7,9 @@ import { useTheme } from '../core/context/ThemeContext';
 import { getDefaultBudgetMonth } from '../core/utils/date';
 import SectionCard from './SectionCard.jsx';
 import { buildPayoffComparison } from '../features/budget/utils/debtPayoff';
+import SpendingChart from '../features/budget/components/SpendingChart';
+import FinancialDiagnostic from '../features/budget/components/FinancialDiagnostic';
+import BudgetTooltip from './atoms/BudgetTooltip';
 
 const DEFAULT_CATEGORY_TYPE = 'NEED';
 const CATEGORY_TYPES = ['NEED', 'WANT', 'GOAL', 'DEBT'];
@@ -84,6 +87,35 @@ const BudgetView = () => {
   const [payoffStrategy, setPayoffStrategy] = useState(PAYOFF_STRATEGIES.SNOWBALL);
   const [reviewLogged, setReviewLogged] = useState(false);
   const [budgetDeleteConfirm, setBudgetDeleteConfirm] = useState(false);
+  const [showDiagnostic, setShowDiagnostic] = useState(false);
+
+  const handleApplyDiagnostic = useCallback((items, monthlyIncome) => {
+    ensureActiveBudget()
+      .then((budget) => {
+        const nextIncome = [
+          ...budget.income,
+          { source: t('budget.monthlyTakeHome', 'Monthly take-home'), amount: monthlyIncome },
+        ];
+        const nextCategories = [
+          ...budget.categories,
+          ...items.map((item) => ({
+            name: item.name,
+            type: item.type,
+            plannedAmount: item.amount,
+          })),
+        ];
+        return updateBudget(budget.id, { income: nextIncome, categories: nextCategories });
+      })
+      .then((updated) => {
+        if (!updated) return;
+        setBudgets((prev) => prev.map((entry) => (entry.id === updated.id ? updated : entry)));
+        setShowDiagnostic(false);
+      })
+      .catch((error) => {
+        console.error('Failed to apply diagnostic', error);
+      });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [updateBudget]);
 
   useEffect(() => {
     if (!ready) return;
@@ -536,6 +568,41 @@ const BudgetView = () => {
         <p>{t('loading') || 'Loading…'}</p>
       ) : (
         <div style={{ display: 'grid', gap: `${theme.spacing.lg}px` }}>
+          {/* ── Financial diagnostic ─────────────────────────────────── */}
+          <div>
+            <button
+              type="button"
+              onClick={() => setShowDiagnostic((prev) => !prev)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
+                borderRadius: theme.shape.radiusFull,
+                border: `1.5px solid ${showDiagnostic ? theme.colors.primary : theme.colors.border}`,
+                background: showDiagnostic ? `${theme.colors.primary}12` : 'transparent',
+                color: showDiagnostic ? theme.colors.primary : theme.colors.muted,
+                cursor: 'pointer',
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                fontFamily: theme.typography.body.family,
+              }}
+            >
+              <span>📊</span>
+              {showDiagnostic
+                ? (t('budget.hideDiagnostic') || 'Hide financial check-up')
+                : (t('budget.showDiagnostic') || 'Run financial check-up')}
+            </button>
+            {showDiagnostic && (
+              <div style={{ marginTop: theme.spacing.sm }}>
+                <FinancialDiagnostic
+                  theme={theme}
+                  onApply={handleApplyDiagnostic}
+                />
+              </div>
+            )}
+          </div>
+
           <section
             style={{
               border: `1px solid ${theme.colors.border}`,
@@ -724,7 +791,10 @@ const BudgetView = () => {
           </section>
 
           <section style={{ display: 'grid', gap: `${theme.spacing.sm}px` }}>
-            <h3 style={{ margin: 0 }}>{t('budget.incomeHeading') || 'Income'}</h3>
+            <h3 style={{ margin: 0, display: 'flex', alignItems: 'center' }}>
+              {t('budget.incomeHeading') || 'Income'}
+              <BudgetTooltip content={t('budget.zeroBasedExplain', 'Zero-based budgeting: give every dollar a job. When Remaining hits zero, every cent is intentional — that\'s the whole point.')} />
+            </h3>
             <div
               style={{
                 padding: `${theme.spacing.sm}px`,
@@ -733,7 +803,10 @@ const BudgetView = () => {
                 border: `1px solid ${theme.colors.border}`,
               }}
             >
-              <div style={{ fontWeight: 600 }}>{t('budget.remainingLabel') || 'Remaining'}</div>
+              <div style={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+                {t('budget.remainingLabel') || 'Remaining'}
+                <BudgetTooltip content={t('budget.remainingExplain', 'The gap between what you earn and what you\'ve allocated. Your goal: reach zero before the month ends — not by spending more, but by planning more.')} />
+              </div>
               <div style={{ color: remaining === 0 ? theme.colors.primary : theme.colors.accent }}>
                 {remaining.toFixed(2)}
               </div>
@@ -841,6 +914,23 @@ const BudgetView = () => {
             )}
           </section>
 
+          {/* Spending chart */}
+          {activeBudget && (
+            <div style={{ margin: `${theme.spacing.md}px 0` }}>
+              <SpendingChart
+                bars={['NEED', 'WANT', 'GOAL', 'DEBT'].map((type) => {
+                  const cats = (activeBudget.categories || []).filter((c) => c.type === type);
+                  const planned = cats.reduce((sum, c) => sum + (c.plannedAmount || 0), 0);
+                  const actual = (transactions || [])
+                    .filter((tx) => cats.some((c) => c.name === tx.categoryName))
+                    .reduce((sum, tx) => sum + (tx.amount || 0), 0);
+                  return { label: t(`budget.categoryType.${type.toLowerCase()}`, type), colorKey: type, planned, actual };
+                })}
+                theme={theme}
+              />
+            </div>
+          )}
+
           <section style={{ display: 'grid', gap: `${theme.spacing.sm}px` }}>
             <h3 style={{ margin: 0 }}>{t('budget.categoryHeading') || 'Categories'}</h3>
             <div style={{ display: 'grid', gap: `${theme.spacing.sm}px` }}>
@@ -868,7 +958,14 @@ const BudgetView = () => {
                 ) : null}
               </label>
               <label>
-                {t('budget.categoryTypeLabel') || 'Type'}
+                <span style={{ display: 'flex', alignItems: 'center' }}>
+                  {t('budget.categoryTypeLabel') || 'Type'}
+                  <BudgetTooltip
+                    content={
+                      t('budget.needTooltip', 'Need: rent, food, transport. Want: dining, streaming, hobbies. Goal: savings, investments, emergency fund. Debt: loans and credit cards with interest.')
+                    }
+                  />
+                </span>
                 <select
                   value={categoryForm.type}
                   onChange={(event) => {
@@ -1351,7 +1448,7 @@ const BudgetView = () => {
                 backgroundColor: theme.colors.surface,
               }}
             >
-              <div style={{ display: 'flex', gap: `${theme.spacing.sm}px`, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: `${theme.spacing.sm}px`, flexWrap: 'wrap', alignItems: 'center' }}>
                 <button
                   type="button"
                   onClick={() => setPayoffStrategy(PAYOFF_STRATEGIES.SNOWBALL)}
@@ -1376,6 +1473,10 @@ const BudgetView = () => {
                 >
                   {t('budget.snowballLabel') || 'Snowball'}
                 </button>
+                <BudgetTooltip
+                  content={t('budget.snowballExplain', 'Pay minimums on everything, throw every extra dollar at the smallest balance. Each debt cleared is a concrete win — and wins keep you going.')}
+                  position="top"
+                />
                 <button
                   type="button"
                   onClick={() => setPayoffStrategy(PAYOFF_STRATEGIES.AVALANCHE)}
@@ -1400,6 +1501,10 @@ const BudgetView = () => {
                 >
                   {t('budget.avalancheLabel') || 'Avalanche'}
                 </button>
+                <BudgetTooltip
+                  content={t('budget.avalancheExplain', 'Pay minimums on everything, attack the highest interest rate first. Mathematically optimal — saves the most money over time.')}
+                  position="top"
+                />
               </div>
               {payoffResult ? (
                 <div style={{ display: 'grid', gap: `${theme.spacing.xs}px` }}>

@@ -4,12 +4,12 @@ import useAccessibility from '../core/hooks/useAccessibility';
 import { useTheme } from '../core/context/ThemeContext';
 
 /**
- * Layout wrapper for feature sections.
+ * SectionCard — redesigned 2025
  *
- * Provides consistent spacing, heading hierarchy, and subtle borders to keep
- * modules visually distinct while maintaining a low cognitive load.
+ * Elevated card with subtle shadow, optional badge and action slot.
+ * Preserves TTS announcement and semantic section structure.
  */
-const SectionCard = ({ title, ariaLabel, subtitle, children }) => {
+const SectionCard = ({ title, ariaLabel, subtitle, children, badge, action }) => {
   const { speak } = useAccessibility();
   const { theme } = useTheme();
 
@@ -21,17 +21,54 @@ const SectionCard = ({ title, ariaLabel, subtitle, children }) => {
     <section
       aria-label={ariaLabel}
       style={{
-        border: `1px solid ${theme.colors.border}`,
-        borderRadius: theme.shape.radiusMd,
-        padding: `${theme.spacing.md}px`,
-        marginBottom: `${theme.spacing.lg}px`,
         backgroundColor: theme.colors.surface,
+        borderRadius: theme.shape.radiusLg,
+        padding: `${theme.spacing.xl}px`,
+        marginBottom: theme.spacing.lg,
+        boxShadow: theme.shadow.sm,
+        border: `1px solid ${theme.colors.border}`,
         color: theme.colors.text,
-        fontFamily: theme.typography.body.family
+        fontFamily: theme.typography.body.family,
       }}
     >
-      <h2 style={{ marginTop: 0 }}>{title}</h2>
-      {subtitle && <p style={{ color: theme.colors.muted }}>{subtitle}</p>}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          gap: theme.spacing.md,
+          marginBottom: (subtitle || children) ? theme.spacing.md : 0,
+          flexWrap: 'wrap',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm }}>
+          <h2
+            style={{
+              margin: 0,
+              fontFamily: theme.typography.heading.family,
+              fontWeight: theme.typography.heading.weight,
+              fontSize: '1.125rem',
+              color: theme.colors.text,
+            }}
+          >
+            {title}
+          </h2>
+          {badge && badge}
+        </div>
+        {action && action}
+      </div>
+      {subtitle && (
+        <p
+          style={{
+            margin: `0 0 ${theme.spacing.md}px`,
+            color: theme.colors.muted,
+            fontSize: '0.9375rem',
+            lineHeight: theme.typography.body.lineHeight,
+          }}
+        >
+          {subtitle}
+        </p>
+      )}
       {children}
     </section>
   );
@@ -41,13 +78,17 @@ SectionCard.propTypes = {
   title: PropTypes.string.isRequired,
   ariaLabel: PropTypes.string,
   subtitle: PropTypes.string,
-  children: PropTypes.node
+  children: PropTypes.node,
+  badge: PropTypes.node,
+  action: PropTypes.node,
 };
 
 SectionCard.defaultProps = {
   ariaLabel: undefined,
   subtitle: undefined,
-  children: null
+  children: null,
+  badge: null,
+  action: null,
 };
 
 export default SectionCard;

@@ -8,6 +8,7 @@ import {
   type SyncEntityType,
   type SyncErrorCode,
 } from './offlineSync';
+import { authHeaders, getAuthToken } from './authToken';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 export const SYNC_TAG = 'gylio-sync';
@@ -94,9 +95,10 @@ const syncAction = async (action: SyncAction): Promise<SyncResult> => {
           clientUpdatedAt: action.clientUpdatedAt,
         });
 
+  const headers = await authHeaders(body ? { 'Content-Type': 'application/json' } : undefined);
   const response = await fetch(endpoint, {
     method,
-    headers: body ? { 'Content-Type': 'application/json' } : undefined,
+    headers,
     body,
   });
 
@@ -145,6 +147,10 @@ let syncInFlight = false;
 export const processSyncQueue = async () => {
   if (syncInFlight) return;
   if (typeof navigator !== 'undefined' && !navigator.onLine) return;
+
+  // Skip sync if no auth token is available — avoids 401 noise before Clerk loads
+  const token = await getAuthToken();
+  if (!token) return;
 
   syncInFlight = true;
   try {

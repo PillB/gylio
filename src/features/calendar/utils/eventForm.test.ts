@@ -22,7 +22,12 @@ describe('parseDateTime', () => {
   it('parses valid datetime values', () => {
     const parsed = parseDateTime('2026-03-28T09:00');
     expect(parsed).not.toBeNull();
-    expect(parsed?.toISOString()).toContain('2026-03-28T09:00');
+    // Check local time components instead of ISO string to be timezone-agnostic
+    expect(parsed?.getFullYear()).toBe(2026);
+    expect(parsed?.getMonth()).toBe(2); // March = index 2
+    expect(parsed?.getDate()).toBe(28);
+    expect(parsed?.getHours()).toBe(9);
+    expect(parsed?.getMinutes()).toBe(0);
   });
 });
 

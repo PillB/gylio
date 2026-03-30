@@ -114,6 +114,23 @@ function useAccessibilityInternal(): AccessibilityContextValue {
     () => selections?.accessibility?.textStyle ?? '',
     [selections]
   );
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    if (textStylePreference === 'dyslexic') {
+      document.documentElement.style.setProperty('--font-body', "'OpenDyslexic', 'Comic Sans MS', cursive, sans-serif");
+      document.body.style.fontFamily = "'OpenDyslexic', 'Comic Sans MS', cursive, sans-serif";
+      document.body.style.fontSize = '';
+    } else if (textStylePreference === 'large') {
+      document.documentElement.style.setProperty('--font-body', '');
+      document.body.style.fontFamily = '';
+      document.body.style.fontSize = '20px';
+    } else {
+      document.documentElement.style.setProperty('--font-body', '');
+      document.body.style.fontFamily = '';
+      document.body.style.fontSize = '';
+    }
+  }, [textStylePreference]);
   const ttsEnabled = useMemo(() => Boolean(selections?.accessibility?.tts), [selections]);
   const ttsOptIn = useMemo(() => hydrated && ttsEnabled, [hydrated, ttsEnabled]);
 

@@ -1,0 +1,1203 @@
+{
+  "appName": "GYLIO",
+  "welcome": "Benvenuto",
+  "tasks": {
+    "title": "Attività",
+    "description": "Il segnale più chiaro di una giornata produttiva: hai completato quello che avevi detto. Scomponilo, inizia in piccolo, spunta.",
+    "chunkedListAria": "Checklist suddivisa",
+    "chunkLabel": "Blocco {{index}}",
+    "empty": "Nessuna attività ancora.",
+    "emptyBody": "Inizia con una cosa che farebbe sembrare oggi una vittoria. Suddividila in passaggi se sembra grande — il primo passo è sufficiente.",
+    "emptyCta": "+ Aggiungi la tua prima attività",
+    "emptyTodayHeadline": "Nulla programmato per oggi.",
+    "emptyTodayBody": "Una pagina bianca. Aggiungi un'attività che vuoi completare oggi — anche una piccola vittoria cambia il tuo slancio.",
+    "emptyTodayCta": "+ Aggiungi un'attività per oggi",
+    "stepCount": "{{count}} passaggi",
+    "complete": "Segna {{title}} come completato",
+    "uncomplete": "Segna {{title}} come non completato",
+    "checkboxAria": "Attiva/disattiva il completamento per {{title}}",
+    "viewLabel": "Viste attività",
+    "viewToday": "Oggi",
+    "viewWeek": "Questa settimana",
+    "viewBacklog": "Arretrato",
+    "plannedDateLabel": "Data pianificata",
+    "plannedDateHelper": "Pianificare un'attività ti rende 2–3× più probabile di farla. Anche «oggi» è sufficiente — la specificità è il punto.",
+    "subtasksLabel": "Micro-passaggi",
+    "subtasksHelper": "Scomponila in micro-passaggi. La ricerca mostra che l'avvio delle attività — non l'esecuzione — è la parte più difficile per la maggior parte delle persone. Iniziare il primo passo rappresenta l'80% del lavoro.",
+    "subtaskPlaceholder": "Aggiungi un micro-passaggio",
+    "addSubtask": "Aggiungi passaggio",
+    "removeSubtask": "Rimuovi",
+    "progressLabel": "{{completed}} su {{total}} passaggi completati",
+    "progressAria": "Avanzamento per {{title}}",
+    "confirmDelete": "Eliminare l'attività {{title}}?",
+    "focusAreaAria": "Controlli Pomodoro e focus",
+    "focusHeading": "Blocchi di focus",
+    "focusHelper": "La tecnica Pomodoro (sprint da 25 min) corrisponde al naturale ciclo ultradiano di 90 min del cervello. Anche una sola sessione al giorno si accumula significativamente nel corso di un mese.",
+    "focusDuration": "{{minutes}} min",
+    "startFocus": "Avvia {{minutes}} minuti di focus",
+    "focusComplete": "{{minutes}} minuti di focus per {{title}} completati.",
+    "focusBlockLabel": "blocco di focus",
+    "completedLabel": "completato",
+    "reopenedLabel": "riaperto",
+    "completionAnnouncement": "{{title}} segnato {{status}}",
+    "timerRunning": "Timer focus: {{mm}}:{{ss}} rimanenti",
+    "timerPaused": "In pausa — {{mm}}:{{ss}} rimanenti",
+    "timerDone": "Sessione di focus completata. Hai appena fatto qualcosa che la maggior parte delle persone non fa: hai protetto la tua attenzione. Questo si accumula.",
+    "timerPause": "Pausa",
+    "timerResume": "Riprendi",
+    "timerCancel": "Annulla focus",
+    "timerAriaLive": "{{mm}} minuti e {{ss}} secondi rimanenti",
+    "energyLabel": "Energia richiesta",
+    "energyTiny": "Minima",
+    "energyLow": "Bassa",
+    "energyMedium": "Media",
+    "energyHigh": "Alta",
+    "filterByEnergy": "Energia:",
+    "energyFilterAll": "Tutte",
+    "intentionLabel": "Quando / dove",
+    "intentionPlaceholder": "Quando finirò la colazione, farò…",
+    "intentionHelper": "Le intenzioni di implementazione (quando/dove) raddoppiano i tassi di follow-through — dimostrato in 94 studi. Il tuo cervello tratta questo come un pre-impegno.",
+    "startHere": "Inizia qui",
+    "tpl": {
+      "filterAria": "Filtra per categoria",
+      "energyAria": "Energia: {{level}}",
+      "stepsLabel": "Passaggi",
+      "addTask": "→ Aggiungi questa attività",
+      "empty": "Nessun modello per questa categoria.",
+      "cat": {
+        "all": "Tutte",
+        "environment": "Ambiente",
+        "deepwork": "Lavoro profondo",
+        "health": "Salute",
+        "relationships": "Relazioni",
+        "mindset": "Mentalità",
+        "career": "Carriera",
+        "finances": "Finanze"
+      },
+      "cleanSpace": {
+        "title": "Pulire il tuo spazio immediato",
+        "why": "Peterson: order in your environment reduces cognitive load and signals to your brain that you can handle responsibility."
+      },
+      "digitalDeclutter": {
+        "title": "Riordino digitale",
+        "why": "Newport: attention is finite. Every app and notification competes for cognitive bandwidth. Remove what doesn't serve your goals."
+      },
+      "designEnv": {
+        "title": "Progettare il tuo ambiente per abitudini migliori",
+        "why": "Clear: environment design is the invisible hand of behavior. Make the right choice the easy choice."
+      },
+      "deepWork": {
+        "title": "Blocco di lavoro profondo",
+        "why": "Newport: the ability to focus without distraction is becoming increasingly rare and increasingly valuable. One focused session beats four scattered ones."
+      },
+      "shutdownRitual": {
+        "title": "Rituale di chiusura giornaliero",
+        "why": "Newport: without a clear ending to your workday, your brain keeps cycling through unfinished work. A shutdown ritual creates genuine rest."
+      },
+      "brainDump": {
+        "title": "Scarico mentale",
+        "why": "Allen: your brain is for having ideas, not storing them. Every uncaptured thought costs attention. Empty it completely."
+      },
+      "weeklyReview": {
+        "title": "Revisione settimanale",
+        "why": "Allen: the weekly review is the master key to GTD. Without it, your system decays. With it, you stay clear and in control."
+      },
+      "nextAction": {
+        "title": "Definire la prossima azione",
+        "why": "Allen: vague projects don't move. The moment you define a physical next action, procrastination drops and momentum returns."
+      },
+      "morningSunlight": {
+        "title": "Luce solare mattutina",
+        "why": "Huberman: morning light exposure sets your circadian clock, boosts cortisol at the right time, and improves mood, focus, and sleep quality."
+      },
+      "moveBody": {
+        "title": "Muovere il corpo",
+        "why": "Huberman: 20–30 minutes of cardio raises BDNF, dopamine, and serotonin — the trifecta for mood, learning, and stress resilience."
+      },
+      "fixSleep": {
+        "title": "Migliorare il ritmo del sonno",
+        "why": "Breus: sleep is the single highest-leverage intervention for mental performance, emotional regulation, and physical health."
+      },
+      "reduceAlcohol": {
+        "title": "Ridurre l'alcol questa settimana",
+        "why": "Huberman: even moderate alcohol disrupts REM sleep, suppresses neurogenesis, and lowers serotonin baselines the following day."
+      },
+      "journal": {
+        "title": "Scrivere una pagina",
+        "why": "Peterson: writing clarifies thought. When you articulate your fears and intentions, you stop carrying them as a vague weight and start engaging with them directly."
+      },
+      "gratitude": {
+        "title": "Pratica della gratitudine",
+        "why": "Emmons: specific gratitude — naming what and why — measurably increases wellbeing, reduces envy, and strengthens relationships over time."
+      },
+      "comparePastSelf": {
+        "title": "Confrontarti con chi eri ieri",
+        "why": "Peterson: comparing yourself to others breeds resentment. Comparing yourself to your past self breeds improvement and self-respect."
+      },
+      "tellTruth": {
+        "title": "Dire la verità — o almeno non mentire",
+        "why": "Peterson: small lies compound into a distorted life. Each honest act strengthens your sense of self and reduces the anxiety of maintaining a false front."
+      },
+      "takeResponsibility": {
+        "title": "Prendersi la responsabilità di una cosa",
+        "why": "Peterson: before you can change anything outside, you have to take ownership of what's inside your control. This is where real agency begins."
+      },
+      "reachOut": {
+        "title": "Contattare qualcuno",
+        "why": "Dunbar: humans evolved for a social group of ~150. Regular contact with your inner circle is not optional — isolation increases mortality more than smoking."
+      },
+      "repairRelationship": {
+        "title": "Riparare una relazione",
+        "why": "Gottman: repair attempts — even small ones — predict relationship survival more than conflict frequency does. Avoidance always makes it worse."
+      },
+      "expressAppreciation": {
+        "title": "Esprimere apprezzamento",
+        "why": "Gottman: the 5:1 ratio — five positive interactions for every negative one — determines relationship health. Deliberate appreciation is how you build it."
+      },
+      "deliberatePractice": {
+        "title": "Sessione di pratica deliberata",
+        "why": "Newport: skill accumulation through deliberate practice is how you build career capital — the rare and valuable abilities that give you control over your work life."
+      },
+      "identifyMission": {
+        "title": "Identificare la tua missione di carriera",
+        "why": "Newport: a compelling career mission emerges from the intersection of your career capital and the adjacent possible — you can't shortcut it, but you can map it."
+      },
+      "sayNo": {
+        "title": "Dire no a un impegno",
+        "why": "Newport: every yes is a no to deep work. Protecting your time requires deliberate subtraction, not just better scheduling."
+      },
+      "listDebts": {
+        "title": "Elencare tutti i tuoi debiti",
+        "why": "Hammer: you cannot fight what you refuse to see. Most people don't know their actual numbers. Writing them down is the first act of financial courage."
+      },
+      "emergencyFund": {
+        "title": "Avviare un fondo di emergenza",
+        "why": "Hammer: without a cash buffer, every unexpected expense becomes debt. Even $500 saved breaks the cycle of reactive borrowing."
+      },
+      "trackSpending": {
+        "title": "Monitorare le spese per una settimana",
+        "why": "Hammer: most people guess at their spending and are wrong by 30–50%. One week of real data reveals the leaks that no budget plan can fix in the abstract."
+      },
+      "cancelSubs": {
+        "title": "Annullare gli abbonamenti inutilizzati",
+        "why": "Hammer: subscription creep is the silent killer of household budgets. Most people pay for 2–3 services they forgot they had."
+      },
+      "negotiateBill": {
+        "title": "Negoziare una bolletta",
+        "why": "Hammer: a single 15-minute phone call can save $10–$50/month. Frugality is not deprivation — it's refusing to pay more than necessary."
+      },
+      "showGallery": "⚡ Avvio rapido con attività collaudate",
+      "hideGallery": "Nascondi attività di avvio rapido"
+    }
+  },
+  "checkbox": {
+    "ariaLabel": "Casella di controllo {{label}}",
+    "checked": "selezionato",
+    "unchecked": "non selezionato",
+    "stateChange": "{{label}} {{state}}"
+  },
+  "validation": {
+    "titleRequired": "Il titolo è obbligatorio.",
+    "sourceRequired": "La fonte di reddito è obbligatoria.",
+    "durationPositive": "La durata deve essere maggiore di zero.",
+    "categoryRequired": "La categoria è obbligatoria.",
+    "amountPositive": "Inserisci un importo positivo.",
+    "invalidNumber": "Inserisci un numero valido.",
+    "invalidDateTime": "Inserisci una data e un'ora valide.",
+    "periodRequired": "Il periodo è obbligatorio.",
+    "pointsPositive": "I punti devono essere maggiori di zero.",
+    "subtasksRange": "Inserisci tra {{min}} e {{max}} passaggi, o lascia vuoto.",
+    "endAfterStart": "L'ora di fine deve essere dopo l'ora di inizio.",
+    "nonNegativeNumber": "Inserisci zero o un numero positivo.",
+    "nonNegativeInteger": "Inserisci un numero intero uguale o maggiore di zero."
+  },
+  "calendar": "Calendario",
+  "theme": {
+    "light": "Chiaro",
+    "dark": "Scuro",
+    "highContrast": "Alto contrasto"
+  },
+  "settingsGamificationLabel": "Gamificazione",
+  "settingsGamificationHelper": "Opta per XP, serie e sblocchi cosmetici. Puoi disabilitarlo in qualsiasi momento.",
+  "enableTint": "Attiva tinta schermo",
+  "disableTint": "Disattiva tinta schermo",
+  "announceSettings": "Annuncia impostazioni",
+  "speaking": "In corso…",
+  "settingsAnimationLabel": "Consenti animazioni",
+  "settingsAnimationOn": "Animazioni attivate",
+  "settingsAnimationOff": "Animazioni limitate",
+  "settingsAnimationHelper": "Disabilita le animazioni non essenziali per mantenere l'interfaccia calma.",
+  "budget": {
+    "title": "Budget",
+    "placeholder": "Gli strumenti di budget monitoreranno entrate e spese, le categorizzeranno e simuleranno il rimborso dei debiti.",
+    "debtSnowball": "Il coaching palla di neve per i debiti e le proiezioni di rimborso appariranno qui accanto alla panoramica del budget.",
+    "confirmDelete": "Eliminare {{category}}? Questa azione non può essere annullata.",
+    "monthHeading": "Mese di budget",
+    "openBudget": "Apri budget",
+    "incomeHeading": "Entrate",
+    "remainingLabel": "Rimanente",
+    "remainingHint": "Budget a base zero: dai a ogni euro un compito prima dell'inizio del mese. Quando raggiunge 0, ogni centesimo è intenzionale — questo è il punto.",
+    "incomeSourceLabel": "Fonte di reddito",
+    "incomeAmountLabel": "Importo",
+    "addIncome": "Aggiungi entrata",
+    "emptyIncome": "Nessuna entrata ancora aggiunta.",
+    "categoryHeading": "Categorie",
+    "categoryTypeLabel": "Tipo",
+    "plannedAmountLabel": "Importo pianificato",
+    "addCategory": "Aggiungi categoria",
+    "emptyCategories": "Nessuna categoria ancora.",
+    "transactionsHeading": "Transazioni",
+    "transactionDateLabel": "Data",
+    "selectCategory": "Seleziona categoria",
+    "addTransaction": "Aggiungi transazione",
+    "emptyTransactions": "Nessuna transazione ancora.",
+    "plannedActualHeading": "Pianificato vs reale",
+    "needsLabel": "Necessità",
+    "wantsLabel": "Desideri",
+    "planActualHint": "La barra superiore mostra il pianificato, quella inferiore il reale.",
+    "debtsHeading": "Debiti",
+    "balanceLabel": "Saldo",
+    "annualRateLabel": "Tasso annuale (%)",
+    "minPaymentLabel": "Pagamento minimo",
+    "debtCategoryLabel": "Categoria collegata (opzionale)",
+    "addDebt": "Aggiungi debito",
+    "emptyDebts": "Nessun debito ancora.",
+    "snowballLabel": "Palla di neve",
+    "avalancheLabel": "Valanga",
+    "payoffTimeline": "Rimborso previsto: {{months}} mesi",
+    "payoffInterest": "Interessi stimati: {{interest}}",
+    "payoffExtraHint": "Include il pagamento extra dal rimanente: {{extra}}",
+    "payoffEmpty": "Aggiungi debiti e pagamenti minimi per simulare il rimborso.",
+    "reviewHeading": "Revisione settimanale",
+    "reviewHelper": "Un controllo settimanale del budget di 5 minuti — anche solo dare un'occhiata ai numeri — distingue le persone che rimangono in carreggiata da quelle che si perdono. Registralo.",
+    "reviewDisabled": "Attiva la gamificazione per monitorare la tua serie settimanale di revisioni del budget.",
+    "reviewLogged": "Registrato per questa settimana.",
+    "logReview": "Registra revisione settimanale",
+    "categoryType": {
+      "need": "Necessità",
+      "want": "Desiderio",
+      "goal": "Obiettivo",
+      "debt": "Debito"
+    },
+    "zeroBasedExplain": "Budget a base zero: dai a ogni euro un compito. Quando il Rimanente raggiunge zero, ogni centesimo è intenzionale — questo è il punto.",
+    "remainingExplain": "Il divario tra ciò che guadagni e ciò che hai allocato. Il tuo obiettivo: raggiungere zero prima della fine del mese — non spendendo di più, ma pianificando di più.",
+    "needTooltip": "Gli essenziali senza cui non puoi funzionare: affitto, spesa, trasporti, utenze, medicinali. Se la vita si ferma senza di esso, è una Necessità.",
+    "wantTooltip": "Cose che migliorano la tua vita ma non sono critiche: ristoranti, streaming, hobby, vestiti oltre il necessario. Non 'soldi cattivi' — solo onesti su cosa sono.",
+    "goalTooltip": "Soldi che lavorano per il tuo sé futuro: fondo di emergenza, risparmi, investimenti, vacanze. Pagati prima — questa categoria costruisce la vita che vuoi.",
+    "debtTooltip": "Obbligazioni esistenti con costi di interesse. Monitorate separatamente per vedere il costo totale reale e costruire un piano di uscita.",
+    "snowballExplain": "Paga il minimo su tutto, metti ogni euro extra nel saldo più piccolo. Ogni debito estinto è una vittoria concreta — e le vittorie ti motivano.",
+    "avalancheExplain": "Paga il minimo su tutto, attacca prima il tasso di interesse più alto. Matematicamente ottimale — risparmia la maggior parte nel tempo.",
+    "payoffInfeasible": "I pagamenti attuali sono troppo bassi per ridurre questo debito. Aumenta il pagamento minimo o extra.",
+    "payoffCompare": "Palla di neve: {{snowballMonths}} mesi • Valanga: {{avalancheMonths}} mesi",
+    "chartHeading": "Panoramica delle spese",
+    "chartAriaLabel": "Spese pianificate vs reali per categoria",
+    "chartPlanned": "Pianificato",
+    "chartActual": "Reale",
+    "chartOverBudget": "Oltre il budget",
+    "showDiagnostic": "🩺 Esegui check finanziario",
+    "hideDiagnostic": "Nascondi diagnostica",
+    "currencySymbol": "€",
+    "monthlyTakeHome": "Stipendio netto mensile",
+    "diagnostic": {
+      "title": "Diagnostica finanziaria",
+      "subtitle": "Inserisci i tuoi numeri mensili per avere un quadro onesto delle tue finanze.",
+      "incomeSection": "Entrate",
+      "takeHomeLabel": "Stipendio netto mensile (dopo le tasse) 💰",
+      "fixedSection": "Costi fissi — ogni mese, stesso importo",
+      "variableSection": "Costi variabili — cambia di mese in mese",
+      "rentLabel": "Affitto / Mutuo 🏠",
+      "utilitiesLabel": "Utenze 💡",
+      "subscriptionsLabel": "Abbonamenti 📱",
+      "carPaymentLabel": "Rata auto 🚗",
+      "insuranceLabel": "Assicurazione 🛡️",
+      "otherFixedLabel": "Altri costi fissi",
+      "groceriesLabel": "Spesa 🛒",
+      "diningOutLabel": "Ristoranti 🍕",
+      "entertainmentLabel": "Intrattenimento 🎬",
+      "clothingLabel": "Abbigliamento 👕",
+      "personalCareLabel": "Cura personale 💆",
+      "transportLabel": "Trasporti ⛽",
+      "otherVariableLabel": "Altre variabili",
+      "runCta": "Esegui diagnostica →",
+      "resultsTitle": "La tua diagnosi finanziaria",
+      "backCta": "← Modifica dati",
+      "backAria": "Torna al modulo",
+      "monthlyOverview": "Panoramica mensile",
+      "takeHomeRow": "Stipendio netto",
+      "fixedRow": "Costi fissi",
+      "variableRow": "Costi variabili",
+      "remainingRow": "Rimanente / risparmi",
+      "deficitRow": "Deficit",
+      "incomeBreakdown": "Ripartizione delle entrate",
+      "breakdownAria": "Fisso {{fixed}}%, Variabile {{variable}}%, Risparmi {{savings}}%",
+      "fixedLegend": "Fisso {{pct}}%",
+      "variableLegend": "Variabile {{pct}}%",
+      "savingsLegend": "Risparmi {{pct}}%",
+      "callouts": "Segnalazioni",
+      "prefillTitle": "Pre-compila il budget con questi numeri",
+      "prefillSubtitle": "Le tue categorie di spesa verranno aggiunte automaticamente al tuo budget.",
+      "applyCta": "Applica al budget →",
+      "scoreAria": "Punteggio di salute finanziaria: {{score}} su 100",
+      "alertHousingCritical": "L'abitazione è {{pct}}% del reddito — critico. Mira a meno del 30%.",
+      "alertHousingWarning": "L'abitazione è {{pct}}% del reddito. L'obiettivo è meno del 30%.",
+      "alertHousingGood": "L'abitazione è {{pct}}% del reddito. Ben entro i limiti.",
+      "alertDeficit": "Stai spendendo più di quanto guadagni — deficit di {{symbol}}{{amount}}/mese.",
+      "alertSavingsLow": "Il tasso di risparmio è solo del {{pct}}%. Obiettivo: 20%+.",
+      "alertSavingsGood": "Un tasso di risparmio del {{pct}}% è solido.",
+      "alertDiningOut": "I ristoranti sono {{pct}}% del reddito. Questa è un'area ad alto impatto.",
+      "alertSubscriptions": "Gli abbonamenti totalizzano {{symbol}}{{amount}}/mese. Verificali — quelli inutilizzati sono perdite silenziose di denaro.",
+      "alertFixedHigh": "I costi fissi sono {{pct}}% del reddito. Pochissima flessibilità.",
+      "prefillRent": "Affitto / Mutuo",
+      "prefillUtilities": "Utenze",
+      "prefillGroceries": "Spesa",
+      "prefillInsurance": "Assicurazione",
+      "prefillTransport": "Trasporti",
+      "prefillSubscriptions": "Abbonamenti",
+      "prefillCarPayment": "Rata auto",
+      "prefillDiningOut": "Ristoranti",
+      "prefillEntertainment": "Intrattenimento",
+      "prefillClothing": "Abbigliamento",
+      "prefillPersonalCare": "Cura personale",
+      "prefillSavings": "Risparmi / Investimenti"
+    }
+  },
+  "rewards": {
+    "title": "Premi",
+    "confirmDelete": "Eliminare il premio {{title}}?",
+    "gamificationLabel": "Gamificazione",
+    "gamificationHelper": "I programmi di ricompensa variabili — non le ricompense garantite — mantengono alto l'impegno dopaminergico nel tempo. XP e serie seguono questo modello. I tuoi dati rimangono privati e locali.",
+    "gamificationOn": "Attivato",
+    "gamificationOff": "Disattivato",
+    "gamificationDisabled": "La gamificazione è disattivata.",
+    "levelLabel": "Livello",
+    "levelSummary": "Livello {{level}}",
+    "xpSummary": "{{points}} XP / {{target}} XP",
+    "skipTokensLabel": "Token di salto",
+    "skipTokensHelper": "La vita accade. Un giorno mancato interrompe le serie e — la ricerca mostra — innesca l'abbandono completo per 1 utente su 3. I token di salto esistono per proteggere il tuo slancio, non per scusare la pigrizia. Usali.",
+    "streakHeading": "Stato serie",
+    "focusStreak": "Serie di focus quotidiano: {{days}} giorni",
+    "taskStreak": "Serie di completamento attività: {{days}} giorni",
+    "budgetStreak": "Serie di revisione budget settimanale: {{weeks}} settimane",
+    "unlocked": "Sbloccato",
+    "locked": "Bloccato",
+    "nearestHeading": "Ci sei quasi!",
+    "progressLabel": "{{current}} / {{target}} punti ({{pct}}% raggiunto!)",
+    "progressBarAria": "Avanzamento verso {{title}}: {{pct}} percento"
+  },
+  "rewardsPlaceholder": "Punti e serie appariranno qui. La gamificazione è opzionale.",
+  "social": {
+    "title": "Sociale",
+    "description": "Pianifica momenti sociali con suggerimenti delicati e promemoria.",
+    "templatesHeading": "Modelli di suggerimento",
+    "templatesHelper": "Scegli un modello per pre-compilare un piano.",
+    "addHeading": "Crea un piano sociale",
+    "addPlan": "Aggiungi piano",
+    "plansHeading": "I tuoi piani sociali",
+    "empty": "Nessun piano sociale ancora.",
+    "typeLabel": "Tipo di piano",
+    "energyLabel": "Livello di energia",
+    "dateTimeLabel": "Data e ora (opzionale)",
+    "dateTimeOptional": "Nessuna data/ora impostata",
+    "reminderLabel": "Promemoria minuti prima",
+    "reminderHelperTtsOn": "I promemoria possono includere audio mentre la sintesi vocale è attiva.",
+    "reminderHelperTtsOff": "I promemoria rimangono silenziosi mentre la sintesi vocale è disattivata.",
+    "reminderSummary": "Promemoria {{minutes}} minuti prima.",
+    "reminderNone": "Nessun promemoria impostato.",
+    "stepsLabel": "Passaggi",
+    "stepsHelper": "Opzionale: aggiungi piccoli passaggi per ridurre l'attrito.",
+    "stepPlaceholder": "Aggiungi un piccolo passaggio",
+    "addStep": "Aggiungi passaggio",
+    "removeStep": "Rimuovi",
+    "readPlan": "Leggi piano",
+    "confirmDelete": "Eliminare il piano sociale {{title}}?",
+    "typeSummary": "Tipo: {{type}}",
+    "energySummary": "Energia: {{energy}}",
+    "readSummary": "{{title}}. Tipo {{type}}. Energia {{energy}}. {{dateTime}}.",
+    "reminderTitle": "Promemoria piano sociale",
+    "reminderBody": "In arrivo: {{title}}",
+    "applyTemplate": "Applica modello",
+    "generateSuggestions": "Suggerisci passaggi",
+    "aiOptIn": "Usa suggerimenti IA opzionali",
+    "aiPrivacy": "Se attivato, inviamo solo il riepilogo del modello e il livello di energia. Nessun dato personale.",
+    "aiFallbackUsed": "IA non disponibile. Viene usato il modello offline.",
+    "aiSelectTemplate": "Seleziona un modello per continuare.",
+    "aiQuotaExhausted": "Hai usato il tuo suggerimento IA gratuito. Accedi o aggiorna per sbloccare di più.",
+    "reflectionHeading": "Com'è andata?",
+    "reflectionHelper": "Un breve check-in ti aiuta a capire i tuoi schemi di energia sociale.",
+    "reflectionNotePlaceholder": "Qualcosa da annotare? (opzionale)",
+    "reflectionSubmit": "Salva riflessione",
+    "reflectionSaved": "Riflessione salvata!",
+    "reflectionBadgeAria": "Riflessione: energia {{energy}} su 5",
+    "reflectionEnergy1": "Molto esausto",
+    "reflectionEnergy2": "Stanco",
+    "reflectionEnergy3": "Neutro",
+    "reflectionEnergy4": "Bene",
+    "reflectionEnergy5": "Energizzato",
+    "type": {
+      "call": "Chiamata",
+      "meetup": "Incontro",
+      "message": "Messaggio",
+      "event": "Evento"
+    },
+    "energy": {
+      "low": "Bassa",
+      "med": "Media",
+      "high": "Alta"
+    },
+    "templates": {
+      "checkIn": {
+        "label": "Check-in rapido",
+        "description": "Invia un breve saluto amichevole senza pressione.",
+        "title": "Fare il check-in con qualcuno",
+        "notes": "Tienilo leggero — una frase è sufficiente.",
+        "steps": {
+          "first": "Scegli una persona da contattare.",
+          "second": "Scrivi un messaggio semplice come «Ciao, stavo pensando a te.»",
+          "third": "Invialo e segna come fatto."
+        }
+      },
+      "birthday": {
+        "label": "Promemoria compleanno",
+        "description": "Invia un messaggio caloroso o un piccolo piano per un compleanno.",
+        "title": "Inviare un messaggio di compleanno",
+        "notes": "Breve e caloroso conta.",
+        "steps": {
+          "first": "Bozza un breve messaggio di auguri.",
+          "second": "Aggiungi un ricordo o un emoji se vuoi.",
+          "third": "Invia o programma il messaggio."
+        }
+      },
+      "meetup": {
+        "label": "Incontro tranquillo",
+        "description": "Invita qualcuno a un semplice, tranquillo ritrovo.",
+        "title": "Pianificare un incontro dolce",
+        "notes": "Offri due opzioni per rendere facile dire sì o no.",
+        "steps": {
+          "first": "Scegli un posto tranquillo o un'attività.",
+          "second": "Suggerisci una finestra temporale invece di uno slot fisso.",
+          "third": "Invia l'invito e aspetta una risposta."
+        }
+      },
+      "support": {
+        "label": "Chiamata di supporto",
+        "description": "Preparati per una chiamata premurosa o un messaggio vocale.",
+        "title": "Offrire supporto",
+        "notes": "Puoi tenerlo breve e delicato.",
+        "steps": {
+          "first": "Annota una cosa che vuoi dire.",
+          "second": "Chiedi se hanno tempo per una rapida chiamata.",
+          "third": "Fai un follow-up con un messaggio di supporto."
+        }
+      }
+    },
+    "relationship": {
+      "pickLabel": "Per chi è?",
+      "friend": "Amico",
+      "romantic": "Partner",
+      "family": "Famiglia",
+      "acquaintance": "Conoscente",
+      "coworker": "Collega",
+      "boss": "Responsabile",
+      "neighbor": "Vicino",
+      "online_friend": "Amico online"
+    },
+    "depth": {
+      "all": "Tutti",
+      "light": "Leggero",
+      "medium": "Medio",
+      "deep": "Profondo"
+    },
+    "gallery": {
+      "browsing": "Scegli un piano pronto:",
+      "startersLabel": "Pronto da inviare →",
+      "copy": "Copia",
+      "copyAria": "Copia questo messaggio",
+      "useTemplate": "Usa questo piano →",
+      "empty": "Nessun modello per questo filtro. Prova un diverso livello di profondità."
+    },
+    "startFromScratch": "Salta — inizia da zero",
+    "changeTemplate": "Cambia",
+    "tpl": {
+      "friendMemeShare": {
+        "title": "Condividi qualcosa di divertente",
+        "desc": "Invia un meme o un video che ti ha fatto subito pensare a loro.",
+        "notes": "Basso rischio e caloroso. Nessuna risposta necessaria.",
+        "step1": "Trova qualcosa che ti ha ricordato loro",
+        "step2": "Invialo con una battuta"
+      },
+      "friendVoiceNote": {
+        "title": "Invia un messaggio vocale",
+        "desc": "Registra un rapido saluto — più caldo del testo, più facile di una chiamata.",
+        "notes": "Tienilo breve e sincero. '30 secondi, nessuno script' è sufficiente.",
+        "step1": "Trova 30 secondi tranquilli",
+        "step2": "Registra un messaggio rilassato",
+        "step3": "Invialo senza pensarci troppo"
+      },
+      "friendCoffee": {
+        "title": "Caffè tra amici",
+        "desc": "Un ritrovo in persona tranquillo senza agenda — solo tempo insieme.",
+        "notes": "Offri due fasce orarie per rendere facile dire sì.",
+        "step1": "Scrivile per verificare la disponibilità",
+        "step2": "Scegli un momento e un posto che va bene per entrambi",
+        "step3": "Presentati e goditi il momento"
+      },
+      "friendRealCheckin": {
+        "title": "Check-in reale",
+        "desc": "Chiedi come stanno davvero — non la risposta superficiale.",
+        "notes": "Questo richiede un po' di coraggio. Ne vale la pena.",
+        "step1": "Pensa a come sono sembrati ultimamente",
+        "step2": "Invia una domanda diretta che apra la porta",
+        "step3": "Ascolta senza affrettarti a sistemare tutto"
+      },
+      "celebrateWin": {
+        "title": "Celebrare una vittoria",
+        "desc": "Riconosci qualcosa di specifico che hanno realizzato — conta.",
+        "notes": "Sii specifico. Le lodi generiche atterrano diversamente da 'Ho notato quello che hai fatto.'",
+        "step1": "Nomina la cosa specifica che stai celebrando",
+        "step2": "Invia un messaggio sincero e senza fretta"
+      },
+      "gratitude": {
+        "title": "Esprimere gratitudine",
+        "desc": "Digli cosa apprezzi di loro — specificamente.",
+        "notes": "La specificità è tutto. Menziona la cosa esatta.",
+        "step1": "Pensa a una cosa che hanno fatto che significava qualcosa",
+        "step2": "Scrivilo — più è specifico, più risuona",
+        "step3": "Invialo"
+      },
+      "friendReconnect": {
+        "title": "Riconnettersi",
+        "desc": "Ricontatta dopo un'interruzione — senza pressione, solo per salutare.",
+        "notes": "Non è necessario spiegare l'interruzione. Presentati e basta.",
+        "step1": "Scrivi un messaggio breve e caloroso — nessuna lunga spiegazione",
+        "step2": "Fai una domanda aperta per far scorrere la conversazione",
+        "step3": "Premi invia e lascialo aperto"
+      },
+      "friend36q": {
+        "title": "36 Domande",
+        "desc": "La conversazione di costruzione della vicinanza di Arthur Aron — provata e testata.",
+        "notes": "Fai le domande in ordine. Entrambi rispondono a ciascuna.",
+        "step1": "Scegli un posto confortevole con almeno 90 minuti",
+        "step2": "Rispondete a turno alle domande del Set 1 (1–12)",
+        "step3": "Passa al Set 2 (13–24) quando siete entrambi pronti",
+        "step4": "Finisci con il Set 3 (25–36) e il contatto visivo di 4 minuti"
+      },
+      "friendSupport": {
+        "title": "Esserci per loro",
+        "desc": "Contatta qualcuno che sta attraversando un momento difficile.",
+        "notes": "Chiedi di cosa hanno bisogno invece di presumere. Essere presenti è sufficiente.",
+        "step1": "Fai un check-in delicato — 'Ho pensato a te'",
+        "step2": "Chiedi cosa aiuterebbe: sfogarsi, risolvere problemi, o semplicemente non essere soli?",
+        "step3": "Segui il loro ritmo — non cercare di aggiustare, ascolta solo",
+        "step4": "Ricontatta tra qualche giorno"
+      },
+      "romanticAppreciation": {
+        "title": "Momento di apprezzamento",
+        "desc": "Digli qualcosa di specifico che apprezzi — reale, non generico.",
+        "notes": "Nota una cosa che hanno fatto o sono questa settimana. Dillo.",
+        "step1": "Pensa a qualcosa di specifico che hanno fatto o detto di recente",
+        "step2": "Dillo loro — di persona, per messaggio o un biglietto veloce"
+      },
+      "romanticDateIdea": {
+        "title": "Proporre un'idea per un appuntamento",
+        "desc": "Suggerisci qualcosa di semplice e intenzionale — non è necessaria una pianificazione elaborata.",
+        "notes": "Il semplice funziona. L'intenzione è ciò che conta.",
+        "step1": "Pensa a un'idea tranquilla che entrambi apprezziate",
+        "step2": "Proponila calorosamente — 'E se facessimo X?'",
+        "step3": "Conferma i dettagli una volta che sono a bordo"
+      },
+      "romanticQuality": {
+        "title": "Tempo intenzionale insieme",
+        "desc": "Pianifica tempo che riguardi davvero solo lo stare insieme — nessuna commissione, nessuno schermo.",
+        "notes": "Proteggi il tempo. Disattiva le notifiche.",
+        "step1": "Scegli un blocco di tempo e proteggilo",
+        "step2": "Scegli qualcosa che entrambi apprezziate",
+        "step3": "Sii completamente presente"
+      },
+      "romanticCheckin": {
+        "title": "Check-in di coppia",
+        "desc": "Una conversazione tranquilla su come vi sentite entrambi come coppia.",
+        "notes": "Non riguarda i problemi — riguarda il rimanere connessi. Usa le affermazioni in 'Io'.",
+        "step1": "Concordate un momento tranquillo senza pressione temporale",
+        "step2": "Ognuno condivide una cosa che è andata bene e una che richiede attenzione",
+        "step3": "Parlate di cosa ognuno ha bisogno di più",
+        "step4": "Chiudi con un apprezzamento reciproco"
+      },
+      "romanticDreams": {
+        "title": "Conversazione dei sogni",
+        "desc": "Parlate di cosa sperate ognuno nella vita — non di logistica, solo di sogni.",
+        "notes": "Rimani curioso, non valutativo. Riguarda la comprensione, non il decidere.",
+        "step1": "Riserva un'ora rilassata",
+        "step2": "Ognuno condivide un sogno personale — qualcosa che si dice raramente ad alta voce",
+        "step3": "Fai domande di follow-up e ascolta profondamente"
+      },
+      "familyUpdate": {
+        "title": "Aggiornamento familiare rapido",
+        "desc": "Condividi un piccolo aggiornamento sulla vita e chiedi come stanno.",
+        "notes": "Anche un breve messaggio mantiene calda la relazione.",
+        "step1": "Pensa a una cosa della tua settimana che vale la pena condividere",
+        "step2": "Inviala con una semplice domanda su di loro"
+      },
+      "familyPhoto": {
+        "title": "Condividere un ricordo",
+        "desc": "Invia una vecchia foto o un ricordo che ti ha fatto sorridere — e pensare a loro.",
+        "notes": "Semplice, caloroso e impiega due minuti.",
+        "step1": "Trova una foto o un ricordo che li riguardi",
+        "step2": "Inviala con un breve messaggio su cosa significa per te"
+      },
+      "familyCall": {
+        "title": "Chiamata di ritrovo familiare",
+        "desc": "Programma una vera chiamata telefonica o video — nessuna agenda, solo connessione.",
+        "notes": "Offri alcune fasce orarie per ridurre l'attrito.",
+        "step1": "Contattali per verificare la loro disponibilità",
+        "step2": "Fissa un momento preciso per farlo davvero accadere",
+        "step3": "Chiama e lascia che la conversazione scorra naturalmente"
+      },
+      "familyHelp": {
+        "title": "Offrire aiuto concreto",
+        "desc": "Fai un'offerta specifica — non 'fammi sapere se hai bisogno di qualcosa.'",
+        "notes": "Le offerte specifiche sono più facili da accettare di quelle aperte.",
+        "step1": "Pensa a una cosa concreta che puoi genuinamente offrire",
+        "step2": "Contattali con l'offerta — rendila facile da accettare"
+      },
+      "acquaintanceCongrats": {
+        "title": "Inviare congratulazioni",
+        "desc": "Riconosci un traguardo o un risultato che hanno condiviso.",
+        "notes": "Breve e caloroso è perfetto.",
+        "step1": "Annota la cosa specifica per cui li stai congratulando",
+        "step2": "Invia un breve messaggio sincero"
+      },
+      "acquaintanceReconnect": {
+        "title": "Riconnessione leggera",
+        "desc": "Un messaggio tranquillo dopo che è passato del tempo.",
+        "notes": "Non è necessaria alcuna spiegazione per l'interruzione.",
+        "step1": "Scrivi un messaggio rilassato e caloroso",
+        "step2": "Fai una semplice domanda per invitare una risposta"
+      },
+      "acquaintanceCoffee": {
+        "title": "Suggerire un caffè",
+        "desc": "Proponi un incontro tranquillo per conoscerli meglio.",
+        "notes": "Rendilo facile da accettare. 'Nessuna agenda, solo chiacchiere' toglie la pressione.",
+        "step1": "Contattali e suggerisci un semplice incontro",
+        "step2": "Concordate un momento e un posto",
+        "step3": "Presentati con curiosità"
+      },
+      "coworkerRecognition": {
+        "title": "Riconoscere il loro lavoro",
+        "desc": "Evidenzia qualcosa di specifico che hanno fatto bene.",
+        "notes": "Sii specifico su cosa hanno fatto e perché era importante.",
+        "step1": "Nomina la cosa specifica che hanno fatto",
+        "step2": "Invia una nota di riconoscimento diretta e sincera"
+      },
+      "coworkerCasual": {
+        "title": "Check-in non lavorativo",
+        "desc": "Chiedi come stanno al di là della lista dei compiti.",
+        "notes": "Una semplice domanda umana costruisce un vero rapporto nel tempo.",
+        "step1": "Trova un momento naturale — pausa, pranzo o un DM",
+        "step2": "Fai una vera domanda non lavorativa"
+      },
+      "coworkerLunch": {
+        "title": "Pranzo o caffè",
+        "desc": "Proponi un pranzo o caffè tranquillo senza agenda di lavoro.",
+        "notes": "La parte 'nessuna agenda di lavoro' fa una vera differenza.",
+        "step1": "Contattali e proponi un giorno",
+        "step2": "Trova un momento che vada bene per entrambi"
+      },
+      "coworkerFeedback": {
+        "title": "Chiedere feedback",
+        "desc": "Richiedi feedback onesto e orientato alla crescita da qualcuno di cui ti fidi.",
+        "notes": "Sii specifico sull'area. Sii pronto ad ascoltare senza difenderti.",
+        "step1": "Decidi su quale area vuoi feedback",
+        "step2": "Chiedi con genuina curiosità",
+        "step3": "Ascolta pienamente, di' grazie, prendi appunti"
+      },
+      "bossUpdate": {
+        "title": "Aggiornamento proattivo",
+        "desc": "Condividi un breve aggiornamento dello stato prima di essere chiesto.",
+        "notes": "La comunicazione proattiva costruisce fiducia e riduce l'ansia da entrambe le parti.",
+        "step1": "Riassumi la situazione in 2–3 frasi",
+        "step2": "Annota eventuali blocchi o cose di cui hai bisogno",
+        "step3": "Invialo — chiaro è meglio di perfetto"
+      },
+      "boss1on1": {
+        "title": "Preparazione 1:1",
+        "desc": "Preparati per il tuo 1:1 regolare per usare bene il tempo.",
+        "notes": "Vieni con domande e argomenti. Segnala che apprezzi il tempo.",
+        "step1": "Rivedi gli elementi aperti o i blocchi che vuoi sollevare",
+        "step2": "Annota una cosa su cui vuoi feedback",
+        "step3": "Scrivi una domanda su crescita o direzione",
+        "step4": "Entra con la tua lista — sii tu a guidare l'agenda"
+      },
+      "bossGrowth": {
+        "title": "Conversazione di crescita",
+        "desc": "Richiedi una conversazione focalizzata sul tuo sviluppo e direzione.",
+        "notes": "Vieni con un'area o domanda specifica. Rendilo facile aiutarti.",
+        "step1": "Decidi in cosa vuoi crescere o capire",
+        "step2": "Richiedi una breve riunione — '20 minuti sul mio sviluppo'",
+        "step3": "Nella riunione: condividi il tuo obiettivo, fai una domanda chiara"
+      },
+      "neighborHello": {
+        "title": "Dire ciao",
+        "desc": "Un semplice e caloroso ciao al tuo vicino.",
+        "notes": "Il vicinato è sottovalutato. Un breve ciao va lontano.",
+        "step1": "Saluta, bussa, o invia un breve biglietto",
+        "step2": "Tienilo breve e caloroso"
+      },
+      "neighborHangout": {
+        "title": "Ritrovo con il vicino",
+        "desc": "Suggerisci di incontrarsi per un drink o caffè.",
+        "notes": "Tranquillo e locale rende tutto più facile.",
+        "step1": "Fai il suggerimento — casual e aperto",
+        "step2": "Concordate un momento"
+      },
+      "onlineGaming": {
+        "title": "Sessione di gioco",
+        "desc": "Pianifica una vera sessione online — non solo 'un giorno'.",
+        "notes": "Pianificarlo lo rende reale. Fissa un orario e mantienilo.",
+        "step1": "Concordate un gioco e un giorno",
+        "step2": "Fissa un'ora precisa e connettiti"
+      },
+      "onlineVideo": {
+        "title": "Ritrovo video",
+        "desc": "Vedetevi davvero faccia a faccia — anche online.",
+        "notes": "Le videochiamate sembrano più vicine del testo. Vale la pena pianificarle.",
+        "step1": "Suggerisci una data e un'ora",
+        "step2": "Concordate e mettitelo in calendario",
+        "step3": "Presentati e stai insieme"
+      }
+    }
+  },
+  "settings": "Impostazioni",
+  "loading": "Caricamento…",
+  "deleteLabel": "Elimina",
+  "editLabel": "Modifica",
+  "saveLabel": "Salva",
+  "confirmLabel": "Conferma",
+  "cancelLabel": "Annulla",
+  "addTask": "Aggiungi attività",
+  "taskPlaceholder": "Inserisci il titolo dell'attività",
+  "breakIntoSteps": "Scomponi in passaggi",
+  "stepPrompt": "Inserisci un sotto-passaggio",
+  "pomodoroSection": "I timer Pomodoro e le barre di avanzamento della checklist appariranno qui.",
+  "categoryLabel": "Categoria",
+  "amountLabel": "Importo",
+  "periodLabel": "Periodo",
+  "notesLabel": "Note",
+  "addBudget": "Aggiungi voce di budget",
+  "emptyBudget": "Nessuna voce di budget ancora.",
+  "titleLabel": "Titolo",
+  "pointsRequiredLabel": "Punti richiesti",
+  "descriptionLabel": "Descrizione",
+  "addReward": "Aggiungi premio",
+  "emptyRewards": "Nessun premio ancora.",
+  "redeemedLabel": "Riscattato",
+  "toggleRedeemed": "Attiva/disattiva riscattato",
+  "yesLabel": "Sì",
+  "noLabel": "No",
+  "languageToggle": "Español",
+  "languageToggleHelper": "Cambia lingua senza lasciare l'onboarding. Il pulsante rimane nello stesso posto prevedibile.",
+  "ttsToggleHelper": "Attiva o disattiva i promemoria di sintesi vocale dalle preferenze di accessibilità.",
+  "calendarPlaceholder": "Il calendario mostrerà eventi codificati a colori con promemoria TTS.",
+  "calendarIntro": "Pianifica la tua giornata o settimana con colori delicati e promemoria gentili.",
+  "calendarViewLabel": "Vista",
+  "calendarDayView": "Giorno",
+  "calendarWeekView": "Settimana",
+  "calendarSelectDate": "Data",
+  "calendarStartLabel": "Ora di inizio",
+  "calendarEndLabel": "Ora di fine",
+  "calendarLocationLabel": "Luogo",
+  "calendarDescriptionLabel": "Descrizione",
+  "calendarTaskLinkLabel": "Attività collegata",
+  "calendarTaskLinkNone": "Nessuna attività collegata",
+  "calendarReminderLabel": "Promemoria minuti prima",
+  "calendarAddEvent": "Aggiungi evento",
+  "calendarSaveEvent": "Salva evento",
+  "calendarResetForm": "Reimposta modulo",
+  "calendarTasksToConvert": "Converti attività in eventi",
+  "calendarConvertTask": "Converti in evento",
+  "calendarNoTasksToConvert": "Nessuna attività pronta da convertire.",
+  "calendarEventsHeading": "Eventi programmati",
+  "calendarNoEvents": "Nessun evento ancora.",
+  "calendarEmptyDay": "Nessun evento programmato.",
+  "calendarReadEvent": "Leggi questo evento",
+  "calendarLinkedTask": "Attività collegata: {{title}}",
+  "calendarAtLocation": "A {{location}}",
+  "calendarTimeUnknown": "Ora non disponibile",
+  "calendarConfirmDelete": "Eliminare l'evento {{title}}? L'attività collegata non verrà eliminata.",
+  "settingsDescription": "Personalizza le preferenze di accessibilità e controlla la gamificazione.",
+  "settingsFontOption": "Scegli tra caratteri standard e adatti alla dislessia.",
+  "settingsThemeOption": "Attiva/disattiva la modalità chiara/scura.",
+  "settingsMotionOption": "Riduci o attiva le animazioni.",
+  "settingsTtsOption": "Attiva o disattiva i promemoria di sintesi vocale.",
+  "settingsGamificationOption": "Mostra o nascondi punti e serie.",
+  "settingsThemeLabel": "Modalità tema",
+  "settingsThemeHelper": "Scegli chiaro, scuro o alto contrasto per ridurre l'affaticamento visivo.",
+  "settingsFontLabel": "Stile di lettura",
+  "settingsFontHelper": "Passa ai caratteri adatti alla dislessia o al testo più grande per una lettura più stabile.",
+  "settingsMotionLabel": "Preferenza di movimento",
+  "settingsMotionHelper": "Riduci il movimento per diminuire il carico sensoriale; animiamo solo l'essenziale.",
+  "settingsTtsLabel": "Promemoria di sintesi vocale",
+  "settingsTtsHelper": "Mantieni i segnali udibili se preferisci i promemoria letti ad alta voce.",
+  "settingsCurrentValue": "Attuale: {{value}}",
+  "onboarding": {
+    "intro": "Completa questo rapido onboarding per sbloccare Attività, Calendario, Budget, Premi e Impostazioni.",
+    "progress": "Passaggio {{current}} di {{total}}",
+    "stepSection": "Passaggio di onboarding",
+    "flow": {
+      "autosave": "Il tuo progresso viene salvato dopo ogni modifica per permetterti di fare una pausa e tornare.",
+      "resume": "Riapriamo il passaggio esatto dove ti eri fermato per mantenere la sequenza prevedibile.",
+      "validationReminder": "Completa il passaggio corrente per abilitare Avanti.",
+      "reset": "Ricomincia da capo"
+    },
+    "predictableSteps": {
+      "accessibility": "Passaggio 1 di 4: Scegli testo, contrasto, movimento e TTS prima di continuare.",
+      "neurodivergence": "Passaggio 2 di 4: Scegli un preset e supporti per alimentare le raccomandazioni.",
+      "quickSetup": "Passaggio 3 di 4: Inserisci un obiettivo e un budget iniziale per popolare le dashboard.",
+      "tour": "Passaggio 4 di 4: Conferma le preferenze di navigazione e promemoria per sapere dove tornare."
+    },
+    "languageToggle": {
+      "aria": "Cambia lingua dell'app. Il pulsante mostra la lingua di destinazione: {{language}}.",
+      "helper": "Mantieni il pulsante di lingua visibile per una navigazione prevedibile."
+    },
+    "ttsToggle": {
+      "aria": "Attiva/disattiva i promemoria di sintesi vocale per avvisi accessibili.",
+      "helper": "I promemoria vocali possono essere attivati o disattivati in qualsiasi momento."
+    },
+    "next": "Avanti",
+    "back": "Indietro",
+    "finish": "Fine",
+    "accessibility": {
+      "title": "Preferenze di accessibilità",
+      "subtitle": "Seleziona le opzioni di lettura e sensoriali che ti mantengono a tuo agio.",
+      "helper": "Applichiamo queste impostazioni di leggibilità e sensoriali ovunque per un layout coerente e prevedibile.",
+      "readability": "Leggibilità",
+      "dyslexicFont": "Stile OpenDyslexic",
+      "standardFont": "Testo standard",
+      "largeText": "Testo più grande",
+      "contrast": "Contrasto",
+      "highContrast": "Alto contrasto",
+      "balancedContrast": "Contrasto bilanciato",
+      "motion": "Movimento",
+      "reduceMotion": "Riduci movimento",
+      "allowMotion": "Consenti movimento delicato",
+      "tts": "Attiva promemoria di sintesi vocale",
+      "ttsHelper": "Mantieni i segnali udibili se preferisci i promemoria letti ad alta voce."
+    },
+    "neurodivergence": {
+      "title": "Preset di neurodivergenza",
+      "subtitle": "Scegli un preset per precaricare i valori predefiniti di supporto.",
+      "helper": "Scegli un punto di partenza; puoi regolare i supporti in seguito senza perdere la prevedibilità.",
+      "presetHeading": "Scegli un preset",
+      "supportsHeading": "Quali supporti aiutano di più?",
+      "appliedBadge": "Impostazioni applicate ✓",
+      "skipManual": "Salta / imposta manualmente",
+      "adhd": {
+        "title": "ADHD",
+        "desc": "Attività suddivise, timer di focus, avvisi delicati."
+      },
+      "asd": {
+        "title": "Autistico",
+        "desc": "Layout prevedibili, calma sensoriale, aiuti per le routine."
+      },
+      "dyslexia": {
+        "title": "Dislessia",
+        "desc": "Caratteri leggibili, suggerimenti di ritmo, passaggi semplificati."
+      },
+      "auditory": {
+        "title": "Elaborazione uditiva",
+        "desc": "Segnali visivi, sottotitoli e velocità del parlato più lenta."
+      },
+      "supports": {
+        "focus": "Suggerimenti di focus e ritmo",
+        "sensory": "Pause sensoriali e temi tranquilli",
+        "time": "Supporto per la cecità temporale",
+        "money": "Coaching per la gestione del denaro"
+      }
+    },
+    "quickSetup": {
+      "title": "Obiettivi rapidi e budget",
+      "subtitle": "Cattura un obiettivo e un budget iniziale per popolare le tue dashboard.",
+      "helper": "Chiediamo solo un obiettivo e un budget semplice per poter finire rapidamente e mantenere i passaggi prevedibili.",
+      "goalLabel": "In cosa dovremmo aiutarti prima?",
+      "goalPlaceholder": "Esempio: Finire il progetto di metà corso entro venerdì",
+      "goalHint": "Creeremo un'attività iniziale e promemoria basati su questo obiettivo.",
+      "budgetLabel": "Focus del budget mensile",
+      "budgetPlaceholder": "Inserisci un importo",
+      "budgetHint": "Usa un numero tondo — ti aiuteremo a perfezionare le categorie in seguito.",
+      "seedIncomeSource": "Reddito iniziale",
+      "preview": "Anteprima di ciò che verrà creato:",
+      "previewTasks": "Lista attività avviata con: {{goal}}",
+      "previewBudget": "Tracker budget impostato a: {{budget}}"
+    },
+    "tour": {
+      "title": "Mini tour",
+      "subtitle": "Conferma che sai dove si trovano le cose e se vuoi promemoria delicati.",
+      "helper": "Questo passaggio finale conferma la navigazione in modo che l'app si apra sempre su dashboard prevedibili.",
+      "summary": "Vedrai le dashboard per Attività, Calendario, Budget e Premi una volta completato questo passaggio.",
+      "items": {
+        "tasks": "Attività: scomponi i progetti in passaggi amichevoli.",
+        "calendar": "Calendario: eventi codificati a colori con promemoria.",
+        "budget": "Budget: monitora entrate, spese e avanzamento.",
+        "rewards": "Premi: serie e punti opzionali."
+      },
+      "reminders": "Invia un breve promemoria per tornare se faccio una pausa",
+      "acknowledge": "Capisco come aprire queste sezioni"
+    },
+    "summary": {
+      "title": "Le tue selezioni",
+      "accessibility": "Accessibilità",
+      "neurodivergence": "Neurodivergenza",
+      "quickSetup": "Configurazione rapida",
+      "tour": "Conferma tour",
+      "textStyle": "Stile testo: {{value}}",
+      "contrast": "Contrasto: {{value}}",
+      "motion": "Movimento: {{value}}",
+      "tts": "Sintesi vocale: {{value}}",
+      "preset": "Preset: {{value}}",
+      "supports": "Supporti: {{value}}",
+      "goal": "Obiettivo: {{value}}",
+      "budget": "Budget: {{value}}",
+      "reminders": "Promemoria: {{value}}",
+      "acknowledged": "Capisce la navigazione: {{value}}",
+      "none": "Nessuno selezionato",
+      "enabled": "Attivato",
+      "disabled": "Disattivato",
+      "yes": "Sì",
+      "no": "No"
+    }
+  },
+  "sync": {
+    "entity": {
+      "task": "Attività",
+      "event": "Evento",
+      "transaction": "Transazione"
+    },
+    "reviewTitle": "Revisione sincronizzazione offline",
+    "reviewHelper": "Rivedi le modifiche che non hanno ancora potuto sincronizzarsi e scegli quale versione conservare.",
+    "reviewEmpty": "Nessun conflitto di sincronizzazione da rivedere.",
+    "reviewConflictLabel": "Conflitto in {{entity}}",
+    "reviewDetected": "Rilevato: {{timestamp}}",
+    "reviewKeepLocal": "Mantieni le mie modifiche",
+    "reviewUseRemote": "Usa la versione del server"
+  },
+  "calendarSuggestedFocusHeading": "Finestre di focus suggerite",
+  "calendarSuggestedFocusHelper": "Posizioniamo automaticamente fino a tre attività non programmate in blocchi di tempo aperti per questo giorno.",
+  "calendarSuggestedFocusWindow": "{{window}} · {{minutes}} min",
+  "calendarSuggestedFocusEmpty": "Nessuna finestra aperta si adatta alle tue attività non programmate in questo momento.",
+  "calendarScheduleSuggestion": "Programma questa finestra",
+  "routines": {
+    "title": "Routine",
+    "description": "Le abitudini si accumulano. Una routine mattutina di 30 minuti eseguita in modo coerente per 90 giorni crea più cambiamento di un piano perfetto eseguito una volta.",
+    "empty": "Nessuna routine ancora.",
+    "emptyBody": "Una singola routine coerente — anche 10 minuti — è più preziosa di qualsiasi app, libro o piano. Inizia con una cosa che vuoi fare ogni giorno. Costruisci da lì.",
+    "emptyCta": "Costruisci la tua prima routine",
+    "addHeading": "Nuova routine",
+    "titleLabel": "Nome della routine",
+    "titlePlaceholder": "Routine mattutina",
+    "descriptionLabel": "Descrizione (opzionale)",
+    "frequencyLabel": "Frequenza",
+    "frequencyDaily": "Quotidiano",
+    "frequencyWeekly": "Settimanale",
+    "frequencyCustom": "Personalizzato",
+    "triggerTimeLabel": "Ora di attivazione (opzionale)",
+    "stepsLabel": "Passaggi",
+    "stepPlaceholder": "Passaggio {{index}}",
+    "addStep": "Aggiungi passaggio",
+    "removeStep": "Rimuovi passaggio {{index}}",
+    "addRoutine": "Aggiungi routine",
+    "saveRoutine": "Salva modifiche",
+    "cancelEdit": "Annulla",
+    "confirmDelete": "Eliminare la routine \"{{title}}\"?",
+    "completeButton": "Segna come fatto per oggi",
+    "dueBadge": "In scadenza oggi",
+    "doneBadge": "Fatto",
+    "errorTitleRequired": "Il nome della routine è obbligatorio.",
+    "stepsHeading": "Passaggi",
+    "toggleStep": "Attiva/disattiva passaggio {{label}}",
+    "editLabel": "Modifica {{title}}",
+    "deleteLabel": "Elimina {{title}}",
+    "anchorLabel": "Aggancia a un'abitudine (opzionale)",
+    "anchorPlaceholder": "es. Dopo il caffè mattutino",
+    "anchorHelper": "Stacking di abitudini: collega un nuovo comportamento a uno che già fai automaticamente. La ricerca di BJ Fogg mostra che questo raddoppia il successo dell'implementazione rispetto a partire da zero.",
+    "anchorDisplay": "Dopo {{habit}}, farò questa routine",
+    "streakDotsAria": "Ultimi 21 giorni: {{completed}} completati",
+    "tpl": {
+      "showGallery": "🔬 Sfoglia protocolli basati sulla ricerca",
+      "hideGallery": "Nascondi libreria di protocolli",
+      "addRoutine": "→ Aggiungi questa routine",
+      "cat": {
+        "morning": "Mattino",
+        "evening": "Sera",
+        "weekly": "Settimanale",
+        "focus": "Focus",
+        "health": "Salute"
+      },
+      "hubermanMorning": {
+        "title": "Protocollo Mattutino Huberman",
+        "why": "Morning light exposure sets your circadian clock, cortisol peak drives alertness, and delaying caffeine prevents afternoon crashes."
+      },
+      "morningPages": {
+        "title": "Pagine del Mattino",
+        "why": "Longhand writing before screens clears mental noise, surfaces subconscious concerns, and trains creative thinking over time."
+      },
+      "deepWorkLaunch": {
+        "title": "Avvio Lavoro Profondo",
+        "why": "Protecting your peak cognitive hours for deep work — before reactive communication — compounds output over weeks."
+      },
+      "exerciseMorning": {
+        "title": "Esercizio Mattutino",
+        "why": "Morning exercise boosts dopamine, serotonin, and BDNF for the next 4–6 hours. Doing it first removes the decision entirely."
+      },
+      "hubermanEvening": {
+        "title": "Protocollo Serale Huberman",
+        "why": "Bright light after sunset delays melatonin by up to 3 hours. Dimming lights early accelerates sleep onset and improves deep-sleep quality."
+      },
+      "powerDownHour": {
+        "title": "Ora di Spegnimento",
+        "why": "A structured wind-down signals the nervous system to shift from sympathetic to parasympathetic — making sleep faster and deeper."
+      },
+      "eveningReview": {
+        "title": "Revisione Serale",
+        "why": "Stoic journaling lowers rumination by externalizing thoughts, and gratitude practice measurably improves mood and sleep quality."
+      },
+      "tomorrowPrep": {
+        "title": "Preparazione del Domani",
+        "why": "Pre-deciding tomorrow removes decision fatigue at the start of the next day and closes the Zeigarnik loop on open tasks."
+      },
+      "weeklyReview": {
+        "title": "Revisione Settimanale",
+        "why": "Weekly reviews catch drift before it compounds. Reviewing what blocked you turns repeated failures into system improvements."
+      },
+      "healthAudit": {
+        "title": "Audit Settimanale della Salute",
+        "why": "What gets measured gets managed. A 15-min weekly audit creates accountability without adding shame or complexity."
+      },
+      "pomodoroBlock": {
+        "title": "Blocco Focus Pomodoro",
+        "why": "Fixed-interval focus with scheduled breaks matches natural ultradian rhythms and prevents the mental fatigue of open-ended work sessions."
+      },
+      "noPhoneMorning": {
+        "title": "Mattino Senza Telefono",
+        "why": "Checking your phone first thing puts you in reactive mode. One hour of phone-free time builds internal focus before external demands hit."
+      },
+      "zone2Cardio": {
+        "title": "Cardio Zona 2",
+        "why": "Zone 2 cardio is the single highest-ROI exercise for metabolic health, mitochondrial density, and longevity. 3–4 sessions/week is the minimum effective dose."
+      },
+      "mobility": {
+        "title": "Routine di Mobilità Quotidiana",
+        "why": "Ten minutes of daily mobility prevents the chronic tightness that leads to injury. Done consistently, it reverses years of desk posture."
+      }
+    },
+    "gallery": {
+      "heading": "Libreria di modelli di routine",
+      "subtitle": "Routine basate sulla ricerca. Scegline una per aggiungerla al tuo programma.",
+      "filterAria": "Filtra per categoria",
+      "allFilter": "Tutte",
+      "stepsPreview": "Anteprima passaggi",
+      "moreSteps_one": "+ {{count}} altro passaggio",
+      "moreSteps_other": "+ {{count}} altri passaggi",
+      "addCta": "→ Aggiungi questa routine",
+      "empty": "Nessun modello in questa categoria ancora.",
+      "daily": "Quotidiano",
+      "weekly": "Settimanale",
+      "addAria": "Aggiungi routine: {{title}}"
+    }
+  },
+  "win": {
+    "closeAria": "Chiudi celebrazione",
+    "shareCta": "↗ Condividi questa vittoria",
+    "copied": "✓ Copiato negli appunti!",
+    "shareError": "Impossibile condividere",
+    "keepGoing": "Continua →",
+    "streak": {
+      "headline": "Serie di {{days}} giorni",
+      "sub": "La costanza è l'interesse composto dello sforzo. Continua."
+    },
+    "allTasksDone": {
+      "headline": "Tutto fatto oggi",
+      "sub": "Ti sei presentato. È tutto il gioco."
+    },
+    "routineComplete": {
+      "headline": "Routine completata",
+      "sub": "Hai appena vinto la tua mattina. Questo si accumula."
+    },
+    "budgetGoal": {
+      "headline": "Obiettivo di budget raggiunto",
+      "sub": "Una categoria dominata. Ogni numero che affronti, ti appartiene."
+    },
+    "firstTask": {
+      "headline": "Prima attività creata",
+      "sub": "Il tuo cervello può rilassarsi ora. È nel sistema."
+    },
+    "firstRoutine": {
+      "headline": "Prima routine costruita",
+      "sub": "La spina dorsale della tua mattina è appena diventata più forte."
+    },
+    "levelUp": {
+      "headline": "Livello {{level}} raggiunto",
+      "sub": "La crescita non è lineare — ma stai avanzando."
+    }
+  },
+  "welcomeBack": {
+    "title": "Bentornato — eri assente per {{days}}.",
+    "daysSingular": "1 giorno",
+    "daysPlural": "{{count}} giorni",
+    "message0": "La vita è accaduta. Va bene così.",
+    "message1": "Nessun giudizio qui — solo dove ti eri fermato.",
+    "message2": "La parte più difficile è tornare. L'hai appena fatto.",
+    "message3": "Ogni ripartenza conta. Bentornato.",
+    "continueCta": "Riprendi da dove mi ero fermato",
+    "freshStartCta": "Ricomincia fresco oggi"
+  },
+  "upgrade": {
+    "premiumBadge": "✦ Premium",
+    "upgradeCta": "Aggiorna",
+    "tryFree": "Prova gratis",
+    "regionAria": "Aggiorna per accedere a questa funzione",
+    "title": "{{feature}} è una funzione premium",
+    "subtitle": "Inizia la tua prova gratuita di 10 giorni — nessuna carta di credito richiesta.",
+    "startTrial": "Inizia la prova gratuita di 10 giorni",
+    "seePlans": "Vedi i piani",
+    "pricing": "12 €/mese · o 10 €/mese fatturato annualmente"
+  },
+  "pricing": {
+    "heading": "Prezzi semplici e onesti",
+    "subheading": "Inizia gratis. Aggiorna quando sei pronto.",
+    "monthly": "Mensile",
+    "yearly": "Annuale",
+    "saveBadge": "Risparmia il 17%",
+    "freePlanLabel": "Gratuito",
+    "freeForever": "Gratuito per sempre",
+    "premiumPlanLabel": "Premium",
+    "perMonth": "/mese",
+    "billedYearly": "fatturato annualmente · risparmia 24 €/anno",
+    "billedMonthly": "fatturato mensilmente",
+    "startTrial": "Inizia la prova gratuita di {{days}} giorni",
+    "noCard": "Nessuna carta di credito richiesta per la prova",
+    "trialConfirmed": "🎉 Prova attivata! Portale di fatturazione in arrivo.",
+    "trialConfirmedSub": "Il tuo account è stato registrato. Ti invieremo un'email quando la fatturazione sarà pronta.",
+    "activating": "Attivazione…",
+    "activated": "✓ Premium attivato!",
+    "trialError": "Impossibile attivare la prova",
+    "tryAgain": "Riprova",
+    "redirecting": "Sblocco delle funzioni premium…",
+    "currentPlan": "Piano attuale",
+    "freePlanCta": "Continua con Gratuito",
+    "faq": "Annulla in qualsiasi momento. Declassa al gratuito in qualsiasi momento — i tuoi dati rimangono al sicuro.",
+    "redirectingToBilling": "Reindirizzamento alla fatturazione…",
+    "feature": {
+      "tasks": "Creazione di attività e micro-passaggi",
+      "calendar": "Vista calendario",
+      "budget": "Monitoraggio di base del budget",
+      "aiOne": "1 suggerimento gratuito IA per la pianificazione",
+      "everything": "Tutto nel Gratuito",
+      "social": "Piani sociali e promemoria delicati",
+      "routines": "Costruttore di routine",
+      "rewards": "Premi e serie",
+      "aiUnlimited": "Suggerimenti IA illimitati",
+      "sync": "Sincronizzazione multi-dispositivo",
+      "support": "Supporto prioritario"
+    }
+  },
+  "calendarWeeklyGridAria": "Calendario settimanale"
+}

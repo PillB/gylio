@@ -15,6 +15,7 @@ import {
   buildSuggestedEventInput,
   formatDateTimeInputValue,
 } from '../features/calendar/utils/eventConversions';
+import { WeeklyGrid } from '../features/calendar/components/WeeklyGrid';
 
 const getDateKey = (value) => {
   if (!value) return null;
@@ -39,7 +40,7 @@ const toDateTimeInputValue = (value) => {
 };
 
 const CalendarView = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { ready, getEvents, insertEvent, updateEvent, deleteEvent, getTasks, updateTask } = useDB();
   const { speak } = useAccessibility();
   const { theme } = useTheme();
@@ -48,6 +49,7 @@ const CalendarView = () => {
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState('week');
   const [selectedDate, setSelectedDate] = useState(() => formatDateInputValue(new Date()));
+  const [addFormOpen, setAddFormOpen] = useState(false);
   const [form, setForm] = useState({
     title: '',
     description: '',
@@ -58,6 +60,7 @@ const CalendarView = () => {
     reminderMinutesBefore: ''
   });
   const [editingId, setEditingId] = useState(null);
+  const [deletingEventId, setDeletingEventId] = useState(null);
   const [editFields, setEditFields] = useState({
     title: '',
     description: '',
@@ -264,9 +267,6 @@ const CalendarView = () => {
   };
 
   const removeEvent = (event) => {
-    const confirmed = window.confirm(t('calendarConfirmDelete', { title: event.title }));
-    if (!confirmed) return;
-
     deleteEvent(event.id)
       .then(async (deleted) => {
         if (deleted) {
@@ -281,6 +281,9 @@ const CalendarView = () => {
       })
       .catch((error) => {
         console.error('Failed to delete event', error);
+      })
+      .finally(() => {
+        setDeletingEventId(null);
       });
   };
 
@@ -326,25 +329,27 @@ const CalendarView = () => {
 
   const dateFormatter = useMemo(
     () =>
-      new Intl.DateTimeFormat(undefined, {
+      new Intl.DateTimeFormat(i18n.language, {
         weekday: 'short',
         month: 'short',
         day: 'numeric'
       }),
-    []
+    [i18n.language]
   );
 
   const timeFormatter = useMemo(
     () =>
-      new Intl.DateTimeFormat(undefined, {
+      new Intl.DateTimeFormat(i18n.language, {
         hour: 'numeric',
         minute: '2-digit'
       }),
-    []
+    [i18n.language]
   );
 
   const displayedDates = useMemo(() => {
-    const base = new Date(selectedDate);
+    // Parse as local date to avoid UTC-offset shifting (new Date("YYYY-MM-DD") is UTC midnight)
+    const [y, mo, d] = selectedDate.split('-').map(Number);
+    const base = new Date(y, mo - 1, d);
     if (Number.isNaN(base.getTime())) return [];
     if (viewMode === 'day') {
       return [base];
@@ -378,7 +383,7 @@ const CalendarView = () => {
       tasks,
       events,
       selectedDate,
-      timezoneOffsetMinutes: new Date().getTimezoneOffset() * -1,
+      timezoneOffsetMinutes: new Date().getTimezoneOffset(),
       dayStartHour: 8,
       dayEndHour: 20,
       defaultDurationMinutes: 25,
@@ -386,6 +391,51 @@ const CalendarView = () => {
     });
   }, [events, selectedDate, tasks]);
 
+  const weekStart = useMemo(() => {
+    const d = new Date(selectedDate || new Date());
+    const day = d.getDay();
+    const diff = day === 0 ? -6 : 1 - day; // Monday
+    d.setDate(d.getDate() + diff);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, [selectedDate]);
+
+  const navigatePeriod = useCallback((direction) => {
+    const [y, mo, d] = selectedDate.split('-').map(Number);
+    const base = new Date(y, mo - 1, d);
+    if (viewMode === 'day') {
+      base.setDate(base.getDate() + direction);
+    } else if (viewMode === 'month') {
+      base.setDate(1); // anchor to 1st to avoid day-overflow (e.g. Jan 31 + 1 month = Mar 3)
+      base.setMonth(base.getMonth() + direction);
+    } else {
+      base.setDate(base.getDate() + direction * 7);
+    }
+    setSelectedDate(formatDateInputValue(base));
+  }, [selectedDate, viewMode]);
+
+  const goToToday = useCallback(() => {
+    setSelectedDate(formatDateInputValue(new Date()));
+  }, []);
+
+  // Month-view: all days in the month of selectedDate
+  const monthDays = useMemo(() => {
+    if (viewMode !== 'month') return [];
+    const [y, mo] = selectedDate.split('-').map(Number);
+    const firstDay = new Date(y, mo - 1, 1);
+    const lastDay = new Date(y, mo, 0);
+    // Pad start to Monday
+    const startPad = (firstDay.getDay() + 6) % 7;
+    const start = new Date(firstDay);
+    start.setDate(start.getDate() - startPad);
+    // Pad end to Sunday (complete rows)
+    const totalCells = Math.ceil((startPad + lastDay.getDate()) / 7) * 7;
+    return Array.from({ length: totalCells }, (_, i) => {
+      const date = new Date(start);
+      date.setDate(start.getDate() + i);
+      return date;
+    });
+  }, [selectedDate, viewMode]);
 
   const describeEvent = (event) => {
     const start = parseDateTime(event.startDate);
@@ -565,34 +615,89 @@ const CalendarView = () => {
           marginBottom: `${theme.spacing.md}px`
         }}
       >
-        <span style={{ fontWeight: theme.typography.heading.weight }}>{t('calendarViewLabel')}</span>
-        <button
-          type="button"
-          onClick={() => setViewMode('day')}
-          style={{
-            padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
-            borderRadius: theme.shape.radiusSm,
-            border: `1px solid ${theme.colors.border}`,
-            backgroundColor: viewMode === 'day' ? theme.colors.primary : theme.colors.surface,
-            color: viewMode === 'day' ? theme.colors.background : theme.colors.text
-          }}
-        >
-          {t('calendarDayView')}
-        </button>
-        <button
-          type="button"
-          onClick={() => setViewMode('week')}
-          style={{
-            padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
-            borderRadius: theme.shape.radiusSm,
-            border: `1px solid ${theme.colors.border}`,
-            backgroundColor: viewMode === 'week' ? theme.colors.primary : theme.colors.surface,
-            color: viewMode === 'week' ? theme.colors.background : theme.colors.text
-          }}
-        >
-          {t('calendarWeekView')}
-        </button>
-        <label style={{ display: 'flex', gap: `${theme.spacing.xs}px`, alignItems: 'center' }}>
+        {/* View mode toggles */}
+        <div role="group" aria-label={t('calendarViewLabel')} style={{ display: 'flex', gap: `${theme.spacing.xs}px` }}>
+          {[
+            { mode: 'day', label: t('calendarDayView') },
+            { mode: 'week', label: t('calendarWeekView') },
+            { mode: 'month', label: t('calendarMonthView') },
+          ].map(({ mode, label }) => (
+            <button
+              key={mode}
+              type="button"
+              aria-pressed={viewMode === mode}
+              onClick={() => setViewMode(mode)}
+              style={{
+                padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
+                borderRadius: theme.shape.radiusSm,
+                border: `1px solid ${viewMode === mode ? theme.colors.primary : theme.colors.border}`,
+                backgroundColor: viewMode === mode ? theme.colors.primary : theme.colors.surface,
+                color: viewMode === mode ? theme.colors.primaryForeground : theme.colors.text,
+                fontWeight: viewMode === mode ? 600 : 400,
+                cursor: 'pointer',
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* Prev / Today / Next navigation */}
+        <div style={{ display: 'flex', gap: `${theme.spacing.xs}px`, alignItems: 'center' }}>
+          <button
+            type="button"
+            aria-label={t('calendarPrev')}
+            onClick={() => navigatePeriod(-1)}
+            style={{
+              padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
+              borderRadius: theme.shape.radiusSm,
+              border: `1px solid ${theme.colors.border}`,
+              backgroundColor: theme.colors.surface,
+              color: theme.colors.text,
+              cursor: 'pointer',
+              fontWeight: 700,
+              fontSize: '1rem',
+            }}
+          >
+            ‹
+          </button>
+          <button
+            type="button"
+            onClick={goToToday}
+            style={{
+              padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
+              borderRadius: theme.shape.radiusSm,
+              border: `1px solid ${theme.colors.border}`,
+              backgroundColor: theme.colors.surface,
+              color: theme.colors.primary,
+              cursor: 'pointer',
+              fontWeight: 600,
+              fontSize: '0.8125rem',
+            }}
+          >
+            {t('calendarToday')}
+          </button>
+          <button
+            type="button"
+            aria-label={t('calendarNext')}
+            onClick={() => navigatePeriod(1)}
+            style={{
+              padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
+              borderRadius: theme.shape.radiusSm,
+              border: `1px solid ${theme.colors.border}`,
+              backgroundColor: theme.colors.surface,
+              color: theme.colors.text,
+              cursor: 'pointer',
+              fontWeight: 700,
+              fontSize: '1rem',
+            }}
+          >
+            ›
+          </button>
+        </div>
+
+        {/* Date picker */}
+        <label style={{ display: 'flex', gap: `${theme.spacing.xs}px`, alignItems: 'center', marginLeft: 'auto' }}>
           {t('calendarSelectDate')}
           <input
             type="date"
@@ -609,95 +714,224 @@ const CalendarView = () => {
         </label>
       </div>
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: `repeat(${displayedDates.length || 1}, minmax(0, 1fr))`,
-          gap: `${theme.spacing.sm}px`,
-          marginBottom: `${theme.spacing.lg}px`
-        }}
-      >
-        {displayedDates.map((date) => {
-          const dateKey = formatDateInputValue(date);
-          const dayEvents = eventsByDate.get(dateKey) ?? [];
-          return (
-            <div
-              key={dateKey}
-              style={{
-                border: `1px solid ${theme.colors.border}`,
-                borderRadius: theme.shape.radiusSm,
-                padding: `${theme.spacing.sm}px`,
-                backgroundColor: theme.colors.surface,
-                minHeight: '160px'
-              }}
-            >
-              <div style={{ fontWeight: theme.typography.heading.weight, marginBottom: `${theme.spacing.xs}px` }}>
-                {dateFormatter.format(date)}
+      {viewMode === 'week' && (
+        <WeeklyGrid
+          events={events}
+          weekStartDate={weekStart}
+          theme={theme}
+          onEventClick={(event) => {
+            startEdit(event);
+          }}
+          reduceMotion={false}
+        />
+      )}
+
+      {/* Day view: detailed single-day card */}
+      {viewMode === 'day' && (
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr',
+            gap: `${theme.spacing.sm}px`,
+            marginBottom: `${theme.spacing.lg}px`
+          }}
+        >
+          {displayedDates.map((date) => {
+            const dateKey = formatDateInputValue(date);
+            const dayEvents = eventsByDate.get(dateKey) ?? [];
+            return (
+              <div
+                key={dateKey}
+                style={{
+                  border: `1px solid ${theme.colors.border}`,
+                  borderRadius: theme.shape.radiusSm,
+                  padding: `${theme.spacing.md}px`,
+                  backgroundColor: theme.colors.surface,
+                  minHeight: '200px'
+                }}
+              >
+                <div style={{ fontWeight: theme.typography.heading.weight, fontSize: '1.125rem', marginBottom: `${theme.spacing.sm}px` }}>
+                  {dateFormatter.format(date)}
+                </div>
+                {dayEvents.length ? (
+                  <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: `${theme.spacing.xs}px` }}>
+                    {dayEvents.map(({ event, color }) => {
+                      const start = parseDateTime(event.startDate);
+                      const end = parseDateTime(event.endDate);
+                      const timeLabel = start
+                        ? `${timeFormatter.format(start)}${end ? `–${timeFormatter.format(end)}` : ''}`
+                        : t('calendarTimeUnknown');
+                      return (
+                        <li
+                          key={event.id}
+                          style={{
+                            padding: `${theme.spacing.sm}px`,
+                            borderRadius: theme.shape.radiusSm,
+                            backgroundColor: color,
+                            color: theme.colors.text,
+                            cursor: 'pointer',
+                          }}
+                          onClick={() => startEdit(event)}
+                        >
+                          <div style={{ fontWeight: theme.typography.heading.weight }}>{event.title}</div>
+                          <div style={{ fontSize: '0.85rem', color: theme.colors.muted }}>{timeLabel}</div>
+                          {event.location && <div style={{ fontSize: '0.8rem', color: theme.colors.muted }}>{event.location}</div>}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                ) : (
+                  <p style={{ color: theme.colors.muted, margin: 0 }}>{t('calendarEmptyDay')}</p>
+                )}
               </div>
-              {dayEvents.length ? (
-                <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: `${theme.spacing.xs}px` }}>
-                  {dayEvents.map(({ event, color }) => {
-                    const start = parseDateTime(event.startDate);
-                    const end = parseDateTime(event.endDate);
-                    const timeLabel = start
-                      ? `${timeFormatter.format(start)}${end ? `–${timeFormatter.format(end)}` : ''}`
-                      : t('calendarTimeUnknown');
-                    return (
-                      <li
+            );
+          })}
+        </div>
+      )}
+
+      {/* Month view: density calendar */}
+      {viewMode === 'month' && (
+        <div style={{ marginBottom: `${theme.spacing.lg}px` }}>
+          {/* Day-of-week headers */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2, marginBottom: 2 }}>
+            {(() => {
+              // Monday-anchored localized weekday headers
+              const fmt = new Intl.DateTimeFormat(i18n.language, { weekday: 'short' });
+              // Jan 6 2025 = Monday; iterate Mon–Sun
+              return [6, 7, 8, 9, 10, 11, 12].map((dayOfMonth) => {
+                const d = new Date(2025, 0, dayOfMonth);
+                return (
+                  <div key={dayOfMonth} style={{ textAlign: 'center', fontSize: '0.7rem', fontWeight: 700, color: theme.colors.muted, padding: '4px 0' }}>
+                    {fmt.format(d)}
+                  </div>
+                );
+              });
+            })()}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2 }}>
+            {monthDays.map((date) => {
+              const dateKey = formatDateInputValue(date);
+              const dayEvents = eventsByDate.get(dateKey) ?? [];
+              const isCurrentMonth = date.getMonth() === Number(selectedDate.split('-')[1]) - 1;
+              const isToday = dateKey === formatDateInputValue(new Date());
+              const isSelected = dateKey === selectedDate;
+              return (
+                <div
+                  key={dateKey}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`${dateFormatter.format(date)}, ${dayEvents.length} events`}
+                  aria-pressed={isSelected}
+                  onClick={() => { setSelectedDate(dateKey); setViewMode('day'); }}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { setSelectedDate(dateKey); setViewMode('day'); }}}
+                  style={{
+                    border: `1px solid ${isToday ? theme.colors.primary : theme.colors.border}`,
+                    borderRadius: theme.shape.radiusSm,
+                    padding: '6px 4px',
+                    backgroundColor: isSelected ? `${theme.colors.primary}15` : isCurrentMonth ? theme.colors.surface : theme.colors.background,
+                    minHeight: '64px',
+                    cursor: 'pointer',
+                    opacity: isCurrentMonth ? 1 : 0.4,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 2,
+                  }}
+                >
+                  <span style={{
+                    fontSize: '0.8125rem',
+                    fontWeight: isToday ? 700 : 400,
+                    color: isToday ? theme.colors.primary : theme.colors.text,
+                    lineHeight: 1,
+                  }}>
+                    {date.getDate()}
+                  </span>
+                  {/* Density dots */}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                    {dayEvents.slice(0, 4).map(({ event, color }) => (
+                      <span
                         key={event.id}
+                        title={event.title}
                         style={{
-                          padding: `${theme.spacing.xs}px`,
-                          borderRadius: theme.shape.radiusSm,
+                          width: 6,
+                          height: 6,
+                          borderRadius: '50%',
                           backgroundColor: color,
-                          color: theme.colors.text
+                          display: 'inline-block',
                         }}
-                      >
-                        <div style={{ fontWeight: theme.typography.heading.weight }}>{event.title}</div>
-                        <div style={{ fontSize: '0.85rem', color: theme.colors.muted }}>{timeLabel}</div>
-                      </li>
-                    );
-                  })}
-                </ul>
-              ) : (
-                <p style={{ color: theme.colors.muted, margin: 0 }}>{t('calendarEmptyDay')}</p>
-              )}
-            </div>
-          );
-        })}
-      </div>
+                      />
+                    ))}
+                    {dayEvents.length > 4 && (
+                      <span style={{ fontSize: '0.6rem', color: theme.colors.muted, lineHeight: 1 }}>
+                        +{dayEvents.length - 4}
+                      </span>
+                    )}
+                  </div>
+                  {/* First event title preview */}
+                  {dayEvents.length > 0 && (
+                    <span style={{ fontSize: '0.65rem', color: theme.colors.muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {dayEvents[0].event.title}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <div style={{ display: 'grid', gap: `${theme.spacing.md}px` }}>
         <div>
-          <h3 style={{ marginTop: 0 }}>{t('calendarAddEvent')}</h3>
-          {renderEventFormFields(form, setForm, addValidation, touched, setTouched)}
-          <div style={{ display: 'flex', gap: `${theme.spacing.sm}px`, marginTop: `${theme.spacing.sm}px` }}>
-            <button
-              type="button"
-              onClick={handleAddEvent}
-              style={{
-                padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
-                borderRadius: theme.shape.radiusSm,
-                border: `1px solid ${theme.colors.primary}`,
-                backgroundColor: theme.colors.primary,
-                color: theme.colors.background
-              }}
-            >
-              {t('calendarSaveEvent')}
-            </button>
-            <button
-              type="button"
-              onClick={resetForm}
-              style={{
-                padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
-                borderRadius: theme.shape.radiusSm,
-                border: `1px solid ${theme.colors.border}`,
-                backgroundColor: theme.colors.surface,
-                color: theme.colors.text
-              }}
-            >
-              {t('calendarResetForm')}
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => setAddFormOpen((prev) => !prev)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: theme.spacing.xs,
+              padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
+              borderRadius: theme.shape.radiusFull,
+              border: `1.5px solid ${addFormOpen ? theme.colors.primary : theme.colors.border}`,
+              background: addFormOpen ? `${theme.colors.primary}12` : 'transparent',
+              color: addFormOpen ? theme.colors.primary : theme.colors.muted,
+              cursor: 'pointer',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              marginBottom: addFormOpen ? `${theme.spacing.sm}px` : 0,
+            }}
+          >
+            {addFormOpen ? '✕ ' : '+ '}{t('calendarAddEvent')}
+          </button>
+          {addFormOpen && renderEventFormFields(form, setForm, addValidation, touched, setTouched)}
+          {addFormOpen && (
+            <div style={{ display: 'flex', gap: `${theme.spacing.sm}px`, marginTop: `${theme.spacing.sm}px` }}>
+              <button
+                type="button"
+                onClick={handleAddEvent}
+                style={{
+                  padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
+                  borderRadius: theme.shape.radiusSm,
+                  border: `1px solid ${theme.colors.primary}`,
+                  backgroundColor: theme.colors.primary,
+                  color: theme.colors.primaryForeground
+                }}
+              >
+                {t('calendarSaveEvent')}
+              </button>
+              <button
+                type="button"
+                onClick={resetForm}
+                style={{
+                  padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
+                  borderRadius: theme.shape.radiusSm,
+                  border: `1px solid ${theme.colors.border}`,
+                  backgroundColor: theme.colors.surface,
+                  color: theme.colors.text
+                }}
+              >
+                {t('calendarResetForm')}
+              </button>
+            </div>
+          )}
         </div>
 
         <div>
@@ -875,11 +1109,12 @@ const CalendarView = () => {
                       </div>
                     ) : null}
                   </div>
-                  <div style={{ display: 'flex', gap: `${theme.spacing.sm}px`, marginTop: `${theme.spacing.sm}px` }}>
+                  <div style={{ display: 'flex', gap: `${theme.spacing.sm}px`, marginTop: `${theme.spacing.sm}px`, flexWrap: 'wrap' }}>
                     <button
                       type="button"
                       onClick={() => speak(describeEvent(event))}
                       style={{
+                        minHeight: '44px',
                         padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
                         borderRadius: theme.shape.radiusSm,
                         border: `1px solid ${theme.colors.border}`,
@@ -893,6 +1128,7 @@ const CalendarView = () => {
                       type="button"
                       onClick={() => startEdit(event)}
                       style={{
+                        minHeight: '44px',
                         padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
                         borderRadius: theme.shape.radiusSm,
                         border: `1px solid ${theme.colors.border}`,
@@ -902,19 +1138,57 @@ const CalendarView = () => {
                     >
                       {t('editLabel')}
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => removeEvent(event)}
-                      style={{
-                        padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
-                        borderRadius: theme.shape.radiusSm,
-                        border: `1px solid ${theme.colors.accent}`,
-                        backgroundColor: theme.colors.surface,
-                        color: theme.colors.text
-                      }}
-                    >
-                      {t('deleteLabel')}
-                    </button>
+                    {deletingEventId === event.id ? (
+                      <>
+                        <span style={{ alignSelf: 'center', color: theme.colors.text, fontSize: '0.9rem' }}>
+                          {t('calendarConfirmDelete', { title: event.title })}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removeEvent(event)}
+                          style={{
+                            minHeight: '44px',
+                            padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
+                            borderRadius: theme.shape.radiusSm,
+                            border: `1px solid ${theme.colors.accent}`,
+                            backgroundColor: theme.colors.accent,
+                            color: theme.colors.background,
+                            fontWeight: 600
+                          }}
+                        >
+                          {t('yesLabel')}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDeletingEventId(null)}
+                          style={{
+                            minHeight: '44px',
+                            padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
+                            borderRadius: theme.shape.radiusSm,
+                            border: `1px solid ${theme.colors.border}`,
+                            backgroundColor: theme.colors.surface,
+                            color: theme.colors.text
+                          }}
+                        >
+                          {t('cancelLabel')}
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setDeletingEventId(event.id)}
+                        style={{
+                          minHeight: '44px',
+                          padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
+                          borderRadius: theme.shape.radiusSm,
+                          border: `1px solid ${theme.colors.accent}`,
+                          backgroundColor: theme.colors.surface,
+                          color: theme.colors.text
+                        }}
+                      >
+                        {t('deleteLabel')}
+                      </button>
+                    )}
                   </div>
                 </li>
               );

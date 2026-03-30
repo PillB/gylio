@@ -83,6 +83,16 @@ const TABLE_CREATION_STATEMENTS = [
     redeemed INTEGER NOT NULL DEFAULT 0,
     createdAt TEXT DEFAULT (datetime('now'))
   );`,
+  `CREATE TABLE IF NOT EXISTS routines (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    description TEXT,
+    frequency TEXT NOT NULL DEFAULT 'DAILY',
+    triggerTime TEXT,
+    steps TEXT NOT NULL DEFAULT '[]',
+    lastCompletedAt TEXT,
+    createdAt TEXT DEFAULT (datetime('now'))
+  );`,
   `CREATE TABLE IF NOT EXISTS rewards_progress (
     id INTEGER PRIMARY KEY CHECK (id = 1),
     points INTEGER NOT NULL DEFAULT 0,
@@ -104,7 +114,8 @@ const INDEX_CREATION_STATEMENTS = [
   'CREATE INDEX IF NOT EXISTS idx_transactions_createdAt ON transactions(createdAt);',
   'CREATE INDEX IF NOT EXISTS idx_debts_createdAt ON debts(createdAt);',
   'CREATE INDEX IF NOT EXISTS idx_social_plans_createdAt ON social_plans(createdAt);',
-  'CREATE INDEX IF NOT EXISTS idx_rewards_createdAt ON rewards(createdAt);'
+  'CREATE INDEX IF NOT EXISTS idx_rewards_createdAt ON rewards(createdAt);',
+  'CREATE INDEX IF NOT EXISTS idx_routines_createdAt ON routines(createdAt);'
 ];
 
 type ColumnDefinition = { name: string; definition: string };
@@ -148,6 +159,8 @@ export const runMigrations = (): Promise<void> =>
           { name: 'calendarEventId', definition: 'INTEGER' },
           { name: 'focusPresetMinutes', definition: 'INTEGER' },
           { name: 'updatedAt', definition: "TEXT DEFAULT (datetime('now'))" },
+          { name: 'energyRequired', definition: "TEXT NOT NULL DEFAULT 'medium'" },
+          { name: 'implementationIntention', definition: 'TEXT' },
         ]);
 
         ensureColumns(tx, 'events', [
@@ -176,6 +189,17 @@ export const runMigrations = (): Promise<void> =>
           { name: 'annualRate', definition: 'REAL NOT NULL DEFAULT 0' },
           { name: 'minPayment', definition: 'REAL NOT NULL DEFAULT 0' },
           { name: 'categoryName', definition: 'TEXT' },
+        ]);
+
+        ensureColumns(tx, 'routines', [
+          { name: 'anchorHabit', definition: 'TEXT' },
+          { name: 'completionLog', definition: "TEXT NOT NULL DEFAULT '[]'" },
+        ]);
+
+        ensureColumns(tx, 'social_plans', [
+          { name: 'postReflection', definition: 'TEXT' },
+          { name: 'relationshipType', definition: 'TEXT' },
+          { name: 'person', definition: 'TEXT' },
         ]);
 
         ensureColumns(tx, 'rewards_progress', [

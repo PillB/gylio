@@ -9,6 +9,8 @@ type FetchSocialSuggestionsArgs = {
   locale: string;
 };
 
+import { authHeaders } from '../../../core/utils/authToken';
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 
 const ensureStringArray = (value: unknown): string[] => {
@@ -35,9 +37,7 @@ export const fetchSocialSuggestions = async ({
   const endpoint = `${API_BASE_URL}/api/ai/social-suggestions`;
   const response = await fetch(endpoint, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
+    headers: await authHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify({
       templateSummary,
       energyLevel,

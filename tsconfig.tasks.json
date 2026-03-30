@@ -15,6 +15,7 @@
     "src/features/tasks/utils/**/*.ts",
     "src/features/calendar/utils/**/*.ts",
     "src/features/budget/utils/**/*.ts",
-    "src/features/social/utils/socialPlanForm.ts"
+    "src/features/social/utils/socialPlanForm.ts",
+    "src/features/routines/utils/**/*.ts"
   ]
 }

@@ -1,9 +1,11 @@
 export type SubtaskLike = { label: string; done: boolean };
 
-export const MIN_SUBTASKS = 3;
+export const MIN_SUBTASKS = 1;
 export const MAX_SUBTASKS = 7;
+// Number of blank step fields shown by default in the form.
+export const DEFAULT_SUBTASK_COUNT = 3;
 
-export const createEmptySubtasks = (count = MIN_SUBTASKS): SubtaskLike[] =>
+export const createEmptySubtasks = (count = DEFAULT_SUBTASK_COUNT): SubtaskLike[] =>
   Array.from({ length: count }, () => ({ label: '', done: false }));
 
 export const normalizeSubtasks = (subtasks: SubtaskLike[]): SubtaskLike[] =>

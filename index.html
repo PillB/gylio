@@ -2,32 +2,32 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" href="%BASE_URL%favicon.ico" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>GYLIO – Get Your Life In Order</title>
-    <!-- Use a dyslexia‑friendly font as a fallback; ensure that the system also supports sans‑serif fonts -->
+    <!-- Inter: high-legibility variable font; Open Sans as dyslexia-friendly fallback -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Open+Sans:wght@400;700&display=swap" rel="stylesheet" />
     <style>
+      *, *::before, *::after { box-sizing: border-box; }
+      html {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+      }
       body {
         margin: 0;
-        font-family: 'Open Sans', sans-serif;
-        background-color: #f9fafb;
-        color: #222;
+        font-family: 'Inter', 'Open Sans', system-ui, sans-serif;
+        background-color: #F8F7F4;
+        color: #1C1B22;
         min-height: 100vh;
+        line-height: 1.6;
       }
-      button {
-        font-size: 1rem;
-        padding: 0.5rem 1rem;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-      }
-      button:focus {
-        outline: 2px solid #005fcc;
-        outline-offset: 2px;
-      }
+      button { font-family: inherit; cursor: pointer; }
+      button:focus-visible { outline: 2px solid #5B5CF6; outline-offset: 2px; }
+      input, textarea, select { font-family: inherit; }
+      @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
     </style>
   </head>
   <body>

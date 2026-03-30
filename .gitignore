@@ -4,3 +4,22 @@ node_modules
 .DS_Store
 npm-debug.log*
 yarn-error.log
+
+# Environment / secrets — never commit these
+.env
+.env.local
+.env*.local
+server/.env
+*.pem
+*.key
+
+# Playwright artifacts (may contain URLs, session data, screenshots)
+.playwright-mcp/
+test-results/
+playwright-report/
+*.png
+*.jpeg
+*.jpg
+
+# Build / cache
+.vite/

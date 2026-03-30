@@ -1,7 +1,30 @@
 const jwt = require('jsonwebtoken');
+const jwksClient = require('jwks-rsa');
 const { ApiError } = require('../lib/errors');
 
-const ACCESS_TOKEN_SECRET = process.env.JWT_SECRET || 'dev-access-secret-change-me';
+// Load server .env if dotenv is available (dev convenience)
+try { require('dotenv').config({ path: require('path').join(__dirname, '../.env') }); } catch (_) {}
+
+const JWKS_URL = process.env.CLERK_JWKS_URL;
+const CLERK_ISSUER = process.env.CLERK_ISSUER;
+
+if (!JWKS_URL || !CLERK_ISSUER) {
+  throw new Error('Missing required env vars: CLERK_JWKS_URL and CLERK_ISSUER must be set in server/.env');
+}
+
+const client = jwksClient({
+  jwksUri: JWKS_URL,
+  cache: true,
+  cacheMaxEntries: 5,
+  cacheMaxAge: 10 * 60 * 1000, // 10 minutes
+});
+
+const getSigningKey = (header, callback) => {
+  client.getSigningKey(header.kid, (err, key) => {
+    if (err) return callback(err);
+    callback(null, key.getPublicKey());
+  });
+};
 
 const parseAuthHeader = (headerValue) => {
   if (!headerValue || typeof headerValue !== 'string') return null;
@@ -10,38 +33,51 @@ const parseAuthHeader = (headerValue) => {
   return token.trim();
 };
 
-const verifyAccessToken = (token) => {
-  try {
-    return jwt.verify(token, ACCESS_TOKEN_SECRET);
-  } catch (error) {
-    if (error.name === 'TokenExpiredError') {
-      throw new ApiError(401, 'TOKEN_EXPIRED', 'Access token expired');
-    }
-    throw new ApiError(401, 'UNAUTHORIZED', 'Invalid access token');
-  }
-};
+const verifyClerkToken = (token) =>
+  new Promise((resolve, reject) => {
+    jwt.verify(
+      token,
+      getSigningKey,
+      {
+        algorithms: ['RS256'],
+        issuer: CLERK_ISSUER,
+      },
+      (err, payload) => {
+        if (err) {
+          if (err.name === 'TokenExpiredError') {
+            return reject(new ApiError(401, 'TOKEN_EXPIRED', 'Access token expired'));
+          }
+          return reject(new ApiError(401, 'UNAUTHORIZED', 'Invalid access token'));
+        }
+        resolve(payload);
+      }
+    );
+  });
 
-const requireAuth = (req, _res, next) => {
+const requireAuth = async (req, _res, next) => {
   const token = parseAuthHeader(req.headers.authorization);
   if (!token) {
     return next(new ApiError(401, 'UNAUTHORIZED', 'Authorization header missing or malformed'));
   }
 
-  const payload = verifyAccessToken(token);
-  if (!payload?.sub || payload.type !== 'access') {
-    return next(new ApiError(401, 'UNAUTHORIZED', 'Invalid access token payload'));
+  try {
+    const payload = await verifyClerkToken(token);
+    if (!payload?.sub) {
+      return next(new ApiError(401, 'UNAUTHORIZED', 'Invalid token payload'));
+    }
+
+    req.user = {
+      id: String(payload.sub),
+      email: payload.email || null,
+    };
+
+    return next();
+  } catch (err) {
+    return next(err);
   }
-
-  req.user = {
-    id: String(payload.sub),
-    email: payload.email || null
-  };
-
-  return next();
 };
 
 module.exports = {
   requireAuth,
   parseAuthHeader,
-  verifyAccessToken
 };

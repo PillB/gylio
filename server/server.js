@@ -1,3 +1,5 @@
+try { require('dotenv').config({ path: require('path').join(__dirname, '.env') }); } catch (_) {}
+
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
@@ -9,6 +11,7 @@ const budgetsRouter = require('./routes/budgets');
 const transactionsRouter = require('./routes/transactions');
 const debtsRouter = require('./routes/debts');
 const aiRouter = require('./routes/ai');
+const billingRouter = require('./routes/billing');
 
 const { sqlite } = require('./db/sqliteClient');
 const { ensureSqliteSchema } = require('./lib/sqlite');
@@ -22,8 +25,8 @@ if (missingAiEnvVars.length) {
   console.warn(`AI features disabled. Missing env vars: ${missingAiEnvVars.join(', ')}`);
 }
 
-if (!process.env.JWT_SECRET) {
-  console.warn('JWT_SECRET not set. Using insecure development fallback secret.');
+if (!process.env.CLERK_JWKS_URL) {
+  console.warn('CLERK_JWKS_URL not set. Using default Clerk JWKS endpoint.');
 }
 
 const app = express();
@@ -57,6 +60,7 @@ app.use('/api/budget', requireAuth, budgetsRouter);
 app.use('/api/transactions', requireAuth, transactionsRouter);
 app.use('/api/debts', requireAuth, debtsRouter);
 app.use('/api/ai', requireAuth, mutationRateLimit, aiRouter);
+app.use('/api/billing', requireAuth, billingRouter);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

@@ -17,6 +17,8 @@ export type Task = {
   plannedDate: string | null;
   calendarEventId: number | null;
   focusPresetMinutes: number | null;
+  energyRequired: 'tiny' | 'low' | 'medium' | 'high';
+  implementationIntention: string | null;
   createdAt: string | null;
   updatedAt: string | null;
 };
@@ -78,6 +80,8 @@ export type SocialStep = {
   done: boolean;
 };
 
+export type PostReflection = { energy: number; note: string | null };
+
 export type SocialPlan = {
   id: number;
   title: string;
@@ -87,6 +91,29 @@ export type SocialPlan = {
   reminderMinutesBefore: number | null;
   energyLevel: 'LOW' | 'MED' | 'HIGH';
   notes: string | null;
+  postReflection: PostReflection | null;
+  relationshipType: string | null;  // 'friend' | 'romantic' | 'family' | etc.
+  person: string | null;            // name of the person this plan is for
+  createdAt: string | null;
+};
+
+export type RoutineStep = {
+  label: string;
+  done: boolean;
+};
+
+export type RoutineFrequency = 'DAILY' | 'WEEKLY' | 'CUSTOM';
+
+export type Routine = {
+  id: number;
+  title: string;
+  description: string | null;
+  frequency: RoutineFrequency;
+  triggerTime: string | null;
+  steps: RoutineStep[];
+  lastCompletedAt: string | null;
+  anchorHabit: string | null;
+  completionLog: string[];
   createdAt: string | null;
 };
 
@@ -151,6 +178,11 @@ type StatementSet = {
   insertRewardsProgress: string;
   updateRewardsProgress: string;
   selectRewardsProgress: string;
+  insertRoutine: string;
+  updateRoutine: string;
+  deleteRoutine: string;
+  selectRoutineById: string;
+  selectRoutines: string;
 };
 
 const mapRows = <T>(rows: SQLResultSetRowList, transformer: (row: any) => T): T[] => {
@@ -226,6 +258,23 @@ const normalizeIncome = (value: unknown): BudgetIncome[] => {
     .filter((entry): entry is BudgetIncome => Boolean(entry));
 };
 
+const normalizeRoutineSteps = (value: unknown): RoutineStep[] => {
+  const parsed = parseJson<unknown[]>(value, []);
+  if (!Array.isArray(parsed)) return [];
+  return parsed
+    .map((entry) => {
+      if (typeof entry === 'string') return { label: entry, done: false };
+      if (entry && typeof entry === 'object') {
+        const label = 'label' in entry ? String((entry as { label?: unknown }).label ?? '') : '';
+        if (!label) return null;
+        const done = 'done' in entry ? Boolean((entry as { done?: unknown }).done) : false;
+        return { label, done };
+      }
+      return null;
+    })
+    .filter((entry): entry is RoutineStep => Boolean(entry));
+};
+
 const normalizeCategories = (value: unknown): BudgetCategory[] => {
   const parsed = parseJson<unknown[]>(value, []);
   if (!Array.isArray(parsed)) return [];
@@ -253,6 +302,8 @@ const mapTask = (row: any): Task => ({
   calendarEventId: row.calendarEventId !== undefined && row.calendarEventId !== null ? Number(row.calendarEventId) : null,
   focusPresetMinutes:
     row.focusPresetMinutes !== undefined && row.focusPresetMinutes !== null ? Number(row.focusPresetMinutes) : null,
+  energyRequired: (['tiny', 'low', 'medium', 'high'] as const).includes(row.energyRequired) ? row.energyRequired : 'medium',
+  implementationIntention: row.implementationIntention ?? null,
   createdAt: row.createdAt ?? null,
   updatedAt: row.updatedAt ?? null,
 });
@@ -313,6 +364,9 @@ const mapSocialPlan = (row: any): SocialPlan => ({
       : null,
   energyLevel: row.energyLevel ?? 'LOW',
   notes: row.notes ?? null,
+  postReflection: parseJson<PostReflection | null>(row.postReflection, null),
+  relationshipType: row.relationshipType ?? null,
+  person: row.person ?? null,
   createdAt: row.createdAt ?? null,
 });
 
@@ -322,6 +376,19 @@ const mapReward = (row: any): Reward => ({
   pointsRequired: row.pointsRequired,
   description: row.description ?? null,
   redeemed: row.redeemed === 1,
+  createdAt: row.createdAt ?? null,
+});
+
+const mapRoutine = (row: any): Routine => ({
+  id: row.id,
+  title: row.title,
+  description: row.description ?? null,
+  frequency: (['DAILY', 'WEEKLY', 'CUSTOM'] as const).includes(row.frequency) ? row.frequency : 'DAILY',
+  triggerTime: row.triggerTime ?? null,
+  steps: normalizeRoutineSteps(row.steps),
+  lastCompletedAt: row.lastCompletedAt ?? null,
+  anchorHabit: row.anchorHabit ?? null,
+  completionLog: parseJson<string[]>(row.completionLog, []),
   createdAt: row.createdAt ?? null,
 });
 
@@ -385,9 +452,9 @@ const useDB = () => {
   const statements = useMemo<StatementSet>(
     () => ({
       insertTask:
-        'INSERT INTO tasks (title, status, subtasks, plannedDate, calendarEventId, focusPresetMinutes) VALUES (?, ?, ?, ?, ?, ?);',
+        'INSERT INTO tasks (title, status, subtasks, plannedDate, calendarEventId, focusPresetMinutes, energyRequired, implementationIntention) VALUES (?, ?, ?, ?, ?, ?, ?, ?);',
       updateTask:
-        'UPDATE tasks SET title = ?, status = ?, subtasks = ?, plannedDate = ?, calendarEventId = ?, focusPresetMinutes = ?, updatedAt = ? WHERE id = ?;',
+        'UPDATE tasks SET title = ?, status = ?, subtasks = ?, plannedDate = ?, calendarEventId = ?, focusPresetMinutes = ?, energyRequired = ?, implementationIntention = ?, updatedAt = ? WHERE id = ?;',
       deleteTask: 'DELETE FROM tasks WHERE id = ?;',
       selectTaskById: 'SELECT * FROM tasks WHERE id = ?;',
       selectTasks: 'SELECT * FROM tasks ORDER BY createdAt DESC;',
@@ -416,9 +483,9 @@ const useDB = () => {
       selectDebtById: 'SELECT * FROM debts WHERE id = ?;',
       selectDebts: 'SELECT * FROM debts ORDER BY createdAt DESC;',
       insertSocialPlan:
-        'INSERT INTO social_plans (title, type, dateTime, steps, reminderMinutesBefore, energyLevel, notes) VALUES (?, ?, ?, ?, ?, ?, ?);',
+        'INSERT INTO social_plans (title, type, dateTime, steps, reminderMinutesBefore, energyLevel, notes, relationshipType, person) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);',
       updateSocialPlan:
-        'UPDATE social_plans SET title = ?, type = ?, dateTime = ?, steps = ?, reminderMinutesBefore = ?, energyLevel = ?, notes = ? WHERE id = ?;',
+        'UPDATE social_plans SET title = ?, type = ?, dateTime = ?, steps = ?, reminderMinutesBefore = ?, energyLevel = ?, notes = ?, postReflection = ?, relationshipType = ?, person = ? WHERE id = ?;',
       deleteSocialPlan: 'DELETE FROM social_plans WHERE id = ?;',
       selectSocialPlanById: 'SELECT * FROM social_plans WHERE id = ?;',
       selectSocialPlans: 'SELECT * FROM social_plans ORDER BY createdAt DESC;',
@@ -432,6 +499,13 @@ const useDB = () => {
       updateRewardsProgress:
         'UPDATE rewards_progress SET points = ?, level = ?, focusStreakDays = ?, lastFocusDate = ?, taskStreakDays = ?, lastTaskCompletionDate = ?, budgetStreakWeeks = ?, lastBudgetReviewWeek = ?, skipTokens = ? WHERE id = 1;',
       selectRewardsProgress: 'SELECT * FROM rewards_progress WHERE id = ?;',
+      insertRoutine:
+        'INSERT INTO routines (title, description, frequency, triggerTime, steps, lastCompletedAt, anchorHabit, completionLog) VALUES (?, ?, ?, ?, ?, ?, ?, ?);',
+      updateRoutine:
+        'UPDATE routines SET title = ?, description = ?, frequency = ?, triggerTime = ?, steps = ?, lastCompletedAt = ?, anchorHabit = ?, completionLog = ? WHERE id = ?;',
+      deleteRoutine: 'DELETE FROM routines WHERE id = ?;',
+      selectRoutineById: 'SELECT * FROM routines WHERE id = ?;',
+      selectRoutines: 'SELECT * FROM routines ORDER BY createdAt ASC;',
     }),
     []
   );
@@ -504,7 +578,9 @@ const useDB = () => {
       subtasks: Subtask[] = [],
       plannedDate: string | null = null,
       calendarEventId: number | null = null,
-      focusPresetMinutes: number | null = null
+      focusPresetMinutes: number | null = null,
+      energyRequired: Task['energyRequired'] = 'medium',
+      implementationIntention: string | null = null
     ) =>
       runTransaction<Task>((tx, resolve, reject) => {
         tx.executeSql(
@@ -516,6 +592,8 @@ const useDB = () => {
             plannedDate,
             calendarEventId,
             focusPresetMinutes,
+            energyRequired,
+            implementationIntention,
           ],
           (_, result) => {
             const insertId = result.insertId;
@@ -563,6 +641,8 @@ const useDB = () => {
             plannedDate: updates.plannedDate ?? current.plannedDate,
             calendarEventId: updates.calendarEventId ?? current.calendarEventId,
             focusPresetMinutes: updates.focusPresetMinutes ?? current.focusPresetMinutes,
+            energyRequired: updates.energyRequired ?? current.energyRequired,
+            implementationIntention: updates.implementationIntention !== undefined ? updates.implementationIntention : current.implementationIntention,
             updatedAt: new Date().toISOString(),
           };
           tx.executeSql(
@@ -574,6 +654,8 @@ const useDB = () => {
               next.plannedDate,
               next.calendarEventId,
               next.focusPresetMinutes,
+              next.energyRequired,
+              next.implementationIntention,
               next.updatedAt,
               id,
             ],
@@ -1124,12 +1206,14 @@ const useDB = () => {
       steps: SocialStep[] = [],
       reminderMinutesBefore: number | null = null,
       energyLevel: SocialPlan['energyLevel'] = 'LOW',
-      notes: string | null = null
+      notes: string | null = null,
+      relationshipType: string | null = null,
+      person: string | null = null
     ) =>
       runTransaction<SocialPlan>((tx, resolve, reject) => {
         tx.executeSql(
           statements.insertSocialPlan,
-          [title, type, dateTime, JSON.stringify(steps), reminderMinutesBefore, energyLevel, notes],
+          [title, type, dateTime, JSON.stringify(steps), reminderMinutesBefore, energyLevel, notes, relationshipType, person],
           (_, result) => {
             const insertId = result.insertId;
             if (insertId == null) {
@@ -1164,6 +1248,9 @@ const useDB = () => {
             reminderMinutesBefore: updates.reminderMinutesBefore ?? current.reminderMinutesBefore,
             energyLevel: updates.energyLevel ?? current.energyLevel,
             notes: updates.notes ?? current.notes,
+            postReflection: updates.postReflection !== undefined ? updates.postReflection : current.postReflection,
+            relationshipType: updates.relationshipType !== undefined ? updates.relationshipType : current.relationshipType,
+            person: updates.person !== undefined ? updates.person : current.person,
           };
           tx.executeSql(
             statements.updateSocialPlan,
@@ -1175,6 +1262,9 @@ const useDB = () => {
               next.reminderMinutesBefore,
               next.energyLevel,
               next.notes,
+              JSON.stringify(next.postReflection),
+              next.relationshipType,
+              next.person,
               id,
             ],
             () => {
@@ -1381,6 +1471,101 @@ const useDB = () => {
     [runTransaction, selectSingle, statements.insertRewardsProgress, statements.selectRewardsProgress, statements.updateRewardsProgress]
   );
 
+  const getRoutines = useCallback(
+    () =>
+      runTransaction<Routine[]>((tx, resolve, reject) => {
+        tx.executeSql(
+          statements.selectRoutines,
+          [],
+          (_, result) => {
+            resolve(mapRows(result.rows, mapRoutine));
+            return true;
+          },
+          (_, error) => {
+            reject(error);
+            return false;
+          }
+        );
+      }),
+    [runTransaction, statements.selectRoutines]
+  );
+
+  const getRoutineById = useCallback(
+    (id: number) =>
+      runTransaction<Routine | null>((tx, resolve, reject) => {
+        selectSingle(tx, statements.selectRoutineById, [id], mapRoutine, resolve, reject);
+      }),
+    [runTransaction, selectSingle, statements.selectRoutineById]
+  );
+
+  const insertRoutine = useCallback(
+    (options: { title: string; description?: string | null; frequency?: Routine['frequency']; triggerTime?: string | null; steps?: RoutineStep[]; anchorHabit?: string | null; completionLog?: string[] }) =>
+      runTransaction<Routine | null>((tx, resolve, reject) => {
+        const { title, description = null, frequency = 'DAILY', triggerTime = null, steps = [], anchorHabit = null, completionLog = [] } = options;
+        tx.executeSql(
+          statements.insertRoutine,
+          [title, description, frequency, triggerTime, JSON.stringify(steps), null, anchorHabit, JSON.stringify(completionLog)],
+          (_, result) => {
+            const insertId = result.insertId;
+            selectSingle(tx, statements.selectRoutineById, [insertId], mapRoutine, resolve, reject);
+            return true;
+          },
+          (_, error) => {
+            reject(error);
+            return false;
+          }
+        );
+      }),
+    [runTransaction, selectSingle, statements.insertRoutine, statements.selectRoutineById]
+  );
+
+  const updateRoutine = useCallback(
+    (id: number, updates: Partial<Omit<Routine, 'id' | 'createdAt'>>) =>
+      runTransaction<Routine | null>((tx, resolve, reject) => {
+        selectSingle(tx, statements.selectRoutineById, [id], mapRoutine, (current) => {
+          if (!current) { resolve(null); return; }
+          const next = {
+            ...current,
+            ...updates,
+            anchorHabit: updates.anchorHabit !== undefined ? updates.anchorHabit : current.anchorHabit,
+            completionLog: updates.completionLog ?? current.completionLog,
+          };
+          tx.executeSql(
+            statements.updateRoutine,
+            [next.title, next.description, next.frequency, next.triggerTime, JSON.stringify(next.steps), next.lastCompletedAt, next.anchorHabit, JSON.stringify(next.completionLog), id],
+            () => {
+              selectSingle(tx, statements.selectRoutineById, [id], mapRoutine, resolve, reject);
+              return true;
+            },
+            (_, error) => {
+              reject(error);
+              return false;
+            }
+          );
+        }, reject);
+      }),
+    [runTransaction, selectSingle, statements.selectRoutineById, statements.updateRoutine]
+  );
+
+  const deleteRoutine = useCallback(
+    (id: number) =>
+      runTransaction<boolean>((tx, resolve, reject) => {
+        tx.executeSql(
+          statements.deleteRoutine,
+          [id],
+          () => {
+            resolve(true);
+            return true;
+          },
+          (_, error) => {
+            reject(error);
+            return false;
+          }
+        );
+      }),
+    [runTransaction, statements.deleteRoutine]
+  );
+
   return {
     ready,
     insertTask,
@@ -1420,6 +1605,11 @@ const useDB = () => {
     getRewardById,
     getRewardsProgress,
     updateRewardsProgress,
+    getRoutines,
+    getRoutineById,
+    insertRoutine,
+    updateRoutine,
+    deleteRoutine,
   } as const;
 };
 

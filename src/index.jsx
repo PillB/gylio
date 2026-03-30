@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { I18nextProvider } from 'react-i18next';
+import { ClerkProvider } from '@clerk/clerk-react';
 
 import App from './App.jsx';
 import { OnboardingFlowProvider } from './hooks/useOnboardingFlow.jsx';
@@ -11,17 +12,33 @@ import { registerServiceWorker } from './core/utils/serviceWorker';
 
 registerServiceWorker();
 
+const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+
 // Render the application at the #root element defined in index.html.
-ReactDOM.createRoot(document.getElementById('root')).render(
+// ClerkProvider is conditionally included: when VITE_CLERK_PUBLISHABLE_KEY is set,
+// full auth is enabled; otherwise the app renders with a setup banner.
+const root = ReactDOM.createRoot(document.getElementById('root'));
+
+const providers = (
   <React.StrictMode>
     <I18nextProvider i18n={i18n}>
       <ThemeProvider>
         <OnboardingFlowProvider>
           <AccessibilityProvider>
-            <App />
+            <App clerkEnabled={Boolean(PUBLISHABLE_KEY)} />
           </AccessibilityProvider>
         </OnboardingFlowProvider>
       </ThemeProvider>
     </I18nextProvider>
-  </React.StrictMode>,
+  </React.StrictMode>
 );
+
+if (PUBLISHABLE_KEY) {
+  root.render(
+    <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
+      {providers}
+    </ClerkProvider>
+  );
+} else {
+  root.render(providers);
+}

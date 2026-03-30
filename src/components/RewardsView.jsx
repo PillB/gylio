@@ -68,6 +68,16 @@ const RewardsView = () => {
     [progressSummary.points, rewards]
   );
 
+  const nearestReward = useMemo(() => {
+    const locked = (rewards || []).filter((r) => !r.redeemed && r.pointsRequired > (progressSummary?.points ?? 0));
+    if (!locked.length) return null;
+    return locked.reduce((closest, r) => {
+      const distA = r.pointsRequired - (progressSummary?.points ?? 0);
+      const distB = closest.pointsRequired - (progressSummary?.points ?? 0);
+      return distA < distB ? r : closest;
+    });
+  }, [rewards, progressSummary]);
+
   useEffect(() => {
     if (!ready) return;
 
@@ -308,6 +318,38 @@ const RewardsView = () => {
               </button>
             </div>
 
+            {nearestReward && (
+              <div style={{
+                border: `2px solid ${theme.colors.primary}`,
+                borderRadius: theme.shape.radiusMd,
+                padding: `${theme.spacing.md}px`,
+                marginBottom: `${theme.spacing.md}px`,
+                backgroundColor: theme.colors.surface,
+              }}>
+                <p style={{ margin: '0 0 4px', fontWeight: 700, color: theme.colors.text }}>
+                  {t('rewards.nearestHeading', "You're almost there!")}
+                </p>
+                <p style={{ margin: '0 0 8px', color: theme.colors.text }}>{nearestReward.title}</p>
+                <div style={{ background: theme.colors.border, borderRadius: theme.shape.radiusFull, height: 10, overflow: 'hidden' }}>
+                  <div style={{
+                    height: '100%',
+                    width: `${Math.min(100, Math.round(((progressSummary?.points ?? 0) / nearestReward.pointsRequired) * 100))}%`,
+                    background: theme.colors.primary,
+                    borderRadius: theme.shape.radiusFull,
+                    transition: 'width 0.6s ease',
+                  }} />
+                </div>
+                <small style={{ color: theme.colors.muted }}>
+                  {t('rewards.progressLabel', {
+                    current: progressSummary?.points ?? 0,
+                    target: nearestReward.pointsRequired,
+                    pct: Math.min(100, Math.round(((progressSummary?.points ?? 0) / nearestReward.pointsRequired) * 100)),
+                    defaultValue: `${progressSummary?.points ?? 0} / ${nearestReward.pointsRequired} points`,
+                  })}
+                </small>
+              </div>
+            )}
+
             {unlockedRewards.length === 0 ? (
               <p>{t('emptyRewards') || 'No rewards yet.'}</p>
             ) : (
@@ -335,6 +377,19 @@ const RewardsView = () => {
                             ? t('rewards.unlocked') || 'Unlocked'
                             : t('rewards.locked') || 'Locked'}
                         </div>
+                        {!reward.redeemed && reward.pointsRequired > (progressSummary?.points ?? 0) && (
+                          <div style={{ marginTop: 6 }}>
+                            <div style={{ background: theme.colors.border, borderRadius: theme.shape.radiusFull, height: 6, overflow: 'hidden' }}>
+                              <div style={{
+                                height: '100%',
+                                width: `${Math.min(100, Math.round(((progressSummary?.points ?? 0) / reward.pointsRequired) * 100))}%`,
+                                background: theme.colors.primary,
+                                opacity: 0.7,
+                                borderRadius: theme.shape.radiusFull,
+                              }} />
+                            </div>
+                          </div>
+                        )}
                         <div>
                           {t('redeemedLabel') || 'Redeemed'}:{' '}
                           {reward.redeemed ? t('yesLabel') || 'Yes' : t('noLabel') || 'No'}

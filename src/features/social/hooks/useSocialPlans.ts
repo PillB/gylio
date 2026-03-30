@@ -17,6 +17,8 @@ type UseSocialPlansResult = {
     reminderMinutesBefore?: number | null;
     energyLevel?: SocialPlan['energyLevel'];
     notes?: string | null;
+    relationshipType?: string | null;
+    person?: string | null;
   }) => Promise<SocialPlan | null>;
   updatePlan: (id: number, updates: Partial<Omit<SocialPlan, 'id'>>) => Promise<SocialPlan | null>;
   removePlan: (id: number) => Promise<boolean>;
@@ -86,7 +88,7 @@ const useSocialPlans = (): UseSocialPlansResult => {
       if (existingId) {
         try {
           await notifications.cancelScheduledNotificationAsync(existingId);
-        } catch (error) {
+        } catch {
           // If cancel fails, continue to schedule a new reminder.
         }
       }
@@ -134,7 +136,9 @@ const useSocialPlans = (): UseSocialPlansResult => {
       steps = [],
       reminderMinutesBefore = null,
       energyLevel = 'LOW',
-      notes = null
+      notes = null,
+      relationshipType = null,
+      person = null
     }: {
       title: string;
       type: SocialPlan['type'];
@@ -143,6 +147,8 @@ const useSocialPlans = (): UseSocialPlansResult => {
       reminderMinutesBefore?: number | null;
       energyLevel?: SocialPlan['energyLevel'];
       notes?: string | null;
+      relationshipType?: string | null;
+      person?: string | null;
     }) => {
       const trimmed = title.trim();
       if (!trimmed) return null;
@@ -155,7 +161,9 @@ const useSocialPlans = (): UseSocialPlansResult => {
           steps,
           reminderMinutesBefore,
           energyLevel,
-          notes
+          notes,
+          relationshipType,
+          person
         );
         setPlans((prev) => [created, ...prev]);
         await scheduleReminder(created);

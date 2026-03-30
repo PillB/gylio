@@ -12,7 +12,7 @@ import LanguageToggle from '../components/atoms/LanguageToggle.tsx';
 const validators = {
   accessibility: (state) =>
     Boolean(state.textStyle && state.contrast && state.motion),
-  neurodivergence: (state) => Boolean(state.preset),
+  neurodivergence: (state) => Boolean(state.preset) && ['adhd', 'autism', 'anxiety', 'dyslexia', 'skip'].includes(state.preset),
   quickSetup: (state) =>
     Boolean(state.starterGoal.trim() && state.monthlyBudget.toString().trim() !== ''),
   tour: (state) => Boolean(state.acknowledged)

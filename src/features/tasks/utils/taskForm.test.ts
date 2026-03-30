@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  DEFAULT_SUBTASK_COUNT,
   MAX_SUBTASKS,
   MIN_SUBTASKS,
   chunkTasks,
@@ -15,7 +16,7 @@ const t = (key: string, options?: Record<string, unknown>) =>
 describe('taskForm helpers', () => {
   it('creates default subtask placeholders', () => {
     const subtasks = createEmptySubtasks();
-    expect(subtasks).toHaveLength(MIN_SUBTASKS);
+    expect(subtasks).toHaveLength(DEFAULT_SUBTASK_COUNT);
     expect(subtasks.every((step) => step.label === '' && step.done === false)).toBe(true);
   });
 
@@ -28,16 +29,17 @@ describe('taskForm helpers', () => {
     expect(normalized).toEqual([{ label: 'first', done: false }]);
   });
 
-  it('returns localized error when subtasks are outside 3-7 range', () => {
-    const tooFew = getSubtaskError([{ label: 'one', done: false }], true, t);
+  it('returns localized error when subtasks are outside 1-7 range', () => {
     const tooMany = getSubtaskError(
       Array.from({ length: MAX_SUBTASKS + 1 }, (_, i) => ({ label: `s${i}`, done: false })),
       true,
       t
     );
+    // One step is now valid (MIN_SUBTASKS = 1)
+    const oneStep = getSubtaskError([{ label: 'one', done: false }], true, t);
 
-    expect(tooFew).toBe('validation.subtasksRange:3-7');
-    expect(tooMany).toBe('validation.subtasksRange:3-7');
+    expect(tooMany).toBe('validation.subtasksRange:1-7');
+    expect(oneStep).toBeNull();
   });
 
   it('allows empty subtasks and skips validation when untouched', () => {

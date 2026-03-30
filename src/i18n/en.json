@@ -3,10 +3,15 @@
   "welcome": "Welcome",
   "tasks": {
     "title": "Tasks",
-    "description": "Create tasks, break them into steps, and keep progress lightweight.",
+    "description": "The clearest signal of a productive day: you finished what you said you would. Break it down, start small, check it off.",
     "chunkedListAria": "Chunked checklist",
     "chunkLabel": "Chunk {{index}}",
     "empty": "No tasks yet.",
+    "emptyBody": "Start with one thing that would make today feel like a win. Break it into steps if it feels big — the first step is enough.",
+    "emptyCta": "+ Add your first task",
+    "emptyTodayHeadline": "Nothing scheduled for today.",
+    "emptyTodayBody": "A clean slate. Add one task you want done today — even one small win changes your momentum.",
+    "emptyTodayCta": "+ Add a task for today",
     "stepCount": "{{count}} steps",
     "complete": "Mark {{title}} complete",
     "uncomplete": "Mark {{title}} incomplete",
@@ -14,11 +19,21 @@
     "viewLabel": "Task views",
     "viewToday": "Today",
     "viewWeek": "This week",
+    "viewUpcoming": "Upcoming",
     "viewBacklog": "Backlog",
+    "sectionOverdue": "Overdue",
+    "sectionToday": "Today",
+    "sectionTomorrow": "Tomorrow",
+    "sectionThisWeek": "This week",
+    "sectionLater": "Later",
+    "sectionUnscheduled": "Unscheduled",
+    "upcomingEmpty": "All clear!",
+    "upcomingEmptyBody": "No tasks scheduled. Add one to see your week at a glance.",
+    "clockNote": "Tasks are scheduled in your local timezone",
     "plannedDateLabel": "Planned date",
-    "plannedDateHelper": "Optional: add a date to sort into Today or This Week.",
+    "plannedDateHelper": "Scheduling a task makes you 2–3× more likely to do it. Even \"today\" is enough — specificity is the point.",
     "subtasksLabel": "Micro-steps",
-    "subtasksHelper": "Optional: add 3–7 micro-steps.",
+    "subtasksHelper": "Break it into micro-steps. Research shows task initiation — not execution — is the hardest part for most people. Starting the first step is 80% of the work.",
     "subtaskPlaceholder": "Add a micro-step",
     "addSubtask": "Add step",
     "removeSubtask": "Remove",
@@ -27,14 +42,257 @@
     "confirmDelete": "Delete task {{title}}?",
     "focusAreaAria": "Pomodoro and focus controls",
     "focusHeading": "Focus blocks",
-    "focusHelper": "Pick a preset to pair with your checklist.",
+    "focusHelper": "The Pomodoro technique (25-min focused sprints) matches your brain's natural 90-min ultradian cycle. Even one session a day compounds significantly over a month.",
     "focusDuration": "{{minutes}} min",
     "startFocus": "Start {{minutes}} minute focus",
     "focusComplete": "{{minutes}} minute focus for {{title}} finished.",
     "focusBlockLabel": "focus block",
     "completedLabel": "complete",
     "reopenedLabel": "reopened",
-    "completionAnnouncement": "{{title}} marked {{status}}"
+    "completionAnnouncement": "{{title}} marked {{status}}",
+    "timerRunning": "Focus timer: {{mm}}:{{ss}} remaining",
+    "timerPaused": "Paused — {{mm}}:{{ss}} remaining",
+    "timerDone": "Focus session complete. You just did something most people don't: you protected your attention. That compounds.",
+    "timerPause": "Pause",
+    "timerResume": "Resume",
+    "timerCancel": "Cancel focus",
+    "timerAriaLive": "{{mm}} minutes and {{ss}} seconds remaining",
+    "energyLabel": "Energy required",
+    "energyTiny": "Tiny",
+    "energyLow": "Low",
+    "energyMedium": "Medium",
+    "energyHigh": "High",
+    "filterByEnergy": "Energy:",
+    "energyFilterAll": "All",
+    "intentionLabel": "When / where",
+    "intentionPlaceholder": "When I finish breakfast, I will…",
+    "intentionHelper": "Implementation intentions (when/where) double follow-through rates — proven across 94 studies. Your brain treats this as a pre-commitment.",
+    "startHere": "Start here",
+    "tpl": {
+      "filterAria": "Filter by category",
+      "energyAria": "Energy: {{level}}",
+      "stepsLabel": "Steps",
+      "addTask": "→ Add this task",
+      "empty": "No templates for this category.",
+      "cat": {
+        "all": "All",
+        "environment": "Environment",
+        "deepwork": "Deep Work",
+        "health": "Health",
+        "relationships": "Relationships",
+        "mindset": "Mindset",
+        "career": "Career",
+        "finances": "Finances"
+      },
+      "cleanSpace": {
+        "title": "Clean your immediate space",
+        "why": "Peterson: order in your environment reduces cognitive load and signals to your brain that you can handle responsibility.",
+        "step1": "Clear the surface you work at",
+        "step2": "Remove trash or clutter from the room",
+        "step3": "Put one thing away that's been out of place"
+      },
+      "digitalDeclutter": {
+        "title": "Digital declutter",
+        "why": "Newport: attention is finite. Every app and notification competes for cognitive bandwidth. Remove what doesn't serve your goals.",
+        "step1": "Delete apps you haven't opened in 30 days",
+        "step2": "Unsubscribe from 5 email lists",
+        "step3": "Clear your phone's home screen to only essentials"
+      },
+      "designEnv": {
+        "title": "Design your environment for better habits",
+        "why": "Clear: environment design is the invisible hand of behavior. Make the right choice the easy choice.",
+        "step1": "Identify one bad habit and remove its cue from your space",
+        "step2": "Make one good habit easier (place the item in plain sight)",
+        "step3": "Set up your work area before you finish today"
+      },
+      "deepWork": {
+        "title": "Deep work block",
+        "why": "Newport: the ability to focus without distraction is becoming increasingly rare and increasingly valuable. One focused session beats four scattered ones.",
+        "step1": "Choose ONE important task — the one you've been avoiding",
+        "step2": "Set a 90-minute timer with all notifications off",
+        "step3": "Write down your goal for this block before starting",
+        "step4": "Review what you produced at the end"
+      },
+      "shutdownRitual": {
+        "title": "Daily shutdown ritual",
+        "why": "Newport: without a clear ending to your workday, your brain keeps cycling through unfinished work. A shutdown ritual creates genuine rest.",
+        "step1": "Scan your task list — capture anything uncaptured",
+        "step2": "Write tomorrow's top 3 priorities",
+        "step3": "Say out loud: 'Shutdown complete'"
+      },
+      "brainDump": {
+        "title": "Brain dump",
+        "why": "Allen: your brain is for having ideas, not storing them. Every uncaptured thought costs attention. Empty it completely.",
+        "step1": "Set a timer for 15 minutes",
+        "step2": "Write every open loop, worry, or to-do in your head — no filtering",
+        "step3": "Review the list and mark which items actually need action",
+        "step4": "Pick the single most important one and schedule it"
+      },
+      "weeklyReview": {
+        "title": "Weekly review",
+        "why": "Allen: the weekly review is the master key to GTD. Without it, your system decays. With it, you stay clear and in control.",
+        "step1": "Clear your inbox and capture any new commitments",
+        "step2": "Review your projects list — is anything stuck?",
+        "step3": "Check what you accomplished this week",
+        "step4": "Set 3 intentions for next week",
+        "step5": "Schedule next week's review"
+      },
+      "nextAction": {
+        "title": "Define the next action",
+        "why": "Allen: vague projects don't move. The moment you define a physical next action, procrastination drops and momentum returns.",
+        "step1": "Pick your most stuck or procrastinated project",
+        "step2": "Ask: what is the very next physical action required?",
+        "step3": "Add that specific action to your task list and schedule it"
+      },
+      "morningSunlight": {
+        "title": "Morning sunlight",
+        "why": "Huberman: morning light exposure sets your circadian clock, boosts cortisol at the right time, and improves mood, focus, and sleep quality.",
+        "step1": "Go outside within 30–60 minutes of waking",
+        "step2": "Stay outside for 10–15 minutes without sunglasses",
+        "step3": "Walk or stand — movement helps absorption"
+      },
+      "moveBody": {
+        "title": "Move your body",
+        "why": "Huberman: 20–30 minutes of cardio raises BDNF, dopamine, and serotonin — the trifecta for mood, learning, and stress resilience.",
+        "step1": "Pick one form of movement (walk, run, lift, swim)",
+        "step2": "Set a minimum: 20–30 minutes",
+        "step3": "Do it before checking news or social media if possible"
+      },
+      "fixSleep": {
+        "title": "Fix your sleep schedule",
+        "why": "Breus: sleep is the single highest-leverage intervention for mental performance, emotional regulation, and physical health.",
+        "step1": "Choose a consistent wake time and stick to it for 2 weeks",
+        "step2": "Set an alarm to start winding down 1 hour before bed",
+        "step3": "Remove your phone from the bedroom or put it across the room"
+      },
+      "reduceAlcohol": {
+        "title": "Reduce alcohol this week",
+        "why": "Huberman: even moderate alcohol disrupts REM sleep, suppresses neurogenesis, and lowers serotonin baselines the following day.",
+        "step1": "Identify which days/situations you drink most",
+        "step2": "Set a specific rule (e.g., only weekends, only 1 drink)",
+        "step3": "Replace the ritual with a non-alcoholic alternative for one week"
+      },
+      "journal": {
+        "title": "Write one page",
+        "why": "Peterson: writing clarifies thought. When you articulate your fears and intentions, you stop carrying them as a vague weight and start engaging with them directly.",
+        "step1": "Write one page — stream of consciousness, no editing",
+        "step2": "End with: what is one thing I could do differently tomorrow?"
+      },
+      "gratitude": {
+        "title": "Gratitude practice",
+        "why": "Emmons: specific gratitude — naming what and why — measurably increases wellbeing, reduces envy, and strengthens relationships over time.",
+        "step1": "Write 3 specific things you're grateful for (not generic)",
+        "step2": "For each one, write WHY you're grateful for it",
+        "step3": "Text one of them to the person involved if applicable"
+      },
+      "comparePastSelf": {
+        "title": "Compare yourself to who you were yesterday",
+        "why": "Peterson: comparing yourself to others breeds resentment. Comparing yourself to your past self breeds improvement and self-respect.",
+        "step1": "Write 3 ways you've improved in the past 6 months",
+        "step2": "Identify one area where you're still struggling",
+        "step3": "Set one small, specific improvement goal for this week only"
+      },
+      "tellTruth": {
+        "title": "Tell the truth — or at least don't lie",
+        "why": "Peterson: small lies compound into a distorted life. Each honest act strengthens your sense of self and reduces the anxiety of maintaining a false front.",
+        "step1": "Identify one thing you've been avoiding saying or doing",
+        "step2": "Write what is actually true about your situation",
+        "step3": "Decide on one honest action you can take this week"
+      },
+      "takeResponsibility": {
+        "title": "Take responsibility for one thing",
+        "why": "Peterson: before you can change anything outside, you have to take ownership of what's inside your control. This is where real agency begins.",
+        "step1": "Name one problem in your life you've been blaming on others or circumstances",
+        "step2": "Write what part of this is actually within your control",
+        "step3": "Choose one action to take that is fully in your power"
+      },
+      "reachOut": {
+        "title": "Reach out to someone",
+        "why": "Dunbar: humans evolved for a social group of ~150. Regular contact with your inner circle is not optional — isolation increases mortality more than smoking.",
+        "step1": "Think of one person you haven't spoken to in over 2 weeks",
+        "step2": "Send a genuine, non-generic message (not just 'hey')",
+        "step3": "Ask one real question about their life"
+      },
+      "repairRelationship": {
+        "title": "Repair a relationship",
+        "why": "Gottman: repair attempts — even small ones — predict relationship survival more than conflict frequency does. Avoidance always makes it worse.",
+        "step1": "Identify the relationship you've been avoiding or neglecting",
+        "step2": "Write what you'd want to say — unsent letter first",
+        "step3": "Reach out and say one true thing without defensiveness"
+      },
+      "expressAppreciation": {
+        "title": "Express appreciation",
+        "why": "Gottman: the 5:1 ratio — five positive interactions for every negative one — determines relationship health. Deliberate appreciation is how you build it.",
+        "step1": "Name one person who deserves acknowledgment today",
+        "step2": "Tell them something specific (not general) that you appreciate",
+        "step3": "Do it in person or voice — not text if possible"
+      },
+      "deliberatePractice": {
+        "title": "Deliberate practice session",
+        "why": "Newport: skill accumulation through deliberate practice is how you build career capital — the rare and valuable abilities that give you control over your work life.",
+        "step1": "Identify the single most valuable skill in your field",
+        "step2": "Find the edge of your current ability in that skill",
+        "step3": "Practice just beyond your comfort zone for 45–60 minutes",
+        "step4": "Review what was hard and what improved"
+      },
+      "identifyMission": {
+        "title": "Identify your career mission",
+        "why": "Newport: a compelling career mission emerges from the intersection of your career capital and the adjacent possible — you can't shortcut it, but you can map it.",
+        "step1": "Write what you're genuinely good at (skills others pay for)",
+        "step2": "Write what problems in the world you care about",
+        "step3": "Find one intersection between those two lists",
+        "step4": "Research one person doing work at that intersection"
+      },
+      "sayNo": {
+        "title": "Say no to one commitment",
+        "why": "Newport: every yes is a no to deep work. Protecting your time requires deliberate subtraction, not just better scheduling.",
+        "step1": "List your current commitments — every yes you've given",
+        "step2": "Identify one that is not aligned with your priorities",
+        "step3": "Decline or exit it with a clear, honest response"
+      },
+      "listDebts": {
+        "title": "List all your debts",
+        "why": "Hammer: you cannot fight what you refuse to see. Most people don't know their actual numbers. Writing them down is the first act of financial courage.",
+        "step1": "Open every account statement you've been avoiding",
+        "step2": "Write each debt: creditor, balance, interest rate, minimum payment",
+        "step3": "Sort by interest rate (highest first = avalanche method)",
+        "step4": "Total the debt — write down the actual number"
+      },
+      "emergencyFund": {
+        "title": "Start an emergency fund",
+        "why": "Hammer: without a cash buffer, every unexpected expense becomes debt. Even $500 saved breaks the cycle of reactive borrowing.",
+        "step1": "Calculate your monthly essential expenses (rent + food + bills)",
+        "step2": "Identify how much you currently have in savings",
+        "step3": "Set up a separate high-yield savings account if you haven't",
+        "step4": "Automate a fixed amount to transfer on payday — even $50 counts"
+      },
+      "trackSpending": {
+        "title": "Track spending for one week",
+        "why": "Hammer: most people guess at their spending and are wrong by 30–50%. One week of real data reveals the leaks that no budget plan can fix in the abstract.",
+        "step1": "Open your bank/card statements for the last 7 days",
+        "step2": "Categorize every transaction: need, want, or save",
+        "step3": "Add up each category total",
+        "step4": "Find the one 'want' category that surprised you most"
+      },
+      "cancelSubs": {
+        "title": "Cancel unused subscriptions",
+        "why": "Hammer: subscription creep is the silent killer of household budgets. Most people pay for 2–3 services they forgot they had.",
+        "step1": "Search your email for 'subscription', 'renewal', 'receipt'",
+        "step2": "List every recurring charge",
+        "step3": "Cancel any you haven't used in 30+ days",
+        "step4": "Calculate your monthly savings"
+      },
+      "negotiateBill": {
+        "title": "Negotiate one bill",
+        "why": "Hammer: a single 15-minute phone call can save $10–$50/month. Frugality is not deprivation — it's refusing to pay more than necessary.",
+        "step1": "Choose one recurring bill (internet, phone, insurance)",
+        "step2": "Research what competitors charge for the same service",
+        "step3": "Call and say you're considering switching — ask for a better rate",
+        "step4": "Document the outcome and time saved vs money saved"
+      },
+      "showGallery": "⚡ Quick-start from proven tasks",
+      "hideGallery": "Hide quick-start tasks"
+    }
   },
   "checkbox": {
     "ariaLabel": "{{label}} checkbox",
@@ -65,6 +323,14 @@
   },
   "settingsGamificationLabel": "Gamification",
   "settingsGamificationHelper": "Opt in to XP, streaks, and cosmetic unlocks. You can disable this any time.",
+  "enableTint": "Enable screen tint",
+  "disableTint": "Disable screen tint",
+  "announceSettings": "Announce settings",
+  "speaking": "Speaking…",
+  "settingsAnimationLabel": "Allow animations",
+  "settingsAnimationOn": "Animations enabled",
+  "settingsAnimationOff": "Animations limited",
+  "settingsAnimationHelper": "Disable non-essential animations to keep the interface calm.",
   "budget": {
     "title": "Budget",
     "placeholder": "Budget tools will track income and expenses, categorize them and simulate debt payoff.",
@@ -74,7 +340,7 @@
     "openBudget": "Open budget",
     "incomeHeading": "Income",
     "remainingLabel": "Remaining",
-    "remainingHint": "Remaining should reach 0 for a zero-based budget.",
+    "remainingHint": "Zero-based budgeting: give every dollar a job before the month starts. When this hits 0, every cent is intentional — that's the whole point.",
     "incomeSourceLabel": "Income source",
     "incomeAmountLabel": "Amount",
     "addIncome": "Add income",
@@ -107,7 +373,7 @@
     "payoffExtraHint": "Includes extra payment from remaining: {{extra}}",
     "payoffEmpty": "Add debts and minimum payments to simulate payoff.",
     "reviewHeading": "Weekly review",
-    "reviewHelper": "Log a gentle check-in to keep your budget streak steady.",
+    "reviewHelper": "A 5-minute weekly budget check-in — even just glancing at the numbers — is what separates people who stay on track from those who drift. Log it.",
     "reviewDisabled": "Enable gamification to track your weekly budget streak.",
     "reviewLogged": "Logged for this week.",
     "logReview": "Log weekly review",
@@ -117,14 +383,93 @@
       "goal": "Goal",
       "debt": "Debt"
     },
+    "zeroBasedExplain": "Zero-based budgeting: give every dollar a job. When Remaining hits zero, every cent is intentional — that's the whole point.",
+    "remainingExplain": "The gap between what you earn and what you've allocated. Your goal: reach zero before the month ends — not by spending more, but by planning more.",
+    "needTooltip": "Essentials you can't function without: rent, groceries, transport, utilities, medication. If life stops without it, it's a Need.",
+    "wantTooltip": "Things that improve your life but aren't critical: dining out, streaming, hobbies, clothes beyond basics. Not 'bad money' — just honest about what they are.",
+    "goalTooltip": "Money working toward your future self: emergency fund, savings, investments, vacation. Pay yourself first — this category builds the life you want.",
+    "debtTooltip": "Existing obligations with interest costs. Tracked separately so you can see the real total cost and build an exit plan.",
+    "snowballExplain": "Pay minimums on everything, throw every extra dollar at the smallest balance. Each debt cleared is a concrete win — and wins keep you going.",
+    "avalancheExplain": "Pay minimums on everything, attack the highest interest rate first. Mathematically optimal — saves the most money over time.",
     "payoffInfeasible": "Current payments are too low to reduce this debt. Increase minimum or extra payment.",
-    "payoffCompare": "Snowball: {{snowballMonths}} months • Avalanche: {{avalancheMonths}} months"
+    "payoffCompare": "Snowball: {{snowballMonths}} months • Avalanche: {{avalancheMonths}} months",
+    "chartHeading": "Spending overview",
+    "chartAriaLabel": "Planned vs actual spending by category",
+    "chartPlanned": "Planned",
+    "chartActual": "Actual",
+    "chartOverBudget": "Over budget",
+    "showDiagnostic": "🩺 Run financial health check",
+    "hideDiagnostic": "Hide diagnostic",
+    "currencySymbol": "$",
+    "monthlyTakeHome": "Monthly take-home",
+    "diagnostic": {
+      "title": "Financial Diagnostic",
+      "subtitle": "Enter your monthly numbers to get an honest picture of your finances.",
+      "incomeSection": "Income",
+      "takeHomeLabel": "Monthly take-home (after tax) 💰",
+      "fixedSection": "Fixed costs — every month, same amount",
+      "variableSection": "Variable costs — changes month to month",
+      "rentLabel": "Rent / Mortgage 🏠",
+      "utilitiesLabel": "Utilities 💡",
+      "subscriptionsLabel": "Subscriptions 📱",
+      "carPaymentLabel": "Car payment 🚗",
+      "insuranceLabel": "Insurance 🛡️",
+      "otherFixedLabel": "Other fixed costs",
+      "groceriesLabel": "Groceries 🛒",
+      "diningOutLabel": "Dining out 🍕",
+      "entertainmentLabel": "Entertainment 🎬",
+      "clothingLabel": "Clothing 👕",
+      "personalCareLabel": "Personal care 💆",
+      "transportLabel": "Transport ⛽",
+      "otherVariableLabel": "Other variable",
+      "runCta": "Run diagnostic →",
+      "resultsTitle": "Your Financial Diagnosis",
+      "backCta": "← Edit inputs",
+      "backAria": "Back to form",
+      "monthlyOverview": "Monthly overview",
+      "takeHomeRow": "Take-home",
+      "fixedRow": "Fixed costs",
+      "variableRow": "Variable costs",
+      "remainingRow": "Remaining / savings",
+      "deficitRow": "Deficit",
+      "incomeBreakdown": "Income breakdown",
+      "breakdownAria": "Fixed {{fixed}}%, Variable {{variable}}%, Savings {{savings}}%",
+      "fixedLegend": "Fixed {{pct}}%",
+      "variableLegend": "Variable {{pct}}%",
+      "savingsLegend": "Savings {{pct}}%",
+      "callouts": "Callouts",
+      "prefillTitle": "Pre-fill your budget with these numbers",
+      "prefillSubtitle": "Your expense categories will be added to your budget automatically.",
+      "applyCta": "Apply to budget →",
+      "scoreAria": "Financial health score: {{score}} out of 100",
+      "alertHousingCritical": "Housing is {{pct}}% of income — critical. Aim for under 30%.",
+      "alertHousingWarning": "Housing is {{pct}}% of income. The target is under 30%.",
+      "alertHousingGood": "Housing is {{pct}}% of income. Well within range.",
+      "alertDeficit": "You are spending more than you earn — deficit of {{symbol}}{{amount}}/mo.",
+      "alertSavingsLow": "Savings rate is only {{pct}}%. Target: 20%+.",
+      "alertSavingsGood": "Savings rate of {{pct}}% is strong.",
+      "alertDiningOut": "Dining out is {{pct}}% of income. This is a high-leverage area.",
+      "alertSubscriptions": "Subscriptions total {{symbol}}{{amount}}/mo. Audit these — unused ones are silent money drains.",
+      "alertFixedHigh": "Fixed costs are {{pct}}% of income. Very little flexibility.",
+      "prefillRent": "Rent / Mortgage",
+      "prefillUtilities": "Utilities",
+      "prefillGroceries": "Groceries",
+      "prefillInsurance": "Insurance",
+      "prefillTransport": "Transport",
+      "prefillSubscriptions": "Subscriptions",
+      "prefillCarPayment": "Car Payment",
+      "prefillDiningOut": "Dining out",
+      "prefillEntertainment": "Entertainment",
+      "prefillClothing": "Clothing",
+      "prefillPersonalCare": "Personal care",
+      "prefillSavings": "Savings / Investments"
+    }
   },
   "rewards": {
     "title": "Rewards",
     "confirmDelete": "Delete reward {{title}}?",
     "gamificationLabel": "Gamification",
-    "gamificationHelper": "Toggle XP, streaks, and unlocks on or off. Your data stays local.",
+    "gamificationHelper": "Variable reward schedules — not guaranteed rewards — keep dopamine engagement high over time. XP and streaks here follow that model. Your data stays private and local.",
     "gamificationOn": "Enabled",
     "gamificationOff": "Disabled",
     "gamificationDisabled": "Gamification is off.",
@@ -132,13 +477,16 @@
     "levelSummary": "Level {{level}}",
     "xpSummary": "{{points}} XP / {{target}} XP",
     "skipTokensLabel": "Skip tokens",
-    "skipTokensHelper": "Use a token to preserve a streak after a missed day.",
+    "skipTokensHelper": "Life happens. A missed day breaks streaks and — research shows — triggers full abandonment for 1 in 3 users. Skip tokens exist to protect your momentum, not excuse laziness. Use them.",
     "streakHeading": "Streak status",
     "focusStreak": "Daily focus streak: {{days}} days",
     "taskStreak": "Task completion streak: {{days}} days",
     "budgetStreak": "Weekly budget review streak: {{weeks}} weeks",
     "unlocked": "Unlocked",
-    "locked": "Locked"
+    "locked": "Locked",
+    "nearestHeading": "You're almost there!",
+    "progressLabel": "{{current}} / {{target}} points ({{pct}}% there!)",
+    "progressBarAria": "Progress toward {{title}}: {{pct}} percent"
   },
   "rewardsPlaceholder": "Points and streaks will appear here. Gamification is optional.",
   "social": {
@@ -177,6 +525,18 @@
     "aiPrivacy": "If enabled, we only send the template summary and energy level. No personal data.",
     "aiFallbackUsed": "AI unavailable. Using the offline template instead.",
     "aiSelectTemplate": "Select a template to continue.",
+    "aiQuotaExhausted": "You have used your free AI suggestion. Sign in or upgrade to unlock more.",
+    "reflectionHeading": "How did it go?",
+    "reflectionHelper": "A quick check-in helps you understand your social energy patterns.",
+    "reflectionNotePlaceholder": "Anything to note? (optional)",
+    "reflectionSubmit": "Save reflection",
+    "reflectionSaved": "Reflection saved!",
+    "reflectionBadgeAria": "Reflection: energy {{energy}} out of 5",
+    "reflectionEnergy1": "Very drained",
+    "reflectionEnergy2": "Tired",
+    "reflectionEnergy3": "Neutral",
+    "reflectionEnergy4": "Good",
+    "reflectionEnergy5": "Energized",
     "type": {
       "call": "Call",
       "meetup": "Meetup",
@@ -233,6 +593,346 @@
           "third": "Follow up with a supportive message."
         }
       }
+    },
+    "relationship": {
+      "pickLabel": "Who is this for?",
+      "friend": "Friend",
+      "romantic": "Partner",
+      "family": "Family",
+      "acquaintance": "Acquaintance",
+      "coworker": "Coworker",
+      "boss": "Boss",
+      "neighbor": "Neighbor",
+      "online_friend": "Online friend"
+    },
+    "depth": {
+      "all": "All",
+      "light": "Light",
+      "medium": "Medium",
+      "deep": "Deep"
+    },
+    "gallery": {
+      "browsing": "Pick a ready-made plan:",
+      "startersLabel": "Ready to send →",
+      "copy": "Copy",
+      "copyAria": "Copy this message",
+      "useTemplate": "Use this plan →",
+      "empty": "No templates for this filter. Try a different depth level."
+    },
+    "startFromScratch": "Skip — start from scratch",
+    "changeTemplate": "Change",
+    "tpl": {
+      "friendMemeShare": {
+        "title": "Share something funny",
+        "desc": "Send a meme or video that instantly made you think of them.",
+        "notes": "Low-stakes and warm. No reply needed.",
+        "step1": "Find something that reminded you of them",
+        "step2": "Send it with a one-liner",
+        "starter1": "This made me immediately think of you 😄",
+        "starter2": "Okay I had to send you this, it's too relevant to us",
+        "starter3": "No context needed, just thought you'd appreciate this 😂"
+      },
+      "friendVoiceNote": {
+        "title": "Send a voice note",
+        "desc": "Record a quick hello — warmer than text, easier than a call.",
+        "notes": "Keep it short and genuine. '30 seconds, no script' is enough.",
+        "step1": "Find a quiet 30 seconds",
+        "step2": "Record a relaxed message",
+        "step3": "Send it without overthinking",
+        "starter1": "Hey! Sending a quick voice note because I was thinking about you. Hope you're doing well ✨",
+        "starter2": "Just a 30-second hello — no need to reply, just wanted you to know I'm thinking of you 🤍"
+      },
+      "friendCoffee": {
+        "title": "Coffee catch-up",
+        "desc": "A low-key in-person hang with no agenda — just time together.",
+        "notes": "Offer two time slots to make it easy to say yes.",
+        "step1": "Text them to check availability",
+        "step2": "Pick a time and place that works for both",
+        "step3": "Show up and enjoy it",
+        "starter1": "Hey, I've been meaning to properly catch up. Coffee or tea sometime this week or next?",
+        "starter2": "Miss your face! Want to grab coffee with zero agenda — just catch up?",
+        "starter3": "Are you free for a low-key coffee? I have maybe an hour and I want to hear what's going on with you."
+      },
+      "friendRealCheckin": {
+        "title": "Real check-in",
+        "desc": "Ask how they're actually doing — not the surface answer.",
+        "notes": "This one takes a little courage. It's worth it.",
+        "step1": "Think about how they've seemed lately",
+        "step2": "Send a direct question that opens the door",
+        "step3": "Listen without rushing to fix anything",
+        "starter1": "Hey, I want to ask properly — how are you actually doing lately? Not the surface answer 💙",
+        "starter2": "I realized I haven't asked you how you're *really* doing in a while. What's going on with you?",
+        "starter3": "Checking in on you properly. You've seemed [tired/busy/quiet] lately and I wanted to make space if you need it."
+      },
+      "celebrateWin": {
+        "title": "Celebrate a win",
+        "desc": "Acknowledge something specific they accomplished — it matters.",
+        "notes": "Be specific. Generic praise lands differently than 'I noticed what you did.'",
+        "step1": "Name the specific thing you're celebrating",
+        "step2": "Send a genuine, unhurried message",
+        "starter1": "I just heard about [thing] and I needed to say — that is a huge deal and I'm so proud of you 🎉",
+        "starter2": "Can we take a moment to celebrate you?? [specific achievement] is amazing!",
+        "starter3": "I don't think you're giving yourself enough credit for [thing]. That was genuinely impressive."
+      },
+      "gratitude": {
+        "title": "Express gratitude",
+        "desc": "Tell them what you appreciate about them — specifically.",
+        "notes": "Specificity is everything. Mention the exact thing.",
+        "step1": "Think of one thing they did that meant something",
+        "step2": "Write it out — the more specific, the more it lands",
+        "step3": "Send it",
+        "starter1": "I was thinking about you and I just want to say thank you for [specific thing]. It meant more than I said at the time.",
+        "starter2": "Random appreciation post: you are [specific quality] and I'm really grateful you're in my life.",
+        "starter3": "I don't say this enough, but [specific thing you did] genuinely helped me and I want you to know that."
+      },
+      "friendReconnect": {
+        "title": "Reconnect",
+        "desc": "Reach out after a gap — low pressure, just saying hi.",
+        "notes": "No need to explain the gap. Just show up.",
+        "step1": "Write a short, warm message — no lengthy explanation",
+        "step2": "Ask one open question so the conversation can flow",
+        "step3": "Hit send and leave it open",
+        "starter1": "Hey stranger! Life has been a lot lately. I miss you and wanted to reach out — how have you been?",
+        "starter2": "I've been thinking about you. I know it's been a while — no pressure at all, just wanted to say hi.",
+        "starter3": "Okay I know it's been ages, but I saw [something] and thought of you. How's life?"
+      },
+      "friend36q": {
+        "title": "36 Questions",
+        "desc": "Arthur Aron's closeness-building conversation — tried and tested.",
+        "notes": "Do the questions in order. Both answer each one.",
+        "step1": "Choose a comfortable setting with at least 90 minutes",
+        "step2": "Take turns answering Set 1 questions (1–12)",
+        "step3": "Move to Set 2 (13–24) when you're both ready",
+        "step4": "Finish with Set 3 (25–36) and the 4-minute eye contact",
+        "starter1": "I came across this thing called the '36 questions that build closeness' and it looked really interesting. Want to try it together?",
+        "starter2": "I want to do something different when we hang out — there's this research-backed conversation format I'm curious about. Game?"
+      },
+      "friendSupport": {
+        "title": "Be there for them",
+        "desc": "Reach out to someone going through a hard time.",
+        "notes": "Ask what they need instead of assuming. Being present is enough.",
+        "step1": "Check in gently — 'I've been thinking about you'",
+        "step2": "Ask what would help: vent, problem-solve, or just not be alone?",
+        "step3": "Follow their lead — don't try to fix, just listen",
+        "step4": "Follow up in a few days",
+        "starter1": "Hey, I've noticed you seem to be going through a hard time. I'm here if you want to talk — no pressure, but I'm available.",
+        "starter2": "I don't need you to be okay. I just want to be with you in whatever you're going through. Call when you want?",
+        "starter3": "I'm making space for you. What do you need right now — to vent, to problem-solve, or just to not be alone?"
+      },
+      "romanticAppreciation": {
+        "title": "Appreciation moment",
+        "desc": "Tell them something specific you appreciate — real, not generic.",
+        "notes": "Notice one thing they did or are this week. Say that.",
+        "step1": "Think of something specific they did or said recently",
+        "step2": "Tell them — in person, text, or a quick note",
+        "starter1": "I just want to say — I notice [specific thing you do] and I appreciate it more than I show.",
+        "starter2": "Random mid-day appreciation: you are [specific quality] and I'm lucky.",
+        "starter3": "I was thinking about [specific memory or thing] and it made me smile. Thank you for being you."
+      },
+      "romanticDateIdea": {
+        "title": "Propose a date idea",
+        "desc": "Suggest something simple and intentional — no elaborate planning needed.",
+        "notes": "Simple works. The intention is what matters.",
+        "step1": "Think of one low-key idea you'd both enjoy",
+        "step2": "Propose it warmly — 'What if we did X?'",
+        "step3": "Confirm the details once they're in",
+        "starter1": "Random idea: [simple date idea]. Want to? We can keep it super low-key.",
+        "starter2": "I want to spend some intentional time with you. What if we did [idea] this weekend?",
+        "starter3": "What if we had a no-phones night this week and just [activity]?"
+      },
+      "romanticQuality": {
+        "title": "Intentional time together",
+        "desc": "Plan time that's truly just about being together — no errands, no screens.",
+        "notes": "Protect the time. Turn off notifications.",
+        "step1": "Pick a block of time and protect it",
+        "step2": "Choose something you both enjoy",
+        "step3": "Be fully present",
+        "starter1": "I want to plan something that's just about us — no errands, no screens, just time together."
+      },
+      "romanticCheckin": {
+        "title": "Relationship check-in",
+        "desc": "A calm conversation about how you're both feeling as a couple.",
+        "notes": "Not about problems — about staying connected. Use 'I' statements.",
+        "step1": "Agree on a calm time with no time pressure",
+        "step2": "Each share one thing that's been good and one that needs attention",
+        "step3": "Talk about what you each need more of",
+        "step4": "Close with an appreciation for each other",
+        "starter1": "I want to have one of those 'how are we doing?' conversations — no urgency or conflict, just checking in together.",
+        "starter2": "Can we do a relationship check-in soon? I want to make sure we're both feeling good and connected."
+      },
+      "romanticDreams": {
+        "title": "Dream conversation",
+        "desc": "Talk about what you're each hoping for in life — not logistics, just dreams.",
+        "notes": "Stay curious, not evaluative. This is about understanding, not deciding.",
+        "step1": "Set aside a relaxed hour",
+        "step2": "Each share a personal dream — something you rarely say out loud",
+        "step3": "Ask follow-up questions and listen deeply",
+        "starter1": "I want to talk about our dreams sometime — not logistics, just what we're each hoping for in life. Up for it?"
+      },
+      "familyUpdate": {
+        "title": "Quick family update",
+        "desc": "Share a small life update and ask how they're doing.",
+        "notes": "Even a short message keeps the relationship warm.",
+        "step1": "Think of one thing from your week worth sharing",
+        "step2": "Send it with a simple question about them",
+        "starter1": "Hey! Quick update from my end: [one thing that happened]. How are you doing?",
+        "starter2": "Thinking of you. Here's a photo from [thing]. Miss you!",
+        "starter3": "Just wanted to check in. How's everything going on your end?"
+      },
+      "familyPhoto": {
+        "title": "Share a memory",
+        "desc": "Send an old photo or memory that made you smile — and think of them.",
+        "notes": "Simple, warm, and it takes two minutes.",
+        "step1": "Find a photo or memory that involves them",
+        "step2": "Send it with a short note about what it means to you",
+        "starter1": "Found this old photo of us! 😄 Remember [thing]? This made my day.",
+        "starter2": "Sharing a memory that made me smile today — and made me think of you."
+      },
+      "familyCall": {
+        "title": "Family catch-up call",
+        "desc": "Schedule a real phone or video call — no agenda, just connection.",
+        "notes": "Offer a few time slots to reduce friction.",
+        "step1": "Reach out to check their availability",
+        "step2": "Set a specific time so it actually happens",
+        "step3": "Call and let the conversation flow naturally",
+        "starter1": "Hey, are you free for a call sometime this week? No agenda, I just want to catch up properly.",
+        "starter2": "Miss your voice. Can we schedule a call? Even 20 minutes would be great."
+      },
+      "familyHelp": {
+        "title": "Offer concrete help",
+        "desc": "Make a specific offer — not 'let me know if you need anything.'",
+        "notes": "Specific offers are easier to accept than open-ended ones.",
+        "step1": "Think of one concrete thing you can genuinely offer",
+        "step2": "Reach out with the offer — make it easy to say yes",
+        "starter1": "I want to help with [specific thing]. Can I [specific offer]? No need to have it all figured out.",
+        "starter2": "I know you have a lot on right now. I'd like to [specific thing] if that would help at all."
+      },
+      "acquaintanceCongrats": {
+        "title": "Send congratulations",
+        "desc": "Acknowledge a milestone or achievement they shared.",
+        "notes": "Short and warm is perfect.",
+        "step1": "Note the specific thing you're congratulating them on",
+        "step2": "Send a brief, genuine message",
+        "starter1": "Congratulations on [milestone]! That's a big deal and you should be proud.",
+        "starter2": "I saw your news about [thing] — that's really exciting. Congratulations!"
+      },
+      "acquaintanceReconnect": {
+        "title": "Light reconnect",
+        "desc": "A low-key message after some time has passed.",
+        "notes": "No explanation needed for the gap.",
+        "step1": "Write a relaxed, warm message",
+        "step2": "Ask one simple question to invite a reply",
+        "starter1": "Hey! It's been a while. I was thinking about [shared thing] and thought I'd reach out. How have you been?",
+        "starter2": "Hi! Random but I was reminded of you recently. Hope you're doing well — how are things?"
+      },
+      "acquaintanceCoffee": {
+        "title": "Suggest coffee",
+        "desc": "Propose a low-pressure meetup to get to know them better.",
+        "notes": "Keep it easy to accept. 'No agenda, just chat' removes pressure.",
+        "step1": "Reach out and suggest a simple meetup",
+        "step2": "Agree on a time and place",
+        "step3": "Show up curious",
+        "starter1": "I'd love to actually catch up properly sometime — would you be up for a coffee? Totally low-key."
+      },
+      "coworkerRecognition": {
+        "title": "Recognize their work",
+        "desc": "Call out something specific they did well.",
+        "notes": "Be specific about what they did and why it mattered.",
+        "step1": "Name the specific thing they did",
+        "step2": "Send a direct, genuine note of recognition",
+        "starter1": "I just wanted to say — the way you handled [specific thing] was genuinely impressive. Nice work.",
+        "starter2": "I don't think you got enough credit for [thing]. I noticed and wanted to say something."
+      },
+      "coworkerCasual": {
+        "title": "Non-work check-in",
+        "desc": "Ask how they're doing beyond the task list.",
+        "notes": "A simple human question builds real rapport over time.",
+        "step1": "Find a natural moment — break, lunch, or a DM",
+        "step2": "Ask one genuine non-work question",
+        "starter1": "Non-work question: how was your weekend / how are you doing beyond the tasks?",
+        "starter2": "Hey, stepping outside work stuff for a sec — how are things with you generally?"
+      },
+      "coworkerLunch": {
+        "title": "Lunch or coffee",
+        "desc": "Propose a casual lunch or coffee with no work agenda.",
+        "notes": "The 'no work agenda' part makes a real difference.",
+        "step1": "Reach out and propose a day",
+        "step2": "Find a time that works for both of you",
+        "starter1": "Want to grab lunch or coffee sometime this week? No work agenda — just actually talk."
+      },
+      "coworkerFeedback": {
+        "title": "Ask for feedback",
+        "desc": "Request honest, growth-focused feedback from someone you trust.",
+        "notes": "Be specific about the area. Be ready to listen without defending.",
+        "step1": "Decide what area you want feedback on",
+        "step2": "Ask with genuine curiosity",
+        "step3": "Listen fully, say thank you, take notes",
+        "starter1": "I'm trying to grow and I really respect your perspective. Would you be open to giving me some honest feedback on [area]?"
+      },
+      "bossUpdate": {
+        "title": "Proactive update",
+        "desc": "Share a brief status update before you're asked.",
+        "notes": "Proactive communication builds trust and reduces anxiety on both sides.",
+        "step1": "Summarize where things stand in 2–3 sentences",
+        "step2": "Note any blockers or things you need",
+        "step3": "Send it — clear is better than perfect",
+        "starter1": "Quick update on [project]: [status]. Anything I should prioritize differently?",
+        "starter2": "Wanted to proactively share where things stand with [thing] before our next sync."
+      },
+      "boss1on1": {
+        "title": "1:1 preparation",
+        "desc": "Prepare for your regular 1:1 so you use the time well.",
+        "notes": "Come with questions and topics. It signals you value the time.",
+        "step1": "Review open items or blockers you want to raise",
+        "step2": "Note one thing you want feedback on",
+        "step3": "Write one question about growth or direction",
+        "step4": "Go in with your list — be the one who drives the agenda"
+      },
+      "bossGrowth": {
+        "title": "Growth conversation",
+        "desc": "Request a conversation focused on your development and direction.",
+        "notes": "Come with a specific area or question. Make it easy to help you.",
+        "step1": "Decide what you want to grow in or understand",
+        "step2": "Request a short meeting — '20 minutes about my development'",
+        "step3": "In the meeting: share your goal, ask one clear question",
+        "starter1": "I'd love to schedule a quick conversation about my growth path — would you have 20 minutes sometime soon?"
+      },
+      "neighborHello": {
+        "title": "Say hello",
+        "desc": "A simple, warm hello to your neighbor.",
+        "notes": "Neighboring is underrated. A short hello goes a long way.",
+        "step1": "Wave, knock, or send a short note",
+        "step2": "Keep it brief and warm",
+        "starter1": "Hey neighbor! Just wanted to say hi and check you're doing well.",
+        "starter2": "Hi! I have [extra produce/item] if you'd want it — also just wanted to say hello."
+      },
+      "neighborHangout": {
+        "title": "Neighbor hangout",
+        "desc": "Suggest getting together for a drink or coffee.",
+        "notes": "Low-key and local makes it easy.",
+        "step1": "Make the suggestion — casual and open",
+        "step2": "Agree on a time",
+        "starter1": "Would you ever want to grab a drink or coffee sometime? I'd love to actually get to know my neighbors."
+      },
+      "onlineGaming": {
+        "title": "Gaming session",
+        "desc": "Plan a proper online session — not just 'sometime'.",
+        "notes": "Scheduling it makes it real. Set a time and stick to it.",
+        "step1": "Agree on a game and day",
+        "step2": "Set a specific time and hop on",
+        "starter1": "Want to play [game] sometime this week? Been a while since we've had a session.",
+        "starter2": "Miss our [game/hangout] sessions. Are you free this week to do a proper one?"
+      },
+      "onlineVideo": {
+        "title": "Video catch-up",
+        "desc": "Actually see each other face to face — even online.",
+        "notes": "Video calls feel closer than text. Worth scheduling.",
+        "step1": "Suggest a date and time",
+        "step2": "Agree and put it in the calendar",
+        "step3": "Show up and just hang out",
+        "starter1": "Want to do a video call soon? I miss actually seeing your face.",
+        "starter2": "Are you up for a proper video hang? We can just chill and talk."
+      }
     }
   },
   "settings": "Settings",
@@ -270,6 +970,10 @@
   "calendarViewLabel": "View",
   "calendarDayView": "Day",
   "calendarWeekView": "Week",
+  "calendarMonthView": "Month",
+  "calendarToday": "Today",
+  "calendarPrev": "Previous period",
+  "calendarNext": "Next period",
   "calendarSelectDate": "Date",
   "calendarStartLabel": "Start time",
   "calendarEndLabel": "End time",
@@ -357,6 +1061,8 @@
       "helper": "Pick one starting point; you can adjust supports later without losing predictability.",
       "presetHeading": "Pick a preset",
       "supportsHeading": "Which supports help most?",
+      "appliedBadge": "Settings applied ✓",
+      "skipManual": "Skip / set manually",
       "adhd": {
         "title": "ADHD",
         "desc": "Chunk tasks, focus timers, gentle alerts."
@@ -450,5 +1156,287 @@
   "calendarSuggestedFocusHelper": "We auto-place up to three unscheduled tasks into open time blocks for this day.",
   "calendarSuggestedFocusWindow": "{{window}} · {{minutes}} min",
   "calendarSuggestedFocusEmpty": "No open window fits your unscheduled tasks right now.",
-  "calendarScheduleSuggestion": "Schedule this window"
+  "calendarScheduleSuggestion": "Schedule this window",
+  "routines": {
+    "title": "Routines",
+    "description": "Habits compound. A 30-minute morning routine done consistently for 90 days creates more change than a perfect plan done once.",
+    "empty": "No routines yet.",
+    "emptyBody": "A single consistent routine — even 10 minutes — is more valuable than any app, book, or plan. Start with one thing you want to do every day. Build from there.",
+    "emptyCta": "Build your first routine",
+    "addHeading": "New routine",
+    "titleLabel": "Routine name",
+    "titlePlaceholder": "Morning routine",
+    "descriptionLabel": "Description (optional)",
+    "frequencyLabel": "Frequency",
+    "frequencyDaily": "Daily",
+    "frequencyWeekly": "Weekly",
+    "frequencyCustom": "Custom",
+    "triggerTimeLabel": "Trigger time (optional)",
+    "stepsLabel": "Steps",
+    "stepPlaceholder": "Step {{index}}",
+    "addStep": "Add step",
+    "removeStep": "Remove step {{index}}",
+    "addRoutine": "Add routine",
+    "saveRoutine": "Save changes",
+    "cancelEdit": "Cancel",
+    "confirmDelete": "Delete routine \"{{title}}\"?",
+    "completeButton": "Mark done for today",
+    "dueBadge": "Due today",
+    "doneBadge": "Done",
+    "errorTitleRequired": "Routine name is required.",
+    "stepsHeading": "Steps",
+    "toggleStep": "Toggle step {{label}}",
+    "editLabel": "Edit {{title}}",
+    "deleteLabel": "Delete {{title}}",
+    "anchorLabel": "Stack onto a habit (optional)",
+    "anchorPlaceholder": "e.g. After morning coffee",
+    "anchorHelper": "Habit stacking: link a new behavior to one you already do automatically. BJ Fogg's research shows this doubles implementation success versus starting cold.",
+    "anchorDisplay": "After {{habit}}, I will do this routine",
+    "streakDotsAria": "Last 21 days: {{completed}} completed",
+    "tpl": {
+      "showGallery": "🔬 Browse research-backed protocols",
+      "hideGallery": "Hide protocol library",
+      "addRoutine": "→ Add this routine",
+      "cat": {
+        "morning": "Morning",
+        "evening": "Evening",
+        "weekly": "Weekly",
+        "focus": "Focus",
+        "health": "Health"
+      },
+      "hubermanMorning": {
+        "title": "Huberman Morning Protocol",
+        "why": "Morning light exposure sets your circadian clock, cortisol peak drives alertness, and delaying caffeine prevents afternoon crashes.",
+        "step1": "Wake at consistent time (no snooze)",
+        "step2": "Go outside within 30–60 min — face the morning sky for 10–15 min",
+        "step3": "Delay caffeine 90–120 min after waking",
+        "step4": "Do 10 min of light movement or stretching",
+        "step5": "Cold shower or face splash (30 sec) — activates alertness"
+      },
+      "morningPages": {
+        "title": "Morning Pages",
+        "why": "Longhand writing before screens clears mental noise, surfaces subconscious concerns, and trains creative thinking over time.",
+        "step1": "Sit with pen and paper before screens",
+        "step2": "Write 3 pages longhand — stream of consciousness, no editing",
+        "step3": "Do not reread until at least a week later"
+      },
+      "deepWorkLaunch": {
+        "title": "Deep Work Launch",
+        "why": "Protecting your peak cognitive hours for deep work — before reactive communication — compounds output over weeks.",
+        "step1": "Write today's single most important task (MIT)",
+        "step2": "Clear your desk of everything not related to that task",
+        "step3": "Set a 90-min focus timer before checking messages",
+        "step4": "Put phone in another room or drawer"
+      },
+      "exerciseMorning": {
+        "title": "Morning Exercise",
+        "why": "Morning exercise boosts dopamine, serotonin, and BDNF for the next 4–6 hours. Doing it first removes the decision entirely.",
+        "step1": "Put on workout clothes before any decision-making",
+        "step2": "Do 20–30 min of cardio or resistance training",
+        "step3": "Do NOT check phone until workout is complete",
+        "step4": "Take protein or meal within 60 min of finishing"
+      },
+      "hubermanEvening": {
+        "title": "Huberman Evening Protocol",
+        "why": "Bright light after sunset delays melatonin by up to 3 hours. Dimming lights early accelerates sleep onset and improves deep-sleep quality.",
+        "step1": "View sunset or dim lights 2+ hours before bed",
+        "step2": "No bright overhead lights after 9pm — use lamps",
+        "step3": "No caffeine after 2pm (if you haven't already)",
+        "step4": "Do not eat within 2–3 hours of sleep",
+        "step5": "Keep room cool: 65–68°F / 18–20°C"
+      },
+      "powerDownHour": {
+        "title": "Power-Down Hour",
+        "why": "A structured wind-down signals the nervous system to shift from sympathetic to parasympathetic — making sleep faster and deeper.",
+        "step1": "First 20 min: finish small tasks and tomorrow's to-do list",
+        "step2": "Next 20 min: hygiene (shower, brush teeth, skincare)",
+        "step3": "Final 20 min: only relaxing activities — reading, light stretching, breathing"
+      },
+      "eveningReview": {
+        "title": "Evening Review",
+        "why": "Stoic journaling lowers rumination by externalizing thoughts, and gratitude practice measurably improves mood and sleep quality.",
+        "step1": "Write: What did I do well today?",
+        "step2": "Write: What could I have done better?",
+        "step3": "Write: What am I grateful for today?",
+        "step4": "Close your notebook — do not review screens after this"
+      },
+      "tomorrowPrep": {
+        "title": "Tomorrow Prep",
+        "why": "Pre-deciding tomorrow removes decision fatigue at the start of the next day and closes the Zeigarnik loop on open tasks.",
+        "step1": "Write tomorrow's top 3 priorities",
+        "step2": "Set out anything you'll need (gym bag, work items, etc)",
+        "step3": "Pre-decide tomorrow's wake time",
+        "step4": "Close all browser tabs and apps"
+      },
+      "weeklyReview": {
+        "title": "Weekly Review",
+        "why": "Weekly reviews catch drift before it compounds. Reviewing what blocked you turns repeated failures into system improvements.",
+        "step1": "Clear all inboxes (email, messages, notes)",
+        "step2": "Review last week: what got done, what didn't, what blocked you",
+        "step3": "Set 3 intentions for the coming week",
+        "step4": "Schedule any important tasks as calendar blocks",
+        "step5": "Review your finances — check spending vs budget"
+      },
+      "healthAudit": {
+        "title": "Weekly Health Audit",
+        "why": "What gets measured gets managed. A 15-min weekly audit creates accountability without adding shame or complexity.",
+        "step1": "Note sleep quality this week (1–5 scale)",
+        "step2": "Note exercise days this week",
+        "step3": "Note how many days you ate vegetables",
+        "step4": "Identify the #1 health habit to improve next week"
+      },
+      "pomodoroBlock": {
+        "title": "Pomodoro Focus Block",
+        "why": "Fixed-interval focus with scheduled breaks matches natural ultradian rhythms and prevents the mental fatigue of open-ended work sessions.",
+        "step1": "Choose one task and write it down",
+        "step2": "Set 25-min timer — work on nothing else",
+        "step3": "Take 5-min break (stand up, walk)",
+        "step4": "Repeat 4 times then take a 20–30 min break"
+      },
+      "noPhoneMorning": {
+        "title": "No-Phone Morning",
+        "why": "Checking your phone first thing puts you in reactive mode. One hour of phone-free time builds internal focus before external demands hit.",
+        "step1": "Do not check your phone for the first 60 minutes after waking",
+        "step2": "Do your morning routine first (light, movement, breakfast)",
+        "step3": "After 60 min, check messages for a defined 10-min window only"
+      },
+      "zone2Cardio": {
+        "title": "Zone 2 Cardio",
+        "why": "Zone 2 cardio is the single highest-ROI exercise for metabolic health, mitochondrial density, and longevity. 3–4 sessions/week is the minimum effective dose.",
+        "step1": "Do 30–45 minutes of cardio at a 'conversational' pace — you could speak in sentences",
+        "step2": "Keep heart rate around 60–70% of your max (roughly 180 minus your age)",
+        "step3": "Aim for 3–4 sessions per week — this is the minimum effective dose for longevity"
+      },
+      "mobility": {
+        "title": "Daily Mobility Routine",
+        "why": "Ten minutes of daily mobility prevents the chronic tightness that leads to injury. Done consistently, it reverses years of desk posture.",
+        "step1": "Neck rolls: 5 slow circles each direction",
+        "step2": "Hip circles: 10 each direction",
+        "step3": "Cat-cow spinal stretch: 10 reps",
+        "step4": "Reach toward toes: hold 30 seconds",
+        "step5": "Arm across chest: 30 seconds each side"
+      }
+    },
+    "gallery": {
+      "heading": "Routine Template Library",
+      "subtitle": "Research-backed routines. Pick one to add it to your schedule.",
+      "filterAria": "Filter by category",
+      "allFilter": "All",
+      "stepsPreview": "Steps preview",
+      "moreSteps_one": "+ {{count}} more step",
+      "moreSteps_other": "+ {{count}} more steps",
+      "addCta": "→ Add this routine",
+      "empty": "No templates in this category yet.",
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "addAria": "Add routine: {{title}}"
+    }
+  },
+  "win": {
+    "closeAria": "Close celebration",
+    "shareCta": "↗ Share this win",
+    "copied": "✓ Copied to clipboard!",
+    "shareError": "Could not share",
+    "keepGoing": "Keep going →",
+    "streak": {
+      "headline": "{{days}}-Day Streak",
+      "sub": "Consistency is the compound interest of effort. Keep going."
+    },
+    "allTasksDone": {
+      "headline": "All Done Today",
+      "sub": "You showed up. That's the whole game."
+    },
+    "routineComplete": {
+      "headline": "Routine Complete",
+      "sub": "You just won your morning. That compounds."
+    },
+    "budgetGoal": {
+      "headline": "Budget Goal Hit",
+      "sub": "One category owned. Every number you face, you own."
+    },
+    "firstTask": {
+      "headline": "First Task Created",
+      "sub": "Your brain can relax now. It's in the system."
+    },
+    "firstRoutine": {
+      "headline": "First Routine Built",
+      "sub": "The backbone of your morning just got stronger."
+    },
+    "levelUp": {
+      "headline": "Level {{level}} Reached",
+      "sub": "Growth is not linear — but you are moving forward."
+    }
+  },
+  "welcomeBack": {
+    "title": "Welcome back — you were away for {{days}}.",
+    "daysSingular": "1 day",
+    "daysPlural": "{{count}} days",
+    "message0": "Life happened. That's fine.",
+    "message1": "No judgment here — just where you left off.",
+    "message2": "The hardest part is coming back. You just did it.",
+    "message3": "Every restart counts. Welcome back.",
+    "continueCta": "Pick up where I left off",
+    "freshStartCta": "Start fresh today"
+  },
+  "upgrade": {
+    "premiumBadge": "✦ Premium",
+    "upgradeCta": "Upgrade",
+    "tryFree": "Try free",
+    "regionAria": "Upgrade to access this feature",
+    "title": "{{feature}} is a premium feature",
+    "subtitle": "Start your 10-day free trial — no credit card required.",
+    "startTrial": "Start 10-day free trial",
+    "seePlans": "See plans",
+    "pricing": "$12/month · or $10/month billed yearly"
+  },
+  "pricing": {
+    "heading": "Simple, honest pricing",
+    "subheading": "Start free. Upgrade when you're ready.",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "saveBadge": "Save 17%",
+    "freePlanLabel": "Free",
+    "freeForever": "Free forever",
+    "premiumPlanLabel": "Premium",
+    "perMonth": "/mo",
+    "billedYearly": "billed yearly · save $24/year",
+    "billedMonthly": "billed monthly",
+    "startTrial": "Start {{days}}-day free trial",
+    "noCard": "No credit card required for trial",
+    "trialConfirmed": "🎉 Trial activated! Billing portal coming soon.",
+    "trialConfirmedSub": "Your account has been noted. We'll email you when billing is ready.",
+    "activating": "Activating…",
+    "activated": "✓ Premium activated!",
+    "trialError": "Could not activate trial",
+    "tryAgain": "Try again",
+    "redirecting": "Unlocking premium features…",
+    "currentPlan": "Current plan",
+    "freePlanCta": "Continue with Free",
+    "faq": "Cancel anytime. Downgrade to free at any point — your data stays safe.",
+    "redirectingToBilling": "Redirecting to billing…",
+    "feature": {
+      "tasks": "Task creation & micro-steps",
+      "calendar": "Calendar view",
+      "budget": "Basic budget tracking",
+      "aiOne": "1 free AI schedule suggestion",
+      "everything": "Everything in Free",
+      "social": "Social plans & gentle reminders",
+      "routines": "Routine builder",
+      "rewards": "Rewards & streaks",
+      "aiUnlimited": "Unlimited AI suggestions",
+      "sync": "Cross-device sync",
+      "support": "Priority support"
+    }
+  },
+  "calendarWeeklyGridAria": "Weekly calendar",
+  "clock": {
+    "about": "about {{time}}",
+    "around": "around {{time}}",
+    "toggleGranularity": "Change time display",
+    "granularityExact": "Exact time",
+    "granularityHalf": "Approx. half-hour",
+    "granularityHour": "Approx. hour",
+    "granularityNoTime": "Date only",
+    "granularityHidden": "Hidden"
+  }
 }
