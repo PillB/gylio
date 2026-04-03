@@ -30,6 +30,8 @@
     "upcomingEmpty": "All clear!",
     "upcomingEmptyBody": "No tasks scheduled. Add one to see your week at a glance.",
     "clockNote": "Tasks are scheduled in your local timezone",
+    "deleted": "\"{{title}}\" deleted",
+    "undoDelete": "Undo",
     "plannedDateLabel": "Planned date",
     "plannedDateHelper": "Scheduling a task makes you 2–3× more likely to do it. Even \"today\" is enough — specificity is the point.",
     "subtasksLabel": "Micro-steps",
@@ -68,6 +70,25 @@
     "intentionPlaceholder": "When I finish breakfast, I will…",
     "intentionHelper": "Implementation intentions (when/where) double follow-through rates — proven across 94 studies. Your brain treats this as a pre-commitment.",
     "startHere": "Start here",
+    "startTimerBtn": "🍅 {{minutes}} min",
+    "startTimerAria": "Start {{minutes}} min focus for {{title}}",
+    "timerPhaseFocus": "Focus",
+    "timerPhaseShortBreak": "Short break",
+    "timerPhaseLongBreak": "Long break",
+    "timerSession": "Session {{n}}",
+    "timerAfterSessions": "After {{n}} sessions",
+    "timerStartFocusAria": "Start focus session",
+    "timerStartFocusBtn": "Start focus",
+    "timerSkipToBreak": "Skip to break",
+    "timerSkipToFocus": "Skip break",
+    "timerSkipAria": "Skip current phase",
+    "timerStopAria": "Stop timer and save progress",
+    "timerStop": "Stop",
+    "timerRegionAria": "Task timer",
+    "timerActiveTaskHint": "Timer running — see task card above for controls.",
+    "timerStartHint": "▶ Tap \"🍅 {{minutes}} min\" on any task above to start a focused Pomodoro session.",
+    "timerSessionSingular": "session",
+    "timerSessionPlural": "sessions",
     "tpl": {
       "filterAria": "Filter by category",
       "energyAria": "Energy: {{level}}",
@@ -1429,6 +1450,25 @@
     }
   },
   "calendarWeeklyGridAria": "Weekly calendar",
+  "settingsPanel": {
+    "shortcutsHeading": "Keyboard shortcuts",
+    "shortcutAddTask": "Focus \"Add task\" input",
+    "shortcutDismiss": "Dismiss notification / close overlay",
+    "aboutHeading": "About",
+    "appVersion": "Version",
+    "buildDate": "Build",
+    "stack": "Stack",
+    "aboutDescription": "GYLIO is a neurodivergent-friendly productivity app built with accessibility, low cognitive load, and gentle UX at its core.",
+    "tourDescription": "Take the interactive tour again to rediscover features or show the app to someone new.",
+    "timerHeading": "Focus timer",
+    "timerFocusLabel": "Focus duration",
+    "timerShortBreakLabel": "Short break",
+    "timerLongBreakLabel": "Long break",
+    "timerSessionsLabel": "Sessions before long break",
+    "timerAutoBreak": "Auto-start breaks when focus ends",
+    "timerInsight": "Research shows the brain works in ~90-minute ultradian cycles. Shorter sprints (25 min) suit most tasks; longer sprints (45–90 min) require proportionally longer breaks to avoid cognitive fatigue. Find your window.",
+    "timerBreakInsight": "Longer focus sprints need longer breaks: 45 min → 15 min break; 90 min → 20 min break. Skipping breaks compounds mental fatigue."
+  },
   "clock": {
     "about": "about {{time}}",
     "around": "around {{time}}",
@@ -1438,5 +1478,60 @@
     "granularityHour": "Approx. hour",
     "granularityNoTime": "Date only",
     "granularityHidden": "Hidden"
+  },
+  "tour": {
+    "dialogAria": "Interactive feature tour",
+    "stepOf": "Step {{current}} of {{total}}",
+    "progressAria": "Tour progress",
+    "pauseAria": "Pause tour",
+    "prevAria": "Previous step",
+    "nextAria": "Next step",
+    "finishAria": "Finish tour",
+    "prev": "Back",
+    "next": "Next",
+    "finish": "Done!",
+    "keyboardHint": "← → navigate · Esc pause",
+    "startButton": "Guide",
+    "startAria": "Start interactive guide",
+    "activeLabel": "Guide on",
+    "activeAria": "Tour in progress",
+    "restartButton": "Restart guide",
+    "restartAria": "Restart interactive guide",
+    "welcome": {
+      "title": "Welcome to GYLIO",
+      "content": "This quick tour walks you through the key features — it takes about 2 minutes. You can pause anytime and come back right where you left off."
+    },
+    "navBar": {
+      "title": "Your main navigation",
+      "content": "Switch between Tasks, Calendar, Budget, and more using this bar. Features marked with ✦ are available on the Premium plan."
+    },
+    "taskInput": {
+      "title": "Add a task",
+      "content": "Type your task here. Be specific — 'Reply to Maria's email by 3 pm' beats 'check email'. Press N anytime to jump straight here."
+    },
+    "taskEnergy": {
+      "title": "Match tasks to your energy",
+      "content": "Choose how much energy a task needs. Low battery? Pick Tiny or Low tasks. Feeling sharp? Tackle a High-energy one. This helps GYLIO suggest the right task at the right time."
+    },
+    "taskSteps": {
+      "title": "Break big tasks down",
+      "content": "Large tasks feel overwhelming. Tap 'Break into steps' to split one task into micro-steps — even 3 small steps make starting much easier."
+    },
+    "pomodoro": {
+      "title": "Focus blocks (Pomodoro)",
+      "content": "Work in short, timed sprints — 25 minutes on, then a break. Your brain's natural rhythm matches this cycle, so you stay in flow longer and feel less drained."
+    },
+    "calendar": {
+      "title": "Your calendar",
+      "content": "View your day, week, or month at a glance. Add events and see how your schedule looks so you can plan tasks around your real commitments."
+    },
+    "budget": {
+      "title": "Budget tracker",
+      "content": "Track income and spending by category. The progress bars show exactly how much of each budget you've used this month — no surprises."
+    },
+    "done": {
+      "title": "You're all set!",
+      "content": "You know the essentials. Explore at your own pace — and restart this guide anytime from Settings or the Guide button in the header."
+    }
   }
 }

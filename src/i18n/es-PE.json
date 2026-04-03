@@ -30,6 +30,8 @@
     "upcomingEmpty": "¡Todo en orden!",
     "upcomingEmptyBody": "No hay tareas programadas. Agrega una para ver tu semana de un vistazo.",
     "clockNote": "Las tareas se programan en tu zona horaria local",
+    "deleted": "\"{{title}}\" eliminada",
+    "undoDelete": "Deshacer",
     "plannedDateLabel": "Fecha planificada",
     "plannedDateHelper": "Programar una tarea te hace 2–3 veces más propenso a hacerla. Incluso \"hoy\" es suficiente — la especificidad es el punto.",
     "subtasksLabel": "Micro-pasos",
@@ -68,6 +70,25 @@
     "intentionPlaceholder": "Cuando termine el desayuno, voy a…",
     "intentionHelper": "Las intenciones de implementación (cuándo/dónde) duplican las tasas de seguimiento — probado en 94 estudios. Tu cerebro trata esto como un pre-compromiso.",
     "startHere": "Empieza aquí",
+    "startTimerBtn": "🍅 {{minutes}} min",
+    "startTimerAria": "Iniciar {{minutes}} min de enfoque para {{title}}",
+    "timerPhaseFocus": "Enfoque",
+    "timerPhaseShortBreak": "Descanso corto",
+    "timerPhaseLongBreak": "Descanso largo",
+    "timerSession": "Sesión {{n}}",
+    "timerAfterSessions": "Después de {{n}} sesiones",
+    "timerStartFocusAria": "Iniciar sesión de enfoque",
+    "timerStartFocusBtn": "Iniciar enfoque",
+    "timerSkipToBreak": "Saltar al descanso",
+    "timerSkipToFocus": "Saltar descanso",
+    "timerSkipAria": "Saltar fase actual",
+    "timerStopAria": "Detener temporizador y guardar progreso",
+    "timerStop": "Detener",
+    "timerRegionAria": "Temporizador de tarea",
+    "timerActiveTaskHint": "Temporizador activo — ve la tarjeta de tarea arriba para controles.",
+    "timerStartHint": "▶ Toca \"🍅 {{minutes}} min\" en cualquier tarea arriba para iniciar una sesión Pomodoro.",
+    "timerSessionSingular": "sesión",
+    "timerSessionPlural": "sesiones",
     "tpl": {
       "filterAria": "Filtrar por categoría",
       "energyAria": "Energía: {{level}}",
@@ -1429,6 +1450,25 @@
     }
   },
   "calendarWeeklyGridAria": "Calendario semanal",
+  "settingsPanel": {
+    "shortcutsHeading": "Atajos de teclado",
+    "shortcutAddTask": "Enfocar campo \"Agregar tarea\"",
+    "shortcutDismiss": "Cerrar notificación / overlay",
+    "aboutHeading": "Acerca de",
+    "appVersion": "Versión",
+    "buildDate": "Compilación",
+    "stack": "Tecnología",
+    "aboutDescription": "GYLIO es una app de productividad diseñada para personas neurodivergentes, con accesibilidad, bajo esfuerzo cognitivo y UX amable en su núcleo.",
+    "tourDescription": "Realiza el tour interactivo de nuevo para redescubrir funciones o mostrar la app a alguien nuevo.",
+    "timerHeading": "Temporizador de enfoque",
+    "timerFocusLabel": "Duración de enfoque",
+    "timerShortBreakLabel": "Descanso corto",
+    "timerLongBreakLabel": "Descanso largo",
+    "timerSessionsLabel": "Sesiones antes del descanso largo",
+    "timerAutoBreak": "Iniciar descansos automáticamente al terminar el enfoque",
+    "timerInsight": "La investigación muestra que el cerebro trabaja en ciclos ultradianos de ~90 minutos. Los sprints cortos (25 min) funcionan para la mayoría de tareas; los sprints largos (45–90 min) requieren descansos proporcionalmente más largos para evitar la fatiga cognitiva. Encuentra tu ventana.",
+    "timerBreakInsight": "Los sprints de enfoque más largos necesitan descansos más largos: 45 min → 15 min de descanso; 90 min → 20 min de descanso. Saltarse los descansos acumula fatiga mental."
+  },
   "clock": {
     "about": "cerca de {{time}}",
     "around": "alrededor de {{time}}",
@@ -1438,5 +1478,60 @@
     "granularityHour": "Hora aprox.",
     "granularityNoTime": "Solo fecha",
     "granularityHidden": "Ocultar"
+  },
+  "tour": {
+    "dialogAria": "Tour interactivo de funciones",
+    "stepOf": "Paso {{current}} de {{total}}",
+    "progressAria": "Progreso del tour",
+    "pauseAria": "Pausar tour",
+    "prevAria": "Paso anterior",
+    "nextAria": "Siguiente paso",
+    "finishAria": "Finalizar tour",
+    "prev": "Atrás",
+    "next": "Siguiente",
+    "finish": "¡Listo!",
+    "keyboardHint": "← → navegar · Esc pausar",
+    "startButton": "Guía",
+    "startAria": "Iniciar guía interactiva",
+    "activeLabel": "Guía activa",
+    "activeAria": "Tour en progreso",
+    "restartButton": "Reiniciar guía",
+    "restartAria": "Reiniciar guía interactiva",
+    "welcome": {
+      "title": "Bienvenido a GYLIO",
+      "content": "Este tour rápido te muestra las funciones clave — toma unos 2 minutos. Puedes pausar en cualquier momento y retomar justo donde lo dejaste."
+    },
+    "navBar": {
+      "title": "Tu navegación principal",
+      "content": "Cambia entre Tareas, Calendario, Presupuesto y más usando esta barra. Las funciones marcadas con ✦ están disponibles en el plan Premium."
+    },
+    "taskInput": {
+      "title": "Agrega una tarea",
+      "content": "Escribe tu tarea aquí. Sé específico — 'Responder el correo de María antes de las 3 pm' es mejor que 'revisar correo'. Presiona N en cualquier momento para ir directo aquí."
+    },
+    "taskEnergy": {
+      "title": "Adapta las tareas a tu energía",
+      "content": "Elige cuánta energía requiere una tarea. ¿Poca batería? Escoge tareas Mínimas o Bajas. ¿Energía alta? Afronta las difíciles. Esto ayuda a GYLIO a sugerirte la tarea correcta en el momento correcto."
+    },
+    "taskSteps": {
+      "title": "Divide las tareas grandes",
+      "content": "Las tareas grandes abruman. Toca 'Dividir en pasos' para dividir una tarea en micro-pasos — incluso 3 pequeños pasos hacen que empezar sea mucho más fácil."
+    },
+    "pomodoro": {
+      "title": "Bloques de enfoque (Pomodoro)",
+      "content": "Trabaja en sprints cortos y cronometrados — 25 minutos de enfoque, luego un descanso. El ritmo natural de tu cerebro coincide con este ciclo, así que te mantienes en flujo más tiempo y te cansas menos."
+    },
+    "calendar": {
+      "title": "Tu calendario",
+      "content": "Ve tu día, semana o mes de un vistazo. Agrega eventos y observa cómo luce tu agenda para planificar tareas en torno a tus compromisos reales."
+    },
+    "budget": {
+      "title": "Seguimiento de presupuesto",
+      "content": "Registra ingresos y gastos por categoría. Las barras de progreso muestran exactamente cuánto has usado de cada presupuesto este mes — sin sorpresas."
+    },
+    "done": {
+      "title": "¡Todo listo!",
+      "content": "Ya conoces lo esencial. Explora a tu propio ritmo — y reinicia esta guía en cualquier momento desde Configuración o el botón Guía del encabezado."
+    }
   }
 }

@@ -37,6 +37,8 @@ import UpgradePrompt from './features/subscription/UpgradePrompt';
 import { useAppAuth } from './core/context/AuthContext';
 import WelcomeBackBanner from './components/WelcomeBackBanner';
 import { track, Events } from './core/analytics';
+import GuidedTourOverlay from './components/GuidedTourOverlay';
+import { useGuidedTour } from './core/context/GuidedTourContext';
 
 // --- Header ---
 
@@ -45,6 +47,7 @@ function AppHeader({ clerkEnabled }) {
   const { selections, updateSelections } = useOnboardingFlow();
   const { theme } = useTheme();
   const navigate = useNavigate();
+  const { tourState, startTour } = useGuidedTour();
 
   const ttsEnabled = selections?.accessibility?.tts ?? false;
   const toggleTts = () => updateSelections('accessibility', { tts: !ttsEnabled });
@@ -99,6 +102,26 @@ function AppHeader({ clerkEnabled }) {
       {/* Controls */}
       <div style={{ display: 'flex', gap: theme.spacing.sm, alignItems: 'center', flexWrap: 'wrap' }}>
         <DateTimeWidget />
+        <button
+          type="button"
+          onClick={startTour}
+          aria-label={tourState.active ? t('tour.activeAria', 'Tour active') : tourState.completed ? t('tour.restartAria', 'Restart guide') : t('tour.startAria', 'Start interactive guide')}
+          title={tourState.completed ? t('tour.restartButton', 'Restart guide') : t('tour.startButton', 'Start guide')}
+          style={{
+            padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
+            border: `1px solid ${tourState.active ? theme.colors.primary : theme.colors.border}`,
+            borderRadius: theme.shape.radiusFull,
+            cursor: 'pointer',
+            background: tourState.active ? theme.colors.overlay : 'transparent',
+            color: tourState.active ? theme.colors.primary : theme.colors.muted,
+            fontFamily: theme.typography.body.family,
+            fontSize: '0.8125rem',
+            fontWeight: tourState.active ? 600 : 400,
+            transition: 'all 150ms',
+          }}
+        >
+          ? {tourState.active ? t('tour.activeLabel', 'Guide on') : t('tour.startButton', 'Guide')}
+        </button>
         <LanguageToggle placement="header" />
         <button
           type="button"
@@ -203,6 +226,7 @@ function AppLayout({ clerkEnabled }) {
         <AppHeader clerkEnabled={clerkEnabled} />
         <Outlet />
       </div>
+      <GuidedTourOverlay />
     </div>
   );
 }

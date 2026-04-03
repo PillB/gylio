@@ -63,6 +63,23 @@ export interface ThemeTokens {
     lg: string;
     xl: string;
   };
+  animation: {
+    /** 150ms — hover states, icon swaps */
+    fast: string;
+    /** 250ms — panel slides, tab switches */
+    standard: string;
+    /** 400ms — page transitions, large reveals */
+    slow: string;
+    /** 300ms spring — completion celebrations, confirmations */
+    bounce: string;
+  };
+  zIndex: {
+    dropdown: number;
+    sticky: number;
+    modal: number;
+    toast: number;
+    tooltip: number;
+  };
 }
 
 const spacing = {
@@ -93,6 +110,21 @@ const shape = {
   radiusLg: 20,
   radiusXl: 32,
   radiusFull: 9999,
+};
+
+const animation = {
+  fast: '150ms ease-out',
+  standard: '250ms ease-out',
+  slow: '400ms ease-out',
+  bounce: '300ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+};
+
+const zIndex = {
+  dropdown: 100,
+  sticky: 200,
+  modal: 400,
+  toast: 9000,
+  tooltip: 9500,
 };
 
 const palettes = {
@@ -190,6 +222,8 @@ export const themes: Record<ThemeMode, ThemeTokens> = {
     typography,
     shape,
     shadow: shadows.light,
+    animation,
+    zIndex,
   },
   dark: {
     mode: 'dark',
@@ -198,6 +232,8 @@ export const themes: Record<ThemeMode, ThemeTokens> = {
     typography,
     shape,
     shadow: shadows.dark,
+    animation,
+    zIndex,
   },
   highContrast: {
     mode: 'highContrast',
@@ -206,6 +242,8 @@ export const themes: Record<ThemeMode, ThemeTokens> = {
     typography,
     shape,
     shadow: shadows.highContrast,
+    animation,
+    zIndex,
   },
 };
 

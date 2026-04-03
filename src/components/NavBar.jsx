@@ -12,6 +12,7 @@ const NavBar = ({ items, activeKey, onNavigate, languageToggle }) => {
   return (
     <nav
       aria-label="Primary navigation"
+      data-tour="nav-bar"
       style={{
         display: 'flex',
         flexWrap: 'wrap',
@@ -31,6 +32,7 @@ const NavBar = ({ items, activeKey, onNavigate, languageToggle }) => {
           <button
             key={key}
             type="button"
+            data-tour={`nav-${key}`}
             onClick={() => onNavigate(key)}
             aria-pressed={isActive}
             aria-label={label}

@@ -9,6 +9,15 @@ export type Subtask = {
   done: boolean;
 };
 
+export type TimeLogEntry = {
+  type: 'focus' | 'short-break' | 'long-break';
+  startedAt: string;
+  endedAt: string;
+  plannedSeconds: number;
+  actualSeconds: number;
+  completed: boolean;
+};
+
 export type Task = {
   id: number;
   title: string;
@@ -19,6 +28,7 @@ export type Task = {
   focusPresetMinutes: number | null;
   energyRequired: 'tiny' | 'low' | 'medium' | 'high';
   implementationIntention: string | null;
+  timeLog: TimeLogEntry[];
   createdAt: string | null;
   updatedAt: string | null;
 };
@@ -183,6 +193,7 @@ type StatementSet = {
   deleteRoutine: string;
   selectRoutineById: string;
   selectRoutines: string;
+  updateTaskWithTimeLog: string;
 };
 
 const mapRows = <T>(rows: SQLResultSetRowList, transformer: (row: any) => T): T[] => {
@@ -304,6 +315,7 @@ const mapTask = (row: any): Task => ({
     row.focusPresetMinutes !== undefined && row.focusPresetMinutes !== null ? Number(row.focusPresetMinutes) : null,
   energyRequired: (['tiny', 'low', 'medium', 'high'] as const).includes(row.energyRequired) ? row.energyRequired : 'medium',
   implementationIntention: row.implementationIntention ?? null,
+  timeLog: parseJson<TimeLogEntry[]>(row.timeLog, []),
   createdAt: row.createdAt ?? null,
   updatedAt: row.updatedAt ?? null,
 });
@@ -506,6 +518,7 @@ const useDB = () => {
       deleteRoutine: 'DELETE FROM routines WHERE id = ?;',
       selectRoutineById: 'SELECT * FROM routines WHERE id = ?;',
       selectRoutines: 'SELECT * FROM routines ORDER BY createdAt ASC;',
+      updateTaskWithTimeLog: 'UPDATE tasks SET timeLog = ?, updatedAt = ? WHERE id = ?;',
     }),
     []
   );
@@ -1566,6 +1579,30 @@ const useDB = () => {
     [runTransaction, statements.deleteRoutine]
   );
 
+  const appendTaskTimeLog = useCallback(
+    (taskId: number, entry: TimeLogEntry) =>
+      runTransaction<void>((tx, resolve, reject) => {
+        tx.executeSql(
+          statements.selectTaskById,
+          [taskId],
+          (_, result) => {
+            if (!result.rows.length) { resolve(); return true; }
+            const current = mapTask(result.rows.item(0));
+            const newLog = JSON.stringify([...current.timeLog, entry]);
+            tx.executeSql(
+              statements.updateTaskWithTimeLog,
+              [newLog, new Date().toISOString(), taskId],
+              () => { resolve(); return true; },
+              (_, error) => { reject(error); return false; }
+            );
+            return true;
+          },
+          (_, error) => { reject(error); return false; }
+        );
+      }),
+    [runTransaction, statements.selectTaskById, statements.updateTaskWithTimeLog]
+  );
+
   return {
     ready,
     insertTask,
@@ -1610,6 +1647,7 @@ const useDB = () => {
     insertRoutine,
     updateRoutine,
     deleteRoutine,
+    appendTaskTimeLog,
   } as const;
 };
 

@@ -572,3 +572,183 @@ es-PE.json: full Spanish translations for all step and starter keys.
 - Root cause: Hardcoded `['Mon','Tue','Wed','Thu','Fri','Sat','Sun']` array
 - Fix: derived from `Intl.DateTimeFormat(i18n.language, { weekday: 'short' })` using fixed Mon–Sun seed dates (Jan 6–12 2025)
 - File: `CalendarView.jsx` line 796
+
+### CHG-038 – 2026-03-30 (Date/time header widget with granularity control)
+**Type:** [FEATURE]
+**Files changed:** `src/components/atoms/DateTimeWidget.tsx` (NEW), `src/App.jsx`, `src/features/tasks/components/TaskList.tsx`, `src/i18n/en.json`, `src/i18n/es-PE.json`
+**Build:** 696 modules, clean. Playwright: all 5 modes verified EN + ES-PE.
+
+**Research basis:**
+- ADHD/time-blindness research: fuzzy time ("about 7:30") reduces mental arithmetic overhead vs exact clock (PMC6556068, PMC9962130)
+- Intl locale conventions: dd/mm ordering for non-English locales via `Intl.DateTimeFormat` — "29 mar." (es-PE), "Mar 29" (en)
+- Preference persistence: localStorage key `gylio_clock_granularity` survives reload
+
+**What changed:**
+1. **New `DateTimeWidget.tsx`** — compact header widget with 5 granularity modes:
+   - `exact` ⏱ — "8:45 PM GMT-5 · Sun, Mar 29" (timezone shown only in exact mode)
+   - `half` ≈ — "about 8:30 · Sun, Mar 29" (rounds to nearest :00/:30)
+   - `hour` ∿ — "around 9 · Sun, Mar 29" (rounds to nearest hour)
+   - `no-time` 📅 — "Sun, Mar 29" (date only, no time)
+   - `hidden` 👁 — invisible; toggle button remains to restore
+   - Dropdown menu with ARIA `listbox`/`option` roles, Escape key close, outside-click close
+   - Preference persisted to `localStorage['gylio_clock_granularity']`
+
+2. **App.jsx** — `<DateTimeWidget />` placed in header controls row, left of `<LanguageToggle />`
+
+3. **TaskList.tsx** — removed the per-tab clock display (clock moved to global header); kept `useClock` for `todayKey` only
+
+4. **i18n** — added `clock.*` namespace keys:
+   - EN: "about {{time}}", "around {{time}}", granularity labels
+   - ES-PE: "cerca de {{time}}", "alrededor de {{time}}", translated labels
+
+**Playwright verified:**
+- EN exact: "8:45 PM GMT-5 · Sun, Mar 29" ✓
+- EN half: "about 8:30 · Sun, Mar 29" ✓
+- EN hour: "around 9 · Sun, Mar 29" ✓
+- EN date-only: "Sun, Mar 29" ✓
+- EN hidden: only 👁 button remains ✓
+- ES-PE exact: "8:45 p. m. PET · dom, 29 mar." (dd/mm) ✓
+- ES-PE half: "cerca de 9:00 p. m. · dom, 29 mar." ✓
+- ES-PE hour: "alrededor de 9 p. m. · dom, 29 mar." ✓
+- Dropdown labels fully translated in Spanish ✓
+
+### CHG-039 – 2026-03-30 (Ease-of-life & UX research-driven improvements)
+**Type:** [FEATURE]
+**Files changed:**
+- `src/core/context/ToastContext.tsx` (NEW)
+- `src/components/atoms/Toast.tsx` (NEW)
+- `src/core/themes.ts`
+- `src/features/tasks/components/TaskList.tsx`
+- `src/components/BudgetView.jsx`
+- `src/components/SettingsView.jsx`
+- `src/i18n/en.json`
+- `src/i18n/es-PE.json`
+- `src/index.jsx`
+- `src/App.jsx`
+
+**Research basis:**
+- ADHD/neurodivergent UX: undo patterns reduce deletion anxiety (Kessler 2019, Nielsen Norman Group)
+- Keyboard-first navigation: N shortcut to focus new task input (GNOME HIG, VS Code keybindings)
+- Budget awareness: per-category progress bars with amber/red thresholds (Envelope budgeting, YNAB methodology)
+- Toast notifications: `role="status"` / `role="alert"` aria-live for screen reader compatibility (WCAG 4.1.3)
+- Animation tokens: fast/standard/slow/bounce system for predictable, consistent motion
+
+**What changed:**
+
+1. **Toast system (`ToastContext.tsx` + `Toast.tsx`):**
+   - `ToastProvider` manages up to 5 toasts with auto-dismiss timers
+   - `useToast()` exposes `showToast`, `success`, `error`, `info`, `warning` helpers
+   - `ToastStack` renders fixed at bottom-center, z-index 9000
+   - `ToastEntry` animates in (`translateY(12px) scale(0.96)` → `translateY(0) scale(1)`)
+   - Colored left border per type (success=green, error=red, warning=amber, info=primary)
+   - Supports action buttons (e.g. Undo) — `role="alert"` for errors, `role="status"` for others
+   - Wired into `index.jsx` (`ToastProvider` wrapping app, `ToastStack` sibling to `App`)
+
+2. **Animation + zIndex tokens (`themes.ts`):**
+   - `animation`: fast (150ms), standard (250ms), slow (400ms), bounce (cubic-bezier)
+   - `zIndex`: dropdown (100), sticky (200), modal (400), toast (9000), tooltip (9500)
+
+3. **Grace-period delete with Undo toast (`TaskList.tsx`):**
+   - Deleting a task hides it from UI immediately (optimistic) via `hiddenTaskIds` Set state
+   - `setTimeout` (4.5s) fires actual DB delete; timer stored in `pendingDeletes` ref Map
+   - Toast shows `"{{title}}" eliminada` + "Deshacer" action button
+   - Clicking Undo calls `clearTimeout`, removes from `hiddenTaskIds` — task reappears instantly
+   - ES-PE: `"\"Test task for undo demo\" eliminada"` / "Deshacer" verified ✓
+
+4. **`N` keyboard shortcut (`TaskList.tsx`):**
+   - Pressing `n` (not in input/textarea/select) focuses and smooth-scrolls to the task title input
+   - Guards: `!metaKey && !ctrlKey && !altKey`; skips if focus is already in a form field
+
+5. **Budget per-category progress bars (`BudgetView.jsx`):**
+   - `actualByCategory` useMemo maps category name → actual spend from `monthTransactions`
+   - Progress bar per category: green (`pct < 0.8`), amber (`pct >= 0.8`), red (over budget)
+   - Bar shows `spent.toFixed(2) / planned.toFixed(2)` with animated width transition
+
+6. **Settings sections (`SettingsView.jsx`):**
+   - New "Keyboard shortcuts" section with `<kbd>`-styled badges for `N` (new task) and `Esc` (dismiss)
+   - New "About" section with version 0.1.0, build date, tech stack, app description
+   - Fixed i18n collision: new keys use `settingsPanel.*` namespace (not `settings` which was already a string)
+
+7. **i18n keys added:**
+   - `tasks.deleted`, `tasks.undoDelete` (EN + ES-PE)
+   - `settingsPanel.keyboardShortcuts`, `settingsPanel.shortcutNewTask`, `settingsPanel.shortcutDismiss`, `settingsPanel.about`, `settingsPanel.version`, `settingsPanel.buildDate`, `settingsPanel.stack`, `settingsPanel.description` (EN + ES-PE)
+
+**Playwright verified:**
+- Undo-delete toast: task hidden immediately ✓ → toast "\"Test task for undo demo\" eliminada" + "Deshacer" ✓ → Undo restores task ✓ → grace-period delete (no undo) removes from list ✓
+- Budget progress bars: green/amber/red thresholds visible ✓
+- Settings keyboard shortcuts and About sections visible ✓
+- `N` shortcut focuses task input (verified via active state) ✓
+
+**Build:** 696 modules, clean.
+
+### CHG-040 – 2026-03-30 (Interactive guided tour)
+**Type:** [FEATURE]
+**Files changed:**
+- `src/features/tour/tourSteps.ts` (NEW) — step definitions (9 steps, data-only)
+- `src/core/context/GuidedTourContext.tsx` (NEW) — context, provider, hook; persists to `localStorage['gylio_tour']`
+- `src/components/GuidedTourOverlay.tsx` (NEW) — spotlight + tooltip UI rendered inside router tree
+- `src/App.jsx` — "? Guide" button in header; `<GuidedTourOverlay />` in `AppLayout`
+- `src/index.jsx` — `<GuidedTourProvider>` wrapping the app
+- `src/components/NavBar.jsx` — `data-tour="nav-bar"` on nav, `data-tour="nav-{key}"` on each button
+- `src/features/tasks/components/TaskList.tsx` — `data-tour` on task input, energy group, steps button, Pomodoro region
+- `src/components/SettingsView.jsx` — "Restart guide" section with `resetTour()` button
+- `src/i18n/en.json`, `src/i18n/es-PE.json` — `tour.*` namespace (9 step titles + content, all UI labels)
+
+**Design basis:**
+- ADHD-friendly tours: ≤9 steps, one concept per step, no blocking interaction (Nielsen Norman Group, ADHD UX research)
+- Pauseable/resumeable: step index persisted to `localStorage['gylio_tour']` — pause mid-tour and return later
+- Non-punitive: Esc pauses (not quits), no forced restart, app fully usable while paused
+- Keyboard-first: ← → navigate steps, Esc pause; `role="dialog"`, `role="progressbar"`, Back disabled on step 1
+- Spotlight: `box-shadow: 0 0 0 3px primary, 0 0 0 9999px rgba(0,0,0,0.48)` — highlight ring + backdrop, `pointer-events:none` so elements stay interactive
+- Smart tooltip: prefers bottom placement, flips top when out of space, clamped to viewport, arrow pointer toward target
+- Auto tab navigation: steps with a `tab` field trigger `navigate()` before locating target element (350ms settle delay)
+
+**Tour steps:** Welcome → Nav bar → Task input → Energy levels → Break into steps → Pomodoro → Calendar (auto-nav) → Budget (auto-nav) → Done
+
+**Playwright verified (ES-PE):**
+- Guide button visible in header ("? Guía") ✓
+- Click starts tour at Step 1 of 9, welcome modal ✓
+- Next/Back buttons advance and retreat through steps ✓
+- ArrowRight/ArrowLeft keyboard navigation ✓
+- Esc pauses, app fully usable, dialog gone ✓
+- Re-click Guide resumes at exact paused step (Step 4 of 9) ✓
+- Step 7 auto-navigates to `/calendar` ✓
+- Step 8 auto-navigates to `/budget` ✓
+- "¡Listo! ✓" completes tour, button aria becomes "Reiniciar guía interactiva" ✓
+- Settings → "Reiniciar guía →" resets to Step 1 and opens immediately ✓
+- All 9 step titles and content fully translated in ES-PE ✓
+
+**Build:** 701 modules, clean.
+
+### CHG-041 – 2026-03-30 (Task-level Pomodoro timer with time logging)
+**Type:** [FEATURE]
+**Files changed:**
+- `src/core/context/TaskTimerContext.tsx` (NEW) — global singleton Pomodoro state machine; phase state, countdown interval, settings persistence, `pendingLogEntry` pattern
+- `src/features/tasks/components/TaskTimerInline.tsx` (NEW) — compact inline timer widget rendered on the active task card
+- `src/core/db.ts` — added `timeLog TEXT NOT NULL DEFAULT '[]'` column migration for tasks table
+- `src/core/hooks/useDB.ts` — added `TimeLogEntry` type, `timeLog` field on `Task`, `appendTaskTimeLog` callback
+- `src/features/tasks/components/TaskList.tsx` — timer start button (🍅 N min) on each card, `TaskTimerInline` inline, `useEffect` to persist `pendingLogEntry`, time stats display (total focus time + sessions)
+- `src/components/SettingsView.jsx` — "Focus timer" section with duration pickers, break pickers, sessions-before-long-break, auto-start toggle, psychological insight copy
+- `src/index.jsx` — `<TaskTimerProvider>` wrapping the app inside `<ToastProvider>`
+- `src/i18n/en.json`, `src/i18n/es-PE.json` — `tasks.timer*` and `settingsPanel.timer*` keys
+
+**Design basis:**
+- Ultradian rhythm (90-min brain cycles): default 25/5/15 min with note that longer focus → longer break needed
+- Global singleton: only one task timer active at a time; starting a second task auto-saves the first's partial entry
+- Time logging: each focus/break segment saved as `TimeLogEntry { type, startedAt, endedAt, plannedSeconds, actualSeconds, completed }`; appended to `tasks.timeLog` JSON column via `appendTaskTimeLog` (IndexedDB transaction)
+- `pendingLogEntry` pattern: context enqueues entry → `TaskList` useEffect persists it → `refreshTasks()` → `clearPendingEntry()`; avoids circular context dependency
+- Timer phases: focus → short-break (or long-break after N sessions) → focus; `status: 'phase-done'` sentinel drives transitions via useEffect
+- Settings stored in `localStorage['gylio_timer_settings']`; changes reflected on task buttons immediately
+- Time stats only shown when total focus time ≥ 30 s (avoids clutter from test-length sessions)
+
+**Playwright verified (ES-PE):**
+- 🍅 25 min button visible on all task cards ✓
+- Click starts inline timer: "🍅 Enfoque Sesión 1" + countdown + progress bar + Pausar/Saltar/Detener ✓
+- Pause freezes countdown, button switches to "▶ Continuar" ✓
+- Skip advances to "☕ Descanso corto" 04:59, skip label becomes "Saltar descanso" ✓
+- Stop removes inline timer, card reverts to 🍅 button, bottom hint shows idle state ✓
+- Settings → changed focus to 45 min → task buttons updated to "🍅 45 min" immediately ✓
+- Settings hint updated to "🍅 45 min" ✓
+- All controls aria-labeled, region labeled "Temporizador de tarea" ✓
+
+**Build:** 702 modules, clean.

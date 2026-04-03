@@ -161,6 +161,7 @@ export const runMigrations = (): Promise<void> =>
           { name: 'updatedAt', definition: "TEXT DEFAULT (datetime('now'))" },
           { name: 'energyRequired', definition: "TEXT NOT NULL DEFAULT 'medium'" },
           { name: 'implementationIntention', definition: 'TEXT' },
+          { name: 'timeLog', definition: "TEXT NOT NULL DEFAULT '[]'" },
         ]);
 
         ensureColumns(tx, 'events', [

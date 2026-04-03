@@ -8,6 +8,10 @@ import { OnboardingFlowProvider } from './hooks/useOnboardingFlow.jsx';
 import i18n from './i18n/i18n.js';
 import { ThemeProvider } from './core/context/ThemeContext';
 import { AccessibilityProvider } from './core/hooks/useAccessibility';
+import { ToastProvider } from './core/context/ToastContext';
+import ToastStack from './components/atoms/Toast';
+import { GuidedTourProvider } from './core/context/GuidedTourContext';
+import { TaskTimerProvider } from './core/context/TaskTimerContext';
 import { registerServiceWorker } from './core/utils/serviceWorker';
 
 registerServiceWorker();
@@ -23,11 +27,18 @@ const providers = (
   <React.StrictMode>
     <I18nextProvider i18n={i18n}>
       <ThemeProvider>
-        <OnboardingFlowProvider>
-          <AccessibilityProvider>
-            <App clerkEnabled={Boolean(PUBLISHABLE_KEY)} />
-          </AccessibilityProvider>
-        </OnboardingFlowProvider>
+        <ToastProvider>
+          <TaskTimerProvider>
+          <GuidedTourProvider>
+            <OnboardingFlowProvider>
+              <AccessibilityProvider>
+                <App clerkEnabled={Boolean(PUBLISHABLE_KEY)} />
+                <ToastStack />
+              </AccessibilityProvider>
+            </OnboardingFlowProvider>
+          </GuidedTourProvider>
+          </TaskTimerProvider>
+        </ToastProvider>
       </ThemeProvider>
     </I18nextProvider>
   </React.StrictMode>

@@ -8,6 +8,9 @@ import type { ThemeTokens } from '../../../core/themes';
 import useTasks from '../hooks/useTasks';
 import usePomodoroTimer from '../hooks/usePomodoroTimer';
 import PomodoroTimer from './PomodoroTimer';
+import TaskTimerInline from './TaskTimerInline';
+import { useTaskTimer } from '../../../core/context/TaskTimerContext';
+import useDB from '../../../core/hooks/useDB';
 import { TaskTemplateGallery } from './TaskTemplateGallery';
 import type { TaskTemplate } from '../data/taskTemplateLibrary';
 import WinCard from '../../../components/WinCard';
@@ -22,6 +25,7 @@ import {
   parsePlannedDate,
 } from '../utils/taskForm';
 import { useClock, getLocalDateKey } from '../../../core/hooks/useClock';
+import { useToast } from '../../../core/context/ToastContext';
 
 type ViewFilter = 'today' | 'week' | 'backlog' | 'upcoming';
 
@@ -157,9 +161,26 @@ const TaskList: React.FC = () => {
     updateTaskDetails,
     removeTask,
     startPomodoro,
+    refreshTasks,
   } = useTasks();
   const { theme } = useTheme();
+  const { success: showSuccess } = useToast();
+  const { activeTimer, pendingLogEntry, clearPendingEntry, startTask: startTaskTimer, settings: timerSettings } = useTaskTimer();
+  const { appendTaskTimeLog } = useDB();
   const pomodoro = usePomodoroTimer();
+  const taskTitleRef = React.useRef<HTMLInputElement>(null);
+  // Grace-period delete: task is hidden from UI immediately; DB delete fires after 4.5s unless undone
+  const pendingDeletes = React.useRef<Map<number, ReturnType<typeof setTimeout>>>(new Map());
+
+  // Save time log entries when a timer phase completes
+  useEffect(() => {
+    if (!pendingLogEntry) return;
+    const { taskId, ...entry } = pendingLogEntry;
+    appendTaskTimeLog(taskId, entry)
+      .then(() => { refreshTasks(); clearPendingEntry(); })
+      .catch((err) => { console.error('Failed to save time log', err); clearPendingEntry(); });
+  }, [pendingLogEntry]); // eslint-disable-line react-hooks/exhaustive-deps
+  const [hiddenTaskIds, setHiddenTaskIds] = useState<Set<number>>(new Set());
   const [selectedDuration, setSelectedDuration] = useState<number>(25);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [plannedDate, setPlannedDate] = useState('');
@@ -200,16 +221,33 @@ const TaskList: React.FC = () => {
   const { dateKey: todayKey } = useClock(i18n.language);
   const formatter = useMemo(() => new Intl.DateTimeFormat(i18n.language, { month: 'short', day: 'numeric' }), [i18n.language]);
 
+  // Keyboard shortcut: press N (when not already in an input) → focus task title
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement).tagName;
+      const inInput = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (e.target as HTMLElement).isContentEditable;
+      if (!inInput && e.key === 'n' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        taskTitleRef.current?.focus();
+        taskTitleRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
+
   const filteredTasks = useMemo(() => {
+    // Exclude tasks in grace-period pending delete
+    const visibleTasks = hiddenTaskIds.size > 0 ? tasks.filter((t) => !hiddenTaskIds.has(t.id)) : tasks;
     const todayDate = parsePlannedDate(todayKey);
-    if (!todayDate) return tasks;
+    if (!todayDate) return visibleTasks;
     const startOfToday = new Date(todayDate);
     startOfToday.setHours(0, 0, 0, 0);
     const endOfWeek = new Date(startOfToday);
     endOfWeek.setDate(startOfToday.getDate() + 6);
     endOfWeek.setHours(23, 59, 59, 999);
 
-    return tasks.filter((task) => {
+    return visibleTasks.filter((task) => {
       const planned = parsePlannedDate(task.plannedDate ?? null);
       let passesDateFilter: boolean;
       if (viewFilter === 'today') {
@@ -224,7 +262,7 @@ const TaskList: React.FC = () => {
       const passesEnergyFilter = energyFilter === 'all' || task.energyRequired === energyFilter;
       return passesDateFilter && passesEnergyFilter;
     });
-  }, [tasks, todayKey, viewFilter, energyFilter]);
+  }, [tasks, hiddenTaskIds, todayKey, viewFilter, energyFilter]);
 
   // Sectioned upcoming view
   const upcomingSections = useMemo(() => {
@@ -286,6 +324,14 @@ const TaskList: React.FC = () => {
   const handlePomodoroComplete = useCallback(() => {
     // XP is awarded via startPomodoro (notification) — nothing extra needed here
   }, []);
+
+  const formatFocusTime = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    if (mins < 60) return `${mins}m`;
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return m > 0 ? `${h}h ${m}m` : `${h}h`;
+  };
 
   const handleAddTask = useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
@@ -396,11 +442,31 @@ const TaskList: React.FC = () => {
     setEditErrors(null);
   }, []);
 
-  const handleDeleteTask = useCallback(async (taskId: number, title: string) => {
-    const confirmed = window.confirm(t('tasks.confirmDelete', { title }));
-    if (!confirmed) return;
-    await removeTask(taskId);
-  }, [removeTask, t]);
+  const handleDeleteTask = useCallback((taskId: number, title: string) => {
+    // Hide immediately in UI
+    setHiddenTaskIds((prev) => new Set([...prev, taskId]));
+    // Schedule actual DB delete after grace period
+    const timerId = setTimeout(async () => {
+      pendingDeletes.current.delete(taskId);
+      await removeTask(taskId);
+      setHiddenTaskIds((prev) => { const next = new Set(prev); next.delete(taskId); return next; });
+    }, 4500);
+    pendingDeletes.current.set(taskId, timerId);
+
+    showSuccess(
+      t('tasks.deleted', { title }),
+      {
+        label: t('tasks.undoDelete'),
+        onClick: () => {
+          const tid = pendingDeletes.current.get(taskId);
+          if (tid != null) { clearTimeout(tid); pendingDeletes.current.delete(taskId); }
+          // Restore visibility
+          setHiddenTaskIds((prev) => { const next = new Set(prev); next.delete(taskId); return next; });
+        },
+      },
+      4500
+    );
+  }, [removeTask, showSuccess, t]);
 
   // Wrap toggleTaskStatus to detect "all today tasks done" milestone
   const handleToggleTask = useCallback(async (taskId: number) => {
@@ -508,6 +574,8 @@ const TaskList: React.FC = () => {
         </label>
         <input
           id="new-task"
+          ref={taskTitleRef}
+          data-tour="task-input"
           type="text"
           value={newTaskTitle}
           onChange={(event) => {
@@ -554,7 +622,7 @@ const TaskList: React.FC = () => {
         />
         <p style={{ margin: 0, color: theme.colors.muted }}>{t('tasks.plannedDateHelper')}</p>
         {/* Energy level selector */}
-        <div>
+        <div data-tour="task-energy">
           <p style={{ margin: '0 0 0.5rem', fontWeight: 600, fontSize: '0.875rem' }}>
             {t('tasks.energyLabel', 'Energy required')}
           </p>
@@ -614,6 +682,7 @@ const TaskList: React.FC = () => {
         )}
         <button
           type="button"
+          data-tour="task-steps-btn"
           onClick={() => {
             setShowSubtaskEditor((prev) => !prev);
             setSubtasksTouched(true);
@@ -856,8 +925,8 @@ const TaskList: React.FC = () => {
                           const isCompleted = task.status === 'completed';
                           const planned = parsePlannedDate(task.plannedDate ?? null);
                           return (
+                            <React.Fragment key={task.id}>
                             <div
-                              key={task.id}
                               role="listitem"
                               style={{
                                 display: 'flex',
@@ -920,7 +989,30 @@ const TaskList: React.FC = () => {
                               >
                                 {t('editLabel')}
                               </button>
+                              {activeTimer?.taskId !== task.id && (
+                                <button
+                                  type="button"
+                                  onClick={() => startTaskTimer(task.id)}
+                                  aria-label={t('tasks.startTimerAria', { title: task.title, minutes: timerSettings.focusMinutes })}
+                                  style={{
+                                    padding: '2px 6px',
+                                    borderRadius: theme.shape.radiusSm,
+                                    border: `1px solid ${theme.colors.border}`,
+                                    backgroundColor: 'transparent',
+                                    color: theme.colors.muted,
+                                    fontSize: '0.72rem',
+                                    cursor: 'pointer',
+                                    fontFamily: theme.typography.body.family,
+                                  }}
+                                >
+                                  🍅
+                                </button>
+                              )}
                             </div>
+                            {activeTimer?.taskId === task.id && (
+                              <TaskTimerInline taskId={task.id} />
+                            )}
+                            </React.Fragment>
                           );
                         })}
                       </div>
@@ -1146,6 +1238,43 @@ const TaskList: React.FC = () => {
                                 {t('deleteLabel')}
                               </button>
                             </div>
+                            {/* Task timer button or inline timer */}
+                            {activeTimer?.taskId === task.id ? (
+                              <TaskTimerInline taskId={task.id} />
+                            ) : (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm, marginTop: theme.spacing.xs, flexWrap: 'wrap' }}>
+                                <button
+                                  type="button"
+                                  onClick={() => startTaskTimer(task.id)}
+                                  aria-label={t('tasks.startTimerAria', { title: task.title, minutes: timerSettings.focusMinutes })}
+                                  style={{
+                                    padding: `3px ${theme.spacing.sm}px`,
+                                    borderRadius: theme.shape.radiusMd,
+                                    border: `1px solid ${theme.colors.border}`,
+                                    background: 'transparent',
+                                    color: theme.colors.muted,
+                                    cursor: 'pointer',
+                                    fontSize: '0.75rem',
+                                    fontFamily: theme.typography.body.family,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 4,
+                                  }}
+                                >
+                                  🍅 {t('tasks.startTimerBtn', { minutes: timerSettings.focusMinutes })}
+                                </button>
+                                {task.timeLog && task.timeLog.length > 0 && (() => {
+                                  const totalFocusSecs = task.timeLog.filter(e => e.type === 'focus').reduce((sum, e) => sum + e.actualSeconds, 0);
+                                  const sessions = task.timeLog.filter(e => e.type === 'focus' && e.completed).length;
+                                  if (totalFocusSecs < 30) return null;
+                                  return (
+                                    <span style={{ fontSize: '0.72rem', color: theme.colors.muted }}>
+                                      🕐 {formatFocusTime(totalFocusSecs)}{sessions > 0 ? ` · ${sessions} ${sessions === 1 ? t('tasks.timerSessionSingular', 'session') : t('tasks.timerSessionPlural', 'sessions')}` : ''}
+                                    </span>
+                                  );
+                                })()}
+                              </div>
+                            )}
                             {totalSteps > 0 ? (
                               <div style={{ display: 'grid', gap: '0.25rem' }}>
                                 <progress
@@ -1204,20 +1333,26 @@ const TaskList: React.FC = () => {
           )}
         </div>
 
-        {pomodoro.status !== 'idle' ? (
-          <PomodoroTimer
-            status={pomodoro.status}
-            remainingSeconds={pomodoro.remainingSeconds}
-            totalSeconds={pomodoro.totalSeconds}
-            onPause={pomodoro.pause}
-            onResume={pomodoro.resume}
-            onCancel={pomodoro.cancel}
-            onComplete={handlePomodoroComplete}
-          />
+        {activeTimer ? (
+          <div
+            role="region"
+            aria-label={t('tasks.focusAreaAria')}
+            style={{
+              border: `1.5px solid ${theme.colors.primary}`,
+              borderRadius: theme.shape.radiusMd,
+              padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
+              backgroundColor: theme.colors.surface,
+            }}
+          >
+            <p style={{ margin: 0, fontSize: '0.875rem', color: theme.colors.muted }}>
+              {t('tasks.timerActiveTaskHint', 'Timer running — see task card above for controls.')}
+            </p>
+          </div>
         ) : (
           <div
-            aria-label={t('tasks.focusAreaAria')}
             role="region"
+            data-tour="task-pomodoro"
+            aria-label={t('tasks.focusAreaAria')}
             style={{
               border: `1px solid ${theme.colors.border}`,
               borderRadius: theme.shape.radiusMd,
@@ -1226,44 +1361,10 @@ const TaskList: React.FC = () => {
             }}
           >
             <p style={{ margin: '0 0 0.5rem', fontWeight: 700 }}>{t('tasks.focusHeading')}</p>
-            <p style={{ margin: '0 0 1rem', color: theme.colors.muted }}>{t('tasks.focusHelper')}</p>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-              {[5, 10, 25, 45].map((minutes) => (
-                <button
-                  key={minutes}
-                  type="button"
-                  aria-pressed={selectedDuration === minutes}
-                  aria-label={t('tasks.focusDuration', { minutes })}
-                  onClick={() => {
-                    setSelectedDuration(minutes);
-                    setFormErrors(null);
-                  }}
-                  style={{
-                    ...focusButtonStyle,
-                    backgroundColor: selectedDuration === minutes ? theme.colors.background : theme.colors.surface,
-                    borderColor: selectedDuration === minutes ? theme.colors.primary : theme.colors.border,
-                  }}
-                >
-                  {t('tasks.focusDuration', { minutes })}
-                </button>
-              ))}
-            </div>
-            <button
-              type="button"
-              aria-label={t('tasks.startFocus', { minutes: selectedDuration })}
-              onClick={handleStartFocus}
-              style={{
-                ...focusButtonStyle,
-                width: '100%',
-                marginTop: '1rem',
-                backgroundColor: theme.colors.primary,
-                color: theme.colors.background,
-                borderColor: theme.colors.primary,
-                fontWeight: 700,
-              }}
-            >
-              {t('tasks.startFocus', { minutes: selectedDuration })}
-            </button>
+            <p style={{ margin: '0 0 0.75rem', color: theme.colors.muted, fontSize: '0.875rem' }}>{t('tasks.focusHelper')}</p>
+            <p style={{ margin: 0, color: theme.colors.muted, fontSize: '0.8125rem' }}>
+              {t('tasks.timerStartHint', '▶ Tap "🍅 {{minutes}} min" on any task above to start a focused Pomodoro session.', { minutes: timerSettings.focusMinutes })}
+            </p>
           </div>
         )}
       </div>

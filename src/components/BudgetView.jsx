@@ -197,6 +197,15 @@ const BudgetView = () => {
     return totals;
   }, [activeBudget]);
 
+  // Actual spending per category name for progress bars
+  const actualByCategory = useMemo(() => {
+    const map = new Map();
+    monthTransactions.forEach((tx) => {
+      map.set(tx.categoryName, (map.get(tx.categoryName) ?? 0) + tx.amount);
+    });
+    return map;
+  }, [monthTransactions]);
+
   const actualByType = useMemo(() => {
     const totals = { NEED: 0, WANT: 0, GOAL: 0, DEBT: 0 };
     monthTransactions.forEach((transaction) => {
@@ -1033,38 +1042,70 @@ const BudgetView = () => {
               </button>
             </div>
             {activeBudget?.categories.length ? (
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                {activeBudget.categories.map((entry, index) => (
-                  <li
-                    key={`${entry.name}-${index}`}
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      padding: `${theme.spacing.xs}px 0`,
-                    }}
-                  >
-                    <span>
-                      {entry.name} · {t(`budget.categoryType.${entry.type.toLowerCase()}`) || entry.type} ·{' '}
-                      {entry.plannedAmount.toFixed(2)}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveCategory(index)}
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: `${theme.spacing.sm}px` }}>
+                {activeBudget.categories.map((entry, index) => {
+                  const spent = actualByCategory.get(entry.name) ?? 0;
+                  const pct = entry.plannedAmount > 0 ? Math.min(spent / entry.plannedAmount, 1) : 0;
+                  const overBudget = spent > entry.plannedAmount;
+                  const barColor = overBudget
+                    ? theme.colors.error
+                    : pct >= 0.8
+                    ? theme.colors.warning
+                    : theme.colors.success;
+                  return (
+                    <li
+                      key={`${entry.name}-${index}`}
                       style={{
-                        padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
-                        borderRadius: theme.shape.radiusSm,
-                        border: `1px solid ${theme.colors.border}`,
-                        backgroundColor: theme.colors.background,
-                        color: theme.colors.text,
-                        cursor: 'pointer',
-                        fontFamily: theme.typography.body.family,
+                        display: 'grid',
+                        gap: 4,
+                        padding: `${theme.spacing.sm}px`,
+                        borderRadius: theme.shape.radiusMd,
+                        border: `1px solid ${overBudget ? theme.colors.error : theme.colors.border}`,
+                        backgroundColor: overBudget ? `${theme.colors.error}08` : theme.colors.surface,
                       }}
                     >
-                      {t('deleteLabel') || 'Delete'}
-                    </button>
-                  </li>
-                ))}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: theme.spacing.sm }}>
+                        <span style={{ fontWeight: 600, color: theme.colors.text, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {entry.name}
+                          <span style={{ fontWeight: 400, color: theme.colors.muted, fontSize: '0.78rem', marginLeft: 6 }}>
+                            {t(`budget.categoryType.${entry.type.toLowerCase()}`) || entry.type}
+                          </span>
+                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm, flexShrink: 0 }}>
+                          <span style={{ fontSize: '0.8125rem', color: overBudget ? theme.colors.error : theme.colors.muted, fontWeight: overBudget ? 700 : 400, whiteSpace: 'nowrap' }}>
+                            {spent.toFixed(2)} / {entry.plannedAmount.toFixed(2)}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveCategory(index)}
+                            style={{
+                              padding: `2px ${theme.spacing.sm}px`,
+                              borderRadius: theme.shape.radiusSm,
+                              border: `1px solid ${theme.colors.border}`,
+                              backgroundColor: 'transparent',
+                              color: theme.colors.muted,
+                              cursor: 'pointer',
+                              fontFamily: theme.typography.body.family,
+                              fontSize: '0.75rem',
+                            }}
+                          >
+                            {t('deleteLabel') || 'Delete'}
+                          </button>
+                        </div>
+                      </div>
+                      {/* Spending progress bar — green < 80%, amber 80–100%, red over */}
+                      <div style={{ height: 5, borderRadius: 3, backgroundColor: theme.colors.border, overflow: 'hidden' }}>
+                        <div style={{
+                          height: '100%',
+                          width: `${(pct * 100).toFixed(1)}%`,
+                          backgroundColor: barColor,
+                          borderRadius: 3,
+                          transition: 'width 400ms ease-out, background-color 300ms ease',
+                        }} />
+                      </div>
+                    </li>
+                  );
+                })}
               </ul>
             ) : (
               <p>{t('budget.emptyCategories') || 'No categories yet.'}</p>

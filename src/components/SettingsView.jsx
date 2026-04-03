@@ -7,6 +7,8 @@ import { useTheme } from '../core/context/ThemeContext';
 import useDB from '../core/hooks/useDB';
 import { requestBackgroundSync } from '../core/utils/backgroundSync';
 import { enqueueSyncAction, listSyncConflicts, removeSyncConflict } from '../core/utils/offlineSync';
+import { useGuidedTour } from '../core/context/GuidedTourContext';
+import { useTaskTimer } from '../core/context/TaskTimerContext';
 
 /**
  * SettingsView component
@@ -20,6 +22,7 @@ import { enqueueSyncAction, listSyncConflicts, removeSyncConflict } from '../cor
 const SettingsView = () => {
   const { t } = useTranslation();
   const { theme, mode, setTheme } = useTheme();
+  const { resetTour } = useGuidedTour();
   const {
     toggleTint,
     isTinted,
@@ -36,6 +39,7 @@ const SettingsView = () => {
     setTtsEnabled
   } = useAccessibility();
   const { gamificationEnabled, setGamificationEnabled } = useGamification();
+  const { settings: timerSettings, updateSettings } = useTaskTimer();
   const { updateTask, deleteTask, updateEvent, deleteEvent, updateTransaction, deleteTransaction } = useDB();
   const [syncConflicts, setSyncConflicts] = useState([]);
   const [isResolving, setIsResolving] = useState(null);
@@ -170,6 +174,7 @@ const SettingsView = () => {
   };
 
   return (
+    <>
     <SectionCard
       ariaLabel={`${t('settings')} module`}
       title={t('settings')}
@@ -495,6 +500,142 @@ const SettingsView = () => {
         </div>
       </div>
     </SectionCard>
+
+    {/* Focus timer settings */}
+    <SectionCard ariaLabel={t('settingsPanel.timerHeading', 'Focus timer')} title={t('settingsPanel.timerHeading', 'Focus timer')}>
+      <div style={{ display: 'grid', gap: theme.spacing.md, fontFamily: theme.typography.body.family }}>
+        <p style={{ margin: 0, color: theme.colors.muted, fontSize: '0.875rem', lineHeight: 1.55 }}>
+          {t('settingsPanel.timerInsight', 'Research shows the brain works in ~90-minute ultradian cycles. Shorter sprints (25 min) suit most tasks; longer sprints (45–90 min) require proportionally longer breaks to avoid cognitive fatigue. Find your window.')}
+        </p>
+        {[
+          { labelKey: 'settingsPanel.timerFocusLabel', key: 'focusMinutes', options: [10, 15, 25, 45, 60, 90], unit: 'min' },
+          { labelKey: 'settingsPanel.timerShortBreakLabel', key: 'shortBreakMinutes', options: [3, 5, 10, 15], unit: 'min' },
+          { labelKey: 'settingsPanel.timerLongBreakLabel', key: 'longBreakMinutes', options: [10, 15, 20, 30], unit: 'min' },
+          { labelKey: 'settingsPanel.timerSessionsLabel', key: 'sessionsBeforeLongBreak', options: [2, 3, 4, 5, 6], unit: '' },
+        ].map(({ labelKey, key, options, unit }) => (
+          <div key={key}>
+            <p style={{ margin: '0 0 6px', fontWeight: 600, fontSize: '0.875rem', color: theme.colors.text }}>
+              {t(labelKey, key)}
+            </p>
+            <div style={{ display: 'flex', gap: theme.spacing.xs, flexWrap: 'wrap' }}>
+              {options.map((val) => {
+                const active = timerSettings[key] === val;
+                return (
+                  <button
+                    key={val}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => updateSettings({ [key]: val })}
+                    style={{
+                      padding: `4px ${theme.spacing.sm}px`,
+                      borderRadius: theme.shape.radiusMd,
+                      border: `1.5px solid ${active ? theme.colors.primary : theme.colors.border}`,
+                      background: active ? theme.colors.primary : 'transparent',
+                      color: active ? theme.colors.primaryForeground : theme.colors.text,
+                      cursor: 'pointer',
+                      fontSize: '0.8125rem',
+                      fontFamily: theme.typography.body.family,
+                      fontWeight: active ? 600 : 400,
+                    }}
+                  >
+                    {val}{unit}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+        <div style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm }}>
+          <input
+            type="checkbox"
+            id="auto-break"
+            checked={timerSettings.autoStartBreak}
+            onChange={(e) => updateSettings({ autoStartBreak: e.target.checked })}
+            style={{ width: 18, height: 18, accentColor: theme.colors.primary, cursor: 'pointer' }}
+          />
+          <label htmlFor="auto-break" style={{ fontSize: '0.875rem', color: theme.colors.text, cursor: 'pointer' }}>
+            {t('settingsPanel.timerAutoBreak', 'Auto-start breaks when focus ends')}
+          </label>
+        </div>
+        <p style={{ margin: 0, fontSize: '0.75rem', color: theme.colors.muted, fontStyle: 'italic' }}>
+          {t('settingsPanel.timerBreakInsight', 'Longer focus sprints need longer breaks: 45 min → 15 min break; 90 min → 20 min break. Skipping breaks compounds mental fatigue.')}
+        </p>
+      </div>
+    </SectionCard>
+
+    {/* Keyboard shortcuts reference */}
+    <SectionCard ariaLabel={t('settingsPanel.shortcutsHeading', 'Keyboard shortcuts')} title={t('settingsPanel.shortcutsHeading', 'Keyboard shortcuts')}>
+      <div style={{ display: 'grid', gap: theme.spacing.sm, fontFamily: theme.typography.body.family }}>
+        {[
+          { keys: 'N', description: t('settingsPanel.shortcutAddTask', 'Focus "Add task" input') },
+          { keys: 'Esc', description: t('settingsPanel.shortcutDismiss', 'Dismiss notification / close modal') },
+        ].map(({ keys, description }) => (
+          <div key={keys} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: `${theme.spacing.xs}px 0`, borderBottom: `1px solid ${theme.colors.border}` }}>
+            <span style={{ color: theme.colors.text }}>{description}</span>
+            <kbd style={{
+              display: 'inline-block',
+              padding: '2px 8px',
+              borderRadius: theme.shape.radiusSm,
+              border: `1px solid ${theme.colors.border}`,
+              backgroundColor: theme.colors.surfaceElevated,
+              color: theme.colors.text,
+              fontFamily: 'monospace',
+              fontSize: '0.8125rem',
+              fontWeight: 600,
+              boxShadow: '0 1px 0 rgba(0,0,0,0.15)',
+            }}>{keys}</kbd>
+          </div>
+        ))}
+      </div>
+    </SectionCard>
+
+    {/* Guided tour */}
+    <SectionCard ariaLabel={t('tour.restartButton', 'Restart guide')} title={t('tour.restartButton', 'Restart guide')}>
+      <div style={{ fontFamily: theme.typography.body.family }}>
+        <p style={{ margin: `0 0 ${theme.spacing.sm}px`, color: theme.colors.muted, fontSize: '0.875rem' }}>
+          {t('settingsPanel.tourDescription', 'Take the interactive tour again to rediscover features or share the app with someone new.')}
+        </p>
+        <button
+          type="button"
+          onClick={resetTour}
+          style={{
+            padding: `${theme.spacing.xs + 2}px ${theme.spacing.md}px`,
+            borderRadius: theme.shape.radiusMd,
+            border: `1px solid ${theme.colors.primary}`,
+            background: theme.colors.overlay,
+            color: theme.colors.primary,
+            cursor: 'pointer',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            fontFamily: theme.typography.body.family,
+          }}
+        >
+          {t('tour.restartButton', 'Restart guide')} →
+        </button>
+      </div>
+    </SectionCard>
+
+    {/* About */}
+    <SectionCard ariaLabel={t('settingsPanel.aboutHeading', 'About')} title={t('settingsPanel.aboutHeading', 'About')}>
+      <div style={{ display: 'grid', gap: theme.spacing.sm, fontFamily: theme.typography.body.family, fontSize: '0.875rem', color: theme.colors.muted }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <span>{t('settingsPanel.appVersion', 'Version')}</span>
+          <span style={{ color: theme.colors.text, fontWeight: 600 }}>0.1.0</span>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <span>{t('settingsPanel.buildDate', 'Build')}</span>
+          <span style={{ color: theme.colors.text }}>2026-03-30</span>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <span>{t('settingsPanel.stack', 'Stack')}</span>
+          <span style={{ color: theme.colors.text }}>React 18 · Vite · i18n · IndexedDB</span>
+        </div>
+        <p style={{ margin: 0, marginTop: theme.spacing.xs, lineHeight: 1.5 }}>
+          {t('settingsPanel.aboutDescription', 'GYLIO is a neurodivergent-friendly productivity app built with accessibility, low cognitive load, and gentle UX at its core.')}
+        </p>
+      </div>
+    </SectionCard>
+    </>
   );
 };
 
