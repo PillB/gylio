@@ -12,6 +12,7 @@ import { useTheme } from '../../core/context/ThemeContext';
 import { useSubscription } from './useSubscription';
 import { useAppAuth } from '../../core/context/AuthContext';
 import { authHeaders } from '../../core/utils/authToken';
+import { apiUrl } from '../../core/utils/apiUrl';
 
 const CheckIcon = () => (
   <span aria-hidden="true" style={{ color: '#22C55E', fontWeight: 700, marginRight: 8 }}>✓</span>
@@ -48,7 +49,7 @@ export const PricingPage: React.FC = () => {
 
     try {
       const headers = await authHeaders({ 'Content-Type': 'application/json' });
-      const res = await fetch('/api/billing/activate-trial', {
+      const res = await fetch(apiUrl('/api/billing/activate-trial'), {
         method: 'POST',
         headers,
       });
