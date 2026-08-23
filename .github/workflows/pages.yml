@@ -1,14 +1,15 @@
 name: Deploy GitHub Pages
 
 on:
-  push:
+  # Deploy only after the CI workflow has completed on main. The deploy job
+  # below also checks that CI concluded successfully before any Pages artifact
+  # is built or published.
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
     branches: [main]
+  # Keep an explicit operator-controlled path for recovery/testing.
   workflow_dispatch:
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: pages
@@ -16,15 +17,22 @@ concurrency:
 
 jobs:
   build:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Checkout verified source
+        uses: actions/checkout@v6
+        with:
+          # For automatic deployments, build the exact SHA that the completed
+          # CI run verified instead of whichever commit happens to be latest.
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version-file: .nvmrc
           cache: npm
 
       - name: Install dependencies from verified lockfile
@@ -47,6 +55,10 @@ jobs:
           path: dist
 
   deploy:
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
