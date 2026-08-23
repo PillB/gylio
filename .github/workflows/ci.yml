@@ -31,7 +31,9 @@ jobs:
           cache: npm
 
       - name: Reproducible dependency install
-        run: npm ci --ignore-scripts
+        run: |
+          npm ci --ignore-scripts
+          npm ci --ignore-scripts --prefix server
 
       - name: Lint feature code
         id: lint
@@ -47,6 +49,11 @@ jobs:
         id: i18n
         continue-on-error: true
         run: npm run check:i18n
+
+      - name: Deployment academy six-pass validation
+        id: deployguide
+        continue-on-error: true
+        run: node scripts/check-deployment-guide.mjs
 
       - name: Unit tests
         id: unit
@@ -95,13 +102,14 @@ jobs:
           LINT: ${{ steps.lint.outcome }}
           TYPECHECK: ${{ steps.typecheck.outcome }}
           I18N: ${{ steps.i18n.outcome }}
+          DEPLOY_GUIDE: ${{ steps.deployguide.outcome }}
           UNIT: ${{ steps.unit.outcome }}
           BUILD: ${{ steps.build.outcome }}
           SERVER: ${{ steps.server.outcome }}
         run: |
-          printf 'lint=%s\ntypecheck=%s\ni18n=%s\nunit=%s\nbuild=%s\nserver=%s\n' \
-            "$LINT" "$TYPECHECK" "$I18N" "$UNIT" "$BUILD" "$SERVER"
-          for result in "$LINT" "$TYPECHECK" "$I18N" "$UNIT" "$BUILD" "$SERVER"; do
+          printf 'lint=%s\ntypecheck=%s\ni18n=%s\ndeploy-guide=%s\nunit=%s\nbuild=%s\nserver=%s\n' \
+            "$LINT" "$TYPECHECK" "$I18N" "$DEPLOY_GUIDE" "$UNIT" "$BUILD" "$SERVER"
+          for result in "$LINT" "$TYPECHECK" "$I18N" "$DEPLOY_GUIDE" "$UNIT" "$BUILD" "$SERVER"; do
             if [ "$result" != "success" ]; then
               echo "One or more quality gates failed. Review the named step logs above."
               exit 1
