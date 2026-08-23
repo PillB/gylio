@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, "solarize/**"]
+    branches: [main]
   pull_request:
     branches: [main]
 
@@ -211,3 +211,44 @@ jobs:
             server/package-lock.json
           if-no-files-found: error
           retention-days: 14
+
+  sync-api-lockfile:
+    name: One-time verified API lockfile sync
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref == 'solarize/prod-readiness-v6'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+
+      - name: Generate and verify API lockfile
+        run: |
+          npm install --package-lock-only --ignore-scripts --prefix server
+          npm ci --ignore-scripts --prefix server
+          npm audit --omit=dev --audit-level=high --prefix server
+
+      - name: Commit only the verified API lockfile
+        run: |
+          if git diff --quiet -- server/package-lock.json; then
+            echo "API lockfile is already synchronized."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add server/package-lock.json
+          git diff --cached --name-only | grep -qx 'server/package-lock.json'
+          test "$(git diff --cached --name-only | wc -l)" -eq 1
+          git commit -m "build: lock production API dependencies"
+          git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
