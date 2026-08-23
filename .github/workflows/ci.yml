@@ -34,8 +34,8 @@ jobs:
         run: npm ci --ignore-scripts
 
       # These gates continue independently so a lint failure does not hide
-      # type, localization, test, build, or server-syntax diagnostics. The
-      # aggregate step below still fails the job if any quality gate is red.
+      # type, localization, test, build, or server diagnostics. The aggregate
+      # step below still fails the job if any quality gate is red.
       - name: Lint feature code
         id: lint
         continue-on-error: true
@@ -61,7 +61,7 @@ jobs:
         continue-on-error: true
         run: npm run build
 
-      - name: Server syntax check
+      - name: Server runtime and syntax checks
         id: server
         continue-on-error: true
         run: |
@@ -69,6 +69,32 @@ jobs:
           node --check server/repositories/entityRepository.js
           node --check server/routes/billing.js
           node --check server/routes/ai.js
+
+          # Load the full production module graph without connecting to MongoDB
+          # or opening a socket. This catches ESM/CommonJS and eager-native-addon
+          # failures that `node --check` cannot detect.
+          NODE_ENV=production MONGODB_URI='mongodb://unused.invalid/gylio' node - <<'NODE'
+          const runtime = require('./server/server.js');
+          if (!runtime.app || typeof runtime.initializePersistence !== 'function' || typeof runtime.startServer !== 'function') {
+            throw new Error('Server runtime exports are incomplete');
+          }
+          console.log('Server production module graph loaded successfully.');
+          NODE
+
+          # Production must never silently fall back to local SQLite.
+          NODE_ENV=production node - <<'NODE'
+          const { initializePersistence } = require('./server/server.js');
+          initializePersistence()
+            .then(() => {
+              throw new Error('Production persistence unexpectedly initialized without MONGODB_URI');
+            })
+            .catch((error) => {
+              if (!String(error?.message || error).includes('MONGODB_URI is required in production')) {
+                throw error;
+              }
+              console.log('Production persistence fails closed without MongoDB.');
+            });
+          NODE
 
       - name: Aggregate quality gates
         if: always()
