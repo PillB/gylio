@@ -3,10 +3,10 @@ import { test, expect, type Page } from '@playwright/test';
 type AuditLocale = 'en' | 'es-PE';
 
 async function seedCompletedOnboarding(page: Page, locale: AuditLocale) {
-  await page.goto('./');
-  await page.evaluate((selectedLocale) => {
-    // Match src/i18n/i18n.js exactly so this test exercises the same explicit
-    // user-language path as production rather than a stale detector key.
+  // Seed browser state before the application scripts execute. Writing storage
+  // after the provider has hydrated creates a race where its initial state can
+  // overwrite the fixture and redirect the test back to onboarding.
+  await page.addInitScript((selectedLocale) => {
     localStorage.setItem('gylio_lang', selectedLocale);
     localStorage.setItem(
       'onboardingFlowState',
@@ -36,21 +36,54 @@ async function assertDocumentLanguage(page: Page, locale: AuditLocale) {
 }
 
 async function assertNoDocumentOverflow(page: Page) {
-  const geometry = await page.evaluate(() => ({
-    scrollWidth: document.documentElement.scrollWidth,
-    clientWidth: document.documentElement.clientWidth,
-    bodyScrollWidth: document.body.scrollWidth,
-    innerWidth: window.innerWidth,
-  }));
+  const audit = await page.evaluate(() => {
+    const viewportWidth = window.innerWidth;
+    const geometry = {
+      scrollWidth: document.documentElement.scrollWidth,
+      clientWidth: document.documentElement.clientWidth,
+      bodyScrollWidth: document.body.scrollWidth,
+      innerWidth: viewportWidth,
+    };
 
+    const offenders = Array.from(document.querySelectorAll<HTMLElement>('body *'))
+      .flatMap((element) => {
+        const style = window.getComputedStyle(element);
+        const rect = element.getBoundingClientRect();
+        if (style.display === 'none' || style.visibility === 'hidden' || rect.width <= 0 || rect.height <= 0) {
+          return [];
+        }
+
+        const leftOverflow = Math.max(0, -rect.left);
+        const rightOverflow = Math.max(0, rect.right - viewportWidth);
+        const overflow = Math.max(leftOverflow, rightOverflow);
+        if (overflow <= 1) return [];
+
+        return [{
+          tag: element.tagName,
+          id: element.id,
+          className: typeof element.className === 'string' ? element.className.slice(0, 120) : '',
+          text: element.textContent?.trim().replace(/\s+/g, ' ').slice(0, 120) || '',
+          left: Math.round(rect.left),
+          right: Math.round(rect.right),
+          width: Math.round(rect.width),
+          overflow: Math.round(overflow),
+        }];
+      })
+      .sort((a, b) => b.overflow - a.overflow)
+      .slice(0, 12);
+
+    return { geometry, offenders };
+  });
+
+  const diagnostic = JSON.stringify(audit);
   expect(
-    geometry.scrollWidth,
-    `Document overflows horizontally: ${JSON.stringify(geometry)}`
-  ).toBeLessThanOrEqual(geometry.clientWidth + 1);
+    audit.geometry.scrollWidth,
+    `Document overflows horizontally: ${diagnostic}`
+  ).toBeLessThanOrEqual(audit.geometry.clientWidth + 1);
   expect(
-    geometry.bodyScrollWidth,
-    `Body overflows horizontally: ${JSON.stringify(geometry)}`
-  ).toBeLessThanOrEqual(geometry.innerWidth + 1);
+    audit.geometry.bodyScrollWidth,
+    `Body overflows horizontally: ${diagnostic}`
+  ).toBeLessThanOrEqual(audit.geometry.innerWidth + 1);
 }
 
 async function assertVisibleControlsHaveGeometry(page: Page) {
