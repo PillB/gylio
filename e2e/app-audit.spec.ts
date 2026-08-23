@@ -125,22 +125,28 @@ test.describe('GYLIO App Visual Audit', () => {
     await expect(page.locator('h1, h2').first()).toBeVisible();
   });
 
-  test('10 - Add a task and verify it appears', async ({ page }) => {
+  test('10 - Add a task planned for today and verify it appears', async ({ page }) => {
     await completeOnboardingIfNeeded(page);
     await goto(page, '/tasks');
     await page.waitForLoadState('networkidle');
 
-    const input = page.locator('input[type="text"]').first();
-    if (await input.isVisible()) {
-      await input.fill('E2E Test Task');
-      const addBtn = page.locator('button').filter({ hasText: /add task|add|create/i }).first();
-      if (await addBtn.isVisible()) {
-        await addBtn.click();
-        await page.waitForTimeout(600);
-      }
-    }
-    await page.screenshot({ path: `${SCREENSHOT_DIR}/10-task-added.png`, fullPage: true });
+    // The active task view is "Today". An unscheduled task correctly belongs in
+    // backlog and therefore would not be visible here. Exercise the actual
+    // Today-view contract by assigning the task the browser's local date.
+    const today = await page.evaluate(() => {
+      const now = new Date();
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    });
+
+    await page.locator('#new-task').fill('E2E Test Task');
+    await page.locator('#planned-date').fill(today);
+    await page.locator('form button[type="submit"]').click();
+
     await expect(page.getByText('E2E Test Task').first()).toBeVisible();
+    await page.screenshot({ path: `${SCREENSHOT_DIR}/10-task-added.png`, fullPage: true });
   });
 
   test('11 - NavBar navigation check', async ({ page }) => {
