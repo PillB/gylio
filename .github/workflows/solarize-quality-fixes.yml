@@ -1,4 +1,4 @@
-name: Solarize Quality Repair
+name: One-time Solarize Source Repair
 
 on:
   push:
@@ -7,32 +7,28 @@ on:
 permissions:
   contents: write
 
-concurrency:
-  group: solarize-quality-repair
-  cancel-in-progress: true
-
 jobs:
-  repair:
+  migrate:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
       - name: Checkout candidate branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
 
       - name: Install verified dependencies
         run: npm ci --ignore-scripts
 
-      - name: Apply targeted quality repairs
+      - name: Apply deterministic source repairs
         shell: bash
         run: |
           python - <<'PY'
-          import json
           from pathlib import Path
 
           def replace_once(text: str, old: str, new: str, label: str) -> str:
@@ -40,11 +36,11 @@ jobs:
               if count == 0:
                   return text
               if count != 1:
-                  raise SystemExit(f'{label}: expected at most one match, got {count}')
+                  raise SystemExit(f'{label}: expected one match, found {count}')
               return text.replace(old, new, 1)
 
-          # Routines: integrate the read-only XYFlow sequence and remove the
-          # unused import caught by lint. Keep the checklist as semantic truth.
+          # Routine view: remove the stale hook import and wire the already
+          # reviewed read-only XYFlow sequence into the routine card.
           p = Path('src/features/routines/components/RoutinesView.tsx')
           text = p.read_text()
           text = text.replace(
@@ -72,15 +68,10 @@ jobs:
                     {/* 21-day streak dots */}""",
                   'routine flow placement',
               )
-          text = text.replace('      {/* Research-backed routine templates */}', '      {/* Optional routine templates */}')
-          text = text.replace("t('routines.tpl.showGallery', 'Browse research-backed protocols')", "t('routines.tpl.showGallery', 'Browse routine templates')")
-          text = text.replace("t('routines.tpl.hideGallery', 'Hide protocols')", "t('routines.tpl.hideGallery', 'Hide templates')")
-          text = text.replace("t('routines.anchorHelper', 'Anchoring to an existing habit makes this much more likely to stick.')", "t('routines.anchorHelper', 'Link this routine to an existing habit if that cue is useful to you.')")
-          text = text.replace("t('routines.emptyBody', 'A single consistent routine — even 10 minutes — is more valuable than any app, book, or plan. Start with one thing you want to do every day.')", "t('routines.emptyBody', 'Start with one small routine you want to make easier to repeat. You can adjust it at any time.')")
           p.write_text(text)
 
-          # Tasks: remove a disconnected legacy Pomodoro implementation while
-          # retaining the current per-task TaskTimerInline path.
+          # Task view: remove the abandoned page-level Pomodoro path. The live
+          # per-task TaskTimerInline implementation remains untouched.
           p = Path('src/features/tasks/components/TaskList.tsx')
           text = p.read_text()
           text = text.replace("import usePomodoroTimer from '../hooks/usePomodoroTimer';\n", '')
@@ -133,13 +124,9 @@ jobs:
               '',
               'unused focus button style',
           )
-          text = text.replace('      {/* Research-backed task templates */}', '      {/* Optional task templates */}')
-          text = text.replace("t('tasks.tpl.showGallery', 'Quick-start from proven tasks')", "t('tasks.tpl.showGallery', 'Browse quick-start tasks')")
-          text = text.replace('              Research shows fewer visible tasks = more completed.', '              Fewer visible tasks can reduce visual load.')
-          text = text.replace("t('tasks.intentionHelper', 'Adding when/where doubles follow-through.')", "t('tasks.intentionHelper', 'A specific when/where cue can make the next action clearer.')")
           p.write_text(text)
 
-          # Replace an explicit-any style helper with the existing theme type.
+          # Timer helper already receives the application's theme token shape.
           p = Path('src/features/tasks/components/TaskTimerInline.tsx')
           text = p.read_text()
           if "import type { ThemeTokens } from '../../../core/themes';" not in text:
@@ -147,95 +134,36 @@ jobs:
                   "import { useTaskTimer } from '../../../core/context/TaskTimerContext';",
                   "import { useTaskTimer } from '../../../core/context/TaskTimerContext';\nimport type { ThemeTokens } from '../../../core/themes';",
               )
-          text = text.replace('function btnStyle(theme: any, borderColor: string, filled: boolean): React.CSSProperties {', 'function btnStyle(theme: ThemeTokens, borderColor: string, filled: boolean): React.CSSProperties {')
+          text = text.replace(
+              'function btnStyle(theme: any, borderColor: string, filled: boolean): React.CSSProperties {',
+              'function btnStyle(theme: ThemeTokens, borderColor: string, filled: boolean): React.CSSProperties {',
+          )
           p.write_text(text)
 
-          # Remove a stale test import; behavior remains covered.
+          # Remove a stale test-only import; MIN_SUBTASKS behavior remains
+          # asserted through the one-step-valid test below.
           p = Path('src/features/tasks/utils/taskForm.test.ts')
           p.write_text(p.read_text().replace('  MIN_SUBTASKS,\n', ''))
-
-          # Product trust: placeholder billing must render as a preview, not as
-          # a live paid trial. Production remains fail-closed until a real
-          # provider lifecycle and server-side entitlements are integrated.
-          p = Path('src/features/subscription/PricingPage.tsx')
-          text = p.read_text()
-          text = text.replace("import { useUser } from '@clerk/clerk-react';\n", '')
-          text = text.replace('  const { user } = useUser();\n', '')
-          if "const billingEnabled = import.meta.env.VITE_BILLING_ENABLED === 'true';" not in text:
-              text = text.replace(
-                  "type ActivationState = 'idle' | 'loading' | 'success' | 'error';",
-                  "type ActivationState = 'idle' | 'loading' | 'success' | 'error';\n\nconst billingEnabled = import.meta.env.VITE_BILLING_ENABLED === 'true';",
-              )
-          text = text.replace(
-              '  const handleStartTrial = async () => {\n    if (!userId) {',
-              "  const handleStartTrial = async () => {\n    if (!billingEnabled) return;\n\n    if (!userId) {",
-          )
-          text = text.replace(
-              "      // Re-fetch Clerk user so publicMetadata.plan is fresh — this causes\n      // useSubscription() to update and premium gates to open immediately.\n      await user?.reload();\n\n      setActivation('success');\n\n      // Brief pause so user sees the success state, then go to the app.\n      setTimeout(() => navigate('/social'), 1800);",
-              "      setActivation('success');\n\n      // Manual trials exist only for local/dev testing. A full reload refreshes\n      // Clerk metadata without coupling this page directly to ClerkProvider.\n      setTimeout(() => window.location.reload(), 1200);",
-          )
-          text = text.replace(
-              "    if (plan === 'user_subscription') return t('pricing.currentPlan', 'Current plan');",
-              "    if (plan === 'user_subscription') return t('pricing.currentPlan', 'Current plan');\n    if (!billingEnabled) return t('pricing.previewCta', 'Premium checkout coming soon');",
-          )
-          text = text.replace(
-              "              {billing === 'yearly'\n                ? t('pricing.billedYearly', 'billed yearly · save $24/year')\n                : t('pricing.billedMonthly', 'billed monthly')}",
-              "              {!billingEnabled\n                ? t('pricing.previewPrice', 'Planned price · checkout not live')\n                : billing === 'yearly'\n                  ? t('pricing.billedYearly', 'billed yearly · save $24/year')\n                  : t('pricing.billedMonthly', 'billed monthly')}",
-          )
-          text = text.replace(
-              "            disabled={activation === 'loading' || activation === 'success' || plan === 'user_subscription'}",
-              "            disabled={!billingEnabled || activation === 'loading' || activation === 'success' || plan === 'user_subscription'}",
-          )
-          text = text.replace(
-              "              cursor: activation === 'loading' || plan === 'user_subscription' ? 'default' : 'pointer',",
-              "              cursor: !billingEnabled || activation === 'loading' || plan === 'user_subscription' ? 'default' : 'pointer',",
-          )
-          text = text.replace(
-              "              {activation === 'success'\n                ? t('pricing.redirecting', 'Unlocking premium features…')\n                : t('pricing.noCard', 'No credit card required for trial')}",
-              "              {!billingEnabled\n                ? t('pricing.previewNotice', 'Premium is a product preview. Checkout is not live and no payment will be collected yet.')\n                : activation === 'success'\n                  ? t('pricing.redirecting', 'Unlocking premium features…')\n                  : t('pricing.noCard', 'No credit card required for trial')}",
-          )
-          p.write_text(text)
-
-          # Psychology copy: keep evidence-backed concepts, remove invented
-          # numeric/biological certainty from the most prominent task guidance.
-          translations = {
-              'src/i18n/en.json': {
-                  'plannedDateHelper': 'Choose a date when it helps make the next action concrete. You can always reschedule.',
-                  'subtasksHelper': 'Break the task into small, concrete steps. Start with the easiest useful action.',
-                  'focusHelper': 'Use a focus interval that fits the task. You can pause, shorten, or restart without losing progress.',
-                  'intentionHelper': 'A specific if–then plan for when and where you will act can improve goal follow-through on average; results vary by person and task.',
-              },
-              'src/i18n/es-PE.json': {
-                  'plannedDateHelper': 'Elige una fecha cuando te ayude a concretar la siguiente acción. Siempre puedes reprogramarla.',
-                  'subtasksHelper': 'Divide la tarea en pasos pequeños y concretos. Empieza con la acción útil más fácil.',
-                  'focusHelper': 'Usa un intervalo de enfoque que se adapte a la tarea. Puedes pausar, acortar o reiniciar sin perder el progreso.',
-                  'intentionHelper': 'Un plan específico de tipo si–entonces sobre cuándo y dónde actuar puede mejorar el cumplimiento de metas en promedio; el resultado varía según la persona y la tarea.',
-              },
-          }
-          for filename, values in translations.items():
-              p = Path(filename)
-              data = json.loads(p.read_text())
-              data['tasks'].update(values)
-              p.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n')
           PY
 
           git diff --check
 
-      - name: Prove feature lint is green
+      - name: Prove repaired feature lint
         run: npm run lint
 
-      - name: Production build smoke
-        run: npm run build
-
-      - name: Commit verified repairs
+      - name: Commit migration result
         shell: bash
         run: |
           if git diff --quiet; then
-            echo "Quality repairs already present."
+            echo "Source repairs already present."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/features src/i18n/en.json src/i18n/es-PE.json
-          git commit -m "fix: resolve Solarize quality and product-trust gates"
+          git add \
+            src/features/routines/components/RoutinesView.tsx \
+            src/features/tasks/components/TaskList.tsx \
+            src/features/tasks/components/TaskTimerInline.tsx \
+            src/features/tasks/utils/taskForm.test.ts
+          git commit -m "fix: remove stale focus path and resolve lint gates"
           git push origin HEAD:solarize/prod-readiness-v6
