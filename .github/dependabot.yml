@@ -1,0 +1,27 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      non-major-npm-updates:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+    # Major version updates in this mixed web/server/mobile package graph need
+    # explicit compatibility work. Dependabot security updates are not disabled
+    # by this version-update rule and can still surface urgent fixes.
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-major
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
