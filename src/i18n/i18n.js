@@ -12,17 +12,23 @@ import hi from './hi.json';
 import id from './id.json';
 
 /**
- * i18n configuration — game-dev-style best practices:
+ * i18n configuration.
  *
- * 1. English loads first as the authoritative source (fallback chain).
- * 2. User's explicit choice (localStorage) takes priority over browser locale.
- * 3. Fallback chain: es-PE → es → en, so adding es-MX later auto-inherits Spanish.
- * 4. Missing keys in dev → console.warn; in prod → empty string (never leaks raw keys to users).
- * 5. Language key is namespaced to 'gylio_lang' to avoid conflicts with other apps.
+ * Product localization policy:
+ * - English is the source/fallback catalog.
+ * - Peruvian Spanish is the maintained Spanish catalog.
+ * - A generic browser locale of `es` intentionally resolves to the same
+ *   Peruvian-Spanish catalog until a separate neutral-Spanish catalog exists.
+ * - An explicit user choice stored in `gylio_lang` wins over browser locale.
+ * - Runtime values are interpolated into complete translatable messages;
+ *   sentence fragments should not be assembled in application code.
+ * - CI checks catalog key and interpolation-placeholder parity so missing
+ *   translations are caught before deployment.
  */
 
 const resources = {
   en:      { translation: en },
+  es:      { translation: esPE },
   'es-PE': { translation: esPE },
   de:      { translation: de },
   fr:      { translation: fr },
@@ -33,53 +39,69 @@ const resources = {
   id:      { translation: id },
 };
 
+const supportedLngs = ['en', 'es', 'es-PE', 'de', 'fr', 'it', 'zh', 'sw', 'hi', 'id'];
+
+const canonicalDocumentLanguage = (language) => {
+  if (!language) return 'en';
+  const normalized = String(language).replace('_', '-');
+  if (normalized === 'es' || normalized.toLowerCase().startsWith('es-')) return 'es-PE';
+  return normalized;
+};
+
+const syncDocumentLanguage = (language) => {
+  if (typeof document === 'undefined') return;
+  const resolved = canonicalDocumentLanguage(i18n.resolvedLanguage || language || 'en');
+  document.documentElement.lang = resolved;
+  document.documentElement.dir = i18n.dir(resolved);
+};
+
 i18n
   .use(LanguageDetector)
-  .use(initReactI18next)
-  .init({
-    resources,
+  .use(initReactI18next);
 
-    // Detection order: explicit user choice (localStorage) wins over browser default.
-    // This is the #1 i18n bug in web apps — navigator fires first and overwrites
-    // the user's stored preference on every return visit.
-    detection: {
-      order: ['localStorage', 'navigator', 'htmlTag'],
-      caches: ['localStorage'],
-      lookupLocalStorage: 'gylio_lang', // namespaced key
-    },
+const initialization = i18n.init({
+  resources,
 
-    // Fallback chain: specific locale → base language → English.
-    // Enables future es-MX to inherit es translations automatically.
-    fallbackLng: {
-      'es-PE': ['es', 'en'],
-      'es':    ['en'],
-      'de':    ['en'],
-      'fr':    ['en'],
-      'it':    ['en'],
-      'zh':    ['en'],
-      'sw':    ['en'],
-      'hi':    ['en'],
-      'id':    ['en'],
-      default: ['en'],
-    },
+  detection: {
+    order: ['localStorage', 'navigator', 'htmlTag'],
+    caches: ['localStorage'],
+    lookupLocalStorage: 'gylio_lang',
+  },
 
-    supportedLngs: ['en', 'es', 'es-PE', 'de', 'fr', 'it', 'zh', 'sw', 'hi', 'id'],
-    // Allow es-XX variants to match the base 'es' entries
-    nonExplicitSupportedLngs: true,
+  // Regional catalogs fall back to English. Generic `es` is intentionally
+  // backed by the es-PE resource above, rather than silently falling to English.
+  fallbackLng: {
+    'es-PE': ['en'],
+    es:      ['en'],
+    de:      ['en'],
+    fr:      ['en'],
+    it:      ['en'],
+    zh:      ['en'],
+    sw:      ['en'],
+    hi:      ['en'],
+    id:      ['en'],
+    default: ['en'],
+  },
 
-    interpolation: {
-      escapeValue: false, // React already escapes
-    },
+  supportedLngs,
+  nonExplicitSupportedLngs: true,
 
-    // Surface missing translation keys during development.
-    // In production: return empty string so raw key paths never reach users.
-    saveMissing: import.meta.env.DEV,
-    missingKeyHandler: (lngs, ns, key) => {
-      if (import.meta.env.DEV) {
-        console.warn(`[i18n] Missing key: ${ns}:${key} for [${lngs.join(', ')}]`);
-      }
-    },
-    parseMissingKeyHandler: () => '',
-  });
+  interpolation: {
+    escapeValue: false, // React escapes rendered text.
+  },
+
+  // Empty translations must not erase labels or controls. Missing-key drift is
+  // a CI failure; in development it is also surfaced in the console.
+  returnEmptyString: false,
+  saveMissing: import.meta.env.DEV,
+  missingKeyHandler: (lngs, ns, key) => {
+    if (import.meta.env.DEV) {
+      console.warn(`[i18n] Missing key: ${ns}:${key} for [${lngs.join(', ')}]`);
+    }
+  },
+});
+
+i18n.on('languageChanged', syncDocumentLanguage);
+void initialization.then(() => syncDocumentLanguage(i18n.resolvedLanguage));
 
 export default i18n;
