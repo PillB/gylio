@@ -46,7 +46,7 @@ jobs:
       - name: Production localization integrity
         id: i18n
         continue-on-error: true
-        run: node scripts/check-i18n.mjs
+        run: npm run check:i18n
 
       - name: Unit tests
         id: unit
@@ -146,11 +146,10 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
-  dependency-audit:
-    name: Dependency security report
+  dependency-security:
+    name: Dependency security gates
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    continue-on-error: true
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -161,16 +160,13 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
 
-      - name: Install full repository lockfile graph
+      - name: Install full repository graph
         run: npm ci --ignore-scripts
 
-      - name: Capture full repository production-labelled audit
+      - name: Capture full repository advisory report
         run: npm audit --omit=dev --json > npm-audit-production.json || true
 
-      - name: Generate isolated API lockfile
-        run: npm install --package-lock-only --ignore-scripts --prefix server
-
-      - name: Reproducible isolated API install
+      - name: Reproducible production API install
         run: npm ci --ignore-scripts --prefix server
 
       - name: Smoke-test isolated production API graph
@@ -181,26 +177,28 @@ jobs:
           if (!runtime.app || typeof runtime.initializePersistence !== 'function') {
             throw new Error('Isolated API graph failed to load');
           }
-          console.log('Isolated Hostinger API dependency graph loads successfully.');
+          console.log('Isolated production API graph loads successfully.');
           NODE
 
-      - name: Capture isolated API dependency audit
+      - name: Capture production API audit
         run: npm audit --omit=dev --prefix server --json > server/npm-audit-production.json || true
 
-      - name: Summarize dependency audits
+      - name: Enforce API high/critical vulnerability budget
         run: |
           node - <<'NODE'
           const fs = require('node:fs');
-          for (const [label, path] of [
-            ['full repository', 'npm-audit-production.json'],
-            ['isolated API', 'server/npm-audit-production.json'],
-          ]) {
-            const report = JSON.parse(fs.readFileSync(path, 'utf8'));
-            console.log(`${label} vulnerabilities:`, report.metadata?.vulnerabilities ?? {});
+          const full = JSON.parse(fs.readFileSync('npm-audit-production.json', 'utf8'));
+          const api = JSON.parse(fs.readFileSync('server/npm-audit-production.json', 'utf8'));
+          console.log('Full repository advisory inventory:', full.metadata?.vulnerabilities ?? {});
+          const vulnerabilities = api.metadata?.vulnerabilities ?? {};
+          console.log('Production API vulnerabilities:', vulnerabilities);
+          if ((vulnerabilities.critical ?? 0) > 0 || (vulnerabilities.high ?? 0) > 0) {
+            throw new Error('Production API contains high or critical dependency advisories');
           }
           NODE
 
-      - name: Upload dependency evidence and API lockfile candidate
+      - name: Upload dependency evidence
+        if: always()
         uses: actions/upload-artifact@v6
         with:
           name: dependency-audits
@@ -211,44 +209,3 @@ jobs:
             server/package-lock.json
           if-no-files-found: error
           retention-days: 14
-
-  sync-api-lockfile:
-    name: One-time verified API lockfile sync
-    if: >-
-      github.event_name == 'pull_request' &&
-      github.event.pull_request.head.repo.full_name == github.repository &&
-      github.event.pull_request.head.ref == 'solarize/prod-readiness-v6'
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: write
-    steps:
-      - name: Checkout PR head
-        uses: actions/checkout@v5
-        with:
-          ref: ${{ github.event.pull_request.head.ref }}
-
-      - name: Setup Node
-        uses: actions/setup-node@v6
-        with:
-          node-version-file: .nvmrc
-
-      - name: Generate and verify API lockfile
-        run: |
-          npm install --package-lock-only --ignore-scripts --prefix server
-          npm ci --ignore-scripts --prefix server
-          npm audit --omit=dev --audit-level=high --prefix server
-
-      - name: Commit only the verified API lockfile
-        run: |
-          if [ -z "$(git status --porcelain -- server/package-lock.json)" ]; then
-            echo "API lockfile is already synchronized."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add server/package-lock.json
-          git diff --cached --name-only | grep -qx 'server/package-lock.json'
-          test "$(git diff --cached --name-only | wc -l)" -eq 1
-          git commit -m "build: lock production API dependencies"
-          git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
