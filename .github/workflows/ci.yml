@@ -14,47 +14,100 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  verify:
+  quality:
+    name: Quality gates
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
       CI: true
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
 
-      # The lockfile repair verifier proves this exact clean-install mode from a
-      # fresh checkout. Lifecycle scripts are not required for the Vite/unit/
-      # Playwright gates below, and suppressing them also reduces supply-chain
-      # exposure in CI. Native-runtime smoke tests belong in a dedicated server
-      # job where their install scripts can be intentionally enabled.
-      - name: Install dependencies from verified lockfile
+      - name: Reproducible dependency install
         run: npm ci --ignore-scripts
 
+      # These gates continue independently so a lint failure does not hide
+      # type, localization, test, build, or server-syntax diagnostics. The
+      # aggregate step below still fails the job if any quality gate is red.
       - name: Lint feature code
+        id: lint
+        continue-on-error: true
         run: npm run lint
 
       - name: Typecheck task domain
+        id: typecheck
+        continue-on-error: true
         run: npm run typecheck
 
+      - name: Production localization integrity
+        id: i18n
+        continue-on-error: true
+        run: node scripts/check-i18n.mjs
+
       - name: Unit tests
+        id: unit
+        continue-on-error: true
         run: npm test
 
       - name: Production build
+        id: build
+        continue-on-error: true
         run: npm run build
 
       - name: Server syntax check
+        id: server
+        continue-on-error: true
         run: |
           node --check server/server.js
           node --check server/repositories/entityRepository.js
           node --check server/routes/billing.js
           node --check server/routes/ai.js
+
+      - name: Aggregate quality gates
+        if: always()
+        env:
+          LINT: ${{ steps.lint.outcome }}
+          TYPECHECK: ${{ steps.typecheck.outcome }}
+          I18N: ${{ steps.i18n.outcome }}
+          UNIT: ${{ steps.unit.outcome }}
+          BUILD: ${{ steps.build.outcome }}
+          SERVER: ${{ steps.server.outcome }}
+        run: |
+          printf 'lint=%s\ntypecheck=%s\ni18n=%s\nunit=%s\nbuild=%s\nserver=%s\n' \
+            "$LINT" "$TYPECHECK" "$I18N" "$UNIT" "$BUILD" "$SERVER"
+          for result in "$LINT" "$TYPECHECK" "$I18N" "$UNIT" "$BUILD" "$SERVER"; do
+            if [ "$result" != "success" ]; then
+              echo "One or more quality gates failed. Review the named step logs above."
+              exit 1
+            fi
+          done
+
+  browser:
+    name: Browser and layout audit
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      CI: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
 
       - name: Install Chromium for Playwright
         run: npx playwright install --with-deps chromium
@@ -64,7 +117,7 @@ jobs:
 
       - name: Upload Playwright audit evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: playwright-audit
           path: |
@@ -73,3 +126,44 @@ jobs:
             e2e/screenshots/
           if-no-files-found: ignore
           retention-days: 7
+
+  dependency-audit:
+    name: Dependency security report
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install lockfile graph
+        run: npm ci --ignore-scripts
+
+      - name: Capture production dependency audit
+        run: npm audit --omit=dev --json > npm-audit-production.json || true
+
+      - name: Summarize production audit
+        run: |
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const report = JSON.parse(fs.readFileSync('npm-audit-production.json', 'utf8'));
+          const vulnerabilities = report.metadata?.vulnerabilities ?? {};
+          console.log('Production dependency vulnerabilities:', vulnerabilities);
+          if ((vulnerabilities.critical ?? 0) > 0 || (vulnerabilities.high ?? 0) > 0) {
+            console.warn('High/critical production advisories require reachability and upgrade triage.');
+          }
+          NODE
+
+      - name: Upload dependency audit
+        uses: actions/upload-artifact@v6
+        with:
+          name: npm-audit-production
+          path: npm-audit-production.json
+          if-no-files-found: error
+          retention-days: 14
