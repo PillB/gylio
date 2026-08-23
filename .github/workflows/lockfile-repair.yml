@@ -3,6 +3,8 @@ name: Lockfile Repair Evidence
 on:
   push:
     branches: ["solarize/prod-readiness-v6"]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
