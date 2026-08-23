@@ -33,9 +33,6 @@ jobs:
       - name: Reproducible dependency install
         run: npm ci --ignore-scripts
 
-      # These gates continue independently so a lint failure does not hide
-      # type, localization, test, build, or server diagnostics. The aggregate
-      # step below still fails the job if any quality gate is red.
       - name: Lint feature code
         id: lint
         continue-on-error: true
@@ -70,9 +67,6 @@ jobs:
           node --check server/routes/billing.js
           node --check server/routes/ai.js
 
-          # Import the real CommonJS API graph without connecting to MongoDB or
-          # opening a listening socket. This catches module-format/runtime errors
-          # that syntax-only checks cannot see.
           NODE_ENV=production MONGODB_URI='mongodb://unused.invalid/gylio' node - <<'NODE'
           const runtime = require('./server/server.js');
           if (!runtime.app || typeof runtime.initializePersistence !== 'function' || typeof runtime.startServer !== 'function') {
@@ -81,7 +75,6 @@ jobs:
           console.log('Server production module graph loaded successfully.');
           NODE
 
-          # Production must never silently fall back to local SQLite.
           NODE_ENV=production node - <<'NODE'
           const { initializePersistence } = require('./server/server.js');
           initializePersistence()
@@ -156,7 +149,7 @@ jobs:
   dependency-audit:
     name: Dependency security report
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 15
     continue-on-error: true
     steps:
       - name: Checkout
@@ -168,28 +161,53 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
 
-      - name: Install lockfile graph
+      - name: Install full repository lockfile graph
         run: npm ci --ignore-scripts
 
-      - name: Capture production dependency audit
+      - name: Capture full repository production-labelled audit
         run: npm audit --omit=dev --json > npm-audit-production.json || true
 
-      - name: Summarize production audit
+      - name: Generate isolated API lockfile
+        run: npm install --package-lock-only --ignore-scripts --prefix server
+
+      - name: Reproducible isolated API install
+        run: npm ci --ignore-scripts --prefix server
+
+      - name: Smoke-test isolated production API graph
+        run: |
+          cd server
+          NODE_ENV=production MONGODB_URI='mongodb://unused.invalid/gylio' node - <<'NODE'
+          const runtime = require('./server.js');
+          if (!runtime.app || typeof runtime.initializePersistence !== 'function') {
+            throw new Error('Isolated API graph failed to load');
+          }
+          console.log('Isolated Hostinger API dependency graph loads successfully.');
+          NODE
+
+      - name: Capture isolated API dependency audit
+        run: npm audit --omit=dev --prefix server --json > server/npm-audit-production.json || true
+
+      - name: Summarize dependency audits
         run: |
           node - <<'NODE'
           const fs = require('node:fs');
-          const report = JSON.parse(fs.readFileSync('npm-audit-production.json', 'utf8'));
-          const vulnerabilities = report.metadata?.vulnerabilities ?? {};
-          console.log('Production dependency vulnerabilities:', vulnerabilities);
-          if ((vulnerabilities.critical ?? 0) > 0 || (vulnerabilities.high ?? 0) > 0) {
-            console.warn('High/critical production advisories require reachability and upgrade triage.');
+          for (const [label, path] of [
+            ['full repository', 'npm-audit-production.json'],
+            ['isolated API', 'server/npm-audit-production.json'],
+          ]) {
+            const report = JSON.parse(fs.readFileSync(path, 'utf8'));
+            console.log(`${label} vulnerabilities:`, report.metadata?.vulnerabilities ?? {});
           }
           NODE
 
-      - name: Upload dependency audit
+      - name: Upload dependency evidence and API lockfile candidate
         uses: actions/upload-artifact@v6
         with:
-          name: npm-audit-production
-          path: npm-audit-production.json
+          name: dependency-audits
+          path: |
+            npm-audit-production.json
+            server/npm-audit-production.json
+            server/package.json
+            server/package-lock.json
           if-no-files-found: error
           retention-days: 14
