@@ -30,6 +30,11 @@ async function seedCompletedOnboarding(page: Page, locale: AuditLocale) {
   }, locale);
 }
 
+async function assertDocumentLanguage(page: Page, locale: AuditLocale) {
+  await expect(page.locator('html')).toHaveAttribute('lang', locale);
+  await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
+}
+
 async function assertNoDocumentOverflow(page: Page) {
   const geometry = await page.evaluate(() => ({
     scrollWidth: document.documentElement.scrollWidth,
@@ -137,6 +142,7 @@ for (const locale of locales) {
           await page.goto(`.${route}`);
           await page.waitForLoadState('networkidle');
 
+          await assertDocumentLanguage(page, locale);
           await assertNoDocumentOverflow(page);
           await assertVisibleControlsHaveGeometry(page);
           await assertControlsStayInsideHorizontalViewport(page);
