@@ -8,6 +8,7 @@ import { OnboardingFlowProvider } from './hooks/useOnboardingFlow.jsx';
 import i18n from './i18n/i18n.js';
 import { ThemeProvider } from './core/context/ThemeContext';
 import { AccessibilityProvider } from './core/hooks/useAccessibility';
+import AccessibleMotionBoundary from './core/accessibility/AccessibleMotionBoundary';
 import { ToastProvider } from './core/context/ToastContext';
 import ToastStack from './components/atoms/Toast';
 import { GuidedTourProvider } from './core/context/GuidedTourContext';
@@ -29,14 +30,16 @@ const providers = (
       <ThemeProvider>
         <ToastProvider>
           <TaskTimerProvider>
-          <GuidedTourProvider>
-            <OnboardingFlowProvider>
-              <AccessibilityProvider>
-                <App clerkEnabled={Boolean(PUBLISHABLE_KEY)} />
-                <ToastStack />
-              </AccessibilityProvider>
-            </OnboardingFlowProvider>
-          </GuidedTourProvider>
+            <GuidedTourProvider>
+              <OnboardingFlowProvider>
+                <AccessibilityProvider>
+                  <AccessibleMotionBoundary>
+                    <App clerkEnabled={Boolean(PUBLISHABLE_KEY)} />
+                    <ToastStack />
+                  </AccessibleMotionBoundary>
+                </AccessibilityProvider>
+              </OnboardingFlowProvider>
+            </GuidedTourProvider>
           </TaskTimerProvider>
         </ToastProvider>
       </ThemeProvider>
