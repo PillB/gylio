@@ -1,0 +1,39 @@
+name: Lockfile Repair Evidence
+
+on:
+  push:
+    branches: ["solarize/prod-readiness-v6"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Regenerate lockfile metadata
+        run: npm install --package-lock-only --ignore-scripts
+
+      - name: Verify regenerated lockfile supports clean install
+        run: npm ci --ignore-scripts
+
+      - name: Show dependency-manifest diff
+        run: git diff -- package-lock.json
+
+      - name: Upload repaired lockfile
+        uses: actions/upload-artifact@v4
+        with:
+          name: repaired-package-lock
+          path: package-lock.json
+          retention-days: 2
