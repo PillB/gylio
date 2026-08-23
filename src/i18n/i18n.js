@@ -5,6 +5,8 @@ import en from './en.json';
 import esPE from './es-PE.json';
 import tasksEn from './tasks.en.json';
 import tasksEsPE from './tasks.es-PE.json';
+import pricingEn from './pricing.en.json';
+import pricingEsPE from './pricing.es-PE.json';
 
 /**
  * Production localization configuration.
@@ -29,6 +31,10 @@ const enCatalog = {
     ...en.tasks,
     ...tasksEn,
   },
+  pricing: {
+    ...en.pricing,
+    ...pricingEn,
+  },
 };
 
 const esPECatalog = {
@@ -36,6 +42,10 @@ const esPECatalog = {
   tasks: {
     ...esPE.tasks,
     ...tasksEsPE,
+  },
+  pricing: {
+    ...esPE.pricing,
+    ...pricingEsPE,
   },
 };
 
