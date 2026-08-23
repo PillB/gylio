@@ -3,43 +3,28 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import { initReactI18next } from 'react-i18next';
 import en from './en.json';
 import esPE from './es-PE.json';
-import de from './de.json';
-import fr from './fr.json';
-import it from './it.json';
-import zh from './zh.json';
-import sw from './sw.json';
-import hi from './hi.json';
-import id from './id.json';
 
 /**
- * i18n configuration.
+ * Production localization configuration.
  *
- * Product localization policy:
- * - English is the source/fallback catalog.
- * - Peruvian Spanish is the maintained Spanish catalog.
- * - A generic browser locale of `es` intentionally resolves to the same
- *   Peruvian-Spanish catalog until a separate neutral-Spanish catalog exists.
- * - An explicit user choice stored in `gylio_lang` wins over browser locale.
- * - Runtime values are interpolated into complete translatable messages;
- *   sentence fragments should not be assembled in application code.
- * - CI checks catalog key and interpolation-placeholder parity so missing
- *   translations are caught before deployment.
+ * Shipping locales must pass translation-key parity, interpolation-placeholder
+ * parity, browser-layout tests and human review before they are exposed in the
+ * language selector. Additional draft catalogs may remain in src/i18n without
+ * being advertised as production-ready.
+ *
+ * English is the source/fallback catalog. Peruvian Spanish is the maintained
+ * Spanish catalog. A generic browser locale of `es` intentionally resolves to
+ * the same Peruvian-Spanish catalog until a separate neutral-Spanish catalog
+ * is complete and reviewed.
  */
 
 const resources = {
   en:      { translation: en },
   es:      { translation: esPE },
   'es-PE': { translation: esPE },
-  de:      { translation: de },
-  fr:      { translation: fr },
-  it:      { translation: it },
-  zh:      { translation: zh },
-  sw:      { translation: sw },
-  hi:      { translation: hi },
-  id:      { translation: id },
 };
 
-const supportedLngs = ['en', 'es', 'es-PE', 'de', 'fr', 'it', 'zh', 'sw', 'hi', 'id'];
+const supportedLngs = ['en', 'es', 'es-PE'];
 
 const canonicalDocumentLanguage = (language) => {
   if (!language) return 'en';
@@ -63,26 +48,13 @@ const initialization = i18n.init({
   resources,
 
   detection: {
+    // Explicit user choice wins; browser locale is only the first-visit default.
     order: ['localStorage', 'navigator', 'htmlTag'],
     caches: ['localStorage'],
     lookupLocalStorage: 'gylio_lang',
   },
 
-  // Regional catalogs fall back to English. Generic `es` is intentionally
-  // backed by the es-PE resource above, rather than silently falling to English.
-  fallbackLng: {
-    'es-PE': ['en'],
-    es:      ['en'],
-    de:      ['en'],
-    fr:      ['en'],
-    it:      ['en'],
-    zh:      ['en'],
-    sw:      ['en'],
-    hi:      ['en'],
-    id:      ['en'],
-    default: ['en'],
-  },
-
+  fallbackLng: 'en',
   supportedLngs,
   nonExplicitSupportedLngs: true,
 
@@ -90,8 +62,8 @@ const initialization = i18n.init({
     escapeValue: false, // React escapes rendered text.
   },
 
-  // Empty translations must not erase labels or controls. Missing-key drift is
-  // a CI failure; in development it is also surfaced in the console.
+  // Never let an empty translation erase a visible label/control. CI catches
+  // missing keys before deployment; development also reports them explicitly.
   returnEmptyString: false,
   saveMissing: import.meta.env.DEV,
   missingKeyHandler: (lngs, ns, key) => {
