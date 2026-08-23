@@ -9,14 +9,37 @@ const __dirname = path.dirname(__filename);
 const configuredBase = (process.env.VITE_BASE_PATH || '/gylio/').trim();
 const base = configuredBase.endsWith('/') ? configuredBase : `${configuredBase}/`;
 
+/**
+ * Vite serves files from public/ at the origin root during development, while
+ * the built artifact is mounted beneath `base` by static hosts such as GitHub
+ * Pages. The product footer intentionally uses BASE_URL so its URL is correct
+ * after build. This tiny development-only bridge makes the same URL work in
+ * local/Playwright development without coupling the standalone guide to React.
+ */
+const deploymentGuidePublicBaseBridge = () => ({
+  name: 'deployment-guide-public-base-bridge',
+  configureServer(server) {
+    if (base === '/') return;
+    const basedGuidePath = `${base}deployment-guide.html`.replace(/\/{2,}/g, '/');
+    server.middlewares.use((req, _res, next) => {
+      if (!req.url) return next();
+      const [pathname, query] = req.url.split('?', 2);
+      if (pathname === basedGuidePath) {
+        req.url = `/deployment-guide.html${query ? `?${query}` : ''}`;
+      }
+      next();
+    });
+  },
+});
+
 // Vite configuration for GYLIO
 // - Enables React support
 // - Maps react-native imports to react-native-web
 // - Uses VITE_BASE_PATH so the same build can target GitHub Pages (/gylio/)
-//   or a root-hosted SPA such as Firebase Hosting (/)
+//   or a root-hosted production SPA (/)
 export default defineConfig({
   base,
-  plugins: [react()],
+  plugins: [react(), deploymentGuidePublicBaseBridge()],
   build: {
     manifest: true,
     rollupOptions: {
