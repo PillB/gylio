@@ -193,3 +193,272 @@ jobs:
           path: npm-audit-production.json
           if-no-files-found: error
           retention-days: 14
+
+  hardening-candidate:
+    name: Read-only production hardening candidate
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref == 'solarize/prod-readiness-v6'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      CI: true
+    steps:
+      - name: Checkout candidate head without credentials
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Apply candidate dependency and route-splitting migration
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          package_path = Path('package.json')
+          package = json.loads(package_path.read_text())
+          dependencies = package['dependencies']
+          dev_dependencies = package['devDependencies']
+
+          # Remove packages that are not part of the shipping implementation.
+          for name in ('expo-av', 'expo-router', 'mongodb'):
+              dependencies.pop(name, None)
+
+          # Align the native stack to Expo SDK 57 instead of mixing SDK 54,
+          # React Native 0.73 and React 18 generations.
+          dependencies.update({
+              'expo': '~57.0.15',
+              'expo-notifications': '~57.0.10',
+              'expo-speech': '~57.0.1',
+              'expo-sqlite': '~57.0.1',
+              '@react-native-async-storage/async-storage': '2.2.0',
+              'react': '19.2.3',
+              'react-dom': '19.2.3',
+              'react-native': '0.86.0',
+              'react-native-web': '0.21.0',
+              'mongoose': '^7.8.12',
+              'react-router-dom': '^6.30.6',
+          })
+
+          # SQLite is local/dev only; production requires MongoDB and no longer
+          # initializes the native addon while loading the API module graph.
+          dependencies.pop('sqlite3', None)
+          dev_dependencies['sqlite3'] = '^6.0.1'
+          package_path.write_text(json.dumps(package, indent=2) + '\n')
+
+          accessibility_path = Path('src/core/hooks/useAccessibility.tsx')
+          accessibility = accessibility_path.read_text()
+          old_av = """    try {\n      const av = await import('expo-av');\n      if (av?.Speech?.speak) {\n        speechModuleRef.current = av.Speech as SpeechModule;\n        return speechModuleRef.current;\n      }\n    } catch (error) {\n      // Fallback to expo-speech below.\n    }\n\n"""
+          if accessibility.count(old_av) != 1:
+              raise SystemExit('Expected exactly one legacy expo-av TTS probe')
+          accessibility_path.write_text(accessibility.replace(old_av, '', 1))
+
+          vite_path = Path('vite.config.ts')
+          vite = vite_path.read_text()
+          old_alias = """      {\n        find: 'expo-av',\n        replacement: path.resolve(__dirname, 'src/shims/expo-av.ts'),\n      },\n"""
+          if vite.count(old_alias) != 1:
+              raise SystemExit('Expected exactly one expo-av Vite alias')
+          vite = vite.replace(old_alias, '', 1)
+          vite = vite.replace("      'expo-av',\n", '', 1)
+          vite = vite.replace("      'expo-router',\n", '', 1)
+          vite_path.write_text(vite)
+
+          app_path = Path('src/App.jsx')
+          app = app_path.read_text()
+          eager_imports = [
+              "import TaskList from './features/tasks/components/TaskList';\n",
+              "import CalendarView from './components/CalendarView.jsx';\n",
+              "import BudgetView from './components/BudgetView.jsx';\n",
+              "import RewardsView from './components/RewardsView.jsx';\n",
+              "import SettingsView from './components/SettingsView.jsx';\n",
+              "import SocialPlansView from './features/social/components/SocialPlansView';\n",
+              "import RoutinesView from './features/routines/components/RoutinesView';\n",
+              "import SignInPage from './features/auth/SignInPage';\n",
+              "import SignUpPage from './features/auth/SignUpPage';\n",
+              "import PricingPage from './features/subscription/PricingPage';\n",
+          ]
+          for import_line in eager_imports:
+              if app.count(import_line) != 1:
+                  raise SystemExit(f'Expected one eager import: {import_line.strip()}')
+              app = app.replace(import_line, '', 1)
+
+          lazy_helpers = """
+// Route implementations are loaded on demand. Authentication/subscription
+// boundaries remain eager so authorization never depends on a feature bundle.
+const lazyDefaultRoute = (loader) => async () => {
+  const module = await loader();
+  return { Component: module.default };
+};
+
+const lazyTaskList = lazyDefaultRoute(() => import('./features/tasks/components/TaskList'));
+const lazyCalendarView = lazyDefaultRoute(() => import('./components/CalendarView.jsx'));
+const lazyBudgetView = lazyDefaultRoute(() => import('./components/BudgetView.jsx'));
+const lazyRewardsView = lazyDefaultRoute(() => import('./components/RewardsView.jsx'));
+const lazySettingsView = lazyDefaultRoute(() => import('./components/SettingsView.jsx'));
+const lazySocialPlansView = lazyDefaultRoute(() => import('./features/social/components/SocialPlansView'));
+const lazyRoutinesView = lazyDefaultRoute(() => import('./features/routines/components/RoutinesView'));
+const lazySignInPage = lazyDefaultRoute(() => import('./features/auth/SignInPage'));
+const lazySignUpPage = lazyDefaultRoute(() => import('./features/auth/SignUpPage'));
+const lazyPricingPage = lazyDefaultRoute(() => import('./features/subscription/PricingPage'));
+
+"""
+          marker = '// --- Header ---\n'
+          if app.count(marker) != 1:
+              raise SystemExit('App header marker missing')
+          app = app.replace(marker, lazy_helpers + marker, 1)
+
+          replacements = {
+              "children: [{ index: true, element: <SocialPlansView /> }],": "children: [{ index: true, lazy: lazySocialPlansView }],",
+              "children: [{ index: true, element: <RoutinesView /> }],": "children: [{ index: true, lazy: lazyRoutinesView }],",
+              "children: [{ index: true, element: <RewardsView /> }],": "children: [{ index: true, lazy: lazyRewardsView }],",
+              "{ path: 'sign-in/*', element: <SignInPage /> },": "{ path: 'sign-in/*', lazy: lazySignInPage },",
+              "{ path: 'sign-up/*', element: <SignUpPage /> },": "{ path: 'sign-up/*', lazy: lazySignUpPage },",
+              "{ path: 'pricing', element: <PricingPage /> },": "{ path: 'pricing', lazy: lazyPricingPage },",
+              "{ path: 'tasks', element: <TaskList /> },": "{ path: 'tasks', lazy: lazyTaskList },",
+              "{ path: 'calendar', element: <CalendarView /> },": "{ path: 'calendar', lazy: lazyCalendarView },",
+              "{ path: 'budget', element: <BudgetView /> },": "{ path: 'budget', lazy: lazyBudgetView },",
+              "{ path: 'settings', element: <SettingsView /> },": "{ path: 'settings', lazy: lazySettingsView },",
+          }
+          for old, new in replacements.items():
+              if app.count(old) != 1:
+                  raise SystemExit(f'Expected one route definition: {old}')
+              app = app.replace(old, new, 1)
+          app_path.write_text(app)
+          PY
+          git diff --check
+
+      - name: Generate candidate lockfile
+        id: lock
+        continue-on-error: true
+        run: |
+          npm install --package-lock-only --ignore-scripts
+          npm audit fix --package-lock-only --ignore-scripts || true
+          npm ci --ignore-scripts
+
+      - name: Expo dependency consistency
+        id: expo
+        if: steps.lock.outcome == 'success'
+        continue-on-error: true
+        run: npx --yes expo-doctor@latest
+
+      - name: Quality checks and production build
+        id: candidate_quality
+        if: steps.lock.outcome == 'success'
+        continue-on-error: true
+        run: |
+          npm run lint
+          npm run typecheck
+          npm run check:i18n
+          npm test
+          npm run build
+
+      - name: Production server runtime smoke
+        id: candidate_server
+        if: steps.lock.outcome == 'success'
+        continue-on-error: true
+        run: |
+          NODE_ENV=production MONGODB_URI='mongodb://unused.invalid/gylio' node - <<'NODE'
+          const runtime = require('./server/server.js');
+          if (!runtime.app || typeof runtime.initializePersistence !== 'function') {
+            throw new Error('Server runtime failed to load');
+          }
+          console.log('Production API module graph loads without SQLite native initialization.');
+          NODE
+          NODE_ENV=production node - <<'NODE'
+          const { initializePersistence } = require('./server/server.js');
+          initializePersistence()
+            .then(() => { throw new Error('Expected production MongoDB requirement'); })
+            .catch((error) => {
+              if (!String(error?.message || error).includes('MONGODB_URI is required in production')) throw error;
+              console.log('Production API refuses implicit SQLite fallback.');
+            });
+          NODE
+
+      - name: Capture production dependency audit
+        id: candidate_audit
+        if: steps.lock.outcome == 'success'
+        continue-on-error: true
+        run: npm audit --omit=dev --json > candidate-audit.json || true
+
+      - name: Install Chromium
+        id: candidate_chromium
+        if: steps.lock.outcome == 'success' && steps.candidate_quality.outcome == 'success'
+        continue-on-error: true
+        run: npx playwright install --with-deps chromium
+
+      - name: Browser and layout regression suite
+        id: candidate_browser
+        if: steps.candidate_chromium.outcome == 'success'
+        continue-on-error: true
+        run: npx playwright test
+
+      - name: Capture candidate diff and build inventory
+        if: always()
+        run: |
+          git diff > candidate.diff
+          if [ -d dist/assets ]; then
+            find dist/assets -maxdepth 1 -type f -printf '%f %s bytes\n' | sort -k2 -n > candidate-build-assets.txt
+          else
+            : > candidate-build-assets.txt
+          fi
+          if [ ! -f candidate-audit.json ]; then
+            printf '{"error":"audit did not run"}\n' > candidate-audit.json
+          fi
+
+      - name: Upload candidate evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: prod-hardening-candidate
+          path: |
+            package.json
+            package-lock.json
+            src/App.jsx
+            src/core/hooks/useAccessibility.tsx
+            vite.config.ts
+            candidate.diff
+            candidate-audit.json
+            candidate-build-assets.txt
+            playwright-report/
+            test-results/
+          if-no-files-found: warn
+          retention-days: 3
+
+      - name: Candidate acceptance gate
+        if: always()
+        env:
+          LOCK: ${{ steps.lock.outcome }}
+          EXPO: ${{ steps.expo.outcome }}
+          QUALITY: ${{ steps.candidate_quality.outcome }}
+          SERVER: ${{ steps.candidate_server.outcome }}
+          BROWSER: ${{ steps.candidate_browser.outcome }}
+        run: |
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const expected = {
+            lock: process.env.LOCK,
+            expo: process.env.EXPO,
+            quality: process.env.QUALITY,
+            server: process.env.SERVER,
+            browser: process.env.BROWSER,
+          };
+          console.log('Candidate step outcomes:', expected);
+          for (const [name, result] of Object.entries(expected)) {
+            if (result !== 'success') throw new Error(`${name} candidate gate was ${result}`);
+          }
+          const audit = JSON.parse(fs.readFileSync('candidate-audit.json', 'utf8'));
+          const vulnerabilities = audit.metadata?.vulnerabilities ?? {};
+          console.log('Candidate production vulnerabilities:', vulnerabilities);
+          if ((vulnerabilities.critical ?? 0) > 0 || (vulnerabilities.high ?? 0) > 0) {
+            throw new Error('Candidate still contains high/critical production advisories');
+          }
+          NODE
