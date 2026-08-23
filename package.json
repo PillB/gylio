@@ -8,7 +8,6 @@
     "build": "vite build",
     "preview": "vite preview",
     "start": "npm --prefix server start",
-    "expo": "expo start",
     "lint": "eslint src/features --ext .ts,.tsx",
     "test": "vitest run",
     "typecheck": "tsc --noEmit --project tsconfig.tasks.json",
