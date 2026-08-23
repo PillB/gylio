@@ -1,0 +1,11 @@
+{
+  "plannedDateHelper": "Elige una fecha cuando te ayude a concretar la siguiente acción. Siempre puedes reprogramarla.",
+  "subtasksHelper": "Divide la tarea en pasos pequeños y concretos. Empieza con la acción útil más fácil.",
+  "focusHelper": "Usa un intervalo de enfoque que se adapte a la tarea. Puedes pausar, acortar o reiniciar sin perder el progreso.",
+  "intentionHelper": "Un plan específico de tipo si–entonces sobre cuándo y dónde actuar puede mejorar el cumplimiento de metas en promedio; el resultado varía según la persona y la tarea.",
+  "focusModeLabel": "Modo enfoque:",
+  "focusModeSummary": "Mostrando tus {{count}} tareas principales para reducir la carga visual.",
+  "focusModeShowLess": "Mostrar menos",
+  "focusModeShowAll": "Mostrar las {{count}} tareas",
+  "allTodayDone": "Completaste las {{count}} tareas de hoy"
+}
