@@ -1,22 +1,19 @@
 name: Production Hardening Candidate
 
 on:
-  pull_request:
-    branches: [main]
-    types: [opened, synchronize, reopened]
+  push:
+    branches: [solarize/prod-readiness-v6]
 
 permissions:
   contents: read
 
 concurrency:
-  group: prod-hardening-candidate-${{ github.event.pull_request.number }}
+  group: prod-hardening-candidate-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   candidate:
-    if: >-
-      github.event.pull_request.head.repo.full_name == github.repository &&
-      github.event.pull_request.head.ref == 'solarize/prod-readiness-v6'
+    if: github.ref_name == 'solarize/prod-readiness-v6'
     runs-on: ubuntu-latest
     timeout-minutes: 35
     env:
@@ -25,7 +22,6 @@ jobs:
       - name: Checkout candidate head
         uses: actions/checkout@v5
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
 
       - name: Setup Node
