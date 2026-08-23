@@ -69,30 +69,53 @@ app.use(
 );
 app.use(express.json({ limit: '256kb' }));
 
-const mongoUri = process.env.MONGODB_URI || '';
-if (mongoUri) {
-  mongoose
-    .connect(mongoUri)
-    .then(() => console.log('Connected to MongoDB'))
-    .catch((err) => console.error('MongoDB connection error:', err));
-} else {
-  console.log('MongoDB URI not provided; API will use SQLite');
-}
+const mongoUri = (process.env.MONGODB_URI || '').trim();
+const persistenceMode = mongoUri ? 'mongodb' : 'sqlite';
+let persistenceReady = false;
 
-ensureSqliteSchema(sqlite)
-  .then(() => console.log('SQLite schema is ready'))
-  .catch((err) => console.error('SQLite schema init error:', err));
+/**
+ * Initialize exactly one server-side persistence backend before accepting
+ * traffic. The previous implementation initialized SQLite unconditionally and
+ * repository methods could silently fall back to it while MongoDB was still
+ * connecting or temporarily unavailable. That creates a split-brain data risk.
+ *
+ * Production therefore requires MongoDB. SQLite remains a deliberate local/dev
+ * backend where a single-process file database is useful and predictable.
+ */
+async function initializePersistence() {
+  if (mongoUri) {
+    await mongoose.connect(mongoUri, {
+      serverSelectionTimeoutMS: 10_000,
+    });
+    persistenceReady = true;
+    console.log('Connected to MongoDB');
+    return;
+  }
+
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('MONGODB_URI is required in production; refusing implicit SQLite fallback');
+  }
+
+  await ensureSqliteSchema(sqlite);
+  persistenceReady = true;
+  console.log('SQLite schema is ready (development/local mode)');
+}
 
 app.get('/api', (_req, res) => {
   res.json({ message: 'GYLIO API is running' });
 });
 
 app.get('/api/health', (_req, res) => {
-  res.json({
-    status: 'ok',
+  const databaseReady = persistenceReady && (
+    persistenceMode === 'sqlite' || mongoose.connection.readyState === 1
+  );
+
+  res.status(databaseReady ? 200 : 503).json({
+    status: databaseReady ? 'ok' : 'degraded',
     authConfigured: Boolean(process.env.CLERK_ISSUER),
     aiConfigured: missingAiEnvVars.length === 0,
-    database: mongoUri ? 'mongodb' : 'sqlite',
+    database: persistenceMode,
+    databaseReady,
   });
 });
 
@@ -111,6 +134,17 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`Server listening on port ${PORT}`);
-});
+
+async function startServer() {
+  try {
+    await initializePersistence();
+    app.listen(PORT, () => {
+      console.log(`Server listening on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error('Server startup failed before accepting traffic:', error);
+    process.exitCode = 1;
+  }
+}
+
+startServer();
