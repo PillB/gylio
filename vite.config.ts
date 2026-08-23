@@ -28,7 +28,15 @@ export default defineConfig({
         entryFileNames: (chunk) =>
           chunk.name === 'service-worker' ? 'service-worker.js' : 'assets/[name]-[hash].js',
         manualChunks: (id) => {
-          if (id.includes('node_modules/react-dom') || id.includes('node_modules/react/')) {
+          // react-i18next imports React. Keeping those modules in separate forced
+          // chunks created a vendor-react -> vendor-i18n -> vendor-react cycle.
+          // Group the React adapter with React and leave framework-agnostic
+          // i18next in its own cacheable chunk.
+          if (
+            id.includes('node_modules/react-dom') ||
+            id.includes('node_modules/react/') ||
+            id.includes('node_modules/react-i18next')
+          ) {
             return 'vendor-react';
           }
           if (id.includes('node_modules/react-native-web') || id.includes('node_modules/react-native-paper')) {
@@ -37,7 +45,7 @@ export default defineConfig({
           if (id.includes('node_modules/react-router-dom') || id.includes('node_modules/react-router/')) {
             return 'vendor-router';
           }
-          if (id.includes('node_modules/i18next') || id.includes('node_modules/react-i18next')) {
+          if (id.includes('node_modules/i18next')) {
             return 'vendor-i18n';
           }
         },
