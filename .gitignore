@@ -13,6 +13,13 @@ server/.env
 *.pem
 *.key
 
+# Local database artifacts — never commit user/test data
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
 # Playwright artifacts (may contain URLs, session data, screenshots)
 .playwright-mcp/
 test-results/
