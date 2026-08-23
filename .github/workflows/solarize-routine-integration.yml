@@ -1,0 +1,83 @@
+name: Solarize Routine Integration
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref == 'solarize/prod-readiness-v6'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Apply deterministic integration patch
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('src/features/routines/components/RoutinesView.tsx')
+          text = path.read_text()
+
+          import_marker = "import { StreakDots } from './StreakDots';"
+          if "import RoutineFlowDiagram from './RoutineFlowDiagram';" not in text:
+              assert text.count(import_marker) == 1
+              text = text.replace(
+                  import_marker,
+                  import_marker + "\nimport RoutineFlowDiagram from './RoutineFlowDiagram';",
+              )
+
+          flow_marker = "                    {/* 21-day streak dots */}"
+          flow_block = """                    <RoutineFlowDiagram
+                      routineTitle={routine.title}
+                      steps={routine.steps}
+                      anchorHabit={routine.anchorHabit}
+                      theme={theme}
+                    />
+
+"""
+          if '<RoutineFlowDiagram' not in text:
+              assert text.count(flow_marker) == 1
+              text = text.replace(flow_marker, flow_block + flow_marker)
+
+          # Remove unsupported efficacy/medical framing from visible fallback copy.
+          replacements = {
+              '      {/* Research-backed routine templates */}': '      {/* Optional routine templates */}',
+              "t('routines.tpl.showGallery', 'Browse research-backed protocols')": "t('routines.tpl.showGallery', 'Browse routine templates')",
+              "t('routines.tpl.hideGallery', 'Hide protocols')": "t('routines.tpl.hideGallery', 'Hide templates')",
+              "t('routines.anchorHelper', 'Anchoring to an existing habit makes this much more likely to stick.')": "t('routines.anchorHelper', 'Link this routine to an existing habit if that cue is useful to you.')",
+              "t('routines.emptyBody', 'A single consistent routine — even 10 minutes — is more valuable than any app, book, or plan. Start with one thing you want to do every day.')": "t('routines.emptyBody', 'Start with one small routine you want to make easier to repeat. You can adjust it at any time.')",
+              "t('routines.tpl.showGallery', '🔬 Browse research-backed protocols')": "t('routines.tpl.showGallery', 'Browse routine templates')",
+          }
+          for old, new in replacements.items():
+              text = text.replace(old, new)
+
+          path.write_text(text)
+          PY
+
+          git diff --check
+          grep -q "RoutineFlowDiagram" src/features/routines/components/RoutinesView.tsx
+
+      - name: Commit integration when needed
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo "Integration already present."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/features/routines/components/RoutinesView.tsx
+          git commit -m "feat: integrate accessible routine flow visualization"
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
