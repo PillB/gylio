@@ -29,8 +29,13 @@ jobs:
           node-version: 22
           cache: npm
 
-      - name: Install dependencies from lockfile
-        run: npm ci
+      # The lockfile repair verifier proves this exact clean-install mode from a
+      # fresh checkout. Lifecycle scripts are not required for the Vite/unit/
+      # Playwright gates below, and suppressing them also reduces supply-chain
+      # exposure in CI. Native-runtime smoke tests belong in a dedicated server
+      # job where their install scripts can be intentionally enabled.
+      - name: Install dependencies from verified lockfile
+        run: npm ci --ignore-scripts
 
       - name: Lint feature code
         run: npm run lint
