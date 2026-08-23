@@ -130,7 +130,7 @@ npm run build
 npx playwright test
 ```
 
-The CI workflow in `.github/workflows/ci.yml` runs those gates and uploads Playwright artifacts when browser tests fail.
+The CI workflow in `.github/workflows/ci.yml` runs those gates and retains Playwright audit artifacts for inspection.
 
 Current limitation: the repository's lint and TypeScript scripts still cover narrower areas than the whole application. Expanding those scopes is a P1 production-readiness task documented in `docs/production-readiness-solarize-v6.md`.
 
@@ -194,7 +194,6 @@ server/
 e2e/                      Playwright audits
 docs/                     design, research and production-readiness documentation
 .github/workflows/         CI and Pages deployment
-a
 ```
 
 > Note: large legacy views still coexist with newer feature modules. Continue refactoring by extracting state/controller hooks and focused presentational components rather than growing monolithic view files.
@@ -219,7 +218,7 @@ Likewise, behavioral features should be described in terms of user experience an
 ## Documentation
 
 - `docs/design-document.md` — earlier product/design architecture; being reconciled with the implemented system.
-- `docs/research-manual.md` — behavioral/accessibility rationale; claims should remain citation-backed and appropriately qualified.
+- `docs/research-manual.md` — behavioral/accessibility rationale with evidence labels and source links.
 - `docs/production-readiness-solarize-v6.md` — current Solarize audit, production architecture, visual strategy and release gates.
 
 ## Security notes
