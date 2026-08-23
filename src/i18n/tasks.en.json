@@ -1,0 +1,11 @@
+{
+  "plannedDateHelper": "Choose a date when it helps make the next action concrete. You can always reschedule.",
+  "subtasksHelper": "Break the task into small, concrete steps. Start with the easiest useful action.",
+  "focusHelper": "Use a focus interval that fits the task. You can pause, shorten, or restart without losing progress.",
+  "intentionHelper": "A specific if–then plan for when and where you will act can improve goal follow-through on average; results vary by person and task.",
+  "focusModeLabel": "Focus mode:",
+  "focusModeSummary": "Showing your top {{count}} tasks to reduce visual load.",
+  "focusModeShowLess": "Show less",
+  "focusModeShowAll": "Show all {{count}}",
+  "allTodayDone": "All {{count}} tasks done today"
+}
