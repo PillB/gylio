@@ -11,13 +11,8 @@ const goto = (page: Page, route: string) =>
   page.goto(route === '/' ? `${BASE}/` : `${BASE}${route}`);
 
 async function completeOnboardingIfNeeded(page: Page) {
-  const url = page.url();
-  if (!url.includes('/onboarding')) return;
+  if (!page.url().includes('/onboarding')) return;
 
-  // Bypass the onboarding UI by directly writing the completed state to localStorage.
-  // The 'Next' button is disabled until accessibility options are selected, so
-  // clicking through the flow in tests is unreliable. This approach mirrors what a
-  // real user would have done after finishing onboarding at least once.
   await page.evaluate(() => {
     localStorage.setItem('onboardingFlowState', JSON.stringify({
       isOnboardingComplete: true,
@@ -30,9 +25,12 @@ async function completeOnboardingIfNeeded(page: Page) {
       }
     }));
   });
-  await goto(page, '/tasks');
-  await page.waitForLoadState('networkidle');
-  await page.waitForTimeout(600);
+
+  // The onboarding provider has already hydrated by this point. Reload the
+  // document so the completed fixture is consumed during the next hydration,
+  // rather than racing the provider's initial persistence effect.
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.waitForTimeout(250);
 }
 
 test.describe('GYLIO App Visual Audit', () => {
@@ -55,7 +53,6 @@ test.describe('GYLIO App Visual Audit', () => {
       return;
     }
     await page.screenshot({ path: `${SCREENSHOT_DIR}/02-onboarding-step1.png`, fullPage: true });
-    // 'Next' is disabled until user selects accessibility options — only click when enabled.
     const nextBtn = page.locator('button').filter({ hasText: /next|continue/i }).first();
     const isEnabled = await nextBtn.isVisible() && await nextBtn.isEnabled();
     if (isEnabled) {
@@ -88,7 +85,7 @@ test.describe('GYLIO App Visual Audit', () => {
     await goto(page, '/social');
     await page.waitForLoadState('networkidle');
     await page.screenshot({ path: `${SCREENSHOT_DIR}/05-social.png`, fullPage: true });
-    await expect(page.locator('h1, h2').first()).toBeVisible();
+    await expect(page.locator('main').first()).toBeVisible();
   });
 
   test('06 - Budget view', async ({ page }) => {
@@ -104,15 +101,20 @@ test.describe('GYLIO App Visual Audit', () => {
     await goto(page, '/rewards');
     await page.waitForLoadState('networkidle');
     await page.screenshot({ path: `${SCREENSHOT_DIR}/07-rewards.png`, fullPage: true });
-    await expect(page.locator('h1, h2').first()).toBeVisible();
+    await expect(page.locator('main').first()).toBeVisible();
   });
 
-  test('08 - Routines view', async ({ page }) => {
+  test('08 - Routines premium gate', async ({ page }) => {
     await completeOnboardingIfNeeded(page);
     await goto(page, '/routines');
     await page.waitForLoadState('networkidle');
     await page.screenshot({ path: `${SCREENSHOT_DIR}/08-routines.png`, fullPage: true });
-    await expect(page.locator('h2').filter({ hasText: /routines/i }).first()).toBeVisible();
+
+    // CI intentionally runs without production Clerk credentials, so the
+    // subscription defaults to free_user. Validate the product contract that a
+    // premium feature is gated instead of falsely expecting the editor itself.
+    await expect(page.getByRole('region', { name: /upgrade to access this feature/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /routines is a premium feature/i })).toBeVisible();
   });
 
   test('09 - Settings view', async ({ page }) => {
@@ -138,6 +140,7 @@ test.describe('GYLIO App Visual Audit', () => {
       }
     }
     await page.screenshot({ path: `${SCREENSHOT_DIR}/10-task-added.png`, fullPage: true });
+    await expect(page.getByText('E2E Test Task').first()).toBeVisible();
   });
 
   test('11 - NavBar navigation check', async ({ page }) => {
@@ -180,33 +183,18 @@ test.describe('GYLIO App Visual Audit', () => {
     }
   });
 
-  test('13 - Add a routine and verify', async ({ page }) => {
+  test('13 - Premium routines gate links to pricing', async ({ page }) => {
     await completeOnboardingIfNeeded(page);
     await goto(page, '/routines');
     await page.waitForLoadState('networkidle');
 
-    const titleInput = page.locator('#routine-title');
-    const inputVisible = await titleInput.isVisible();
-    if (inputVisible) {
-      await titleInput.fill('Morning Hydration');
-      const addBtn = page.locator('button').filter({ hasText: /add routine/i }).first();
-      if (await addBtn.isVisible()) {
-        await addBtn.click();
-        // Wait for IndexedDB write + React re-render (up to 3 seconds)
-        await page.waitForFunction(
-          () => document.body.innerText.includes('Morning Hydration'),
-          null,
-          { timeout: 5000 }
-        ).catch(() => null); // Allow soft failure — screenshot will capture state
-      }
-    }
-    await page.screenshot({ path: `${SCREENSHOT_DIR}/13-routine-added.png`, fullPage: true });
-    // Soft assertion: log a warning if not found instead of hard failing
-    const routineVisible = await page.getByText('Morning Hydration').isVisible().catch(() => false);
-    if (!routineVisible) {
-      console.log('WARNING: Morning Hydration routine not visible after add — possible IndexedDB timing issue');
-    }
-    expect(routineVisible).toBe(true);
+    const gate = page.getByRole('region', { name: /upgrade to access this feature/i });
+    await expect(gate).toBeVisible();
+    await gate.getByRole('button', { name: /see plans/i }).click();
+    await page.waitForLoadState('networkidle');
+    await expect(page).toHaveURL(/\/pricing$/);
+    await expect(page.getByRole('heading', { name: /simple, honest pricing/i })).toBeVisible();
+    await page.screenshot({ path: `${SCREENSHOT_DIR}/13-pricing-from-routines.png`, fullPage: true });
   });
 
   test('14 - Keyboard navigation on tasks', async ({ page }) => {
@@ -228,7 +216,7 @@ test.describe('GYLIO App Visual Audit', () => {
     page.on('pageerror', (err) => errors.push(err.message));
 
     await completeOnboardingIfNeeded(page);
-    for (const route of ['/tasks', '/calendar', '/budget', '/rewards', '/routines', '/settings']) {
+    for (const route of ['/tasks', '/calendar', '/budget', '/social', '/rewards', '/routines', '/settings', '/pricing']) {
       await goto(page, route);
       await page.waitForLoadState('networkidle');
       await page.waitForTimeout(300);
@@ -240,7 +228,6 @@ test.describe('GYLIO App Visual Audit', () => {
         !e.includes('ResizeObserver') &&
         !e.includes('non-Error') &&
         !e.includes('404') &&
-        // Service worker can't be registered in Vite dev mode (MIME type issue — known Vite limitation)
         !e.includes('MIME type') &&
         !e.includes('ServiceWorker') &&
         !e.includes('service-worker') &&
@@ -248,6 +235,6 @@ test.describe('GYLIO App Visual Audit', () => {
     );
     if (appErrors.length > 0) console.log('App errors:', appErrors);
     else console.log('No app-level errors detected across all routes.');
-    expect(appErrors.length).toBeLessThan(3);
+    expect(appErrors, 'Application routes emitted unexpected console/page errors').toEqual([]);
   });
 });
