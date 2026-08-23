@@ -6,25 +6,28 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SOURCE_LOCALE = 'en';
 const SHIPPING_LOCALES = ['es-PE'];
+const FEATURE_CATALOGS = ['tasks', 'pricing'];
 const I18N_DIR = path.join(ROOT, 'src', 'i18n');
 
 const readJson = (filename) =>
   JSON.parse(fs.readFileSync(path.join(I18N_DIR, filename), 'utf8'));
 
 const readCatalog = (locale) => {
-  const base = readJson(`${locale}.json`);
-  const taskOverridePath = path.join(I18N_DIR, `tasks.${locale}.json`);
-  const taskOverrides = fs.existsSync(taskOverridePath)
-    ? JSON.parse(fs.readFileSync(taskOverridePath, 'utf8'))
-    : {};
+  const catalog = readJson(`${locale}.json`);
 
-  return {
-    ...base,
-    tasks: {
-      ...(base.tasks ?? {}),
-      ...taskOverrides,
-    },
-  };
+  for (const feature of FEATURE_CATALOGS) {
+    const overridePath = path.join(I18N_DIR, `${feature}.${locale}.json`);
+    const overrides = fs.existsSync(overridePath)
+      ? JSON.parse(fs.readFileSync(overridePath, 'utf8'))
+      : {};
+
+    catalog[feature] = {
+      ...(catalog[feature] ?? {}),
+      ...overrides,
+    };
+  }
+
+  return catalog;
 };
 
 const flatten = (value, prefix = '', output = new Map()) => {
