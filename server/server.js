@@ -138,13 +138,24 @@ const PORT = process.env.PORT || 3001;
 async function startServer() {
   try {
     await initializePersistence();
-    app.listen(PORT, () => {
+    return app.listen(PORT, () => {
       console.log(`Server listening on port ${PORT}`);
     });
   } catch (error) {
     console.error('Server startup failed before accepting traffic:', error);
     process.exitCode = 1;
+    return null;
   }
 }
 
-startServer();
+// Importing the server in tests/health tooling should validate the complete
+// runtime module graph without opening sockets or connecting to persistence.
+if (require.main === module) {
+  startServer();
+}
+
+module.exports = {
+  app,
+  initializePersistence,
+  startServer,
+};
