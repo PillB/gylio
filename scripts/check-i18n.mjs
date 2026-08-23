@@ -8,9 +8,23 @@ const SOURCE_LOCALE = 'en';
 const SHIPPING_LOCALES = ['es-PE'];
 const I18N_DIR = path.join(ROOT, 'src', 'i18n');
 
+const readJson = (filename) =>
+  JSON.parse(fs.readFileSync(path.join(I18N_DIR, filename), 'utf8'));
+
 const readCatalog = (locale) => {
-  const filename = path.join(I18N_DIR, `${locale}.json`);
-  return JSON.parse(fs.readFileSync(filename, 'utf8'));
+  const base = readJson(`${locale}.json`);
+  const taskOverridePath = path.join(I18N_DIR, `tasks.${locale}.json`);
+  const taskOverrides = fs.existsSync(taskOverridePath)
+    ? JSON.parse(fs.readFileSync(taskOverridePath, 'utf8'))
+    : {};
+
+  return {
+    ...base,
+    tasks: {
+      ...(base.tasks ?? {}),
+      ...taskOverrides,
+    },
+  };
 };
 
 const flatten = (value, prefix = '', output = new Map()) => {
@@ -92,14 +106,12 @@ for (const locale of SHIPPING_LOCALES) {
   }
 
   if (extras.length) {
-    // Extra target keys are not a deployment failure: they may be translations
-    // prepared ahead of an English copy change. They remain visible for cleanup.
     console.warn(`\n[${locale}] Extra keys not present in ${SOURCE_LOCALE} (${extras.length}):`);
     extras.forEach((key) => console.warn(`  - ${key}`));
   }
 
   if (!missing.length && !mismatchedTypes.length && !emptyStrings.length && !placeholderMismatches.length) {
-    console.log(`[i18n] ${locale} passed source-key, type, non-empty and placeholder parity checks.`);
+    console.log(`[i18n] ${locale} passed effective source-key, type, non-empty and placeholder parity checks.`);
   }
 }
 
