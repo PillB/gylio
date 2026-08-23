@@ -1,9 +1,13 @@
 import { test, expect, type Page } from '@playwright/test';
 
-async function seedCompletedOnboarding(page: Page, locale: 'en' | 'es') {
+type AuditLocale = 'en' | 'es-PE';
+
+async function seedCompletedOnboarding(page: Page, locale: AuditLocale) {
   await page.goto('./');
   await page.evaluate((selectedLocale) => {
-    localStorage.setItem('i18nextLng', selectedLocale);
+    // Match src/i18n/i18n.js exactly so this test exercises the same explicit
+    // user-language path as production rather than a stale detector key.
+    localStorage.setItem('gylio_lang', selectedLocale);
     localStorage.setItem(
       'onboardingFlowState',
       JSON.stringify({
@@ -99,7 +103,7 @@ async function assertControlsStayInsideHorizontalViewport(page: Page) {
       });
   });
 
-  expect(clippedControls, `Visible controls escape the horizontal viewport`).toEqual([]);
+  expect(clippedControls, 'Visible controls escape the horizontal viewport').toEqual([]);
 }
 
 const routes = [
@@ -120,7 +124,7 @@ const viewports = [
   { name: 'desktop', width: 1440, height: 900 },
 ];
 
-const locales = ['en', 'es'] as const;
+const locales: AuditLocale[] = ['en', 'es-PE'];
 
 for (const locale of locales) {
   for (const viewport of viewports) {
