@@ -7,7 +7,8 @@ fs.mkdirSync(screenshotDir, { recursive: true });
 
 const openGuide = async (page) => {
   await page.goto('deployment-guide.html');
-  await expect(page.getByRole('heading', { name: /Production Deployment Academy/i }).first()).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: /From your laptop to a real production app/i })).toBeVisible();
+  await expect(page.locator('meta[name="gylio-guide-validated"]')).toHaveAttribute('content', '2026-08-23');
 };
 
 test.describe('GYLIO Production Deployment Academy', () => {
