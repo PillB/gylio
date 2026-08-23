@@ -6,8 +6,6 @@ import { useTheme } from '../../../core/context/ThemeContext';
 import type { Subtask } from '../../../core/hooks/useDB';
 import type { ThemeTokens } from '../../../core/themes';
 import useTasks from '../hooks/useTasks';
-import usePomodoroTimer from '../hooks/usePomodoroTimer';
-import PomodoroTimer from './PomodoroTimer';
 import TaskTimerInline from './TaskTimerInline';
 import { useTaskTimer } from '../../../core/context/TaskTimerContext';
 import useDB from '../../../core/hooks/useDB';
@@ -160,28 +158,26 @@ const TaskList: React.FC = () => {
     addTask,
     updateTaskDetails,
     removeTask,
-    startPomodoro,
     refreshTasks,
   } = useTasks();
   const { theme } = useTheme();
   const { success: showSuccess } = useToast();
   const { activeTimer, pendingLogEntry, clearPendingEntry, startTask: startTaskTimer, settings: timerSettings } = useTaskTimer();
   const { appendTaskTimeLog } = useDB();
-  const pomodoro = usePomodoroTimer();
   const taskTitleRef = React.useRef<HTMLInputElement>(null);
   // Grace-period delete: task is hidden from UI immediately; DB delete fires after 4.5s unless undone
   const pendingDeletes = React.useRef<Map<number, ReturnType<typeof setTimeout>>>(new Map());
 
-  // Save time log entries when a timer phase completes
+  // Save time log entries when a timer phase completes.
   useEffect(() => {
     if (!pendingLogEntry) return;
     const { taskId, ...entry } = pendingLogEntry;
     appendTaskTimeLog(taskId, entry)
       .then(() => { refreshTasks(); clearPendingEntry(); })
       .catch((err) => { console.error('Failed to save time log', err); clearPendingEntry(); });
-  }, [pendingLogEntry]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [appendTaskTimeLog, clearPendingEntry, pendingLogEntry, refreshTasks]);
   const [hiddenTaskIds, setHiddenTaskIds] = useState<Set<number>>(new Set());
-  const [selectedDuration, setSelectedDuration] = useState<number>(25);
+  const [selectedDuration] = useState<number>(25);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [plannedDate, setPlannedDate] = useState('');
   const [newTaskSubtasks, setNewTaskSubtasks] = useState<Subtask[]>(createEmptySubtasks());
@@ -217,7 +213,6 @@ const TaskList: React.FC = () => {
     setFormErrors(null);
     setTitleTouched(false);
   }, [t]);
-
   const { dateKey: todayKey } = useClock(i18n.language);
   const formatter = useMemo(() => new Intl.DateTimeFormat(i18n.language, { month: 'short', day: 'numeric' }), [i18n.language]);
 
@@ -238,7 +233,7 @@ const TaskList: React.FC = () => {
 
   const filteredTasks = useMemo(() => {
     // Exclude tasks in grace-period pending delete
-    const visibleTasks = hiddenTaskIds.size > 0 ? tasks.filter((t) => !hiddenTaskIds.has(t.id)) : tasks;
+    const visibleTasks = hiddenTaskIds.size > 0 ? tasks.filter((task) => !hiddenTaskIds.has(task.id)) : tasks;
     const todayDate = parsePlannedDate(todayKey);
     if (!todayDate) return visibleTasks;
     const startOfToday = new Date(todayDate);
@@ -255,7 +250,7 @@ const TaskList: React.FC = () => {
       } else if (viewFilter === 'week') {
         passesDateFilter = planned ? planned >= startOfToday && planned <= endOfWeek : false;
       } else if (viewFilter === 'upcoming') {
-        passesDateFilter = true; // upcoming shows all, sectioned below
+        passesDateFilter = true;
       } else {
         passesDateFilter = !planned || planned < startOfToday || planned > endOfWeek;
       }
@@ -264,7 +259,6 @@ const TaskList: React.FC = () => {
     });
   }, [tasks, hiddenTaskIds, todayKey, viewFilter, energyFilter]);
 
-  // Sectioned upcoming view
   const upcomingSections = useMemo(() => {
     if (viewFilter !== 'upcoming') return null;
     const todayDate = parsePlannedDate(todayKey);
@@ -306,24 +300,14 @@ const TaskList: React.FC = () => {
     return { overdue, today, tomorrow, thisWeek, later, unscheduled };
   }, [filteredTasks, todayKey, viewFilter]);
 
-  // Focus mode: in today view, show max 3 tasks by default
+  // Focus mode: in today view, show max 3 tasks by default.
   const FOCUS_MODE_LIMIT = 3;
   const isFocusMode = viewFilter === 'today' && filteredTasks.length > FOCUS_MODE_LIMIT;
   const visibleTasks = isFocusMode && !focusModeExpanded
     ? filteredTasks.slice(0, FOCUS_MODE_LIMIT)
     : filteredTasks;
-  const hiddenCount = filteredTasks.length - FOCUS_MODE_LIMIT;
 
   const chunks = useMemo(() => chunkTasks(visibleTasks), [visibleTasks]);
-
-  const handleStartFocus = useCallback(() => {
-    pomodoro.start(selectedDuration * 60);
-    startPomodoro({ durationMinutes: selectedDuration });
-  }, [pomodoro, selectedDuration, startPomodoro]);
-
-  const handlePomodoroComplete = useCallback(() => {
-    // XP is awarded via startPomodoro (notification) — nothing extra needed here
-  }, []);
 
   const formatFocusTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
@@ -341,15 +325,9 @@ const TaskList: React.FC = () => {
       const shouldValidateSubtasks = subtasksTouched || showSubtaskEditor || newTaskSubtasks.some((subtask) => subtask.label.trim());
       const subtaskError = getSubtaskError(newTaskSubtasks, shouldValidateSubtasks, t);
 
-      if (!trimmedTitle) {
-        errors.push(t('validation.titleRequired'));
-      }
-      if (selectedDuration <= 0) {
-        errors.push(t('validation.durationPositive'));
-      }
-      if (subtaskError) {
-        errors.push(subtaskError);
-      }
+      if (!trimmedTitle) errors.push(t('validation.titleRequired'));
+      if (selectedDuration <= 0) errors.push(t('validation.durationPositive'));
+      if (subtaskError) errors.push(subtaskError);
 
       setTitleTouched(true);
       setSubtasksTouched(true);
@@ -386,7 +364,7 @@ const TaskList: React.FC = () => {
         setNewTaskIntention('');
       }
     },
-    [addTask, newTaskEnergy, newTaskIntention, newTaskSubtasks, newTaskTitle, plannedDate, selectedDuration, showSubtaskEditor, subtasksTouched, t]
+    [addTask, newTaskEnergy, newTaskIntention, newTaskSubtasks, newTaskTitle, plannedDate, selectedDuration, showSubtaskEditor, subtasksTouched, t, tasks.length]
   );
 
   const startEditingTask = useCallback((taskId: number) => {
@@ -409,15 +387,10 @@ const TaskList: React.FC = () => {
     const shouldValidateSubtasks = editTouched.subtasks || editSubtasks.some((subtask) => subtask.label.trim());
     const subtaskError = getSubtaskError(editSubtasks, shouldValidateSubtasks, t);
 
-    if (!trimmedTitle) {
-      errors.push(t('validation.titleRequired'));
-    }
-    if (subtaskError) {
-      errors.push(subtaskError);
-    }
+    if (!trimmedTitle) errors.push(t('validation.titleRequired'));
+    if (subtaskError) errors.push(subtaskError);
 
     setEditTouched((prev) => ({ ...prev, title: true, subtasks: true }));
-
     if (errors.length) {
       setEditErrors(errors.join(' '));
       return;
@@ -443,9 +416,7 @@ const TaskList: React.FC = () => {
   }, []);
 
   const handleDeleteTask = useCallback((taskId: number, title: string) => {
-    // Hide immediately in UI
     setHiddenTaskIds((prev) => new Set([...prev, taskId]));
-    // Schedule actual DB delete after grace period
     const timerId = setTimeout(async () => {
       pendingDeletes.current.delete(taskId);
       await removeTask(taskId);
@@ -460,7 +431,6 @@ const TaskList: React.FC = () => {
         onClick: () => {
           const tid = pendingDeletes.current.get(taskId);
           if (tid != null) { clearTimeout(tid); pendingDeletes.current.delete(taskId); }
-          // Restore visibility
           setHiddenTaskIds((prev) => { const next = new Set(prev); next.delete(taskId); return next; });
         },
       },
@@ -468,20 +438,17 @@ const TaskList: React.FC = () => {
     );
   }, [removeTask, showSuccess, t]);
 
-  // Wrap toggleTaskStatus to detect "all today tasks done" milestone
   const handleToggleTask = useCallback(async (taskId: number) => {
     await toggleTaskStatus(taskId);
-    // Check after state settles via setTimeout to read updated tasks
     setTimeout(() => {
       const todayISO = getLocalDateKey();
-      const todayTasks = tasks.filter((t) => t.plannedDate === todayISO);
+      const todayTasks = tasks.filter((task) => task.plannedDate === todayISO);
       if (todayTasks.length > 0) {
-        const completingTask = tasks.find((t) => t.id === taskId);
-        // Only trigger if this task is being completed (not uncompleted)
+        const completingTask = tasks.find((task) => task.id === taskId);
         if (completingTask && completingTask.status !== 'completed') {
           const othersDone = todayTasks
-            .filter((t) => t.id !== taskId)
-            .every((t) => t.status === 'completed');
+            .filter((task) => task.id !== taskId)
+            .every((task) => task.status === 'completed');
           if (othersDone) {
             track(Events.ALL_TODAY_TASKS_DONE, { count: todayTasks.length });
             setShowWinCard(true);
@@ -491,22 +458,6 @@ const TaskList: React.FC = () => {
       track(Events.TASK_COMPLETED, { taskId });
     }, 100);
   }, [toggleTaskStatus, tasks]);
-
-  const focusButtonStyle: React.CSSProperties = useMemo(
-    () => ({
-      minHeight: '44px',
-      minWidth: '72px',
-      padding: '0.75rem 1rem',
-      borderRadius: theme.shape.radiusMd,
-      border: `1px solid ${theme.colors.border}`,
-      backgroundColor: theme.colors.surface,
-      cursor: 'pointer',
-      fontSize: '1rem',
-      color: theme.colors.text,
-      fontFamily: theme.typography.body.family,
-    }),
-    [theme]
-  );
 
   const newSubtaskError = getSubtaskError(
     newTaskSubtasks,
@@ -533,7 +484,6 @@ const TaskList: React.FC = () => {
       title={t('tasks.title')}
       subtitle={t('tasks.description') || ''}
     >
-      {/* Research-backed task templates */}
       <div style={{ marginBottom: `${theme.spacing.md}px` }}>
         <button
           type="button"
@@ -553,10 +503,10 @@ const TaskList: React.FC = () => {
             fontFamily: theme.typography.body.family,
           }}
         >
-          <span>⚡</span>
+          <span aria-hidden="true">⚡</span>
           {showTemplateGallery
             ? t('tasks.tpl.hideGallery', 'Hide quick-start tasks')
-            : t('tasks.tpl.showGallery', 'Quick-start from proven tasks')}
+            : t('tasks.tpl.showGallery', 'Browse quick-start tasks')}
         </button>
         {showTemplateGallery && (
           <div style={{ marginTop: `${theme.spacing.sm}px` }}>
@@ -621,7 +571,6 @@ const TaskList: React.FC = () => {
           }}
         />
         <p style={{ margin: 0, color: theme.colors.muted }}>{t('tasks.plannedDateHelper')}</p>
-        {/* Energy level selector */}
         <div data-tour="task-energy">
           <p style={{ margin: '0 0 0.5rem', fontWeight: 600, fontSize: '0.875rem' }}>
             {t('tasks.energyLabel', 'Energy required')}
@@ -643,7 +592,6 @@ const TaskList: React.FC = () => {
                   fontSize: '0.8125rem',
                   fontWeight: newTaskEnergy === level ? 700 : 400,
                   fontFamily: theme.typography.body.family,
-                  transition: 'all 0.15s',
                 }}
               >
                 {t(`tasks.energy${level.charAt(0).toUpperCase()}${level.slice(1)}`, level)}
@@ -660,7 +608,7 @@ const TaskList: React.FC = () => {
               id="new-task-intention"
               rows={2}
               value={newTaskIntention}
-              onChange={(e) => setNewTaskIntention(e.target.value)}
+              onChange={(event) => setNewTaskIntention(event.target.value)}
               placeholder={t('tasks.intentionPlaceholder', 'When I finish breakfast, I will...')}
               style={{
                 width: '100%',
@@ -676,7 +624,7 @@ const TaskList: React.FC = () => {
               }}
             />
             <p style={{ margin: '2px 0 0', color: theme.colors.muted, fontSize: '0.8rem' }}>
-              {t('tasks.intentionHelper', 'Adding when/where doubles follow-through.')}
+              {t('tasks.intentionHelper', 'A specific when/where cue can make the next action clearer.')}
             </p>
           </div>
         )}
@@ -735,13 +683,8 @@ const TaskList: React.FC = () => {
       {formErrors ? (
         <p style={{ color: theme.colors.accent, marginTop: 0 }}>{formErrors}</p>
       ) : null}
-      <div
-        style={{
-          display: 'grid',
-          gap: `${theme.spacing.lg}px`,
-        }}
-      >
-        <div role="tablist" aria-label={t('tasks.viewLabel')} style={{ display: 'flex', gap: '0.5rem' }}>
+      <div style={{ display: 'grid', gap: `${theme.spacing.lg}px` }}>
+        <div role="tablist" aria-label={t('tasks.viewLabel')} style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
           {viewOptions.map((option) => (
             <button
               key={option.id}
@@ -763,7 +706,6 @@ const TaskList: React.FC = () => {
             </button>
           ))}
         </div>
-        {/* Energy filter */}
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
           <span style={{ fontSize: '0.8125rem', color: theme.colors.muted, fontWeight: 600 }}>
             {t('tasks.filterByEnergy', 'Energy:')}
@@ -806,7 +748,6 @@ const TaskList: React.FC = () => {
             </button>
           ))}
         </div>
-        {/* Focus mode banner */}
         {isFocusMode && (
           <div
             style={{
@@ -824,12 +765,12 @@ const TaskList: React.FC = () => {
             }}
           >
             <span style={{ color: theme.colors.muted }}>
-              🎯 <strong style={{ color: theme.colors.text }}>Focus mode:</strong> showing your top {FOCUS_MODE_LIMIT} tasks.
-              Research shows fewer visible tasks = more completed.
+              🎯 <strong style={{ color: theme.colors.text }}>{t('tasks.focusModeLabel', 'Focus mode:')}</strong>{' '}
+              {t('tasks.focusModeSummary', 'Showing your top {{count}} tasks to reduce visual load.', { count: FOCUS_MODE_LIMIT })}
             </span>
             <button
               type="button"
-              onClick={() => setFocusModeExpanded((p) => !p)}
+              onClick={() => setFocusModeExpanded((prev) => !prev)}
               style={{
                 background: 'transparent',
                 border: `1px solid ${theme.colors.border}`,
@@ -842,7 +783,9 @@ const TaskList: React.FC = () => {
                 flexShrink: 0,
               }}
             >
-              {focusModeExpanded ? 'Show less' : `Show all ${filteredTasks.length}`}
+              {focusModeExpanded
+                ? t('tasks.focusModeShowLess', 'Show less')
+                : t('tasks.focusModeShowAll', 'Show all {{count}}', { count: filteredTasks.length })}
             </button>
           </div>
         )}
@@ -875,7 +818,6 @@ const TaskList: React.FC = () => {
               />
             )
           ) : viewFilter === 'upcoming' && upcomingSections ? (
-            // Upcoming view: sections grouped by time horizon
             (() => {
               const sections = [
                 { key: 'overdue', label: t('tasks.sectionOverdue'), tasks: upcomingSections.overdue, accent: theme.colors.accent },
@@ -884,7 +826,7 @@ const TaskList: React.FC = () => {
                 { key: 'thisWeek', label: t('tasks.sectionThisWeek'), tasks: upcomingSections.thisWeek, accent: theme.colors.text },
                 { key: 'later', label: t('tasks.sectionLater'), tasks: upcomingSections.later, accent: theme.colors.muted },
                 { key: 'unscheduled', label: t('tasks.sectionUnscheduled'), tasks: upcomingSections.unscheduled, accent: theme.colors.muted },
-              ].filter((s) => s.tasks.length > 0);
+              ].filter((section) => section.tasks.length > 0);
 
               if (sections.length === 0) {
                 return (
@@ -893,10 +835,7 @@ const TaskList: React.FC = () => {
                     headline={t('tasks.upcomingEmpty', 'All clear!')}
                     body={t('tasks.upcomingEmptyBody', 'No tasks scheduled. Add one to see your week at a glance.')}
                     ctaLabel={t('tasks.emptyCta', '+ Add your first task')}
-                    onCta={() => {
-                      const titleInput = document.getElementById('new-task') as HTMLInputElement | null;
-                      titleInput?.focus();
-                    }}
+                    onCta={() => taskTitleRef.current?.focus()}
                   />
                 );
               }
@@ -926,92 +865,93 @@ const TaskList: React.FC = () => {
                           const planned = parsePlannedDate(task.plannedDate ?? null);
                           return (
                             <React.Fragment key={task.id}>
-                            <div
-                              role="listitem"
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: theme.spacing.sm,
-                                padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
-                                borderRadius: theme.shape.radiusMd,
-                                border: `1px solid ${theme.colors.border}`,
-                                backgroundColor: theme.colors.surface,
-                                opacity: isCompleted ? 0.6 : 1,
-                              }}
-                            >
-                              <input
-                                type="checkbox"
-                                id={`upcoming-${task.id}`}
-                                checked={isCompleted}
-                                onChange={() => handleToggleTask(task.id)}
-                                aria-label={isCompleted ? t('tasks.uncomplete', { title: task.title }) : t('tasks.complete', { title: task.title })}
-                                style={{ width: 18, height: 18, flexShrink: 0, cursor: 'pointer', accentColor: theme.colors.primary }}
-                              />
-                              <span style={{
-                                flex: 1,
-                                fontFamily: theme.typography.body.family,
-                                textDecoration: isCompleted ? 'line-through' : 'none',
-                                color: isCompleted ? theme.colors.muted : theme.colors.text,
-                                fontSize: '0.9375rem',
-                              }}>
-                                {task.title}
-                              </span>
-                              {planned && (
-                                <span style={{
-                                  fontSize: '0.75rem',
-                                  color: section.key === 'overdue' ? theme.colors.accent : theme.colors.muted,
-                                  whiteSpace: 'nowrap',
-                                  fontWeight: section.key === 'overdue' ? 600 : 400,
-                                }}>
-                                  {formatter.format(planned)}
-                                </span>
-                              )}
-                              <span style={{
-                                width: 8,
-                                height: 8,
-                                borderRadius: '50%',
-                                backgroundColor: ENERGY_COLORS[task.energyRequired as EnergyLevel ?? 'medium'] ?? ENERGY_COLORS.medium,
-                                flexShrink: 0,
-                              }} />
-                              <button
-                                type="button"
-                                onClick={() => startEditingTask(task.id)}
+                              <div
+                                role="listitem"
                                 style={{
-                                  padding: '2px 8px',
-                                  borderRadius: theme.shape.radiusSm,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: theme.spacing.sm,
+                                  padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
+                                  borderRadius: theme.shape.radiusMd,
                                   border: `1px solid ${theme.colors.border}`,
-                                  backgroundColor: 'transparent',
-                                  color: theme.colors.muted,
-                                  fontSize: '0.75rem',
-                                  cursor: 'pointer',
-                                  fontFamily: theme.typography.body.family,
+                                  backgroundColor: theme.colors.surface,
+                                  opacity: isCompleted ? 0.6 : 1,
+                                  flexWrap: 'wrap',
                                 }}
                               >
-                                {t('editLabel')}
-                              </button>
-                              {activeTimer?.taskId !== task.id && (
+                                <input
+                                  type="checkbox"
+                                  id={`upcoming-${task.id}`}
+                                  checked={isCompleted}
+                                  onChange={() => handleToggleTask(task.id)}
+                                  aria-label={isCompleted ? t('tasks.uncomplete', { title: task.title }) : t('tasks.complete', { title: task.title })}
+                                  style={{ width: 18, height: 18, flexShrink: 0, cursor: 'pointer', accentColor: theme.colors.primary }}
+                                />
+                                <span style={{
+                                  flex: '1 1 180px',
+                                  minWidth: 0,
+                                  overflowWrap: 'anywhere',
+                                  fontFamily: theme.typography.body.family,
+                                  textDecoration: isCompleted ? 'line-through' : 'none',
+                                  color: isCompleted ? theme.colors.muted : theme.colors.text,
+                                  fontSize: '0.9375rem',
+                                }}>
+                                  {task.title}
+                                </span>
+                                {planned && (
+                                  <span style={{
+                                    fontSize: '0.75rem',
+                                    color: section.key === 'overdue' ? theme.colors.accent : theme.colors.muted,
+                                    whiteSpace: 'nowrap',
+                                    fontWeight: section.key === 'overdue' ? 600 : 400,
+                                  }}>
+                                    {formatter.format(planned)}
+                                  </span>
+                                )}
+                                <span aria-hidden="true" style={{
+                                  width: 8,
+                                  height: 8,
+                                  borderRadius: '50%',
+                                  backgroundColor: ENERGY_COLORS[(task.energyRequired as EnergyLevel) ?? 'medium'] ?? ENERGY_COLORS.medium,
+                                  flexShrink: 0,
+                                }} />
                                 <button
                                   type="button"
-                                  onClick={() => startTaskTimer(task.id)}
-                                  aria-label={t('tasks.startTimerAria', { title: task.title, minutes: timerSettings.focusMinutes })}
+                                  onClick={() => startEditingTask(task.id)}
                                   style={{
-                                    padding: '2px 6px',
+                                    padding: '2px 8px',
                                     borderRadius: theme.shape.radiusSm,
                                     border: `1px solid ${theme.colors.border}`,
                                     backgroundColor: 'transparent',
                                     color: theme.colors.muted,
-                                    fontSize: '0.72rem',
+                                    fontSize: '0.75rem',
                                     cursor: 'pointer',
                                     fontFamily: theme.typography.body.family,
                                   }}
                                 >
-                                  🍅
+                                  {t('editLabel')}
                                 </button>
-                              )}
-                            </div>
-                            {activeTimer?.taskId === task.id && (
-                              <TaskTimerInline taskId={task.id} />
-                            )}
+                                {activeTimer?.taskId !== task.id && (
+                                  <button
+                                    type="button"
+                                    onClick={() => startTaskTimer(task.id)}
+                                    aria-label={t('tasks.startTimerAria', { title: task.title, minutes: timerSettings.focusMinutes })}
+                                    style={{
+                                      padding: '2px 6px',
+                                      borderRadius: theme.shape.radiusSm,
+                                      border: `1px solid ${theme.colors.border}`,
+                                      backgroundColor: 'transparent',
+                                      color: theme.colors.muted,
+                                      fontSize: '0.72rem',
+                                      cursor: 'pointer',
+                                      fontFamily: theme.typography.body.family,
+                                    }}
+                                  >
+                                    🍅
+                                  </button>
+                                )}
+                              </div>
+                              {activeTimer?.taskId === task.id && <TaskTimerInline taskId={task.id} />}
                             </React.Fragment>
                           );
                         })}
@@ -1185,7 +1125,6 @@ const TaskList: React.FC = () => {
                               uncheckedAnnouncement={t('tasks.uncomplete', { title: task.title })}
                               onChange={() => handleToggleTask(task.id)}
                             />
-                            {/* Energy pill */}
                             <span
                               style={{
                                 display: 'inline-block',
@@ -1238,7 +1177,6 @@ const TaskList: React.FC = () => {
                                 {t('deleteLabel')}
                               </button>
                             </div>
-                            {/* Task timer button or inline timer */}
                             {activeTimer?.taskId === task.id ? (
                               <TaskTimerInline taskId={task.id} />
                             ) : (
@@ -1264,8 +1202,8 @@ const TaskList: React.FC = () => {
                                   🍅 {t('tasks.startTimerBtn', { minutes: timerSettings.focusMinutes })}
                                 </button>
                                 {task.timeLog && task.timeLog.length > 0 && (() => {
-                                  const totalFocusSecs = task.timeLog.filter(e => e.type === 'focus').reduce((sum, e) => sum + e.actualSeconds, 0);
-                                  const sessions = task.timeLog.filter(e => e.type === 'focus' && e.completed).length;
+                                  const totalFocusSecs = task.timeLog.filter((entry) => entry.type === 'focus').reduce((sum, entry) => sum + entry.actualSeconds, 0);
+                                  const sessions = task.timeLog.filter((entry) => entry.type === 'focus' && entry.completed).length;
                                   if (totalFocusSecs < 30) return null;
                                   return (
                                     <span style={{ fontSize: '0.72rem', color: theme.colors.muted }}>
@@ -1299,7 +1237,7 @@ const TaskList: React.FC = () => {
                                 }}
                               >
                                 {(() => {
-                                  const nextSubtaskIdx = task.subtasks.findIndex((s) => !s.done);
+                                  const nextSubtaskIdx = task.subtasks.findIndex((subtask) => !subtask.done);
                                   return task.subtasks.map((subtask, idx) => (
                                     <li key={`${task.id}-subtask-${idx.toString()}`}>
                                       {idx === nextSubtaskIdx && !subtask.done && (
@@ -1371,7 +1309,7 @@ const TaskList: React.FC = () => {
       {showWinCard && (
         <WinCard
           type="all_tasks_done"
-          label={`All ${filteredTasks.length} tasks done today`}
+          label={t('tasks.allTodayDone', 'All {{count}} tasks done today', { count: filteredTasks.length })}
           onClose={() => setShowWinCard(false)}
         />
       )}
