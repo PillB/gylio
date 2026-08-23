@@ -241,7 +241,7 @@ jobs:
 
       - name: Commit only the verified API lockfile
         run: |
-          if git diff --quiet -- server/package-lock.json; then
+          if [ -z "$(git status --porcelain -- server/package-lock.json)" ]; then
             echo "API lockfile is already synchronized."
             exit 0
           fi
