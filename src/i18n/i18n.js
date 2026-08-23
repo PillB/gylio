@@ -3,6 +3,8 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import { initReactI18next } from 'react-i18next';
 import en from './en.json';
 import esPE from './es-PE.json';
+import tasksEn from './tasks.en.json';
+import tasksEsPE from './tasks.es-PE.json';
 
 /**
  * Production localization configuration.
@@ -16,12 +18,31 @@ import esPE from './es-PE.json';
  * Spanish catalog. A generic browser locale of `es` intentionally resolves to
  * the same Peruvian-Spanish catalog until a separate neutral-Spanish catalog
  * is complete and reviewed.
+ *
+ * Feature-scoped catalogs are merged over the legacy monolith so new copy can
+ * evolve in small, reviewable files without rewriting very large JSON blobs.
  */
 
+const enCatalog = {
+  ...en,
+  tasks: {
+    ...en.tasks,
+    ...tasksEn,
+  },
+};
+
+const esPECatalog = {
+  ...esPE,
+  tasks: {
+    ...esPE.tasks,
+    ...tasksEsPE,
+  },
+};
+
 const resources = {
-  en:      { translation: en },
-  es:      { translation: esPE },
-  'es-PE': { translation: esPE },
+  en:      { translation: enCatalog },
+  es:      { translation: esPECatalog },
+  'es-PE': { translation: esPECatalog },
 };
 
 const supportedLngs = ['en', 'es', 'es-PE'];
