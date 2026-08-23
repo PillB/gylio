@@ -49,6 +49,13 @@ jobs:
       - name: Production build
         run: npm run build
 
+      - name: Server syntax check
+        run: |
+          node --check server/server.js
+          node --check server/repositories/entityRepository.js
+          node --check server/routes/billing.js
+          node --check server/routes/ai.js
+
       - name: Install Chromium for Playwright
         run: npx playwright install --with-deps chromium
 
