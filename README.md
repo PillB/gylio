@@ -1,124 +1,231 @@
-# GYLIO – Get Your Life In Order
+# GYLIO — Get Your Life In Order
 
-Welcome to GYLIO, a cross‑platform app designed to help neurodivergent users manage tasks, schedules and personal finances.  
-This repository contains an early skeleton of the app, including a React front end (bundled with Vite), an Expo configuration for running on web and mobile, an Express backend with MongoDB/SQLite fallback, and localisation via `react‑i18next` for English and Peruvian Spanish.
+GYLIO is an accessibility-first life-management app that connects tasks, calendar planning, focus sessions, routines, budgeting, social planning and user-controlled supports in one offline-friendly React application.
 
-## Overview
+The repository contains:
 
-GYLIO provides three key modules — **Tasks**, **Calendar** and **Budgeting** — and layers them with accessibility features drawn from research into ADHD, autism, dyslexia and dyspraxia.  
-Gamification (points and streaks) and positive nudges can be enabled or disabled by the user.  
-For more detailed design rationale and research, see the files in the `docs/` directory.
+- a Vite + React web app;
+- an Expo/React Native Web configuration;
+- IndexedDB/local-first persistence plus background sync;
+- an Express API with MongoDB support and a SQLite development fallback;
+- Clerk-based authentication for protected API calls;
+- internationalisation dictionaries under `src/i18n/`;
+- unit tests and Playwright browser audits.
 
-## Getting Started
+For the current production-readiness architecture and evidence review, see `docs/production-readiness-solarize-v6.md`.
 
-These instructions assume you have Node.js ≥14 installed.  The repository uses Vite for rapid web development and Expo to run the same code on iOS/Android via React Native Web.  For offline testing, SQLite is used as a fallback database when MongoDB is not available.
+## Product modules
 
-1. **Install dependencies**:
-   ```bash
-   npm install
-   ```
-2. **Start the development server (web)**:
-   ```bash
-   npm run dev
-   ```
-   This runs the Vite dev server on <http://localhost:5173>. The page will hot‑reload on changes.
+Current top-level product areas include:
 
-3. **Start the API server** (optional):
-   ```bash
-   npm run start
-   ```
-   The Express server listens on port 3001 and provides a simple JSON API.  It writes to a local SQLite database if `MONGODB_URI` is not set.
+- Tasks and micro-steps
+- Focus/Pomodoro support
+- Calendar planning
+- Budgeting, transactions and debt tools
+- Routines
+- Social plans
+- Rewards/progress controls
+- Settings, accessibility preferences and guided onboarding
+- Subscription/billing surfaces
 
+The product is designed to be usable without requiring a diagnosis or a specific accessibility profile. Gamification, visual styling and motion should remain user-controlled rather than mandatory.
 
-### Environment variables
+## Requirements
 
-Backend AI suggestions are server-only. Configure these environment variables before `npm run start`:
+Use Node.js 22 LTS for the most reproducible setup; CI runs on Node 22.
+
+## Install
 
 ```bash
-OPENAI_API_KEY=your_server_side_key
-# Optional override (defaults to gpt-4o-mini)
+npm ci
+```
+
+Use `npm install` only when intentionally changing dependencies and regenerating `package-lock.json`.
+
+## Run the web app
+
+```bash
+npm run dev
+```
+
+Vite runs locally at `http://localhost:5173` with the project base path `/gylio/` by default.
+
+## Run the API
+
+```bash
+npm run start
+```
+
+The Express API listens on port `3001` unless `PORT` is set. `/api` and `/api/health` remain available without authentication. Protected domain routes require Clerk configuration.
+
+### Server environment
+
+Create `server/.env` or provide environment variables through the deployment platform.
+
+```bash
+NODE_ENV=development
+PORT=3001
+
+# Clerk: canonical API identity provider
+CLERK_ISSUER=https://YOUR_INSTANCE.clerk.accounts.dev
+# Optional; otherwise derived from CLERK_ISSUER
+CLERK_JWKS_URL=https://YOUR_INSTANCE.clerk.accounts.dev/.well-known/jwks.json
+# Recommended in production: comma-separated frontend origins
+CLERK_AUTHORIZED_PARTIES=http://localhost:5173
+
+# Browser API origins allowed by Express CORS
+CORS_ORIGINS=http://localhost:5173
+
+# Production persistence; when omitted, the API uses local SQLite
+MONGODB_URI=
+
+# Optional AI feature
+OPENAI_API_KEY=
 OPENAI_MODEL=gpt-4o-mini
 ```
 
-Do **not** expose OpenAI keys in Vite/frontend variables (for example, `VITE_OPENAI_API_KEY` is not used).
+Do not expose server secrets through variables prefixed with `VITE_`.
 
-### Authentication & API security
+## Web environment
 
-All domain routes are now protected with JWT bearer authentication and user scoping.
-
-- `POST /api/auth/signup` creates a user and returns an access token + refresh token.
-- `POST /api/auth/login` authenticates credentials and rotates refresh tokens.
-- `POST /api/auth/refresh` exchanges a valid refresh token for a new token pair.
-- `GET /api/auth/me` returns the authenticated profile from the bearer token.
-
-Access tokens expire quickly (default `15m`) and refresh tokens expire in `7d` by default.
-Rate limiting is applied to auth routes and mutation endpoints (`POST`, `PUT`, `PATCH`, `DELETE`) to reduce abuse risk.
-
-Additional backend environment variables:
+Copy `.env.local.example` to `.env.local` and configure the Clerk publishable key when authentication is enabled:
 
 ```bash
-JWT_SECRET=replace_with_long_random_secret
-JWT_REFRESH_SECRET=replace_with_long_random_secret
-JWT_ACCESS_TTL=15m
-JWT_REFRESH_TTL=7d
-PASSWORD_HASH_ROUNDS=12
-AUTH_RATE_LIMIT_MAX=20
-MUTATION_RATE_LIMIT_MAX=120
+VITE_CLERK_PUBLISHABLE_KEY=pk_test_replace_me
 ```
 
-Unauthorized and expired tokens return a consistent error payload shape:
+When the API is hosted on a different origin, also configure:
 
-```json
-{
-  "error": {
-    "code": "UNAUTHORIZED",
-    "message": "Authorization header missing or malformed",
-    "details": null
-  }
-}
+```bash
+VITE_API_BASE_URL=https://api.example.com
 ```
 
+## Authentication
 
-4. **Run on mobile with Expo**:
-   ```bash
-   npm install -g expo-cli
-   npm run expo
-   ```
-   You can then open the project on your device or emulator via the Expo Go app.  Expo’s web target also works with this setup.
+Clerk is the canonical identity provider for the current web/API architecture.
 
-## Project Structure
+- The frontend gets the active Clerk session token.
+- API requests send it as `Authorization: Bearer <token>`.
+- The Express middleware validates RS256 signature, issuer and expiry through Clerk JWKS.
+- `CLERK_AUTHORIZED_PARTIES` can additionally restrict accepted token `azp` origins.
+- `GET /api/auth/me` returns the verified token subject/email.
 
-- **index.html** – HTML entry point for the web build.  
-- **src/** – React source code.  
-  - `App.jsx` – root component with navigation and language toggle.  
-  - `components/` – stubs for Tasks, Calendar, Budget, Rewards and Settings views.  
-  - `hooks/` – custom hooks (e.g. `useSpeech` for text‑to‑speech).  
-  - `i18n/` – translation setup and JSON dictionaries.  
-- **server/** – Express API with MongoDB/SQLite models and routes.  
-  - `server.js` – starts the API server.  
-  - `db/` – Mongoose schemas and SQLite fallback initialisation.  
-  - `routes/` – routers for tasks, events and budget (currently very simple stubs).  
-- **docs/** – design and research documentation describing accessible, ethical design practices for neurodivergent users.
+Legacy password endpoints `/api/auth/signup`, `/api/auth/login` and `/api/auth/refresh` return HTTP `410 AUTH_PROVIDER_MIGRATED`; they no longer mint a second, incompatible token type.
 
-## Accessibility & Ethical Design
+If Clerk is not configured, the server still starts so health/local development can be inspected; protected routes fail closed with `AUTH_NOT_CONFIGURED`.
 
-This project draws from the principles documented in `docs/design-document.md` and `docs/research-manual.md`.  
-Key accessibility considerations include:
+## Offline behavior
 
-- **Typography** – uses sans‑serif fonts and offers a dyslexia‑friendly alternative; adjustable sizes and line spacing.  
-- **Colour palette** – soft, muted colours with high contrast options.  
-- **Large targets** – buttons are at least 44×44 CSS pixels.  
-- **Keyboard navigation** – all interactive controls are reachable via the keyboard with visible focus outlines.  
-- **Text‑to‑speech** – hooks are provided for reading content aloud via Expo’s audio API.  
-- **Gamification controls** – points/streaks can be hidden entirely for users who find them distracting.  
-- **Multilingual** – English and Peruvian Spanish translation files live under `src/i18n/`, with a language toggle in the UI.
+The web client uses IndexedDB for local state and queues supported task/event/transaction changes for background sync. Sync is attempted only when the browser is online and an authentication token is available. Conflict/error metadata is retained for recovery.
 
-## Notes
+SQLite is a server-side development/single-node fallback, not a substitute for the browser's offline store.
 
-- **Incomplete features** – This skeleton focuses on structure.  The task management, calendar and budgeting modules include minimal UI to indicate where future logic and state will live.  The backend includes simple CRUD endpoints for tasks and demonstrates how to fall back to SQLite when offline.
-- **Offline support** – The Express API initialises a local SQLite database.  On the client side, service workers and IndexedDB integration would be added in later stages to provide offline caching and sync.  See `docs/design-document.md` for guidelines on implementing these features.
+## Quality gates
+
+```bash
+npm run lint
+npm run typecheck
+npm test
+npm run build
+npx playwright test
+```
+
+The CI workflow in `.github/workflows/ci.yml` runs those gates and uploads Playwright artifacts when browser tests fail.
+
+Current limitation: the repository's lint and TypeScript scripts still cover narrower areas than the whole application. Expanding those scopes is a P1 production-readiness task documented in `docs/production-readiness-solarize-v6.md`.
+
+## Deployment
+
+### GitHub Pages demo
+
+The default Vite base is `/gylio/`.
+
+```bash
+VITE_BASE_PATH=/gylio/ npm run build
+```
+
+`.github/workflows/pages.yml` builds `dist/`, adds a `404.html` SPA fallback for BrowserRouter deep links and deploys through GitHub Pages after pushes to `main`.
+
+Repository setup required once: **Settings → Pages → Build and deployment → Source → GitHub Actions**.
+
+### Firebase Hosting
+
+For a root-hosted SPA:
+
+```bash
+VITE_BASE_PATH=/ npm run build
+firebase deploy --only hosting
+```
+
+`firebase.json` serves `dist/`, rewrites unknown paths to `/index.html`, gives hashed assets long-lived caching and keeps the service worker uncached.
+
+A Firebase project ID is intentionally not committed. Select the correct account/project with Firebase CLI before deploying.
+
+### Hostinger API
+
+The existing Express service can be deployed to Hostinger managed Node Web App hosting or to a VPS. For a VPS, use a non-root runtime user, Node LTS, a process manager such as PM2/systemd, an HTTPS reverse proxy, firewall rules, monitoring and backups. Configure `CORS_ORIGINS` and `CLERK_AUTHORIZED_PARTIES` to the exact production frontend origins.
+
+## Project structure
+
+```text
+src/
+  App.jsx                 application shell and routing
+  components/             shared and legacy view components
+  core/                   DB, contexts, themes, analytics, offline/sync utilities
+  features/
+    auth/
+    budget/
+    calendar/
+    routines/
+    social/
+    subscription/
+    tasks/
+    tour/
+  i18n/                   locale dictionaries and i18next setup
+  service-worker.ts
+server/
+  db/                     MongoDB/SQLite infrastructure
+  lib/
+  middleware/
+  repositories/
+  routes/
+  services/
+  validation/
+e2e/                      Playwright audits
+docs/                     design, research and production-readiness documentation
+.github/workflows/         CI and Pages deployment
+a
+```
+
+> Note: large legacy views still coexist with newer feature modules. Continue refactoring by extracting state/controller hooks and focused presentational components rather than growing monolithic view files.
+
+## Accessibility and evidence discipline
+
+Priorities include:
+
+- predictable navigation and stable labels;
+- clear language and short content blocks;
+- keyboard access and visible focus;
+- user-selectable text, contrast and motion preferences;
+- text-to-speech support;
+- non-color-only status cues;
+- reduced-motion behavior for nonessential animation;
+- user-controlled reminders/rewards and non-shaming restart flows.
+
+A dyslexia-specific font may be offered as a preference, but should not be marketed as improving reading performance. Current evidence does not support a reliable reading-speed or accuracy benefit over standard fonts.
+
+Likewise, behavioral features should be described in terms of user experience and measured outcomes rather than unsupported neurological claims such as guaranteed “dopamine spikes.”
 
 ## Documentation
 
-- **Design Document** – `docs/design-document.md` summarises the high‑level architecture, feature list, user flows, functional specs, roadmap and testing plan for GYLIO.  
-- **Research Manual** – `docs/research-manual.md` contains a literature review on neurodivergent‑friendly design, gamification, nudge theory and Caleb Hammer‑style budgeting strategies.
+- `docs/design-document.md` — earlier product/design architecture; being reconciled with the implemented system.
+- `docs/research-manual.md` — behavioral/accessibility rationale; claims should remain citation-backed and appropriately qualified.
+- `docs/production-readiness-solarize-v6.md` — current Solarize audit, production architecture, visual strategy and release gates.
+
+## Security notes
+
+- Never commit `.env`, keys, Playwright session artifacts or database files.
+- Local `*.db`, SQLite WAL/SHM and similar files are ignored.
+- A previously tracked `gylio.db` has been removed from the current branch, but prior Git history still requires review if that file ever contained sensitive data.
+- Production CORS and Clerk authorized-party allowlists must be explicitly configured.
+- Financial/task data should receive documented export, deletion, backup and retention behavior before a production launch.
