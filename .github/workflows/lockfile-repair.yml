@@ -1,4 +1,4 @@
-name: Lockfile Repair Evidence
+name: Candidate Repair Evidence
 
 on:
   pull_request:
@@ -17,31 +17,162 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout PR head, not the synthetic merge ref
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
 
-      - name: Regenerate lockfile metadata
-        run: npm install --package-lock-only --ignore-scripts
-
-      - name: Prove the regenerated lockfile supports a clean install
-        run: npm ci --ignore-scripts
-
-      - name: Commit only a verified lockfile change
+      - name: Apply deterministic source migration
         shell: bash
         run: |
-          if git diff --quiet -- package-lock.json; then
-            echo "Lockfile already synchronized."
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(text: str, old: str, new: str, label: str) -> str:
+              count = text.count(old)
+              if count == 0:
+                  return text
+              if count != 1:
+                  raise SystemExit(f'{label}: expected one match, found {count}')
+              return text.replace(old, new, 1)
+
+          # Routine view: remove stale hook import and expose the already
+          # reviewed read-only XYFlow representation alongside the semantic list.
+          p = Path('src/features/routines/components/RoutinesView.tsx')
+          text = p.read_text()
+          text = text.replace(
+              "import React, { useCallback, useState } from 'react';",
+              "import React, { useState } from 'react';",
+          )
+          if "import RoutineFlowDiagram from './RoutineFlowDiagram';" not in text:
+              text = replace_once(
+                  text,
+                  "import { StreakDots } from './StreakDots';",
+                  "import { StreakDots } from './StreakDots';\nimport RoutineFlowDiagram from './RoutineFlowDiagram';",
+                  'routine flow import',
+              )
+          if '<RoutineFlowDiagram' not in text:
+              text = replace_once(
+                  text,
+                  "                    {/* 21-day streak dots */}",
+                  """                    <RoutineFlowDiagram
+                      routineTitle={routine.title}
+                      steps={routine.steps}
+                      anchorHabit={routine.anchorHabit}
+                      theme={theme}
+                    />
+
+                    {/* 21-day streak dots */}""",
+                  'routine flow placement',
+              )
+          p.write_text(text)
+
+          # Task view: delete the disconnected page-level Pomodoro path. The
+          # live TaskTimerInline per-task implementation remains authoritative.
+          p = Path('src/features/tasks/components/TaskList.tsx')
+          text = p.read_text()
+          text = text.replace("import usePomodoroTimer from '../hooks/usePomodoroTimer';\n", '')
+          text = text.replace("import PomodoroTimer from './PomodoroTimer';\n", '')
+          text = text.replace('    startPomodoro,\n', '')
+          text = text.replace('  const pomodoro = usePomodoroTimer();\n', '')
+          text = text.replace(
+              '  }, [pendingLogEntry]); // eslint-disable-line react-hooks/exhaustive-deps',
+              '  }, [appendTaskTimeLog, clearPendingEntry, pendingLogEntry, refreshTasks]);',
+          )
+          text = text.replace(
+              '  const [selectedDuration, setSelectedDuration] = useState<number>(25);',
+              '  const [selectedDuration] = useState<number>(25);',
+          )
+          text = text.replace('  const hiddenCount = filteredTasks.length - FOCUS_MODE_LIMIT;\n\n', '')
+          text = replace_once(
+              text,
+              """  const handleStartFocus = useCallback(() => {
+    pomodoro.start(selectedDuration * 60);
+    startPomodoro({ durationMinutes: selectedDuration });
+  }, [pomodoro, selectedDuration, startPomodoro]);
+
+  const handlePomodoroComplete = useCallback(() => {
+    // XP is awarded via startPomodoro (notification) — nothing extra needed here
+  }, []);
+
+""",
+              '',
+              'legacy pomodoro callbacks',
+          )
+          text = replace_once(
+              text,
+              """  const focusButtonStyle: React.CSSProperties = useMemo(
+    () => ({
+      minHeight: '44px',
+      minWidth: '72px',
+      padding: '0.75rem 1rem',
+      borderRadius: theme.shape.radiusMd,
+      border: `1px solid ${theme.colors.border}`,
+      backgroundColor: theme.colors.surface,
+      cursor: 'pointer',
+      fontSize: '1rem',
+      color: theme.colors.text,
+      fontFamily: theme.typography.body.family,
+    }),
+    [theme]
+  );
+
+""",
+              '',
+              'unused focus style',
+          )
+          p.write_text(text)
+
+          p = Path('src/features/tasks/components/TaskTimerInline.tsx')
+          text = p.read_text()
+          if "import type { ThemeTokens } from '../../../core/themes';" not in text:
+              text = text.replace(
+                  "import { useTaskTimer } from '../../../core/context/TaskTimerContext';",
+                  "import { useTaskTimer } from '../../../core/context/TaskTimerContext';\nimport type { ThemeTokens } from '../../../core/themes';",
+              )
+          text = text.replace(
+              'function btnStyle(theme: any, borderColor: string, filled: boolean): React.CSSProperties {',
+              'function btnStyle(theme: ThemeTokens, borderColor: string, filled: boolean): React.CSSProperties {',
+          )
+          p.write_text(text)
+
+          p = Path('src/features/tasks/utils/taskForm.test.ts')
+          p.write_text(p.read_text().replace('  MIN_SUBTASKS,\n', ''))
+          PY
+
+          git diff --check
+
+      - name: Synchronize lockfile metadata
+        run: npm install --package-lock-only --ignore-scripts
+
+      - name: Prove clean install
+        run: npm ci --ignore-scripts
+
+      - name: Prove feature lint
+        run: npm run lint
+
+      - name: Prove task-domain types
+        run: npm run typecheck
+
+      - name: Commit only verified migration changes
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo "Candidate migration already converged."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add package-lock.json
-          git commit -m "build: synchronize npm lockfile"
+          git add \
+            package-lock.json \
+            src/features/routines/components/RoutinesView.tsx \
+            src/features/tasks/components/TaskList.tsx \
+            src/features/tasks/components/TaskTimerInline.tsx \
+            src/features/tasks/utils/taskForm.test.ts
+          git commit -m "fix: converge lockfile and stale focus implementation"
           git push origin HEAD:${{ github.event.pull_request.head.ref }}
