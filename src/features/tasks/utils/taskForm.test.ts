@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import {
   DEFAULT_SUBTASK_COUNT,
   MAX_SUBTASKS,
-  MIN_SUBTASKS,
   chunkTasks,
   createEmptySubtasks,
   getSubtaskError,
@@ -35,7 +34,6 @@ describe('taskForm helpers', () => {
       true,
       t
     );
-    // One step is now valid (MIN_SUBTASKS = 1)
     const oneStep = getSubtaskError([{ label: 'one', done: false }], true, t);
 
     expect(tooMany).toBe('validation.subtasksRange:1-7');
