@@ -3,28 +3,21 @@ export type ThemeMode = 'light' | 'dark' | 'highContrast';
 export interface ThemeTokens {
   mode: ThemeMode;
   colors: {
-    // Core surfaces
     background: string;
     surface: string;
     surfaceElevated: string;
-    // Text
     text: string;
     muted: string;
-    // Brand
     primary: string;
     primaryHover: string;
     accent: string;
-    // Semantic
     success: string;
     warning: string;
     error: string;
-    // Semantic foreground (text on semantic backgrounds — WCAG AA guaranteed)
     onSuccess: string;
     onWarning: string;
     onError: string;
-    // Brand foreground (text on primary background — WCAG AA guaranteed)
     primaryForeground: string;
-    // Structural
     border: string;
     borderStrong: string;
     focus: string;
@@ -64,19 +57,16 @@ export interface ThemeTokens {
     xl: string;
   };
   animation: {
-    /** 150ms — hover states, icon swaps */
     fast: string;
-    /** 250ms — panel slides, tab switches */
     standard: string;
-    /** 400ms — page transitions, large reveals */
     slow: string;
-    /** 300ms spring — completion celebrations, confirmations */
     bounce: string;
   };
   zIndex: {
     dropdown: number;
     sticky: number;
     modal: number;
+    tour: number;
     toast: number;
     tooltip: number;
   };
@@ -123,6 +113,7 @@ const zIndex = {
   dropdown: 100,
   sticky: 200,
   modal: 400,
+  tour: 8000,
   toast: 9000,
   tooltip: 9500,
 };
@@ -136,14 +127,14 @@ const palettes = {
     muted: '#6B6880',
     primary: '#5B5CF6',
     primaryHover: '#4849E8',
-    primaryForeground: '#FFFFFF',   // 4.53:1 on #5B5CF6 — AA ✓
+    primaryForeground: '#FFFFFF',
     accent: '#EC4899',
     success: '#22C55E',
     warning: '#F59E0B',
     error: '#EF4444',
-    onSuccess: '#1C1B22',           // 8.17:1 on #22C55E — AAA ✓
-    onWarning: '#1C1B22',           // 8.61:1 on #F59E0B — AAA ✓
-    onError: '#1C1B22',             // 5.00:1 on #EF4444 — AA ✓
+    onSuccess: '#1C1B22',
+    onWarning: '#1C1B22',
+    onError: '#1C1B22',
     border: '#E2E0EA',
     borderStrong: '#C4C0D4',
     focus: '#5B5CF6',
@@ -157,14 +148,14 @@ const palettes = {
     muted: '#8A8899',
     primary: '#8182FA',
     primaryHover: '#9394FB',
-    primaryForeground: '#0D0D14',   // 5.85:1 on #8182FA — AA ✓
+    primaryForeground: '#0D0D14',
     accent: '#F472B6',
     success: '#4ADE80',
     warning: '#FBD061',
     error: '#F87171',
-    onSuccess: '#0D0D14',           // 10.5:1 on #4ADE80 — AAA ✓
-    onWarning: '#0D0D14',           // 12.4:1 on #FBD061 — AAA ✓
-    onError: '#0D0D14',             // 6.73:1 on #F87171 — AA ✓
+    onSuccess: '#0D0D14',
+    onWarning: '#0D0D14',
+    onError: '#0D0D14',
     border: '#2A2940',
     borderStrong: '#3D3C58',
     focus: '#8182FA',
@@ -178,14 +169,14 @@ const palettes = {
     muted: '#e5e7eb',
     primary: '#ffff00',
     primaryHover: '#e0e000',
-    primaryForeground: '#000000',   // 19.56:1 on #ffff00 — AAA ✓
+    primaryForeground: '#000000',
     accent: '#00ffff',
     success: '#00ff88',
     warning: '#ffaa00',
     error: '#ff4444',
-    onSuccess: '#000000',           // 15.7:1 on #00ff88 — AAA ✓
-    onWarning: '#000000',           // 11.1:1 on #ffaa00 — AAA ✓
-    onError: '#000000',             // 6.16:1 on #ff4444 — AA ✓
+    onSuccess: '#000000',
+    onWarning: '#000000',
+    onError: '#000000',
     border: '#ffffff',
     borderStrong: '#ffffff',
     focus: '#ff00ff',
