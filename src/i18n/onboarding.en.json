@@ -12,38 +12,67 @@
   },
   "predictableSteps": {
     "accessibility": "First: choose interface preferences. Safe defaults are already selected.",
-    "quickSetup": "Next: optionally create one starter task or add monthly income.",
+    "supportProfile": "Next: optionally try a reversible starter profile, or keep your current choices.",
+    "quickSetup": "Then: optionally create one starter task or add monthly income.",
     "tour": "Last: see where the main parts of GYLIO live."
   },
   "accessibility": {
     "title": "Make GYLIO comfortable to use",
     "subtitle": "Safe defaults are already selected. Change only what helps.",
     "helper": "Choose what feels comfortable. These are interface preferences, not medical recommendations, and you can change them later in Settings.",
-    "textSizeLabel": "Text size",
-    "standardFont": "Default readable text",
+    "textStyleLabel": "Reading appearance",
+    "standardText": "Standard text",
     "largeText": "Larger text",
-    "textSizeHelper": "Use the default size or make text larger. Browser zoom and system accessibility settings still work.",
+    "spacedText": "More spacing",
+    "textStyleHelper": "Larger text and extra spacing are user-controlled reading aids. There is no single best text style for everyone.",
     "contrastLabel": "Contrast",
     "balancedContrast": "Use app theme",
     "highContrast": "Higher contrast",
-    "contrastHelper": "Higher contrast makes text and boundaries more visually distinct. Choose it only if you prefer it.",
+    "contrastHelper": "Higher contrast improves visual separation for many people, while others prefer softer palettes. Choose what is comfortable.",
     "motionLabel": "Motion preference",
-    "motionSystem": "Follow device motion setting",
+    "motionSystem": "Follow my device",
     "reducedMotion": "Reduce non-essential motion",
     "standardMotion": "Allow non-essential motion",
-    "motionHelper": "Following your device respects its reduced-motion setting. You can override it here.",
-    "tts": "Read-aloud support",
-    "ttsHelper": "Optional. Text-to-speech can help some people process written content; it is not required to use GYLIO.",
-    "evidenceTitle": "Why these options?",
-    "evidenceBody": "Accessibility needs vary between people. GYLIO asks about the interface you prefer instead of guessing from a diagnosis."
+    "motionHelper": "Following your device respects its reduced-motion setting. Reduced motion is especially useful when animation is distracting or causes discomfort.",
+    "tts": "Read text aloud",
+    "ttsHelper": "Optional. Text-to-speech can support some readers and is safe to try; individual benefit varies.",
+    "evidenceTitle": "How strong is the evidence?",
+    "evidenceBody": "GYLIO uses strong accessibility standards for motion, resizing and user control. Other options such as spacing or read-aloud are low-risk, reversible supports with variable individual benefit. We do not infer settings from a diagnosis."
+  },
+  "supportProfile": {
+    "title": "Try a starter support profile",
+    "subtitle": "Optional shortcuts. Keep, change, or undo them at any time.",
+    "helper": "These profiles combine low-risk interface settings that are directionally supported by accessibility and usability research.",
+    "evidenceNote": "This is an optional experiment, not a diagnosis-based recommendation. People with the same diagnosis can prefer very different interfaces.",
+    "groupLabel": "Optional starter support profiles",
+    "keepCurrent": "Keep my current choices",
+    "applied": "Settings applied — change them anytime by going Back now or using Settings later.",
+    "profiles": {
+      "focus": {
+        "label": "Focus-friendly",
+        "description": "Larger text, reduced motion and fewer non-essential animations. A reasonable low-distraction starting point if busy interfaces pull your attention."
+      },
+      "quiet": {
+        "label": "Quiet motion",
+        "description": "Standard text with reduced motion and non-essential animations off. Useful to try if movement feels distracting or uncomfortable."
+      },
+      "reading": {
+        "label": "Reading support",
+        "description": "Larger text plus optional read-aloud support. This avoids prescribing a special dyslexia font, whose average reading benefit is not reliable."
+      },
+      "visibility": {
+        "label": "High visibility",
+        "description": "Larger text with the high-contrast theme. Useful to try when stronger visual separation makes controls easier to find."
+      }
+    }
   },
   "quickSetup": {
     "title": "Start with something useful",
     "subtitle": "Both fields are optional. Skip them if you would rather explore first.",
-    "helper": "A small, concrete first task can give you a starting point. The income field is only a setup shortcut for the Budget screen.",
+    "helper": "A small, concrete first task can reduce setup friction. The income field is only a shortcut for creating your first Budget month.",
     "goalLabel": "First task (optional)",
     "goalPlaceholder": "Example: Put tomorrow's documents by the door",
-    "goalHint": "Keep it concrete and doable. You can edit, reschedule, or delete it later.",
+    "goalHint": "Keep it concrete and doable. Specific next actions and simple plans are directionally supported for turning intentions into action; you can edit or delete this later.",
     "incomeLabel": "Monthly take-home income (optional)",
     "incomePlaceholder": "Example: 3500",
     "incomeHint": "Used only to create a starting Budget month. GYLIO will not invent spending categories from this number.",
