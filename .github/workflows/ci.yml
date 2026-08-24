@@ -14,6 +14,260 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  onboarding-settings-refactor:
+    name: One-time Settings refactor
+    if: github.event_name == 'pull_request' && github.head_ref == 'solarize/onboarding-science-v1' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 1
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Refactor Settings accessibility controls
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('src/components/SettingsView.jsx')
+          text = path.read_text(encoding='utf-8')
+
+          def replace_once(old: str, new: str, label: str) -> None:
+              global text
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{label}: expected exactly one match, found {count}')
+              text = text.replace(old, new, 1)
+
+          replace_once(
+              " * will be able to toggle between light and dark themes, choose dyslexia‑friendly\n * fonts, enable or disable animations, adjust audio cue volumes and control\n * whether gamification features are displayed. This stub lists upcoming\n * settings features.",
+              " * lets users revisit the same presentation preferences offered during\n * onboarding, alongside animation, read-aloud, gamification and sync controls.\n * Preference labels describe the interface effect rather than implying that a\n * diagnosis determines the correct setting.",
+              'component documentation'
+          )
+
+          replace_once(
+              "    motionPreference,\n    reduceMotionEnabled,\n    setReduceMotionEnabled,\n    animationsEnabled,",
+              "    motionPreference,\n    setMotionPreference,\n    animationsEnabled,",
+              'motion hook destructuring'
+          )
+
+          replace_once(
+              "          display: 'grid',\n          gap: theme.spacing.md,\n          marginTop: theme.spacing.md\n",
+              "          display: 'grid',\n          gap: theme.spacing.md,\n          marginTop: theme.spacing.md,\n          minWidth: 0,\n          maxWidth: '100%'\n",
+              'settings grid sizing'
+          )
+
+          def outer_card_start(marker: str) -> int:
+              marker_index = text.index(marker)
+              start = text.rfind("        <div\n          style={{\n            border:", 0, marker_index)
+              if start < 0:
+                  raise SystemExit(f'Unable to find card start for {marker}')
+              return start
+
+          reading_marker = "{t('settingsFontLabel') || 'Reading style'}"
+          motion_marker = "{t('settingsMotionLabel') || 'Motion preference'}"
+          reading_start = outer_card_start(reading_marker)
+          motion_start = outer_card_start(motion_marker)
+
+          reading_block = """        <div
+          style={{
+            border: `1px solid ${theme.colors.border}`,
+            borderRadius: theme.shape.radiusMd,
+            padding: theme.spacing.md,
+            background: theme.colors.surface,
+            minWidth: 0,
+            maxWidth: '100%',
+            boxSizing: 'border-box'
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: theme.spacing.md, flexWrap: 'wrap', minWidth: 0 }}>
+            <div style={{ minWidth: 0, flex: '1 1 220px' }}>
+              <p style={{ margin: 0, fontWeight: 600 }}>{t('settingsFontLabel') || 'Reading style'}</p>
+              <small style={{ color: theme.colors.muted }}>
+                {t('onboarding.accessibility.textStyleHelper')}
+              </small>
+              <p style={{ margin: '0.25rem 0', color: theme.colors.text }}>
+                {t('settingsCurrentValue', {
+                  value:
+                    textStylePreference === 'dyslexic'
+                      ? t('onboarding.accessibility.legacyTextStyle')
+                      : textStylePreference === 'large'
+                        ? t('onboarding.accessibility.largeText')
+                        : textStylePreference === 'spaced'
+                          ? t('onboarding.accessibility.spacedText')
+                          : t('onboarding.accessibility.standardText')
+                })}
+              </p>
+            </div>
+            <select
+              value={textStylePreference || 'standard'}
+              onChange={(e) => setTextStylePreference(e.target.value)}
+              aria-label={t('settingsFontLabel') || 'Reading style'}
+              style={{
+                padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
+                borderRadius: theme.shape.radiusSm,
+                border: `1px solid ${theme.colors.border}`,
+                background: theme.colors.background,
+                color: theme.colors.text,
+                minWidth: 0,
+                maxWidth: '100%',
+                flex: '1 1 180px'
+              }}
+            >
+              {textStylePreference === 'dyslexic' && (
+                <option value="dyslexic">{t('onboarding.accessibility.legacyTextStyle')}</option>
+              )}
+              <option value="standard">{t('onboarding.accessibility.standardText')}</option>
+              <option value="large">{t('onboarding.accessibility.largeText')}</option>
+              <option value="spaced">{t('onboarding.accessibility.spacedText')}</option>
+            </select>
+          </div>
+        </div>
+
+"""
+          text = text[:reading_start] + reading_block + text[motion_start:]
+
+          motion_start = outer_card_start(motion_marker)
+          tts_marker = "{t('settingsTtsLabel') || t('onboarding.accessibility.tts')}"
+          tts_start = outer_card_start(tts_marker)
+
+          motion_block = """        <div
+          style={{
+            border: `1px solid ${theme.colors.border}`,
+            borderRadius: theme.shape.radiusMd,
+            padding: theme.spacing.md,
+            background: theme.colors.surface,
+            minWidth: 0,
+            maxWidth: '100%',
+            boxSizing: 'border-box'
+          }}
+        >
+          <div style={{ display: 'grid', gap: theme.spacing.sm, minWidth: 0 }}>
+            <div>
+              <p style={{ margin: 0, fontWeight: 600 }}>{t('settingsMotionLabel') || 'Motion preference'}</p>
+              <small id="motion-helper" style={{ color: theme.colors.muted }}>
+                {t('onboarding.accessibility.motionHelper')}
+              </small>
+            </div>
+            <select
+              value={motionPreference || 'system'}
+              onChange={(e) => setMotionPreference(e.target.value)}
+              aria-label={t('settingsMotionLabel') || 'Motion preference'}
+              aria-describedby="motion-helper"
+              style={{
+                width: '100%',
+                minWidth: 0,
+                maxWidth: '100%',
+                padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
+                borderRadius: theme.shape.radiusSm,
+                border: `1px solid ${theme.colors.border}`,
+                background: theme.colors.background,
+                color: theme.colors.text
+              }}
+            >
+              <option value="system">{t('onboarding.accessibility.motionSystem')}</option>
+              <option value="reduced">{t('onboarding.accessibility.reducedMotion')}</option>
+              <option value="standard">{t('onboarding.accessibility.standardMotion')}</option>
+            </select>
+            <small style={{ color: theme.colors.muted }}>
+              {t('settingsCurrentValue', {
+                value:
+                  motionPreference === 'reduced'
+                    ? t('onboarding.accessibility.reducedMotion')
+                    : motionPreference === 'standard'
+                      ? t('onboarding.accessibility.standardMotion')
+                      : t('onboarding.accessibility.motionSystem')
+              })}
+            </small>
+            <label style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm, minWidth: 0 }}>
+              <input
+                type="checkbox"
+                checked={animationsEnabled}
+                onChange={(e) => setAnimationsEnabled(e.target.checked)}
+                aria-label={t('settingsAnimationLabel') || 'Allow animations'}
+                aria-describedby="animation-helper"
+                style={{ width: 20, height: 20 }}
+              />
+              <span>
+                {animationsEnabled
+                  ? t('settingsAnimationOn') || 'Animations enabled'
+                  : t('settingsAnimationOff') || 'Animations limited'}
+              </span>
+            </label>
+            <small id="animation-helper" style={{ color: theme.colors.muted }}>
+              {t('settingsAnimationHelper') ||
+                'Disable non-essential animations to keep the interface calm.'}
+            </small>
+          </div>
+        </div>
+
+"""
+          text = text[:motion_start] + motion_block + text[tts_start:]
+
+          replace_once(
+              "{t('settingsThemeHelper') || 'Choose light, dark, or high-contrast to reduce visual strain.'}",
+              "{t('onboarding.accessibility.contrastHelper')}",
+              'theme helper'
+          )
+          replace_once(
+              "{t('settingsTtsLabel') || t('onboarding.accessibility.tts')}",
+              "{t('onboarding.accessibility.tts')}",
+              'TTS label'
+          )
+          replace_once(
+              "{t('settingsTtsHelper') || t('onboarding.accessibility.ttsHelper')}",
+              "{t('onboarding.accessibility.ttsHelper')}",
+              'TTS helper'
+          )
+          replace_once(
+              "aria-label={t('settingsTtsLabel') || t('onboarding.accessibility.tts')}",
+              "aria-label={t('onboarding.accessibility.tts')}",
+              'TTS aria label'
+          )
+
+          text = text.replace(
+              "            background: theme.colors.surface\n          }}",
+              "            background: theme.colors.surface,\n            minWidth: 0,\n            maxWidth: '100%',\n            boxSizing: 'border-box'\n          }}"
+          )
+
+          path.write_text(text, encoding='utf-8')
+          print('Settings accessibility refactor applied successfully.')
+          PY
+
+      - name: Reproducible install
+        run: npm ci --ignore-scripts
+
+      - name: Verify unit suite
+        run: npm test
+
+      - name: Verify production build
+        run: npm run build
+
+      - name: Commit only the verified Settings change
+        shell: bash
+        run: |
+          if git diff --quiet -- src/components/SettingsView.jsx; then
+            echo 'Expected SettingsView.jsx to change.' >&2
+            exit 1
+          fi
+          git diff --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/components/SettingsView.jsx
+          git commit -m 'fix: align Settings with onboarding accessibility choices'
+          git push origin HEAD:solarize/onboarding-science-v1
+
   quality:
     name: Quality gates
     runs-on: ubuntu-latest
