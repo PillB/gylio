@@ -25,6 +25,7 @@
     "largeText": "Texto más grande",
     "spacedText": "Más espaciado",
     "legacyTextStyle": "Fuente personalizada heredada",
+    "legacyActive": "Sigue activa una preferencia de fuente personalizada de una versión anterior de GYLIO. Puedes mantenerla o reemplazarla eligiendo una de las opciones de abajo.",
     "textStyleHelper": "El texto más grande y el espaciado adicional son ayudas controladas por ti. No existe un único estilo de texto ideal para todas las personas.",
     "contrastLabel": "Contraste",
     "balancedContrast": "Usar el tema de la app",
@@ -51,7 +52,7 @@
     "profiles": {
       "focus": {
         "label": "Favorecer el enfoque",
-        "description": "Texto más grande, menos movimiento y menos animaciones no esenciales. Es un punto de inicio razonable si las interfaces cargadas te distraen."
+        "description": "Más espaciado de texto, menos movimiento y menos animaciones no esenciales. Es un punto de inicio con menos distracciones para probar si las interfaces cargadas desvían tu atención."
       },
       "quiet": {
         "label": "Movimiento tranquilo",
@@ -73,7 +74,7 @@
     "helper": "Una primera tarea pequeña y concreta puede reducir la fricción inicial. El ingreso solo sirve como atajo para crear tu primer mes en Presupuesto.",
     "goalLabel": "Primera tarea (opcional)",
     "goalPlaceholder": "Ejemplo: Dejar junto a la puerta los documentos de mañana",
-    "goalHint": "Hazla concreta y realizable. Las siguientes acciones específicas y los planes simples tienen respaldo direccional para convertir intenciones en acciones; luego puedes editarla o eliminarla.",
+    "goalHint": "Hazla concreta y realizable. En promedio, la fijación de metas y la planificación simple muestran efectos positivos pequeños a moderados en distintos estudios, pero los resultados varían según la persona y el contexto. Luego puedes editarla o eliminarla.",
     "incomeLabel": "Ingreso mensual neto (opcional)",
     "incomePlaceholder": "Ejemplo: 3500",
     "incomeHint": "Solo se usa para crear un mes inicial en Presupuesto. GYLIO no inventará categorías de gasto a partir de este monto.",
