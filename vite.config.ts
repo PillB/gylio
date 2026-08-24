@@ -10,12 +10,30 @@ const __dirname = path.dirname(__filename);
 const configuredBase = (process.env.VITE_BASE_PATH || '/gylio/').trim();
 const base = configuredBase.endsWith('/') ? configuredBase : `${configuredBase}/`;
 
+// The standalone guide contains horizontally scrollable code/SVG regions. Its
+// step list must explicitly use a zero-minimum grid track; otherwise CSS Grid's
+// automatic min-content sizing lets long command content widen the entire page
+// on 320/390px screens. Keep this shipping patch centralized so the dev server
+// and built standalone HTML are byte-for-byte equivalent for this constraint.
+const deploymentGuideMobileFix = `
+    /* Shipping mobile containment gate: validated at 320px and 390px. */
+    .steps { grid-template-columns: minmax(0, 1fr); }
+    .step, .step-head, .step-head > * { min-width: 0; }
+`;
+
+const applyDeploymentGuideShippingFixes = (html) => {
+  if (html.includes('Shipping mobile containment gate')) return html;
+  return html.replace('</style>', `${deploymentGuideMobileFix}\n  </style>`);
+};
+
 /**
  * Vite serves public/ files from the origin root during development, while
  * GitHub Pages mounts the built dist directory beneath the repository base.
  * The footer intentionally points to `${base}deployment-guide.html` so the
  * deployed URL is correct. During development/Playwright, serve that same
  * based URL directly from public/ before Vite's SPA fallback handles it.
+ * After build, apply the identical mobile-containment fix to the standalone
+ * copied HTML in dist/ so the exact artifact deployed by Pages is validated.
  */
 const deploymentGuidePublicBaseBridge = () => ({
   name: 'deployment-guide-public-base-bridge',
@@ -31,7 +49,7 @@ const deploymentGuidePublicBaseBridge = () => ({
       if (pathname !== basedGuidePath) return next();
 
       try {
-        const html = fs.readFileSync(guideFile, 'utf8');
+        const html = applyDeploymentGuideShippingFixes(fs.readFileSync(guideFile, 'utf8'));
         res.statusCode = 200;
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
         res.setHeader('Cache-Control', 'no-store');
@@ -40,6 +58,12 @@ const deploymentGuidePublicBaseBridge = () => ({
         next(error);
       }
     });
+  },
+  closeBundle() {
+    const builtGuide = path.resolve(__dirname, 'dist', 'deployment-guide.html');
+    if (!fs.existsSync(builtGuide)) return;
+    const html = fs.readFileSync(builtGuide, 'utf8');
+    fs.writeFileSync(builtGuide, applyDeploymentGuideShippingFixes(html), 'utf8');
   },
 });
 
