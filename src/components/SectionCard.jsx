@@ -29,6 +29,10 @@ const SectionCard = ({ title, ariaLabel, subtitle, children, badge, action }) =>
         border: `1px solid ${theme.colors.border}`,
         color: theme.colors.text,
         fontFamily: theme.typography.body.family,
+        minWidth: 0,
+        maxWidth: '100%',
+        boxSizing: 'border-box',
+        overflowWrap: 'anywhere',
       }}
     >
       <div
@@ -39,9 +43,10 @@ const SectionCard = ({ title, ariaLabel, subtitle, children, badge, action }) =>
           gap: theme.spacing.md,
           marginBottom: (subtitle || children) ? theme.spacing.md : 0,
           flexWrap: 'wrap',
+          minWidth: 0,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm, minWidth: 0 }}>
           <h2
             style={{
               margin: 0,
@@ -49,6 +54,7 @@ const SectionCard = ({ title, ariaLabel, subtitle, children, badge, action }) =>
               fontWeight: theme.typography.heading.weight,
               fontSize: '1.125rem',
               color: theme.colors.text,
+              overflowWrap: 'anywhere',
             }}
           >
             {title}
@@ -64,6 +70,7 @@ const SectionCard = ({ title, ariaLabel, subtitle, children, badge, action }) =>
             color: theme.colors.muted,
             fontSize: '0.9375rem',
             lineHeight: theme.typography.body.lineHeight,
+            overflowWrap: 'anywhere',
           }}
         >
           {subtitle}
