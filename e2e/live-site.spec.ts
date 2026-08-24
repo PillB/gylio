@@ -99,16 +99,23 @@ test.describe('GYLIO live GitHub Pages production audit', () => {
     await page.screenshot({ path: path.join(screenshotDir, '04-live-pricing-flow.png'), fullPage: true });
   });
 
-  test('05 language selection is localized and persists across reload', async ({ page }) => {
+  test('05 language selection localizes visible and accessible shell and persists', async ({ page }) => {
     await openAppRoute(page, 'settings');
     const language = page.getByRole('combobox', { name: /select language/i }).first();
     await expect(language).toBeVisible();
     await language.selectOption('es-PE');
     await expect(page.locator('html')).toHaveAttribute('lang', 'es-PE');
-    await expect(page.getByRole('navigation', { name: /navegación principal/i })).toBeVisible();
+    await expect(page.getByRole('navigation', { name: 'Navegación principal' })).toBeVisible();
+    await expect(page.locator('footer[aria-label="Recursos del producto"]')).toBeVisible();
+    await expect(page.getByText('Recursos de GYLIO')).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Academia de despliegue a producción' })).toBeVisible();
+    await page.screenshot({ path: path.join(screenshotDir, '05-live-es-pe-localization.png'), fullPage: true });
+
     await page.reload({ waitUntil: 'networkidle' });
     await expect(page.locator('html')).toHaveAttribute('lang', 'es-PE');
     await expect(page.getByText('Calendario').first()).toBeVisible();
+    await expect(page.getByRole('navigation', { name: 'Navegación principal' })).toBeVisible();
+    await expect(page.locator('footer[aria-label="Recursos del producto"]')).toBeVisible();
   });
 
   test('06 keyboard navigation reaches interactive UI instead of trapping focus', async ({ page }) => {
