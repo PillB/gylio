@@ -165,10 +165,8 @@ const TaskList: React.FC = () => {
   const { activeTimer, pendingLogEntry, clearPendingEntry, startTask: startTaskTimer, settings: timerSettings } = useTaskTimer();
   const { appendTaskTimeLog } = useDB();
   const taskTitleRef = React.useRef<HTMLInputElement>(null);
-  // Grace-period delete: task is hidden from UI immediately; DB delete fires after 4.5s unless undone
   const pendingDeletes = React.useRef<Map<number, ReturnType<typeof setTimeout>>>(new Map());
 
-  // Save time log entries when a timer phase completes.
   useEffect(() => {
     if (!pendingLogEntry) return;
     const { taskId, ...entry } = pendingLogEntry;
@@ -180,6 +178,8 @@ const TaskList: React.FC = () => {
   const [selectedDuration] = useState<number>(25);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [plannedDate, setPlannedDate] = useState('');
+  const [inheritViewDate, setInheritViewDate] = useState(true);
+  const [showTaskDetails, setShowTaskDetails] = useState(false);
   const [newTaskSubtasks, setNewTaskSubtasks] = useState<Subtask[]>(createEmptySubtasks());
   const [formErrors, setFormErrors] = useState<string | null>(null);
   const [titleTouched, setTitleTouched] = useState(false);
@@ -209,14 +209,21 @@ const TaskList: React.FC = () => {
     setNewTaskSubtasks(template.subtasks.map((label) => ({ label, done: false })));
     setNewTaskEnergy(template.energyRequired);
     setShowSubtaskEditor(template.subtasks.length > 0);
+    setShowTaskDetails(true);
     setShowTemplateGallery(false);
     setFormErrors(null);
     setTitleTouched(false);
   }, [t]);
   const { dateKey: todayKey } = useClock(i18n.language);
+  const tomorrowKey = useMemo(() => {
+    const today = parsePlannedDate(todayKey);
+    if (!today) return todayKey;
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
+  }, [todayKey]);
   const formatter = useMemo(() => new Intl.DateTimeFormat(i18n.language, { month: 'short', day: 'numeric' }), [i18n.language]);
 
-  // Keyboard shortcut: press N (when not already in an input) → focus task title
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement).tagName;
@@ -232,7 +239,6 @@ const TaskList: React.FC = () => {
   }, []);
 
   const filteredTasks = useMemo(() => {
-    // Exclude tasks in grace-period pending delete
     const visibleTasks = hiddenTaskIds.size > 0 ? tasks.filter((task) => !hiddenTaskIds.has(task.id)) : tasks;
     const todayDate = parsePlannedDate(todayKey);
     if (!todayDate) return visibleTasks;
@@ -265,7 +271,7 @@ const TaskList: React.FC = () => {
     if (!todayDate) return null;
     const startOfToday = new Date(todayDate);
     startOfToday.setHours(0, 0, 0, 0);
-    const tomorrowKey = (() => {
+    const tomorrowKeyForSections = (() => {
       const d = new Date(startOfToday);
       d.setDate(d.getDate() + 1);
       return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -287,7 +293,7 @@ const TaskList: React.FC = () => {
         unscheduled.push(task);
       } else if (task.plannedDate === todayKey) {
         today.push(task);
-      } else if (task.plannedDate === tomorrowKey) {
+      } else if (task.plannedDate === tomorrowKeyForSections) {
         tomorrow.push(task);
       } else if (planned < startOfToday) {
         overdue.push(task);
@@ -300,7 +306,6 @@ const TaskList: React.FC = () => {
     return { overdue, today, tomorrow, thisWeek, later, unscheduled };
   }, [filteredTasks, todayKey, viewFilter]);
 
-  // Focus mode: in today view, show max 3 tasks by default.
   const FOCUS_MODE_LIMIT = 3;
   const isFocusMode = viewFilter === 'today' && filteredTasks.length > FOCUS_MODE_LIMIT;
   const visibleTasks = isFocusMode && !focusModeExpanded
@@ -338,11 +343,12 @@ const TaskList: React.FC = () => {
       }
 
       const normalizedSubtasks = normalizeSubtasks(newTaskSubtasks);
+      const effectivePlannedDate = plannedDate || (inheritViewDate && viewFilter === 'today' ? todayKey : null);
       const created = await addTask({
         title: trimmedTitle,
         durationMinutes: selectedDuration,
         subtasks: normalizedSubtasks,
-        plannedDate: plannedDate || null,
+        plannedDate: effectivePlannedDate,
         energyRequired: newTaskEnergy,
         implementationIntention: newTaskIntention.trim() || null,
       });
@@ -350,11 +356,20 @@ const TaskList: React.FC = () => {
         track(Events.TASK_CREATED, {
           withSubtasks: normalizedSubtasks.length > 0,
           energy: newTaskEnergy,
-          hasDate: Boolean(plannedDate),
+          hasDate: Boolean(effectivePlannedDate),
           isFirstTask: tasks.length === 0,
         });
+        showSuccess(
+          effectivePlannedDate === todayKey
+            ? t('tasks.taskAddedToday', 'Added to Today.')
+            : effectivePlannedDate
+              ? t('tasks.taskAddedScheduled', 'Task added.')
+              : t('tasks.taskAddedBacklog', 'Added to Backlog.')
+        );
         setNewTaskTitle('');
         setPlannedDate('');
+        setInheritViewDate(true);
+        setShowTaskDetails(false);
         setNewTaskSubtasks(createEmptySubtasks());
         setFormErrors(null);
         setTitleTouched(false);
@@ -364,7 +379,7 @@ const TaskList: React.FC = () => {
         setNewTaskIntention('');
       }
     },
-    [addTask, newTaskEnergy, newTaskIntention, newTaskSubtasks, newTaskTitle, plannedDate, selectedDuration, showSubtaskEditor, subtasksTouched, t, tasks.length]
+    [addTask, inheritViewDate, newTaskEnergy, newTaskIntention, newTaskSubtasks, newTaskTitle, plannedDate, selectedDuration, showSubtaskEditor, showSuccess, subtasksTouched, t, tasks.length, todayKey, viewFilter]
   );
 
   const startEditingTask = useCallback((taskId: number) => {
@@ -478,6 +493,8 @@ const TaskList: React.FC = () => {
     { id: 'backlog', label: t('tasks.viewBacklog') },
   ] as const;
 
+  const effectiveDraftDate = plannedDate || (inheritViewDate && viewFilter === 'today' ? todayKey : '');
+
   return (
     <SectionCard
       ariaLabel={`${t('tasks.title')} module`}
@@ -549,136 +566,228 @@ const TaskList: React.FC = () => {
             {t('validation.titleRequired')}
           </span>
         ) : null}
-        <label htmlFor="planned-date" style={{ fontWeight: 600 }}>
-          {t('tasks.plannedDateLabel')}
-        </label>
-        <input
-          id="planned-date"
-          type="date"
-          value={plannedDate}
-          onChange={(event) => {
-            setPlannedDate(event.target.value);
-            setFormErrors(null);
-          }}
-          style={{
-            minHeight: '44px',
-            padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
-            borderRadius: theme.shape.radiusMd,
-            border: `1px solid ${theme.colors.border}`,
-            backgroundColor: theme.colors.background,
-            color: theme.colors.text,
-            fontFamily: theme.typography.body.family,
-          }}
-        />
-        <p style={{ margin: 0, color: theme.colors.muted }}>{t('tasks.plannedDateHelper')}</p>
-        <div data-tour="task-energy">
-          <p style={{ margin: '0 0 0.5rem', fontWeight: 600, fontSize: '0.875rem' }}>
-            {t('tasks.energyLabel', 'Energy required')}
-          </p>
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-            {ENERGY_LEVELS.map((level) => (
-              <button
-                key={level}
-                type="button"
-                aria-pressed={newTaskEnergy === level}
-                onClick={() => setNewTaskEnergy(level)}
-                style={{
-                  padding: '4px 12px',
-                  borderRadius: theme.shape.radiusFull,
-                  border: `2px solid ${newTaskEnergy === level ? ENERGY_COLORS[level] : theme.colors.border}`,
-                  backgroundColor: newTaskEnergy === level ? ENERGY_COLORS[level] : 'transparent',
-                  color: newTaskEnergy === level ? '#fff' : theme.colors.text,
-                  cursor: 'pointer',
-                  fontSize: '0.8125rem',
-                  fontWeight: newTaskEnergy === level ? 700 : 400,
-                  fontFamily: theme.typography.body.family,
-                }}
-              >
-                {t(`tasks.energy${level.charAt(0).toUpperCase()}${level.slice(1)}`, level)}
-              </button>
-            ))}
-          </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(132px, 1fr))', gap: `${theme.spacing.sm}px` }}>
+          <button
+            type="button"
+            aria-expanded={showTaskDetails}
+            onClick={() => setShowTaskDetails((prev) => !prev)}
+            style={{
+              minHeight: '44px',
+              padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
+              borderRadius: theme.shape.radiusMd,
+              border: `1px solid ${theme.colors.border}`,
+              backgroundColor: theme.colors.surface,
+              color: theme.colors.text,
+              fontWeight: 600,
+              cursor: 'pointer',
+              fontFamily: theme.typography.body.family,
+            }}
+          >
+            {showTaskDetails
+              ? t('tasks.hideDetails', 'Hide details')
+              : t('tasks.addDetails', 'Add details')}
+          </button>
+          <button
+            type="submit"
+            aria-label={t('addTask')}
+            style={{
+              minHeight: '44px',
+              padding: `${theme.spacing.sm}px ${theme.spacing.lg}px`,
+              borderRadius: theme.shape.radiusMd,
+              border: `1px solid ${theme.colors.primary}`,
+              backgroundColor: theme.colors.primary,
+              color: theme.colors.background,
+              fontWeight: 700,
+              cursor: 'pointer',
+              fontFamily: theme.typography.body.family,
+            }}
+          >
+            {t('addTask')}
+          </button>
         </div>
-        {newTaskTitle.trim() && !plannedDate && (
-          <div>
-            <label htmlFor="new-task-intention" style={{ fontWeight: 600, fontSize: '0.875rem', display: 'block', marginBottom: 4 }}>
-              {t('tasks.intentionLabel', 'When / where')}
-            </label>
-            <textarea
-              id="new-task-intention"
-              rows={2}
-              value={newTaskIntention}
-              onChange={(event) => setNewTaskIntention(event.target.value)}
-              placeholder={t('tasks.intentionPlaceholder', 'When I finish breakfast, I will...')}
+
+        {showTaskDetails ? (
+          <>
+            <fieldset
+              role="group"
+              aria-label={t('tasks.scheduleTask', 'Schedule task')}
               style={{
-                width: '100%',
-                padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
+                margin: 0,
+                padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
                 borderRadius: theme.shape.radiusMd,
                 border: `1px solid ${theme.colors.border}`,
-                backgroundColor: theme.colors.background,
+              }}
+            >
+              <legend style={{ padding: `0 ${theme.spacing.xs}px`, fontWeight: 600 }}>
+                {t('tasks.scheduleTask', 'Schedule task')}
+              </legend>
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  aria-pressed={effectiveDraftDate === todayKey}
+                  onClick={() => {
+                    setPlannedDate(todayKey);
+                    setInheritViewDate(false);
+                    setFormErrors(null);
+                  }}
+                  style={{ minHeight: '44px', padding: `${theme.spacing.xs}px ${theme.spacing.md}px`, borderRadius: theme.shape.radiusMd, border: `1px solid ${theme.colors.border}`, backgroundColor: effectiveDraftDate === todayKey ? theme.colors.background : theme.colors.surface, color: theme.colors.text, fontFamily: theme.typography.body.family }}
+                >
+                  {t('tasks.viewToday', 'Today')}
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={effectiveDraftDate === tomorrowKey}
+                  onClick={() => {
+                    setPlannedDate(tomorrowKey);
+                    setInheritViewDate(false);
+                    setFormErrors(null);
+                  }}
+                  style={{ minHeight: '44px', padding: `${theme.spacing.xs}px ${theme.spacing.md}px`, borderRadius: theme.shape.radiusMd, border: `1px solid ${theme.colors.border}`, backgroundColor: effectiveDraftDate === tomorrowKey ? theme.colors.background : theme.colors.surface, color: theme.colors.text, fontFamily: theme.typography.body.family }}
+                >
+                  {t('tasks.sectionTomorrow', 'Tomorrow')}
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={!inheritViewDate && !plannedDate}
+                  onClick={() => {
+                    setPlannedDate('');
+                    setInheritViewDate(false);
+                    setFormErrors(null);
+                  }}
+                  style={{ minHeight: '44px', padding: `${theme.spacing.xs}px ${theme.spacing.md}px`, borderRadius: theme.shape.radiusMd, border: `1px solid ${theme.colors.border}`, backgroundColor: !inheritViewDate && !plannedDate ? theme.colors.background : theme.colors.surface, color: theme.colors.text, fontFamily: theme.typography.body.family }}
+                >
+                  {t('tasks.noDate', 'No date')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => document.getElementById('planned-date')?.focus()}
+                  style={{ minHeight: '44px', padding: `${theme.spacing.xs}px ${theme.spacing.md}px`, borderRadius: theme.shape.radiusMd, border: `1px solid ${theme.colors.border}`, backgroundColor: theme.colors.surface, color: theme.colors.text, fontFamily: theme.typography.body.family }}
+                >
+                  {t('tasks.pickDate', 'Pick date')}
+                </button>
+              </div>
+              <label htmlFor="planned-date" style={{ display: 'block', marginTop: `${theme.spacing.sm}px`, fontWeight: 600 }}>
+                {t('tasks.plannedDateLabel')}
+              </label>
+              <input
+                id="planned-date"
+                type="date"
+                value={plannedDate}
+                onChange={(event) => {
+                  setPlannedDate(event.target.value);
+                  setInheritViewDate(false);
+                  setFormErrors(null);
+                }}
+                style={{
+                  width: '100%',
+                  boxSizing: 'border-box',
+                  minHeight: '44px',
+                  marginTop: `${theme.spacing.xs}px`,
+                  padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
+                  borderRadius: theme.shape.radiusMd,
+                  border: `1px solid ${theme.colors.border}`,
+                  backgroundColor: theme.colors.background,
+                  color: theme.colors.text,
+                  fontFamily: theme.typography.body.family,
+                }}
+              />
+              <p style={{ margin: `${theme.spacing.xs}px 0 0`, color: theme.colors.muted }}>{t('tasks.plannedDateHelper')}</p>
+            </fieldset>
+
+            <div data-tour="task-energy">
+              <p style={{ margin: '0 0 0.5rem', fontWeight: 600, fontSize: '0.875rem' }}>
+                {t('tasks.energyLabel', 'Energy required')}
+              </p>
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                {ENERGY_LEVELS.map((level) => (
+                  <button
+                    key={level}
+                    type="button"
+                    aria-pressed={newTaskEnergy === level}
+                    onClick={() => setNewTaskEnergy(level)}
+                    style={{
+                      padding: '4px 12px',
+                      borderRadius: theme.shape.radiusFull,
+                      border: `2px solid ${newTaskEnergy === level ? ENERGY_COLORS[level] : theme.colors.border}`,
+                      backgroundColor: newTaskEnergy === level ? ENERGY_COLORS[level] : 'transparent',
+                      color: newTaskEnergy === level ? '#fff' : theme.colors.text,
+                      cursor: 'pointer',
+                      fontSize: '0.8125rem',
+                      fontWeight: newTaskEnergy === level ? 700 : 400,
+                      fontFamily: theme.typography.body.family,
+                    }}
+                  >
+                    {t(`tasks.energy${level.charAt(0).toUpperCase()}${level.slice(1)}`, level)}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {newTaskTitle.trim() && !plannedDate && (
+              <div>
+                <label htmlFor="new-task-intention" style={{ fontWeight: 600, fontSize: '0.875rem', display: 'block', marginBottom: 4 }}>
+                  {t('tasks.intentionLabel', 'When / where')}
+                </label>
+                <textarea
+                  id="new-task-intention"
+                  rows={2}
+                  value={newTaskIntention}
+                  onChange={(event) => setNewTaskIntention(event.target.value)}
+                  placeholder={t('tasks.intentionPlaceholder', 'When I finish breakfast, I will...')}
+                  style={{
+                    width: '100%',
+                    padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
+                    borderRadius: theme.shape.radiusMd,
+                    border: `1px solid ${theme.colors.border}`,
+                    backgroundColor: theme.colors.background,
+                    color: theme.colors.text,
+                    fontFamily: theme.typography.body.family,
+                    fontSize: '0.875rem',
+                    resize: 'vertical',
+                    boxSizing: 'border-box',
+                  }}
+                />
+                <p style={{ margin: '2px 0 0', color: theme.colors.muted, fontSize: '0.8rem' }}>
+                  {t('tasks.intentionHelper', 'A specific when/where cue can make the next action clearer.')}
+                </p>
+              </div>
+            )}
+            <button
+              type="button"
+              data-tour="task-steps-btn"
+              onClick={() => {
+                setShowSubtaskEditor((prev) => !prev);
+                setSubtasksTouched(true);
+              }}
+              style={{
+                minHeight: '44px',
+                padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
+                borderRadius: theme.shape.radiusMd,
+                border: `1px solid ${theme.colors.border}`,
+                backgroundColor: theme.colors.surface,
                 color: theme.colors.text,
                 fontFamily: theme.typography.body.family,
-                fontSize: '0.875rem',
-                resize: 'vertical',
-                boxSizing: 'border-box',
               }}
-            />
-            <p style={{ margin: '2px 0 0', color: theme.colors.muted, fontSize: '0.8rem' }}>
-              {t('tasks.intentionHelper', 'A specific when/where cue can make the next action clearer.')}
-            </p>
-          </div>
-        )}
-        <button
-          type="button"
-          data-tour="task-steps-btn"
-          onClick={() => {
-            setShowSubtaskEditor((prev) => !prev);
-            setSubtasksTouched(true);
-          }}
-          style={{
-            minHeight: '44px',
-            padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
-            borderRadius: theme.shape.radiusMd,
-            border: `1px solid ${theme.colors.border}`,
-            backgroundColor: theme.colors.surface,
-            color: theme.colors.text,
-            fontFamily: theme.typography.body.family,
-          }}
-        >
-          {t('breakIntoSteps')}
-        </button>
-        {showSubtaskEditor ? (
-          <SubtaskEditor
-            subtasks={newTaskSubtasks}
-            onChange={setNewTaskSubtasks}
-            onTouch={() => setSubtasksTouched(true)}
-            label={t('tasks.subtasksLabel')}
-            helper={t('tasks.subtasksHelper')}
-            placeholder={t('tasks.subtaskPlaceholder')}
-            addLabel={t('tasks.addSubtask')}
-            removeLabel={t('tasks.removeSubtask')}
-            error={newSubtaskError}
-            theme={theme}
-            idPrefix="new-task"
-          />
+            >
+              {t('breakIntoSteps')}
+            </button>
+            {showSubtaskEditor ? (
+              <SubtaskEditor
+                subtasks={newTaskSubtasks}
+                onChange={setNewTaskSubtasks}
+                onTouch={() => setSubtasksTouched(true)}
+                label={t('tasks.subtasksLabel')}
+                helper={t('tasks.subtasksHelper')}
+                placeholder={t('tasks.subtaskPlaceholder')}
+                addLabel={t('tasks.addSubtask')}
+                removeLabel={t('tasks.removeSubtask')}
+                error={newSubtaskError}
+                theme={theme}
+                idPrefix="new-task"
+              />
+            ) : null}
+          </>
         ) : null}
-        <button
-          type="submit"
-          aria-label={t('addTask')}
-          style={{
-            minHeight: '44px',
-            padding: `${theme.spacing.sm}px ${theme.spacing.lg}px`,
-            borderRadius: theme.shape.radiusMd,
-            border: `1px solid ${theme.colors.primary}`,
-            backgroundColor: theme.colors.primary,
-            color: theme.colors.background,
-            fontWeight: 700,
-            cursor: 'pointer',
-            fontFamily: theme.typography.body.family,
-          }}
-        >
-          {t('addTask')}
-        </button>
       </form>
       {formErrors ? (
         <p style={{ color: theme.colors.accent, marginTop: 0 }}>{formErrors}</p>
@@ -800,9 +909,9 @@ const TaskList: React.FC = () => {
                 body={t('tasks.emptyTodayBody', "That's a clean slate. Add one task you want to get done today — even one small win moves the needle.")}
                 ctaLabel={t('tasks.emptyTodayCta', '+ Add a task for today')}
                 onCta={() => {
-                  const titleInput = document.getElementById('new-task') as HTMLInputElement | null;
-                  titleInput?.focus();
-                  setPlannedDate(getLocalDateKey());
+                  taskTitleRef.current?.focus();
+                  setPlannedDate(todayKey);
+                  setInheritViewDate(false);
                 }}
               />
             ) : (
@@ -811,10 +920,7 @@ const TaskList: React.FC = () => {
                 headline={t('tasks.empty', 'No tasks yet.')}
                 body={t('tasks.emptyBody', "Start with the one thing that would make today feel like a win. Break it into steps if it feels big.")}
                 ctaLabel={t('tasks.emptyCta', '+ Add your first task')}
-                onCta={() => {
-                  const titleInput = document.getElementById('new-task') as HTMLInputElement | null;
-                  titleInput?.focus();
-                }}
+                onCta={() => taskTitleRef.current?.focus()}
               />
             )
           ) : viewFilter === 'upcoming' && upcomingSections ? (

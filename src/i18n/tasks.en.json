@@ -7,5 +7,13 @@
   "focusModeSummary": "Showing your top {{count}} tasks to reduce visual load.",
   "focusModeShowLess": "Show less",
   "focusModeShowAll": "Show all {{count}}",
-  "allTodayDone": "All {{count}} tasks done today"
+  "allTodayDone": "All {{count}} tasks done today",
+  "addDetails": "Add details",
+  "hideDetails": "Hide details",
+  "scheduleTask": "Schedule task",
+  "noDate": "No date",
+  "pickDate": "Pick date",
+  "taskAddedToday": "Added to Today.",
+  "taskAddedScheduled": "Task added.",
+  "taskAddedBacklog": "Added to Backlog."
 }
