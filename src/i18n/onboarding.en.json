@@ -6,54 +6,45 @@
   "next": "Next",
   "finish": "Finish",
   "flow": {
-    "autosave": "Your choices are saved on this device as you go.",
-    "resume": "You can leave and continue later.",
-    "validationReminder": "Enter a non-negative income amount or leave it blank."
+    "savedAndEditable": "Saved on this device. You can leave now and change these choices later in Settings."
   },
   "predictableSteps": {
     "accessibility": "First: choose interface preferences. Neutral defaults are already selected.",
-    "quickSetup": "Next: optionally add one first task or your monthly take-home income.",
+    "quickSetup": "Next: optionally add one first task.",
     "tour": "Last: see where the main parts of GYLIO live."
   },
   "accessibility": {
     "title": "Make GYLIO comfortable to use",
     "subtitle": "Neutral defaults are already selected. Change only what helps.",
-    "helper": "Choose what feels comfortable. These are interface preferences, not medical recommendations, and you can change them later in Settings.",
+    "helper": "Choose what feels comfortable. These are interface preferences, not medical recommendations.",
     "textStyleLabel": "Reading appearance",
     "standardText": "Standard text",
     "largeText": "Larger text",
     "spacedText": "More spacing",
-    "legacyTextStyle": "Legacy custom font",
-    "legacyActive": "A custom font preference from an earlier GYLIO version is still active. You can keep it or replace it by choosing one of the options below.",
-    "textStyleHelper": "Text size and spacing can affect comfort and readability differently for different people. Choose the version that works best for you.",
+    "textStyleHelper": "Text size and spacing can affect comfort differently from person to person. Choose the version that works best for you.",
     "contrastLabel": "Contrast",
     "balancedContrast": "Use app theme",
     "highContrast": "Higher contrast",
-    "contrastHelper": "Higher contrast can make boundaries and text easier to distinguish for some people. Others prefer a softer palette, so this stays your choice.",
+    "contrastHelper": "Higher contrast can make text and controls easier to distinguish for some people; others prefer the regular theme.",
     "motionLabel": "Motion preference",
     "motionSystem": "Follow my device",
     "reducedMotion": "Reduce non-essential motion",
     "standardMotion": "Allow non-essential motion",
-    "motionHelper": "Following your device respects its reduced-motion setting. Reduced motion is especially useful when animation is distracting or causes discomfort.",
+    "motionHelper": "Following your device respects its reduced-motion setting. Reduce motion if animation distracts you or causes discomfort.",
     "tts": "Read text aloud",
-    "ttsHelper": "Optional. Studies of read-aloud and text-to-speech supports find an average reading-comprehension benefit for some readers, with substantial individual variation.",
-    "evidenceTitle": "How strong is the evidence?",
+    "ttsHelper": "Optional. Research in students with reading difficulties finds a small average comprehension benefit from read-aloud or text-to-speech support, but effects vary between readers.",
+    "evidenceTitle": "Why these choices?",
     "evidenceBody": "GYLIO follows accessibility standards for motion, resizing, contrast and user control. Reading supports can help some people but do not work the same way for everyone. We do not infer settings from a diagnosis."
   },
   "quickSetup": {
     "title": "Start with something useful",
-    "subtitle": "Both fields are optional. Skip them if you would rather explore first.",
-    "helper": "If you want, add one concrete task so something is ready to act on. The income field only creates your first Budget month.",
+    "subtitle": "Adding a first task is optional. Skip it if you would rather explore first.",
+    "helper": "If you want, add one concrete thing you would like to do first.",
     "goalLabel": "First task (optional)",
     "goalPlaceholder": "Example: Put tomorrow's documents by the door",
-    "goalHint": "Keep it concrete and doable. Across many randomized studies, goal setting has a small positive average effect on behavior, but it is not a guarantee and results vary by context.",
-    "incomeLabel": "Monthly take-home income (optional)",
-    "incomePlaceholder": "Example: 3500",
-    "incomeHint": "Used only to create a starting Budget month. GYLIO will not invent spending categories from this number.",
+    "goalHint": "Make it specific and doable so the next action is clear. This is optional; use it only if it helps you get started.",
     "preview": "What GYLIO will create",
-    "previewTask": "Task: {{goal}}",
-    "previewIncome": "Budget month with income: {{income}}",
-    "seedIncomeSource": "Monthly take-home income"
+    "previewTask": "Task: {{goal}}"
   },
   "tour": {
     "title": "Know where things are",
@@ -66,6 +57,6 @@
       "budget": "Budget — give income a job using your own categories.",
       "rewards": "Rewards — optional progress feedback you control."
     },
-    "guideLater": "The interactive Guide stays available from the header, so you do not need to memorize this now."
+    "guideLater": "The interactive Guide is available after setup, so you do not need to memorize this now."
   }
 }
