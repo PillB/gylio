@@ -6,54 +6,45 @@
   "next": "Siguiente",
   "finish": "Finalizar",
   "flow": {
-    "autosave": "Tus opciones se guardan en este dispositivo mientras avanzas.",
-    "resume": "Puedes salir y continuar después.",
-    "validationReminder": "Ingresa un monto de ingreso no negativo o déjalo en blanco."
+    "savedAndEditable": "Se guarda en este dispositivo. Puedes salir ahora y cambiar estas opciones después en Configuración."
   },
   "predictableSteps": {
     "accessibility": "Primero: elige preferencias de interfaz. Ya hay opciones neutrales seleccionadas.",
-    "quickSetup": "Luego: opcionalmente agrega una primera tarea o tu ingreso mensual neto.",
+    "quickSetup": "Luego: opcionalmente agrega una primera tarea.",
     "tour": "Al final: revisa dónde están las partes principales de GYLIO."
   },
   "accessibility": {
     "title": "Haz que GYLIO sea cómodo de usar",
     "subtitle": "Ya seleccionamos opciones neutrales. Cambia solo lo que te ayude.",
-    "helper": "Elige lo que te resulte cómodo. Estas son preferencias de interfaz, no recomendaciones médicas, y puedes cambiarlas después en Configuración.",
+    "helper": "Elige lo que te resulte cómodo. Estas son preferencias de interfaz, no recomendaciones médicas.",
     "textStyleLabel": "Apariencia de lectura",
     "standardText": "Texto estándar",
     "largeText": "Texto más grande",
     "spacedText": "Más espaciado",
-    "legacyTextStyle": "Fuente personalizada heredada",
-    "legacyActive": "Sigue activa una preferencia de fuente personalizada de una versión anterior de GYLIO. Puedes mantenerla o reemplazarla eligiendo una de las opciones de abajo.",
-    "textStyleHelper": "El tamaño y el espaciado del texto pueden afectar la comodidad y la lectura de manera distinta según la persona. Elige la versión que te funcione mejor.",
+    "textStyleHelper": "El tamaño y el espaciado pueden sentirse distintos según la persona. Elige la versión que te funcione mejor.",
     "contrastLabel": "Contraste",
     "balancedContrast": "Usar el tema de la app",
     "highContrast": "Mayor contraste",
-    "contrastHelper": "Un contraste mayor puede facilitar distinguir texto y límites de los controles para algunas personas. Otras prefieren una paleta más suave, por eso tú eliges.",
+    "contrastHelper": "Un contraste mayor puede facilitar distinguir texto y controles para algunas personas; otras prefieren el tema normal.",
     "motionLabel": "Preferencia de movimiento",
     "motionSystem": "Seguir la configuración de mi dispositivo",
     "reducedMotion": "Reducir movimiento no esencial",
     "standardMotion": "Permitir movimiento no esencial",
-    "motionHelper": "Seguir tu dispositivo respeta su configuración de movimiento reducido. Reducir movimiento es especialmente útil cuando las animaciones distraen o generan incomodidad.",
+    "motionHelper": "Seguir tu dispositivo respeta su configuración de movimiento reducido. Reduce el movimiento si las animaciones te distraen o generan incomodidad.",
     "tts": "Leer texto en voz alta",
-    "ttsHelper": "Opcional. Los estudios de lectura en voz alta y texto a voz encuentran un beneficio promedio de comprensión para algunas personas lectoras, con bastante variación individual.",
-    "evidenceTitle": "¿Qué tan sólida es la evidencia?",
+    "ttsHelper": "Opcional. Estudios en estudiantes con dificultades de lectura encuentran un beneficio promedio pequeño de comprensión con lectura en voz alta o texto a voz, pero los efectos varían entre personas.",
+    "evidenceTitle": "¿Por qué estas opciones?",
     "evidenceBody": "GYLIO sigue estándares de accesibilidad para movimiento, cambio de tamaño, contraste y control del usuario. Los apoyos de lectura pueden ayudar a algunas personas, pero no funcionan igual para todos. No inferimos ajustes a partir de un diagnóstico."
   },
   "quickSetup": {
     "title": "Empieza con algo útil",
-    "subtitle": "Ambos campos son opcionales. Puedes omitirlos si prefieres explorar primero.",
-    "helper": "Si quieres, agrega una tarea concreta para tener algo listo para hacer. El ingreso solo sirve para crear tu primer mes en Presupuesto.",
+    "subtitle": "Agregar una primera tarea es opcional. Puedes omitirla si prefieres explorar primero.",
+    "helper": "Si quieres, agrega una cosa concreta que te gustaría hacer primero.",
     "goalLabel": "Primera tarea (opcional)",
     "goalPlaceholder": "Ejemplo: Dejar junto a la puerta los documentos de mañana",
-    "goalHint": "Hazla concreta y realizable. En muchos estudios aleatorizados, fijar una meta tiene un efecto positivo promedio pequeño sobre la conducta, pero no es una garantía y los resultados varían según el contexto.",
-    "incomeLabel": "Ingreso mensual neto (opcional)",
-    "incomePlaceholder": "Ejemplo: 3500",
-    "incomeHint": "Solo se usa para crear un mes inicial en Presupuesto. GYLIO no inventará categorías de gasto a partir de este monto.",
+    "goalHint": "Hazla específica y realizable para que la siguiente acción quede clara. Es opcional; úsala solo si te ayuda a empezar.",
     "preview": "Qué creará GYLIO",
-    "previewTask": "Tarea: {{goal}}",
-    "previewIncome": "Mes de presupuesto con ingreso: {{income}}",
-    "seedIncomeSource": "Ingreso mensual neto"
+    "previewTask": "Tarea: {{goal}}"
   },
   "tour": {
     "title": "Conoce dónde está cada cosa",
@@ -66,6 +57,6 @@
       "budget": "Presupuesto — asigna tu ingreso usando tus propias categorías.",
       "rewards": "Recompensas — retroalimentación de progreso opcional que tú controlas."
     },
-    "guideLater": "La Guía interactiva seguirá disponible desde el encabezado, así que no necesitas memorizar esto ahora."
+    "guideLater": "La Guía interactiva estará disponible después de la configuración, así que no necesitas memorizar esto ahora."
   }
 }
