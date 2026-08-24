@@ -79,23 +79,45 @@ jobs:
         run: |
           set -euo pipefail
           base="${PAGE_URL%/}/"
+          origin="$(printf '%s' "$base" | sed -E 's#(https?://[^/]+).*#\1#')"
           root_file="$(mktemp)"
           guide_file="$(mktemp)"
-          trap 'rm -f "$root_file" "$guide_file"' EXIT
+          asset_file="$(mktemp)"
+          trap 'rm -f "$root_file" "$guide_file" "$asset_file"' EXIT
 
           # Pages/CDN propagation can lag the deploy API briefly. Retry the
-          # real public URLs, cache-busted with the exact verified SHA.
+          # exact public artifact. Validate only facts that exist in static
+          # HTML here; React-rendered copy belongs in Playwright, not grep.
           success=0
           for attempt in $(seq 1 12); do
             if curl --fail --silent --show-error --location \
                 "${base}?sha=${VERIFIED_SHA}" -o "$root_file" \
               && curl --fail --silent --show-error --location \
                 "${base}deployment-guide.html?sha=${VERIFIED_SHA}" -o "$guide_file" \
-              && grep -q 'Production Deployment Academy' "$root_file" \
+              && grep -q '<div id="root"></div>' "$root_file" \
               && grep -q 'gylio-guide-validated' "$guide_file" \
               && grep -q 'Shipping mobile containment gate' "$guide_file"; then
-              success=1
-              break
+
+              # Vite rewrites the module entry to a hashed asset. Resolve and
+              # download that emitted JavaScript so the smoke test proves the
+              # deployed shell points at a real compiled application bundle.
+              script_src="$(grep -oE 'src="[^"]*assets/[^"]+\.js"' "$root_file" | head -n 1 | cut -d'"' -f2 || true)"
+              asset_url=""
+              if [ -n "$script_src" ]; then
+                case "$script_src" in
+                  http://*|https://*) asset_url="$script_src" ;;
+                  /*) asset_url="${origin}${script_src}" ;;
+                  *) asset_url="${base}${script_src#./}" ;;
+                esac
+              fi
+
+              if [ -n "$asset_url" ] \
+                && curl --fail --silent --show-error --location \
+                  "${asset_url}" -o "$asset_file" \
+                && [ -s "$asset_file" ]; then
+                success=1
+                break
+              fi
             fi
             echo "Live Pages artifact not propagated yet (attempt ${attempt}/12)."
             sleep 10
@@ -107,6 +129,7 @@ jobs:
           fi
 
           echo "Live root: ${base}"
+          echo "Live app asset: ${asset_url}"
           echo "Live guide: ${base}deployment-guide.html"
           echo "Validated deployed SHA: ${VERIFIED_SHA}"
 
