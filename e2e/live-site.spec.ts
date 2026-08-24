@@ -11,14 +11,22 @@ const liveUrl = (route = '') => new URL(route.replace(/^\//, ''), LIVE_BASE).toS
 async function seedCompletedOnboarding(page: Page) {
   await page.goto(liveUrl(), { waitUntil: 'domcontentloaded' });
   await page.evaluate(() => {
+    localStorage.clear();
+    localStorage.setItem('gylio_lang', 'en');
     localStorage.setItem('onboardingFlowState', JSON.stringify({
+      schemaVersion: 5,
+      currentStep: 2,
       isOnboardingComplete: true,
-      currentStep: 4,
       selections: {
-        accessibility: { textStyle: 'normal', contrast: 'default', motion: 'full', animations: true, tts: false },
-        neurodivergence: { preset: 'none', supports: [] },
-        quickSetup: { starterGoal: '', monthlyBudget: '' },
-        tour: { acknowledged: true, reminders: false },
+        accessibility: {
+          textStyle: 'standard',
+          contrast: 'balanced',
+          motion: 'system',
+          animations: true,
+          tts: false,
+        },
+        quickSetup: { starterGoal: '' },
+        tour: {},
       },
     }));
   });
@@ -64,23 +72,53 @@ test.describe('GYLIO live GitHub Pages production audit', () => {
     }
   });
 
-  test('03 task creation persists after a real live reload', async ({ page }) => {
+  test('03 title-only Today task persists after a real live reload and confirms success', async ({ page }) => {
     await openAppRoute(page, 'tasks');
     const title = `Live validation task ${Date.now()}`;
-    const today = await page.evaluate(() => {
-      const now = new Date();
-      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-    });
-    await page.locator('#new-task').fill(title);
-    await page.locator('#planned-date').fill(today);
-    await page.locator('form button[type="submit"]').click();
-    await expect(page.getByText(title).first()).toBeVisible();
+    const form = page.locator('form').filter({ has: page.locator('#new-task') });
+
+    await expect(form.locator('#planned-date')).toBeHidden();
+    await form.locator('#new-task').fill(title);
+    await form.getByRole('button', { name: /^add task$/i }).click();
+
+    await expect(page.getByText(title, { exact: true })).toBeVisible();
+    await expect(page.getByRole('tab', { name: /^today$/i })).toHaveAttribute('aria-selected', 'true');
+    await expect(page.getByRole('status')).toContainText(/added.*today/i);
+
     await page.reload({ waitUntil: 'networkidle' });
-    await expect(page.getByText(title).first()).toBeVisible();
+    await expect(page.getByText(title, { exact: true })).toBeVisible();
     await page.screenshot({ path: path.join(screenshotDir, '03-live-task-persistence.png'), fullPage: true });
   });
 
-  test('04 primary navigation and premium-to-pricing flow work live', async ({ page }) => {
+  test('04 optional task details are progressively disclosed and No date is reversible', async ({ page }) => {
+    await openAppRoute(page, 'tasks');
+    const title = `Live backlog task ${Date.now()}`;
+    const form = page.locator('form').filter({ has: page.locator('#new-task') });
+
+    await expect(form.getByRole('button', { name: /add details/i })).toBeVisible();
+    await expect(form.locator('#planned-date')).toBeHidden();
+    await expect(form.getByText(/energy required/i)).toBeHidden();
+
+    await form.locator('#new-task').fill(title);
+    await form.getByRole('button', { name: /add details/i }).click();
+
+    const schedule = form.getByRole('group', { name: /schedule task/i });
+    await expect(schedule).toBeVisible();
+    await expect(schedule.getByRole('button', { name: /^today$/i })).toBeVisible();
+    await expect(schedule.getByRole('button', { name: /^tomorrow$/i })).toBeVisible();
+    await expect(schedule.getByRole('button', { name: /^no date$/i })).toBeVisible();
+    await expect(schedule.getByRole('button', { name: /pick date/i })).toBeVisible();
+
+    await schedule.getByRole('button', { name: /^no date$/i }).click();
+    await form.getByRole('button', { name: /^add task$/i }).click();
+    await expect(page.getByText(title, { exact: true })).toHaveCount(0);
+
+    await page.getByRole('tab', { name: /^backlog$/i }).click();
+    await expect(page.getByText(title, { exact: true })).toBeVisible();
+    await page.screenshot({ path: path.join(screenshotDir, '04-live-progressive-details.png'), fullPage: true });
+  });
+
+  test('05 primary navigation and premium-to-pricing flow work live', async ({ page }) => {
     await openAppRoute(page, 'tasks');
     const nav = page.getByRole('navigation', { name: 'Primary navigation' });
     await expect(nav).toBeVisible();
@@ -96,10 +134,10 @@ test.describe('GYLIO live GitHub Pages production audit', () => {
     await gate.getByRole('button', { name: /see plans/i }).click();
     await expect(page).toHaveURL(/\/gylio\/pricing$/);
     await expect(page.getByRole('heading', { name: /simple, honest pricing/i })).toBeVisible();
-    await page.screenshot({ path: path.join(screenshotDir, '04-live-pricing-flow.png'), fullPage: true });
+    await page.screenshot({ path: path.join(screenshotDir, '05-live-pricing-flow.png'), fullPage: true });
   });
 
-  test('05 language selection localizes visible and accessible shell and persists', async ({ page }) => {
+  test('06 language selection localizes visible and accessible shell and persists', async ({ page }) => {
     await openAppRoute(page, 'settings');
     const language = page.getByRole('combobox', { name: /select language/i }).first();
     await expect(language).toBeVisible();
@@ -109,7 +147,7 @@ test.describe('GYLIO live GitHub Pages production audit', () => {
     await expect(page.locator('footer[aria-label="Recursos del producto"]')).toBeVisible();
     await expect(page.getByText('Recursos de GYLIO')).toBeVisible();
     await expect(page.getByRole('link', { name: 'Academia de despliegue a producción' })).toBeVisible();
-    await page.screenshot({ path: path.join(screenshotDir, '05-live-es-pe-localization.png'), fullPage: true });
+    await page.screenshot({ path: path.join(screenshotDir, '06-live-es-pe-localization.png'), fullPage: true });
 
     await page.reload({ waitUntil: 'networkidle' });
     await expect(page.locator('html')).toHaveAttribute('lang', 'es-PE');
@@ -118,7 +156,7 @@ test.describe('GYLIO live GitHub Pages production audit', () => {
     await expect(page.locator('footer[aria-label="Recursos del producto"]')).toBeVisible();
   });
 
-  test('06 keyboard navigation reaches interactive UI instead of trapping focus', async ({ page }) => {
+  test('07 keyboard navigation reaches interactive UI instead of trapping focus', async ({ page }) => {
     await openAppRoute(page, 'tasks');
     const visited: string[] = [];
     for (let index = 0; index < 12; index += 1) {
@@ -132,7 +170,7 @@ test.describe('GYLIO live GitHub Pages production audit', () => {
     console.log('Keyboard focus sequence:', visited);
   });
 
-  test('07 no uncaught JavaScript errors while traversing live core routes', async ({ page }) => {
+  test('08 no uncaught JavaScript errors while traversing live core routes', async ({ page }) => {
     const errors = collectRuntimeErrors(page);
     await seedCompletedOnboarding(page);
     for (const route of ['tasks', 'calendar', 'budget', 'social', 'routines', 'rewards', 'settings', 'pricing']) {
@@ -143,7 +181,7 @@ test.describe('GYLIO live GitHub Pages production audit', () => {
     expect(errors.pageErrors, 'Uncaught browser runtime errors').toEqual([]);
   });
 
-  test('08 Deployment Academy content and persistence work on the public URL', async ({ page }) => {
+  test('09 Deployment Academy content and persistence work on the public URL', async ({ page }) => {
     await page.goto(liveUrl('deployment-guide.html'), { waitUntil: 'networkidle' });
     await expect(page.getByRole('heading', { level: 1, name: /From your laptop to a real production app/i })).toBeVisible();
     await expect(page.locator('meta[name="gylio-guide-validated"]')).toHaveAttribute('content', '2026-08-23');
@@ -167,7 +205,7 @@ test.describe('GYLIO live GitHub Pages production audit', () => {
     await expect(page.locator('#self-check-results .result')).toHaveCount(6);
   });
 
-  test('09 public guide personalization changes commands without storing secrets', async ({ page }) => {
+  test('10 public guide personalization changes commands without storing secrets', async ({ page }) => {
     await page.goto(liveUrl('deployment-guide.html'), { waitUntil: 'networkidle' });
     const domain = page.locator('[data-config="DOMAIN"]');
     await domain.fill('live-validation.example');
@@ -178,22 +216,32 @@ test.describe('GYLIO live GitHub Pages production audit', () => {
     expect(keys.join(' ')).not.toMatch(/SECRET|PASSWORD|TOKEN|MONGODB_URI|OPENAI/i);
   });
 
-  test('10 iPhone 320/390 layouts have no page-level horizontal overflow', async ({ page }) => {
+  test('11 iPhone 320/390 layouts have no page-level horizontal overflow and compact Tasks', async ({ page }) => {
     for (const viewport of [{ width: 320, height: 568 }, { width: 390, height: 844 }]) {
       await page.setViewportSize(viewport);
       await openAppRoute(page, 'tasks');
-      let dims = await page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, client: document.documentElement.clientWidth }));
+      let dims = await page.evaluate(() => ({
+        scroll: document.documentElement.scrollWidth,
+        client: document.documentElement.clientWidth,
+        height: document.documentElement.scrollHeight,
+      }));
       expect(dims.scroll).toBeLessThanOrEqual(dims.client + 1);
-      await page.screenshot({ path: path.join(screenshotDir, `10-live-tasks-${viewport.width}.png`), fullPage: true });
+      if (viewport.width === 320) expect(dims.height).toBeLessThanOrEqual(1900);
+      console.log(`Live Tasks ${viewport.width}px geometry:`, dims);
+      await page.screenshot({ path: path.join(screenshotDir, `11-live-tasks-${viewport.width}.png`), fullPage: true });
 
       await page.goto(liveUrl('deployment-guide.html'), { waitUntil: 'networkidle' });
-      dims = await page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, client: document.documentElement.clientWidth }));
+      dims = await page.evaluate(() => ({
+        scroll: document.documentElement.scrollWidth,
+        client: document.documentElement.clientWidth,
+        height: document.documentElement.scrollHeight,
+      }));
       expect(dims.scroll).toBeLessThanOrEqual(dims.client + 1);
-      await page.screenshot({ path: path.join(screenshotDir, `10-live-guide-${viewport.width}.png`), fullPage: true });
+      await page.screenshot({ path: path.join(screenshotDir, `11-live-guide-${viewport.width}.png`), fullPage: true });
     }
   });
 
-  test('11 live DOM has no duplicate IDs on audited public views', async ({ page }) => {
+  test('12 live DOM has no duplicate IDs on audited public views', async ({ page }) => {
     for (const route of ['tasks', 'calendar', 'budget', 'settings', 'pricing', 'deployment-guide.html']) {
       if (route === 'deployment-guide.html') await page.goto(liveUrl(route), { waitUntil: 'networkidle' });
       else await openAppRoute(page, route);
