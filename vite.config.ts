@@ -1,3 +1,4 @@
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { defineConfig } from 'vite';
@@ -10,24 +11,34 @@ const configuredBase = (process.env.VITE_BASE_PATH || '/gylio/').trim();
 const base = configuredBase.endsWith('/') ? configuredBase : `${configuredBase}/`;
 
 /**
- * Vite serves files from public/ at the origin root during development, while
- * the built artifact is mounted beneath `base` by static hosts such as GitHub
- * Pages. The product footer intentionally uses BASE_URL so its URL is correct
- * after build. This tiny development-only bridge makes the same URL work in
- * local/Playwright development without coupling the standalone guide to React.
+ * Vite serves public/ files from the origin root during development, while
+ * GitHub Pages mounts the built dist directory beneath the repository base.
+ * The footer intentionally points to `${base}deployment-guide.html` so the
+ * deployed URL is correct. During development/Playwright, serve that same
+ * based URL directly from public/ before Vite's SPA fallback handles it.
  */
 const deploymentGuidePublicBaseBridge = () => ({
   name: 'deployment-guide-public-base-bridge',
   configureServer(server) {
     if (base === '/') return;
+
     const basedGuidePath = `${base}deployment-guide.html`.replace(/\/{2,}/g, '/');
-    server.middlewares.use((req, _res, next) => {
+    const guideFile = path.resolve(__dirname, 'public', 'deployment-guide.html');
+
+    server.middlewares.use((req, res, next) => {
       if (!req.url) return next();
-      const [pathname, query] = req.url.split('?', 2);
-      if (pathname === basedGuidePath) {
-        req.url = `/deployment-guide.html${query ? `?${query}` : ''}`;
+      const pathname = req.url.split('?', 1)[0];
+      if (pathname !== basedGuidePath) return next();
+
+      try {
+        const html = fs.readFileSync(guideFile, 'utf8');
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        res.setHeader('Cache-Control', 'no-store');
+        res.end(html);
+      } catch (error) {
+        next(error);
       }
-      next();
     });
   },
 });
