@@ -19,7 +19,10 @@ export type SupportProfileConfig = {
  */
 export const SUPPORT_PROFILES: Record<SupportProfileKey, SupportProfileConfig> = {
   focus: {
-    textStyle: 'large',
+    // Whitespace plus reduced non-essential motion is a lower-distraction
+    // experiment. We deliberately do not imply that larger text treats
+    // attention difficulties.
+    textStyle: 'spaced',
     contrast: 'balanced',
     motion: 'reduced',
     animations: false,
