@@ -1,45 +1,37 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { useTheme } from '../../core/context/ThemeContext';
 
-function MiniTour({ data, onUpdate, t }) {
+function MiniTour({ t }) {
+  const { theme } = useTheme();
+
   return (
-    <div style={{ display: 'grid', gap: '0.75rem' }}>
-      <p style={{ margin: 0, color: '#4a4a4a' }}>{t('onboarding.tour.helper')}</p>
-      <p style={{ margin: 0, color: '#333' }}>{t('onboarding.tour.summary')}</p>
-      <ul style={{ margin: 0, paddingLeft: '1.2rem', color: '#444' }}>
+    <div style={{ display: 'grid', gap: theme.spacing.md }}>
+      <p style={{ margin: 0, color: theme.colors.text }}>{t('onboarding.tour.helper')}</p>
+      <p style={{ margin: 0, color: theme.colors.muted }}>{t('onboarding.tour.summary')}</p>
+      <ul style={{ margin: 0, paddingLeft: '1.25rem', color: theme.colors.text }}>
         <li>{t('onboarding.tour.items.tasks')}</li>
         <li>{t('onboarding.tour.items.calendar')}</li>
         <li>{t('onboarding.tour.items.budget')}</li>
         <li>{t('onboarding.tour.items.rewards')}</li>
       </ul>
-
-      <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-        <input
-          type="checkbox"
-          checked={data.reminders}
-          onChange={(e) => onUpdate({ reminders: e.target.checked })}
-        />
-        <span>{t('onboarding.tour.reminders')}</span>
-      </label>
-
-      <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-        <input
-          type="checkbox"
-          checked={data.acknowledged}
-          onChange={(e) => onUpdate({ acknowledged: e.target.checked })}
-        />
-        <span>{t('onboarding.tour.acknowledge')}</span>
-      </label>
+      <p
+        style={{
+          margin: 0,
+          padding: theme.spacing.md,
+          borderRadius: theme.shape.radiusSm,
+          background: theme.colors.background,
+          color: theme.colors.muted,
+          border: `1px solid ${theme.colors.border}`
+        }}
+      >
+        {t('onboarding.tour.guideLater')}
+      </p>
     </div>
   );
 }
 
 MiniTour.propTypes = {
-  data: PropTypes.shape({
-    acknowledged: PropTypes.bool,
-    reminders: PropTypes.bool
-  }).isRequired,
-  onUpdate: PropTypes.func.isRequired,
   t: PropTypes.func.isRequired
 };
 
