@@ -40,14 +40,14 @@ import { track, Events } from './core/analytics';
 import GuidedTourOverlay from './components/GuidedTourOverlay';
 import { useGuidedTour } from './core/context/GuidedTourContext';
 
-// --- Header ---
-
 function AppHeader({ clerkEnabled }) {
   const { t } = useTranslation();
   const { selections, updateSelections } = useOnboardingFlow();
   const { theme } = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
   const { tourState, startTour } = useGuidedTour();
+  const isOnboarding = location.pathname === '/onboarding';
 
   const ttsEnabled = selections?.accessibility?.tts ?? false;
   const toggleTts = () => updateSelections('accessibility', { tts: !ttsEnabled });
@@ -99,47 +99,51 @@ function AppHeader({ clerkEnabled }) {
       </div>
 
       <div style={{ display: 'flex', gap: theme.spacing.sm, alignItems: 'center', flexWrap: 'wrap' }}>
-        <DateTimeWidget />
-        <button
-          type="button"
-          onClick={startTour}
-          aria-label={tourState.active ? t('tour.activeAria', 'Tour active') : tourState.completed ? t('tour.restartAria', 'Restart guide') : t('tour.startAria', 'Start interactive guide')}
-          title={tourState.completed ? t('tour.restartButton', 'Restart guide') : t('tour.startButton', 'Start guide')}
-          style={{
-            padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
-            border: `1px solid ${tourState.active ? theme.colors.primary : theme.colors.border}`,
-            borderRadius: theme.shape.radiusFull,
-            cursor: 'pointer',
-            background: tourState.active ? theme.colors.overlay : 'transparent',
-            color: tourState.active ? theme.colors.primary : theme.colors.muted,
-            fontFamily: theme.typography.body.family,
-            fontSize: '0.8125rem',
-            fontWeight: tourState.active ? 600 : 400,
-            transition: 'all 150ms',
-          }}
-        >
-          ? {tourState.active ? t('tour.activeLabel', 'Guide on') : t('tour.startButton', 'Guide')}
-        </button>
+        {!isOnboarding && <DateTimeWidget />}
+        {!isOnboarding && (
+          <button
+            type="button"
+            onClick={startTour}
+            aria-label={tourState.active ? t('tour.activeAria', 'Tour active') : tourState.completed ? t('tour.restartAria', 'Restart guide') : t('tour.startAria', 'Start interactive guide')}
+            title={tourState.completed ? t('tour.restartButton', 'Restart guide') : t('tour.startButton', 'Start guide')}
+            style={{
+              padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
+              border: `1px solid ${tourState.active ? theme.colors.primary : theme.colors.border}`,
+              borderRadius: theme.shape.radiusFull,
+              cursor: 'pointer',
+              background: tourState.active ? theme.colors.overlay : 'transparent',
+              color: tourState.active ? theme.colors.primary : theme.colors.muted,
+              fontFamily: theme.typography.body.family,
+              fontSize: '0.8125rem',
+              fontWeight: tourState.active ? 600 : 400,
+              transition: 'all 150ms',
+            }}
+          >
+            ? {tourState.active ? t('tour.activeLabel', 'Guide on') : t('tour.startButton', 'Guide')}
+          </button>
+        )}
         <LanguageToggle placement="header" />
-        <button
-          type="button"
-          onClick={toggleTts}
-          aria-label={t('onboarding.ttsToggle.aria')}
-          style={{
-            padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
-            border: `1px solid ${theme.colors.border}`,
-            borderRadius: theme.shape.radiusFull,
-            cursor: 'pointer',
-            background: ttsEnabled ? theme.colors.overlay : 'transparent',
-            color: ttsEnabled ? theme.colors.primary : theme.colors.muted,
-            fontFamily: theme.typography.body.family,
-            fontSize: '0.8125rem',
-            fontWeight: ttsEnabled ? 600 : 400,
-          }}
-        >
-          {ttsEnabled ? '🔊' : '🔇'} {t('onboarding.accessibility.tts')}
-        </button>
-        {clerkEnabled && (
+        {!isOnboarding && (
+          <button
+            type="button"
+            onClick={toggleTts}
+            aria-label={t('onboarding.ttsToggle.aria')}
+            style={{
+              padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
+              border: `1px solid ${theme.colors.border}`,
+              borderRadius: theme.shape.radiusFull,
+              cursor: 'pointer',
+              background: ttsEnabled ? theme.colors.overlay : 'transparent',
+              color: ttsEnabled ? theme.colors.primary : theme.colors.muted,
+              fontFamily: theme.typography.body.family,
+              fontSize: '0.8125rem',
+              fontWeight: ttsEnabled ? 600 : 400,
+            }}
+          >
+            {ttsEnabled ? '🔊' : '🔇'} {t('onboarding.accessibility.tts')}
+          </button>
+        )}
+        {clerkEnabled && !isOnboarding && (
           <>
             <SubscriptionBadge />
             <UserButton afterSignOutUrl={`${import.meta.env.BASE_URL}sign-in`} />
@@ -269,9 +273,9 @@ function OnboardingRoute() {
       );
 
       if (!hasGoalTask) {
-        // Onboarding promises that the starter action is ready when setup ends.
-        // The Tasks destination opens on Today, so seed this one task onto the
-        // user's local calendar day instead of creating an invisible backlog item.
+        // The destination opens on Today. Scheduling the optional starter task
+        // for the user's local day keeps the onboarding promise that it will be
+        // immediately visible and actionable when setup finishes.
         await insertTask(starterGoal, 'pending', [], getLocalDateKey(), null, null);
       }
     },
