@@ -37,8 +37,10 @@ function AccessibilityPrefs({ data, onUpdate, t }) {
 
   const selectMotion = (motion) => {
     setMotionPreference(motion);
-    if (motion === 'reduced') setAnimationsEnabled(false);
-    if (motion === 'standard') setAnimationsEnabled(true);
+    // "Follow my device" delegates the effective reduction to the operating
+    // system; the explicit animation switch therefore returns to enabled.
+    // Choosing reduced motion intentionally disables non-essential animation.
+    setAnimationsEnabled(motion !== 'reduced');
   };
 
   const choiceGroup = (label, options, selectedValue, onSelect) => (
@@ -63,6 +65,22 @@ function AccessibilityPrefs({ data, onUpdate, t }) {
   return (
     <div style={{ display: 'grid', gap: theme.spacing.lg }}>
       <p style={{ margin: 0, color: theme.colors.text }}>{t('onboarding.accessibility.helper')}</p>
+
+      {data.textStyle === 'dyslexic' && (
+        <p
+          role="status"
+          style={{
+            margin: 0,
+            padding: theme.spacing.md,
+            border: `1px solid ${theme.colors.border}`,
+            borderRadius: theme.shape.radiusSm,
+            color: theme.colors.muted,
+            background: theme.colors.background
+          }}
+        >
+          {t('onboarding.accessibility.legacyActive')}
+        </p>
+      )}
 
       {choiceGroup(
         t('onboarding.accessibility.textStyleLabel'),
