@@ -8,7 +8,7 @@ import React, {
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export const ONBOARDING_SCHEMA_VERSION = 4;
+export const ONBOARDING_SCHEMA_VERSION = 5;
 export const stepOrder = ['accessibility', 'quickSetup', 'tour'];
 
 const defaultSelections = {
@@ -20,8 +20,7 @@ const defaultSelections = {
     tts: false
   },
   quickSetup: {
-    starterGoal: '',
-    monthlyIncome: ''
+    starterGoal: ''
   },
   tour: {}
 };
@@ -51,25 +50,26 @@ const normalizeAccessibility = (value = {}) => ({
   tts: Boolean(value.tts)
 });
 
+const clampCurrentStep = (currentStep) => {
+  const step = Number.isFinite(Number(currentStep)) ? Number(currentStep) : 0;
+  return Math.min(Math.max(step, 0), stepOrder.length - 1);
+};
+
 const migrateCurrentStep = (schemaVersion, currentStep) => {
   const step = Number.isFinite(Number(currentStep)) ? Number(currentStep) : 0;
 
-  if (schemaVersion >= ONBOARDING_SCHEMA_VERSION) {
-    return Math.min(Math.max(step, 0), stepOrder.length - 1);
+  // v2, v4 and v5 already use the same three logical destinations.
+  if (schemaVersion === 2 || schemaVersion >= 4) {
+    return clampCurrentStep(step);
   }
 
   if (schemaVersion === 3) {
     // v3: accessibility → support profile → quick setup → orientation.
-    // The support-profile screen is removed in v4 because it duplicated and
-    // could overwrite the direct preferences selected one screen earlier.
+    // The support-profile screen is removed because it duplicated and could
+    // overwrite direct preferences selected one screen earlier.
     if (step <= 0) return 0;
     if (step === 1 || step === 2) return 1;
     return 2;
-  }
-
-  if (schemaVersion === 2) {
-    // v2 already had the same three logical destinations.
-    return Math.min(Math.max(step, 0), stepOrder.length - 1);
   }
 
   // v1: accessibility → diagnosis-labelled preset → quick setup → tour.
@@ -87,13 +87,6 @@ const migratePersistedState = (persistedState) => {
   const legacyQuickSetup = selections.quickSetup ?? {};
   const schemaVersion = Number(persistedState.schemaVersion ?? 1);
 
-  // `monthlyBudget` from older schemas had different semantics. Never silently
-  // reinterpret it as take-home income; only preserve the explicitly named
-  // `monthlyIncome` field introduced by the evidence-calibrated flow.
-  const monthlyIncome = Object.prototype.hasOwnProperty.call(legacyQuickSetup, 'monthlyIncome')
-    ? legacyQuickSetup.monthlyIncome
-    : '';
-
   return {
     schemaVersion: ONBOARDING_SCHEMA_VERSION,
     currentStep: migrateCurrentStep(schemaVersion, persistedState.currentStep),
@@ -102,9 +95,11 @@ const migratePersistedState = (persistedState) => {
       // preserving this object keeps the user's actual choices without keeping
       // the redundant profile label itself.
       accessibility: normalizeAccessibility(selections.accessibility),
+      // v5 intentionally collects only an optional first action. Legacy budget
+      // or income fields are dropped from onboarding instead of being silently
+      // reinterpreted or kept as unnecessary setup data.
       quickSetup: {
-        starterGoal: String(legacyQuickSetup.starterGoal ?? ''),
-        monthlyIncome
+        starterGoal: String(legacyQuickSetup.starterGoal ?? '')
       },
       tour: {}
     },
