@@ -3,11 +3,13 @@ import PropTypes from 'prop-types';
 import { SUPPORT_PROFILES } from '../utils/supportProfiles';
 import { useTheme } from '../../core/context/ThemeContext';
 import useAccessibility from '../../core/hooks/useAccessibility';
+import useOnboardingFlow from '../../hooks/useOnboardingFlow.jsx';
 
 const PROFILE_KEYS = ['focus', 'quiet', 'reading', 'visibility'];
 
 function SupportProfiles({ data, onUpdate, t }) {
   const { theme, mode, setTheme } = useTheme();
+  const { updateSelections } = useOnboardingFlow();
   const {
     setTextStylePreference,
     setMotionPreference,
@@ -22,10 +24,8 @@ function SupportProfiles({ data, onUpdate, t }) {
     setMotionPreference(profile.motion);
     setAnimationsEnabled(profile.animations);
     setTtsEnabled(profile.tts);
+    updateSelections('accessibility', { contrast: profile.contrast });
 
-    // Contrast is stored in onboarding state because it is part of the visible
-    // preference set. Only the dedicated high-contrast profile changes theme.
-    onUpdate({ profile: key, contrast: profile.contrast });
     if (profile.theme) {
       setTheme(profile.theme);
     } else if (mode === 'highContrast') {
@@ -103,8 +103,7 @@ function SupportProfiles({ data, onUpdate, t }) {
 
 SupportProfiles.propTypes = {
   data: PropTypes.shape({
-    profile: PropTypes.string,
-    contrast: PropTypes.string
+    profile: PropTypes.string
   }).isRequired,
   onUpdate: PropTypes.func.isRequired,
   t: PropTypes.func.isRequired
