@@ -8,10 +8,8 @@ import React, {
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export const ONBOARDING_SCHEMA_VERSION = 3;
-export const stepOrder = ['accessibility', 'supportProfile', 'quickSetup', 'tour'];
-
-const PROFILE_KEYS = ['keep', 'focus', 'quiet', 'reading', 'visibility'];
+export const ONBOARDING_SCHEMA_VERSION = 4;
+export const stepOrder = ['accessibility', 'quickSetup', 'tour'];
 
 const defaultSelections = {
   accessibility: {
@@ -20,9 +18,6 @@ const defaultSelections = {
     motion: 'system',
     animations: true,
     tts: false
-  },
-  supportProfile: {
-    profile: 'keep'
   },
   quickSetup: {
     starterGoal: '',
@@ -44,6 +39,9 @@ const createInitialState = () => ({
 });
 
 const normalizeAccessibility = (value = {}) => ({
+  // Legacy diagnosis-specific font choices are intentionally normalized to a
+  // neutral reading style. Current users can choose standard, larger, or
+  // spaced text directly based on preference rather than diagnosis.
   textStyle: ['standard', 'large', 'spaced'].includes(value.textStyle)
     ? value.textStyle
     : 'standard',
@@ -53,26 +51,33 @@ const normalizeAccessibility = (value = {}) => ({
   tts: Boolean(value.tts)
 });
 
-const normalizeProfile = (selections = {}) => {
-  const value = selections.supportProfile?.profile;
-  return PROFILE_KEYS.includes(value) ? value : 'keep';
-};
-
 const migrateCurrentStep = (schemaVersion, currentStep) => {
   const step = Number.isFinite(Number(currentStep)) ? Number(currentStep) : 0;
-  if (schemaVersion >= 3) return Math.min(Math.max(step, 0), stepOrder.length - 1);
 
-  // Schema v2 temporarily had three screens: accessibility, quickSetup, tour.
-  if (schemaVersion === 2) {
-    if (step <= 0) return 0;
-    if (step === 1) return 2;
-    return 3;
+  if (schemaVersion >= ONBOARDING_SCHEMA_VERSION) {
+    return Math.min(Math.max(step, 0), stepOrder.length - 1);
   }
 
-  // Schema v1 had four screens with a diagnosis-labelled preset screen at
-  // index 1. Preserve the user's position but replace that screen with the
-  // optional, preference-based support-profile screen.
-  return Math.min(Math.max(step, 0), stepOrder.length - 1);
+  if (schemaVersion === 3) {
+    // v3: accessibility → support profile → quick setup → orientation.
+    // The support-profile screen is removed in v4 because it duplicated and
+    // could overwrite the direct preferences selected one screen earlier.
+    if (step <= 0) return 0;
+    if (step === 1 || step === 2) return 1;
+    return 2;
+  }
+
+  if (schemaVersion === 2) {
+    // v2 already had the same three logical destinations.
+    return Math.min(Math.max(step, 0), stepOrder.length - 1);
+  }
+
+  // v1: accessibility → diagnosis-labelled preset → quick setup → tour.
+  // Skip the retired diagnosis screen while preserving the nearest useful
+  // destination for someone resuming an unfinished flow.
+  if (step <= 0) return 0;
+  if (step === 1 || step === 2) return 1;
+  return 2;
 };
 
 const migratePersistedState = (persistedState) => {
@@ -81,6 +86,10 @@ const migratePersistedState = (persistedState) => {
   const selections = persistedState.selections ?? {};
   const legacyQuickSetup = selections.quickSetup ?? {};
   const schemaVersion = Number(persistedState.schemaVersion ?? 1);
+
+  // `monthlyBudget` from older schemas had different semantics. Never silently
+  // reinterpret it as take-home income; only preserve the explicitly named
+  // `monthlyIncome` field introduced by the evidence-calibrated flow.
   const monthlyIncome = Object.prototype.hasOwnProperty.call(legacyQuickSetup, 'monthlyIncome')
     ? legacyQuickSetup.monthlyIncome
     : '';
@@ -89,8 +98,10 @@ const migratePersistedState = (persistedState) => {
     schemaVersion: ONBOARDING_SCHEMA_VERSION,
     currentStep: migrateCurrentStep(schemaVersion, persistedState.currentStep),
     selections: {
+      // v3 support profiles wrote their applied values into accessibility, so
+      // preserving this object keeps the user's actual choices without keeping
+      // the redundant profile label itself.
       accessibility: normalizeAccessibility(selections.accessibility),
-      supportProfile: { profile: normalizeProfile(selections) },
       quickSetup: {
         starterGoal: String(legacyQuickSetup.starterGoal ?? ''),
         monthlyIncome
