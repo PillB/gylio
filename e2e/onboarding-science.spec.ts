@@ -1,21 +1,23 @@
 import { expect, test, type Page } from '@playwright/test';
 
 async function startFreshOnboarding(page: Page) {
-  await page.goto('/gylio/onboarding');
+  // Seed storage before React mounts so the onboarding provider cannot race the
+  // test fixture by persisting an already-mounted state between clear + reload.
+  await page.goto('/gylio/deployment-guide.html', { waitUntil: 'domcontentloaded' });
   await page.evaluate(() => {
     localStorage.removeItem('onboardingFlowState');
     localStorage.setItem('gylio_lang', 'en');
   });
-  await page.reload({ waitUntil: 'networkidle' });
+  await page.goto('/gylio/onboarding', { waitUntil: 'networkidle' });
   await expect(page).toHaveURL(/\/gylio\/onboarding$/);
 }
 
 async function seedCompletedOnboarding(page: Page) {
-  await page.goto('/gylio/');
+  await page.goto('/gylio/deployment-guide.html', { waitUntil: 'domcontentloaded' });
   await page.evaluate(() => {
     localStorage.setItem('gylio_lang', 'en');
     localStorage.setItem('onboardingFlowState', JSON.stringify({
-      schemaVersion: 4,
+      schemaVersion: 5,
       currentStep: 2,
       isOnboardingComplete: true,
       selections: {
@@ -26,12 +28,12 @@ async function seedCompletedOnboarding(page: Page) {
           animations: true,
           tts: false
         },
-        quickSetup: { starterGoal: '', monthlyIncome: '' },
+        quickSetup: { starterGoal: '' },
         tour: {}
       }
     }));
   });
-  await page.reload({ waitUntil: 'networkidle' });
+  await page.goto('/gylio/', { waitUntil: 'networkidle' });
   await expect(page).toHaveURL(/\/gylio\/tasks$/);
 }
 
@@ -60,7 +62,16 @@ test.describe('evidence-calibrated onboarding', () => {
     await expect(page.getByRole('button', { name: /next/i })).toBeEnabled();
   });
 
-  test('goes directly from interface preferences to optional starter data', async ({ page }) => {
+  test('keeps onboarding focused by hiding duplicate Guide and header TTS controls', async ({ page }) => {
+    await startFreshOnboarding(page);
+    const header = page.locator('header');
+
+    await expect(header.getByText(/guide/i)).toHaveCount(0);
+    await expect(header.getByText(/read text aloud/i)).toHaveCount(0);
+    await expect(page.getByRole('checkbox', { name: /read text aloud/i })).toHaveCount(1);
+  });
+
+  test('goes directly from interface preferences to one optional starter action', async ({ page }) => {
     await startFreshOnboarding(page);
     await page.getByRole('button', { name: /next/i }).click();
 
@@ -69,8 +80,8 @@ test.describe('evidence-calibrated onboarding', () => {
     await expect(page.getByRole('heading', { name: /starter support profile/i })).toHaveCount(0);
     await expect(page.getByText(/focus-friendly|quiet motion|reading support|high visibility/i)).toHaveCount(0);
     await expect(page.getByLabel(/first task.*optional/i)).toBeVisible();
-    await expect(page.getByLabel(/monthly take-home income.*optional/i)).toBeVisible();
-    await expect(page.getByText(/will not invent spending categories/i)).toBeVisible();
+    await expect(page.getByLabel(/monthly take-home income/i)).toHaveCount(0);
+    await expect(page.getByText(/specific.*doable/i)).toBeVisible();
     await expect(page.getByRole('button', { name: /next/i })).toBeEnabled();
   });
 
@@ -107,17 +118,22 @@ test.describe('evidence-calibrated onboarding', () => {
     await expect.poll(() => page.evaluate(() => localStorage.getItem('theme-mode'))).not.toBe('highContrast');
   });
 
-  test('keeps starter task and income optional and validates only entered income', async ({ page }) => {
+  test('calibrates read-aloud evidence to the studied population instead of promising a general benefit', async ({ page }) => {
+    await startFreshOnboarding(page);
+    await expect(page.getByText(/students with reading difficulties/i)).toBeVisible();
+    await expect(page.getByText(/effects vary/i)).toBeVisible();
+  });
+
+  test('starter action is optional and a supplied action is actually created after onboarding', async ({ page }) => {
     await startFreshOnboarding(page);
     await page.getByRole('button', { name: /next/i }).click();
 
-    const income = page.getByLabel(/monthly take-home income.*optional/i);
-    await expect(page.getByRole('button', { name: /next/i })).toBeEnabled();
-    await income.fill('-1');
-    await expect(page.getByRole('button', { name: /next/i })).toBeDisabled();
-    await expect(page.getByText(/non-negative income/i)).toBeVisible();
-    await income.fill('3500');
-    await expect(page.getByRole('button', { name: /next/i })).toBeEnabled();
+    await page.getByLabel(/first task.*optional/i).fill('Put tomorrow documents by the door');
+    await page.getByRole('button', { name: /next/i }).click();
+    await page.getByRole('button', { name: /finish/i }).click();
+
+    await expect(page).toHaveURL(/\/gylio\/tasks$/);
+    await expect(page.getByText('Put tomorrow documents by the door', { exact: true })).toBeVisible();
   });
 
   test('finishes with orientation only, without reminder or acknowledgement collection', async ({ page }) => {
@@ -151,19 +167,24 @@ test.describe('evidence-calibrated onboarding', () => {
     ]);
   });
 
-  test('all onboarding screens fit 320px and 390px viewports without page overflow', async ({ page }) => {
+  test('all onboarding screens fit 320px and 390px viewports and emit screenshot evidence', async ({ page }, testInfo) => {
     for (const viewport of [{ width: 320, height: 568 }, { width: 390, height: 844 }]) {
       await page.setViewportSize(viewport);
       await startFreshOnboarding(page);
       await expectNoHorizontalOverflow(page);
+      await page.screenshot({ path: testInfo.outputPath(`onboarding-${viewport.width}-step-1.png`), fullPage: true });
+
       await page.getByRole('button', { name: /next/i }).click();
       await expectNoHorizontalOverflow(page);
+      await page.screenshot({ path: testInfo.outputPath(`onboarding-${viewport.width}-step-2.png`), fullPage: true });
+
       await page.getByRole('button', { name: /next/i }).click();
       await expectNoHorizontalOverflow(page);
+      await page.screenshot({ path: testInfo.outputPath(`onboarding-${viewport.width}-step-3.png`), fullPage: true });
     }
   });
 
-  test('localizes the minimal evidence-calibrated flow in Peruvian Spanish', async ({ page }) => {
+  test('localizes the minimized evidence-calibrated flow in Peruvian Spanish', async ({ page }) => {
     await startFreshOnboarding(page);
 
     const language = page.getByRole('combobox', { name: /select language/i }).first();
@@ -176,7 +197,7 @@ test.describe('evidence-calibrated onboarding', () => {
     await page.getByRole('button', { name: /siguiente/i }).click();
     await expect(page.getByText(/paso 2 de 3/i)).toBeVisible();
     await expect(page.getByLabel(/primera tarea.*opcional/i)).toBeVisible();
-    await expect(page.getByLabel(/ingreso mensual neto.*opcional/i)).toBeVisible();
+    await expect(page.getByLabel(/ingreso mensual neto/i)).toHaveCount(0);
     await expect(page.getByText(/perfil inicial de apoyo|favorecer el enfoque|apoyo para la lectura/i)).toHaveCount(0);
 
     await page.getByRole('button', { name: /siguiente/i }).click();
