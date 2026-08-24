@@ -10,15 +10,58 @@ on:
 
 permissions:
   contents: read
-  statuses: write
+  statuses: read
 
 concurrency:
   group: live-production-validation-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  TARGET_RELEASE_SHA: f70dde1cfa9c2fda37741282ccb916df7445740d
+
 jobs:
+  release-ready:
+    name: Exact deployed release gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: read
+      statuses: read
+    steps:
+      - name: Require target SHA to remain current main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          main_sha="$(gh api "/repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq '.object.sha')"
+          echo "Current main:  ${main_sha}"
+          echo "Target release: ${TARGET_RELEASE_SHA}"
+          test "$main_sha" = "$TARGET_RELEASE_SHA"
+
+      - name: Wait for exact Pages live validation status
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 30); do
+            state="$(gh api "/repos/${GITHUB_REPOSITORY}/commits/${TARGET_RELEASE_SHA}/status" \
+              --jq '[.statuses[] | select(.context == "pages-live")][0].state // "missing"')"
+            echo "pages-live=${state} (attempt ${attempt}/30)"
+            if [ "$state" = "success" ]; then
+              exit 0
+            fi
+            if [ "$state" = "failure" ] || [ "$state" = "error" ]; then
+              echo "Exact Pages deployment has a failing live status."
+              exit 1
+            fi
+            sleep 10
+          done
+          echo "Timed out waiting for pages-live success on ${TARGET_RELEASE_SHA}."
+          exit 1
+
   python-live:
     name: Python HTTP/content validation
+    needs: release-ready
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -44,6 +87,7 @@ jobs:
 
   playwright-live:
     name: Playwright live user-flow validation
+    needs: release-ready
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
@@ -83,7 +127,7 @@ jobs:
   publish-status:
     name: Publish auditable validation status
     if: always()
-    needs: [python-live, playwright-live]
+    needs: [release-ready, python-live, playwright-live]
     runs-on: ubuntu-latest
     permissions:
       statuses: write
@@ -91,15 +135,16 @@ jobs:
       - name: Publish commit status with workflow link
         env:
           GH_TOKEN: ${{ github.token }}
+          RELEASE_RESULT: ${{ needs.release-ready.result }}
           PYTHON_RESULT: ${{ needs.python-live.result }}
           PLAYWRIGHT_RESULT: ${{ needs.playwright-live.result }}
           STATUS_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           state=success
-          if [ "$PYTHON_RESULT" != "success" ] || [ "$PLAYWRIGHT_RESULT" != "success" ]; then
+          if [ "$RELEASE_RESULT" != "success" ] || [ "$PYTHON_RESULT" != "success" ] || [ "$PLAYWRIGHT_RESULT" != "success" ]; then
             state=failure
           fi
-          description="Python=$PYTHON_RESULT; Playwright=$PLAYWRIGHT_RESULT"
+          description="Release=$RELEASE_RESULT; Python=$PYTHON_RESULT; Playwright=$PLAYWRIGHT_RESULT"
           target_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
           python - "$state" "$description" "$target_url" <<'PY' > status.json
           import json, sys
