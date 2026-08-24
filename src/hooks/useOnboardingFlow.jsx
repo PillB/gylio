@@ -81,6 +81,9 @@ const migratePersistedState = (persistedState) => {
   const selections = persistedState.selections ?? {};
   const legacyQuickSetup = selections.quickSetup ?? {};
   const schemaVersion = Number(persistedState.schemaVersion ?? 1);
+  const monthlyIncome = Object.prototype.hasOwnProperty.call(legacyQuickSetup, 'monthlyIncome')
+    ? legacyQuickSetup.monthlyIncome
+    : '';
 
   return {
     schemaVersion: ONBOARDING_SCHEMA_VERSION,
@@ -90,7 +93,7 @@ const migratePersistedState = (persistedState) => {
       supportProfile: { profile: normalizeProfile(selections) },
       quickSetup: {
         starterGoal: String(legacyQuickSetup.starterGoal ?? ''),
-        monthlyIncome: legacyQuickSetup.monthlyIncome ?? legacyQuickSetup.monthlyBudget ?? ''
+        monthlyIncome
       },
       tour: {}
     },
