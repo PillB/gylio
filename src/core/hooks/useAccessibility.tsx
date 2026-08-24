@@ -31,7 +31,7 @@ type AccessibilityContextValue = {
 };
 
 type MotionPreference = 'system' | 'reduced' | 'standard' | '';
-type TextStylePreference = 'dyslexic' | 'standard' | 'large' | '';
+type TextStylePreference = 'dyslexic' | 'standard' | 'large' | 'spaced' | '';
 
 const AccessibilityContext = createContext<AccessibilityContextValue | null>(null);
 
@@ -63,7 +63,7 @@ function useAccessibilityInternal(): AccessibilityContextValue {
     [selections]
   );
   const textStylePreference = useMemo<TextStylePreference>(
-    () => selections?.accessibility?.textStyle ?? 'standard',
+    () => (selections?.accessibility?.textStyle ?? 'standard') as TextStylePreference,
     [selections]
   );
 
@@ -135,20 +135,28 @@ function useAccessibilityInternal(): AccessibilityContextValue {
 
   useEffect(() => {
     if (typeof document === 'undefined') return;
-    // Legacy support: existing users may still have the historical dyslexic
-    // preference saved. New onboarding no longer recommends a diagnosis-specific font.
+
+    // Always clear presentation properties before applying the selected mode so
+    // switching between options is fully reversible.
+    document.documentElement.style.setProperty('--font-body', '');
+    document.body.style.fontFamily = '';
+    document.body.style.fontSize = '';
+    document.body.style.lineHeight = '';
+    document.body.style.letterSpacing = '';
+    document.body.style.wordSpacing = '';
+
+    // Legacy support only: users from older releases may still have the old
+    // diagnosis-labelled font preference saved. New onboarding does not offer
+    // or recommend a dyslexia-specific font because aggregate evidence is mixed.
     if (textStylePreference === 'dyslexic') {
       document.documentElement.style.setProperty('--font-body', "'OpenDyslexic', 'Open Sans', system-ui, sans-serif");
       document.body.style.fontFamily = "'OpenDyslexic', 'Open Sans', system-ui, sans-serif";
-      document.body.style.fontSize = '';
     } else if (textStylePreference === 'large') {
-      document.documentElement.style.setProperty('--font-body', '');
-      document.body.style.fontFamily = '';
       document.body.style.fontSize = '20px';
-    } else {
-      document.documentElement.style.setProperty('--font-body', '');
-      document.body.style.fontFamily = '';
-      document.body.style.fontSize = '';
+    } else if (textStylePreference === 'spaced') {
+      document.body.style.lineHeight = '1.65';
+      document.body.style.letterSpacing = '0.025em';
+      document.body.style.wordSpacing = '0.08em';
     }
   }, [textStylePreference]);
 
