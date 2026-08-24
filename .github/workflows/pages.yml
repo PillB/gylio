@@ -59,12 +59,77 @@ jobs:
       contents: read
       pages: write
       id-token: write
+      statuses: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     needs: build
+    env:
+      VERIFIED_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Validate live Pages artifact
+        id: live
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          set -euo pipefail
+          base="${PAGE_URL%/}/"
+          root_file="$(mktemp)"
+          guide_file="$(mktemp)"
+          trap 'rm -f "$root_file" "$guide_file"' EXIT
+
+          # Pages/CDN propagation can lag the deploy API briefly. Retry the
+          # real public URLs, cache-busted with the exact verified SHA.
+          success=0
+          for attempt in $(seq 1 12); do
+            if curl --fail --silent --show-error --location \
+                "${base}?sha=${VERIFIED_SHA}" -o "$root_file" \
+              && curl --fail --silent --show-error --location \
+                "${base}deployment-guide.html?sha=${VERIFIED_SHA}" -o "$guide_file" \
+              && grep -q 'Production Deployment Academy' "$root_file" \
+              && grep -q 'gylio-guide-validated' "$guide_file" \
+              && grep -q 'Shipping mobile containment gate' "$guide_file"; then
+              success=1
+              break
+            fi
+            echo "Live Pages artifact not propagated yet (attempt ${attempt}/12)."
+            sleep 10
+          done
+
+          if [ "$success" -ne 1 ]; then
+            echo "Live Pages validation failed after propagation retries."
+            exit 1
+          fi
+
+          echo "Live root: ${base}"
+          echo "Live guide: ${base}deployment-guide.html"
+          echo "Validated deployed SHA: ${VERIFIED_SHA}"
+
+      - name: Publish live deployment success status
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          gh api --method POST \
+            "/repos/${GITHUB_REPOSITORY}/statuses/${VERIFIED_SHA}" \
+            -f state=success \
+            -f context=pages-live \
+            -f description='GitHub Pages live smoke validation passed' \
+            -f target_url="${PAGE_URL}"
+
+      - name: Publish live deployment failure status
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --method POST \
+            "/repos/${GITHUB_REPOSITORY}/statuses/${VERIFIED_SHA}" \
+            -f state=failure \
+            -f context=pages-live \
+            -f description='GitHub Pages live smoke validation failed'
