@@ -1,15 +1,9 @@
 /**
- * EmptyStateAction — Emotionally resonant, action-prompting empty states.
+ * EmptyStateAction — compact, action-oriented empty-state UI.
  *
- * Replaces passive "No tasks yet." text with a component that:
- *  • Frames the empty state as an opportunity, not a void
- *  • Provides one clear action CTA
- *  • Explains WHY this feature matters (Hormozi value framing)
- *  • Optionally shows a quick-start sample
- *
- * Research basis: blank-canvas paralysis is the #1 cause of feature abandonment
- * in productivity apps (Notion's core onboarding failure). Action-prompting
- * empty states with pre-filled examples reduce time-to-first-value by ~60%.
+ * Keeps one clear next action visible without turning an empty screen into a
+ * second onboarding flow. The component intentionally stays generic; product
+ * copy and evidence claims belong to the feature using it.
  */
 
 import React from 'react';
@@ -43,7 +37,7 @@ export default function EmptyStateAction({
     <div
       style={{
         textAlign: 'center',
-        padding: `${theme.spacing.xxl}px ${theme.spacing.xl}px`,
+        padding: `${theme.spacing.lg}px ${theme.spacing.sm}px`,
         borderRadius: theme.shape.radiusLg,
         background: `${color}08`,
         border: `1.5px dashed ${color}30`,
@@ -52,12 +46,13 @@ export default function EmptyStateAction({
         margin: '0 auto',
       }}
     >
-      <div style={{ fontSize: 48, lineHeight: 1, marginBottom: theme.spacing.md }}>
+      <div style={{ fontSize: 34, lineHeight: 1, marginBottom: theme.spacing.sm }}>
         {emoji}
       </div>
       <div
         style={{
-          fontSize: 17,
+          fontSize: 16,
+          lineHeight: 1.3,
           fontWeight: 700,
           color: theme.colors.text,
           fontFamily: theme.typography.heading.family,
@@ -68,25 +63,28 @@ export default function EmptyStateAction({
       </div>
       <p
         style={{
-          fontSize: 14,
+          fontSize: 13,
           color: theme.colors.muted,
-          lineHeight: 1.6,
-          margin: `0 0 ${theme.spacing.lg}px`,
+          lineHeight: 1.45,
+          margin: `0 0 ${theme.spacing.md}px`,
         }}
       >
         {body}
       </p>
       <div style={{ display: 'flex', gap: theme.spacing.sm, justifyContent: 'center', flexWrap: 'wrap' }}>
         <button
+          type="button"
           onClick={onCta}
           style={{
-            padding: `${theme.spacing.sm}px ${theme.spacing.lg}px`,
+            minHeight: 44,
+            padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
             borderRadius: theme.shape.radiusMd,
             background: color,
             color: '#fff',
             border: 'none',
             fontWeight: 700,
-            fontSize: 14,
+            fontSize: 13,
+            lineHeight: 1.2,
             cursor: 'pointer',
             fontFamily: theme.typography.body.family,
             transition: 'opacity 0.15s',
@@ -98,9 +96,11 @@ export default function EmptyStateAction({
         </button>
         {secondaryLabel && onSecondary && (
           <button
+            type="button"
             onClick={onSecondary}
             style={{
-              padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
+              minHeight: 44,
+              padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
               borderRadius: theme.shape.radiusMd,
               background: 'transparent',
               color: theme.colors.muted,

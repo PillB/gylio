@@ -125,27 +125,18 @@ test.describe('GYLIO App Visual Audit', () => {
     await expect(page.locator('h1, h2').first()).toBeVisible();
   });
 
-  test('10 - Add a task planned for today and verify it appears', async ({ page }) => {
+  test('10 - A title-only task created in Today stays visible and confirms success', async ({ page }) => {
     await completeOnboardingIfNeeded(page);
     await goto(page, '/tasks');
     await page.waitForLoadState('networkidle');
 
-    // The active task view is "Today". An unscheduled task correctly belongs in
-    // backlog and therefore would not be visible here. Exercise the actual
-    // Today-view contract by assigning the task the browser's local date.
-    const today = await page.evaluate(() => {
-      const now = new Date();
-      const yyyy = now.getFullYear();
-      const mm = String(now.getMonth() + 1).padStart(2, '0');
-      const dd = String(now.getDate()).padStart(2, '0');
-      return `${yyyy}-${mm}-${dd}`;
-    });
-
+    // Today is the active context. The critical path should inherit that
+    // context without forcing users to open optional scheduling controls.
     await page.locator('#new-task').fill('E2E Test Task');
-    await page.locator('#planned-date').fill(today);
-    await page.locator('form button[type="submit"]').click();
+    await page.getByRole('button', { name: /^add task$/i }).click();
 
-    await expect(page.getByText('E2E Test Task').first()).toBeVisible();
+    await expect(page.getByText('E2E Test Task', { exact: true })).toBeVisible();
+    await expect(page.getByRole('status')).toContainText(/added.*today/i);
     await page.screenshot({ path: `${SCREENSHOT_DIR}/10-task-added.png`, fullPage: true });
   });
 
