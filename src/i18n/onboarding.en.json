@@ -24,6 +24,7 @@
     "standardText": "Standard text",
     "largeText": "Larger text",
     "spacedText": "More spacing",
+    "legacyTextStyle": "Legacy custom font",
     "textStyleHelper": "Larger text and extra spacing are user-controlled reading aids. There is no single best text style for everyone.",
     "contrastLabel": "Contrast",
     "balancedContrast": "Use app theme",
@@ -58,7 +59,7 @@
       },
       "reading": {
         "label": "Reading support",
-        "description": "Larger text plus optional read-aloud support. This avoids prescribing a special dyslexia font, whose average reading benefit is not reliable."
+        "description": "Larger text plus optional read-aloud support. Useful to try if dense text takes extra effort to read or track."
       },
       "visibility": {
         "label": "High visibility",
