@@ -11,14 +11,13 @@
     "validationReminder": "Enter a non-negative income amount or leave it blank."
   },
   "predictableSteps": {
-    "accessibility": "First: choose interface preferences. Safe defaults are already selected.",
-    "supportProfile": "Next: optionally try a reversible starter profile, or keep your current choices.",
-    "quickSetup": "Then: optionally create one starter task or add monthly income.",
+    "accessibility": "First: choose interface preferences. Neutral defaults are already selected.",
+    "quickSetup": "Next: optionally add one first task or your monthly take-home income.",
     "tour": "Last: see where the main parts of GYLIO live."
   },
   "accessibility": {
     "title": "Make GYLIO comfortable to use",
-    "subtitle": "Safe defaults are already selected. Change only what helps.",
+    "subtitle": "Neutral defaults are already selected. Change only what helps.",
     "helper": "Choose what feels comfortable. These are interface preferences, not medical recommendations, and you can change them later in Settings.",
     "textStyleLabel": "Reading appearance",
     "standardText": "Standard text",
@@ -26,55 +25,28 @@
     "spacedText": "More spacing",
     "legacyTextStyle": "Legacy custom font",
     "legacyActive": "A custom font preference from an earlier GYLIO version is still active. You can keep it or replace it by choosing one of the options below.",
-    "textStyleHelper": "Larger text and extra spacing are user-controlled reading aids. There is no single best text style for everyone.",
+    "textStyleHelper": "Text size and spacing can affect comfort and readability differently for different people. Choose the version that works best for you.",
     "contrastLabel": "Contrast",
     "balancedContrast": "Use app theme",
     "highContrast": "Higher contrast",
-    "contrastHelper": "Higher contrast improves visual separation for many people, while others prefer softer palettes. Choose what is comfortable.",
+    "contrastHelper": "Higher contrast can make boundaries and text easier to distinguish for some people. Others prefer a softer palette, so this stays your choice.",
     "motionLabel": "Motion preference",
     "motionSystem": "Follow my device",
     "reducedMotion": "Reduce non-essential motion",
     "standardMotion": "Allow non-essential motion",
     "motionHelper": "Following your device respects its reduced-motion setting. Reduced motion is especially useful when animation is distracting or causes discomfort.",
     "tts": "Read text aloud",
-    "ttsHelper": "Optional. Text-to-speech can support some readers and is safe to try; individual benefit varies.",
+    "ttsHelper": "Optional. Studies of read-aloud and text-to-speech supports find an average reading-comprehension benefit for some readers, with substantial individual variation.",
     "evidenceTitle": "How strong is the evidence?",
-    "evidenceBody": "GYLIO uses strong accessibility standards for motion, resizing and user control. Other options such as spacing or read-aloud are low-risk, reversible supports with variable individual benefit. We do not infer settings from a diagnosis."
-  },
-  "supportProfile": {
-    "title": "Try a starter support profile",
-    "subtitle": "Optional shortcuts. Keep, change, or undo them at any time.",
-    "helper": "These profiles combine low-risk interface settings that are directionally supported by accessibility and usability research.",
-    "evidenceNote": "This is an optional experiment, not a diagnosis-based recommendation. People with the same diagnosis can prefer very different interfaces.",
-    "groupLabel": "Optional starter support profiles",
-    "keepCurrent": "Keep my current choices",
-    "applied": "Settings applied — change them anytime by going Back now or using Settings later.",
-    "profiles": {
-      "focus": {
-        "label": "Focus-friendly",
-        "description": "More text spacing, reduced motion and fewer non-essential animations. A low-distraction starting point to try if busy interfaces pull your attention."
-      },
-      "quiet": {
-        "label": "Quiet motion",
-        "description": "Standard text with reduced motion and non-essential animations off. Useful to try if movement feels distracting or uncomfortable."
-      },
-      "reading": {
-        "label": "Reading support",
-        "description": "Larger text plus optional read-aloud support. Useful to try if dense text takes extra effort to read or track."
-      },
-      "visibility": {
-        "label": "High visibility",
-        "description": "Larger text with the high-contrast theme. Useful to try when stronger visual separation makes controls easier to find."
-      }
-    }
+    "evidenceBody": "GYLIO follows accessibility standards for motion, resizing, contrast and user control. Reading supports can help some people but do not work the same way for everyone. We do not infer settings from a diagnosis."
   },
   "quickSetup": {
     "title": "Start with something useful",
     "subtitle": "Both fields are optional. Skip them if you would rather explore first.",
-    "helper": "A small, concrete first task can reduce setup friction. The income field is only a shortcut for creating your first Budget month.",
+    "helper": "If you want, add one concrete task so something is ready to act on. The income field only creates your first Budget month.",
     "goalLabel": "First task (optional)",
     "goalPlaceholder": "Example: Put tomorrow's documents by the door",
-    "goalHint": "Keep it concrete and doable. Goal-setting and simple action planning have small-to-moderate positive average effects across studies, but results vary by person and context. You can edit or delete this later.",
+    "goalHint": "Keep it concrete and doable. Across many randomized studies, goal setting has a small positive average effect on behavior, but it is not a guarantee and results vary by context.",
     "incomeLabel": "Monthly take-home income (optional)",
     "incomePlaceholder": "Example: 3500",
     "incomeHint": "Used only to create a starting Budget month. GYLIO will not invent spending categories from this number.",
