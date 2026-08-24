@@ -8,13 +8,22 @@ const accessibility = {
   tts: true
 };
 
+/**
+ * Seed persisted onboarding state before the React onboarding provider mounts.
+ *
+ * The previous helper opened /onboarding first and then wrote localStorage.
+ * That created a real race: the already-mounted provider could persist its
+ * current state between our localStorage write and reload, nondeterministically
+ * replacing the migration fixture. A same-origin standalone HTML page gives us
+ * storage access without mounting any GYLIO state providers.
+ */
 async function seedState(page: Page, state: Record<string, unknown>) {
-  await page.goto('/gylio/onboarding');
+  await page.goto('/gylio/deployment-guide.html', { waitUntil: 'domcontentloaded' });
   await page.evaluate((payload) => {
     localStorage.setItem('gylio_lang', 'en');
     localStorage.setItem('onboardingFlowState', JSON.stringify(payload));
   }, state);
-  await page.reload({ waitUntil: 'networkidle' });
+  await page.goto('/gylio/onboarding', { waitUntil: 'networkidle' });
 }
 
 test('legacy budget data is not silently reinterpreted as take-home income', async ({ page }) => {
