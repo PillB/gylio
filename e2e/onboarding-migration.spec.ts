@@ -26,7 +26,7 @@ async function seedState(page: Page, state: Record<string, unknown>) {
   await page.goto('/gylio/onboarding', { waitUntil: 'networkidle' });
 }
 
-test('legacy budget data is not silently reinterpreted as take-home income', async ({ page }) => {
+test('legacy budget and income setup are not carried into the minimized onboarding flow', async ({ page }) => {
   await seedState(page, {
     schemaVersion: 1,
     currentStep: 2,
@@ -35,7 +35,8 @@ test('legacy budget data is not silently reinterpreted as take-home income', asy
       accessibility,
       quickSetup: {
         starterGoal: 'Keep this task',
-        monthlyBudget: '9999'
+        monthlyBudget: '9999',
+        monthlyIncome: '4200'
       },
       tour: {}
     }
@@ -43,7 +44,11 @@ test('legacy budget data is not silently reinterpreted as take-home income', asy
 
   await expect(page.getByRole('heading', { name: /start with something useful/i })).toBeVisible();
   await expect(page.getByLabel(/first task.*optional/i)).toHaveValue('Keep this task');
-  await expect(page.getByLabel(/monthly take-home income.*optional/i)).toHaveValue('');
+  await expect(page.getByLabel(/monthly take-home income/i)).toHaveCount(0);
+
+  const persisted = await page.evaluate(() => JSON.parse(localStorage.getItem('onboardingFlowState') || '{}'));
+  expect(persisted.schemaVersion).toBe(5);
+  expect(persisted.selections.quickSetup).toEqual({ starterGoal: 'Keep this task' });
 });
 
 test('schema v3 support-profile position migrates directly to quick setup and preserves applied accessibility settings', async ({ page }) => {
@@ -62,13 +67,14 @@ test('schema v3 support-profile position migrates directly to quick setup and pr
   await expect(page.getByText(/step 2 of 3/i)).toBeVisible();
   await expect(page.getByRole('heading', { name: /start with something useful/i })).toBeVisible();
   await expect(page.getByLabel(/first task.*optional/i)).toHaveValue('Preserved task');
-  await expect(page.getByLabel(/monthly take-home income.*optional/i)).toHaveValue('4200');
+  await expect(page.getByLabel(/monthly take-home income/i)).toHaveCount(0);
 
   const persisted = await page.evaluate(() => JSON.parse(localStorage.getItem('onboardingFlowState') || '{}'));
-  expect(persisted.schemaVersion).toBe(4);
+  expect(persisted.schemaVersion).toBe(5);
   expect(persisted.currentStep).toBe(1);
   expect(persisted.selections.supportProfile).toBeUndefined();
   expect(persisted.selections.accessibility).toMatchObject(accessibility);
+  expect(persisted.selections.quickSetup).toEqual({ starterGoal: 'Preserved task' });
 });
 
 test('schema v3 quick-setup and tour positions map to the equivalent three-step screens', async ({ page }) => {
