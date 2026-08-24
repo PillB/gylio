@@ -171,7 +171,7 @@ test.describe('evidence-calibrated onboarding', () => {
 
     await expect(page).toHaveURL(/\/gylio\/tasks$/);
     await expect(page.getByText('Put tomorrow documents by the door', { exact: true })).toBeVisible();
-    await expect(page.getByRole('button', { name: /today/i })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByRole('tab', { name: /today/i })).toHaveAttribute('aria-selected', 'true');
   });
 
   test('finishes with orientation only, without reminder or acknowledgement collection', async ({ page }) => {
