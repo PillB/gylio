@@ -8,28 +8,21 @@ import React, {
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export const stepOrder = ['accessibility', 'neurodivergence', 'quickSetup', 'tour'];
+export const ONBOARDING_SCHEMA_VERSION = 5;
+export const stepOrder = ['accessibility', 'quickSetup', 'tour'];
 
 const defaultSelections = {
   accessibility: {
-    textStyle: '',
-    contrast: '',
-    motion: '',
+    textStyle: 'standard',
+    contrast: 'balanced',
+    motion: 'system',
     animations: true,
     tts: false
   },
-  neurodivergence: {
-    preset: '',
-    supports: []
-  },
   quickSetup: {
-    starterGoal: '',
-    monthlyBudget: ''
+    starterGoal: ''
   },
-  tour: {
-    acknowledged: false,
-    reminders: false
-  }
+  tour: {}
 };
 
 const STORAGE_KEY = 'onboardingFlowState';
@@ -38,15 +31,84 @@ const OnboardingFlowContext = createContext(undefined);
 const cloneSelections = () => JSON.parse(JSON.stringify(defaultSelections));
 
 const createInitialState = () => ({
+  schemaVersion: ONBOARDING_SCHEMA_VERSION,
   currentStep: 0,
   selections: cloneSelections(),
   isOnboardingComplete: false
 });
 
-const getStorage = () => {
-  if (AsyncStorage && typeof AsyncStorage.getItem === 'function') {
-    return AsyncStorage;
+const normalizeAccessibility = (value = {}) => ({
+  // Legacy diagnosis-specific font choices are intentionally normalized to a
+  // neutral reading style. Current users can choose standard, larger, or
+  // spaced text directly based on preference rather than diagnosis.
+  textStyle: ['standard', 'large', 'spaced'].includes(value.textStyle)
+    ? value.textStyle
+    : 'standard',
+  contrast: value.contrast === 'high' ? 'high' : 'balanced',
+  motion: ['system', 'reduced', 'standard'].includes(value.motion) ? value.motion : 'system',
+  animations: value.animations !== false,
+  tts: Boolean(value.tts)
+});
+
+const clampCurrentStep = (currentStep) => {
+  const step = Number.isFinite(Number(currentStep)) ? Number(currentStep) : 0;
+  return Math.min(Math.max(step, 0), stepOrder.length - 1);
+};
+
+const migrateCurrentStep = (schemaVersion, currentStep) => {
+  const step = Number.isFinite(Number(currentStep)) ? Number(currentStep) : 0;
+
+  // v2, v4 and v5 already use the same three logical destinations.
+  if (schemaVersion === 2 || schemaVersion >= 4) {
+    return clampCurrentStep(step);
   }
+
+  if (schemaVersion === 3) {
+    // v3: accessibility → support profile → quick setup → orientation.
+    // The support-profile screen is removed because it duplicated and could
+    // overwrite direct preferences selected one screen earlier.
+    if (step <= 0) return 0;
+    if (step === 1 || step === 2) return 1;
+    return 2;
+  }
+
+  // v1: accessibility → diagnosis-labelled preset → quick setup → tour.
+  // Skip the retired diagnosis screen while preserving the nearest useful
+  // destination for someone resuming an unfinished flow.
+  if (step <= 0) return 0;
+  if (step === 1 || step === 2) return 1;
+  return 2;
+};
+
+const migratePersistedState = (persistedState) => {
+  if (!persistedState || typeof persistedState !== 'object') return null;
+
+  const selections = persistedState.selections ?? {};
+  const legacyQuickSetup = selections.quickSetup ?? {};
+  const schemaVersion = Number(persistedState.schemaVersion ?? 1);
+
+  return {
+    schemaVersion: ONBOARDING_SCHEMA_VERSION,
+    currentStep: migrateCurrentStep(schemaVersion, persistedState.currentStep),
+    selections: {
+      // v3 support profiles wrote their applied values into accessibility, so
+      // preserving this object keeps the user's actual choices without keeping
+      // the redundant profile label itself.
+      accessibility: normalizeAccessibility(selections.accessibility),
+      // v5 intentionally collects only an optional first action. Legacy budget
+      // or income fields are dropped from onboarding instead of being silently
+      // reinterpreted or kept as unnecessary setup data.
+      quickSetup: {
+        starterGoal: String(legacyQuickSetup.starterGoal ?? '')
+      },
+      tour: {}
+    },
+    isOnboardingComplete: Boolean(persistedState.isOnboardingComplete)
+  };
+};
+
+const getStorage = () => {
+  if (AsyncStorage && typeof AsyncStorage.getItem === 'function') return AsyncStorage;
 
   if (typeof window !== 'undefined' && window?.localStorage) {
     return {
@@ -65,7 +127,7 @@ const loadPersistedState = async () => {
 
   try {
     const stored = await storage.getItem(STORAGE_KEY);
-    return stored ? JSON.parse(stored) : null;
+    return stored ? migratePersistedState(JSON.parse(stored)) : null;
   } catch (error) {
     console.warn('Failed to parse onboarding flow state from storage', error);
     return null;
@@ -97,20 +159,11 @@ export function OnboardingFlowProvider({ children }) {
     const hydrate = async () => {
       const persistedState = await loadPersistedState();
       if (!isMounted) return;
-
-      if (persistedState) {
-        setState({
-          currentStep: persistedState.currentStep ?? 0,
-          selections: persistedState.selections ?? cloneSelections(),
-          isOnboardingComplete: Boolean(persistedState.isOnboardingComplete)
-        });
-      }
-
+      if (persistedState) setState(persistedState);
       setHydrated(true);
     };
 
     hydrate();
-
     return () => {
       isMounted = false;
     };

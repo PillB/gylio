@@ -9,6 +9,8 @@ import pricingEn from './pricing.en.json';
 import pricingEsPE from './pricing.es-PE.json';
 import shellEn from './shell.en.json';
 import shellEsPE from './shell.es-PE.json';
+import onboardingEn from './onboarding.en.json';
+import onboardingEsPE from './onboarding.es-PE.json';
 
 /**
  * Production localization configuration.
@@ -41,6 +43,10 @@ const enCatalog = {
     ...(en.shell || {}),
     ...shellEn,
   },
+  onboarding: {
+    ...(en.onboarding || {}),
+    ...onboardingEn,
+  },
 };
 
 const esPECatalog = {
@@ -56,6 +62,10 @@ const esPECatalog = {
   shell: {
     ...(esPE.shell || {}),
     ...shellEsPE,
+  },
+  onboarding: {
+    ...(esPE.onboarding || {}),
+    ...onboardingEsPE,
   },
 };
 

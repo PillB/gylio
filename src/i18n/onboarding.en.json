@@ -1,0 +1,62 @@
+{
+  "intro": "Set up only what helps you. You can change these choices later in Settings.",
+  "stepSection": "Onboarding setup",
+  "progress": "Step {{current}} of {{total}}",
+  "back": "Back",
+  "next": "Next",
+  "finish": "Finish",
+  "flow": {
+    "savedAndEditable": "Saved on this device. You can leave now and change these choices later in Settings."
+  },
+  "predictableSteps": {
+    "accessibility": "First: choose interface preferences. Neutral defaults are already selected.",
+    "quickSetup": "Next: optionally add one first task.",
+    "tour": "Last: see where the main parts of GYLIO live."
+  },
+  "accessibility": {
+    "title": "Make GYLIO comfortable to use",
+    "subtitle": "Neutral defaults are already selected. Change only what helps.",
+    "helper": "Choose what feels comfortable. These are interface preferences, not medical recommendations.",
+    "textStyleLabel": "Reading appearance",
+    "standardText": "Standard text",
+    "largeText": "Larger text",
+    "spacedText": "More spacing",
+    "textStyleHelper": "Text size and spacing can affect comfort differently from person to person. Choose the version that works best for you.",
+    "contrastLabel": "Contrast",
+    "balancedContrast": "Use app theme",
+    "highContrast": "Higher contrast",
+    "contrastHelper": "Higher contrast can make text and controls easier to distinguish for some people; others prefer the regular theme.",
+    "motionLabel": "Motion preference",
+    "motionSystem": "Follow my device",
+    "reducedMotion": "Reduce non-essential motion",
+    "standardMotion": "Allow non-essential motion",
+    "motionHelper": "Following your device respects its reduced-motion setting. Reduce motion if animation distracts you or causes discomfort.",
+    "tts": "Read section summaries aloud",
+    "ttsHelper": "Optional. GYLIO speaks section headings and summaries as you move through the app. Research in students with reading difficulties finds an average benefit from read-aloud support, but effects vary.",
+    "evidenceTitle": "Why these choices?",
+    "evidenceBody": "GYLIO follows accessibility standards for motion, resizing, contrast and user control. Reading supports can help some people but do not work the same way for everyone. We do not infer settings from a diagnosis."
+  },
+  "quickSetup": {
+    "title": "Start with something useful",
+    "subtitle": "Adding a first task is optional. Skip it if you would rather explore first.",
+    "helper": "If you want, add one concrete thing you would like to do first. GYLIO will place it on Today so it is visible when setup ends.",
+    "goalLabel": "First task (optional)",
+    "goalPlaceholder": "Example: Put tomorrow's documents by the door",
+    "goalHint": "Make it specific and doable so the next action is clear. This is optional; use it only if it helps you get started.",
+    "preview": "What GYLIO will create",
+    "previewTask": "Today's task: {{goal}}"
+  },
+  "tour": {
+    "title": "Know where things are",
+    "subtitle": "A short map of the app before you start.",
+    "helper": "You can finish immediately. Nothing on this screen is a consent or eligibility requirement.",
+    "summary": "The main areas are:",
+    "items": {
+      "tasks": "Tasks — capture work and choose the next small action.",
+      "calendar": "Calendar — place tasks and events in time.",
+      "budget": "Budget — give income a job using your own categories.",
+      "rewards": "Rewards — optional progress feedback you control."
+    },
+    "guideLater": "The interactive Guide is available after setup, so you do not need to memorize this now."
+  }
+}

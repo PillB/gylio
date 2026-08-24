@@ -25,7 +25,7 @@ import DateTimeWidget from './components/atoms/DateTimeWidget.tsx';
 import { useTheme } from './core/context/ThemeContext';
 import TintLayer from './components/TintLayer.jsx';
 import useDB from './core/hooks/useDB';
-import { getDefaultBudgetMonth } from './core/utils/date';
+import { getLocalDateKey } from './core/hooks/useClock';
 import useBackgroundSync from './core/hooks/useBackgroundSync';
 import SignInPage from './features/auth/SignInPage';
 import SignUpPage from './features/auth/SignUpPage';
@@ -40,14 +40,14 @@ import { track, Events } from './core/analytics';
 import GuidedTourOverlay from './components/GuidedTourOverlay';
 import { useGuidedTour } from './core/context/GuidedTourContext';
 
-// --- Header ---
-
 function AppHeader({ clerkEnabled }) {
   const { t } = useTranslation();
   const { selections, updateSelections } = useOnboardingFlow();
   const { theme } = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
   const { tourState, startTour } = useGuidedTour();
+  const isOnboarding = location.pathname === '/onboarding';
 
   const ttsEnabled = selections?.accessibility?.tts ?? false;
   const toggleTts = () => updateSelections('accessibility', { tts: !ttsEnabled });
@@ -65,7 +65,6 @@ function AppHeader({ clerkEnabled }) {
         marginBottom: theme.spacing.lg,
       }}
     >
-      {/* Brand */}
       <div style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm }}>
         <div
           style={{
@@ -99,49 +98,52 @@ function AppHeader({ clerkEnabled }) {
         </h1>
       </div>
 
-      {/* Controls */}
       <div style={{ display: 'flex', gap: theme.spacing.sm, alignItems: 'center', flexWrap: 'wrap' }}>
-        <DateTimeWidget />
-        <button
-          type="button"
-          onClick={startTour}
-          aria-label={tourState.active ? t('tour.activeAria', 'Tour active') : tourState.completed ? t('tour.restartAria', 'Restart guide') : t('tour.startAria', 'Start interactive guide')}
-          title={tourState.completed ? t('tour.restartButton', 'Restart guide') : t('tour.startButton', 'Start guide')}
-          style={{
-            padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
-            border: `1px solid ${tourState.active ? theme.colors.primary : theme.colors.border}`,
-            borderRadius: theme.shape.radiusFull,
-            cursor: 'pointer',
-            background: tourState.active ? theme.colors.overlay : 'transparent',
-            color: tourState.active ? theme.colors.primary : theme.colors.muted,
-            fontFamily: theme.typography.body.family,
-            fontSize: '0.8125rem',
-            fontWeight: tourState.active ? 600 : 400,
-            transition: 'all 150ms',
-          }}
-        >
-          ? {tourState.active ? t('tour.activeLabel', 'Guide on') : t('tour.startButton', 'Guide')}
-        </button>
+        {!isOnboarding && <DateTimeWidget />}
+        {!isOnboarding && (
+          <button
+            type="button"
+            onClick={startTour}
+            aria-label={tourState.active ? t('tour.activeAria', 'Tour active') : tourState.completed ? t('tour.restartAria', 'Restart guide') : t('tour.startAria', 'Start interactive guide')}
+            title={tourState.completed ? t('tour.restartButton', 'Restart guide') : t('tour.startButton', 'Start guide')}
+            style={{
+              padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
+              border: `1px solid ${tourState.active ? theme.colors.primary : theme.colors.border}`,
+              borderRadius: theme.shape.radiusFull,
+              cursor: 'pointer',
+              background: tourState.active ? theme.colors.overlay : 'transparent',
+              color: tourState.active ? theme.colors.primary : theme.colors.muted,
+              fontFamily: theme.typography.body.family,
+              fontSize: '0.8125rem',
+              fontWeight: tourState.active ? 600 : 400,
+              transition: 'all 150ms',
+            }}
+          >
+            ? {tourState.active ? t('tour.activeLabel', 'Guide on') : t('tour.startButton', 'Guide')}
+          </button>
+        )}
         <LanguageToggle placement="header" />
-        <button
-          type="button"
-          onClick={toggleTts}
-          aria-label={t('onboarding.ttsToggle.aria')}
-          style={{
-            padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
-            border: `1px solid ${theme.colors.border}`,
-            borderRadius: theme.shape.radiusFull,
-            cursor: 'pointer',
-            background: ttsEnabled ? theme.colors.overlay : 'transparent',
-            color: ttsEnabled ? theme.colors.primary : theme.colors.muted,
-            fontFamily: theme.typography.body.family,
-            fontSize: '0.8125rem',
-            fontWeight: ttsEnabled ? 600 : 400,
-          }}
-        >
-          {ttsEnabled ? '🔊' : '🔇'} {t('onboarding.accessibility.tts')}
-        </button>
-        {clerkEnabled && (
+        {!isOnboarding && (
+          <button
+            type="button"
+            onClick={toggleTts}
+            aria-label={t('onboarding.ttsToggle.aria')}
+            style={{
+              padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
+              border: `1px solid ${theme.colors.border}`,
+              borderRadius: theme.shape.radiusFull,
+              cursor: 'pointer',
+              background: ttsEnabled ? theme.colors.overlay : 'transparent',
+              color: ttsEnabled ? theme.colors.primary : theme.colors.muted,
+              fontFamily: theme.typography.body.family,
+              fontSize: '0.8125rem',
+              fontWeight: ttsEnabled ? 600 : 400,
+            }}
+          >
+            {ttsEnabled ? '🔊' : '🔇'} {t('onboarding.accessibility.tts')}
+          </button>
+        )}
+        {clerkEnabled && !isOnboarding && (
           <>
             <SubscriptionBadge />
             <UserButton afterSignOutUrl={`${import.meta.env.BASE_URL}sign-in`} />
@@ -152,8 +154,6 @@ function AppHeader({ clerkEnabled }) {
   );
 }
 
-// --- Subscription badge in header ---
-
 function SubscriptionBadge() {
   const { theme } = useTheme();
   const { isFree } = useSubscription();
@@ -161,7 +161,6 @@ function SubscriptionBadge() {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-  // Don't show when signed out
   if (!userId) return null;
 
   if (!isFree) {
@@ -203,8 +202,6 @@ function SubscriptionBadge() {
   );
 }
 
-// --- Layout wrapper ---
-
 function AppLayout({ clerkEnabled }) {
   const { theme } = useTheme();
 
@@ -231,8 +228,6 @@ function AppLayout({ clerkEnabled }) {
   );
 }
 
-// --- Root redirect (with Clerk) ---
-
 function RootRedirectAuthed() {
   const { isOnboardingComplete } = useOnboardingFlow();
   const { isLoaded, isSignedIn } = useAuth();
@@ -246,8 +241,6 @@ function RootRedirectNoAuth() {
   return <Navigate to={isOnboardingComplete ? '/tasks' : '/onboarding'} replace />;
 }
 
-// --- Protected layout (with Clerk) ---
-
 function ProtectedLayoutAuthed() {
   const { isLoaded, isSignedIn } = useAuth();
   if (!isLoaded) return null;
@@ -259,49 +252,34 @@ function ProtectedLayoutNoAuth() {
   return <Outlet />;
 }
 
-// --- Onboarding ---
-
 function OnboardingRoute() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { isOnboardingComplete } = useOnboardingFlow();
   const { theme } = useTheme();
-  const { ready, getTasks, insertTask, getBudgets, insertBudget } = useDB();
+  const { ready, getTasks, insertTask } = useDB();
   const [pendingSeed, setPendingSeed] = useState(null);
   const [isSeeding, setIsSeeding] = useState(false);
 
   const seedStarterData = useCallback(
     async (flowSelections) => {
       const starterGoal = flowSelections?.quickSetup?.starterGoal?.trim() ?? '';
-      const budgetInput = flowSelections?.quickSetup?.monthlyBudget ?? '';
-      const budgetValue = Number.parseFloat(String(budgetInput));
-      const shouldSeedBudget = Number.isFinite(budgetValue) && budgetValue >= 0;
+      if (!starterGoal) return;
 
-      if (starterGoal) {
-        const existingTasks = await getTasks();
-        const normalizedGoal = starterGoal.toLowerCase();
-        const hasGoalTask = existingTasks.some(
-          (task) => task.title.trim().toLowerCase() === normalizedGoal
-        );
-        if (!hasGoalTask) {
-          await insertTask(starterGoal, 'pending', [], null, null, null);
-        }
-      }
+      const existingTasks = await getTasks();
+      const normalizedGoal = starterGoal.toLowerCase();
+      const hasGoalTask = existingTasks.some(
+        (task) => task.title.trim().toLowerCase() === normalizedGoal
+      );
 
-      if (shouldSeedBudget) {
-        const month = getDefaultBudgetMonth();
-        const existingBudgets = await getBudgets();
-        const hasMonthBudget = existingBudgets.some((budget) => budget.month === month);
-        if (!hasMonthBudget) {
-          await insertBudget(
-            month,
-            [{ source: t('onboarding.quickSetup.seedIncomeSource'), amount: budgetValue }],
-            [{ name: t('budget.needsLabel'), type: 'NEED', plannedAmount: budgetValue }]
-          );
-        }
+      if (!hasGoalTask) {
+        // The destination opens on Today. Scheduling the optional starter task
+        // for the user's local day keeps the onboarding promise that it will be
+        // immediately visible and actionable when setup finishes.
+        await insertTask(starterGoal, 'pending', [], getLocalDateKey(), null, null);
       }
     },
-    [getBudgets, getTasks, insertBudget, insertTask, t]
+    [getTasks, insertTask]
   );
 
   const handleOnboardingComplete = useCallback((selections) => {
@@ -333,8 +311,6 @@ function OnboardingRoute() {
     </section>
   );
 }
-
-// --- Tabs layout ---
 
 function TabsLayout() {
   const { t } = useTranslation();
@@ -376,8 +352,6 @@ function TabsLayout() {
   );
 }
 
-// --- Clerk setup screen (no key configured) ---
-
 function ClerkSetupScreen() {
   const { theme } = useTheme();
   return (
@@ -406,16 +380,12 @@ function ClerkSetupScreen() {
   );
 }
 
-// --- Premium gate ---
-
 function PremiumGate({ feature, featureI18nKey }) {
   const { hasFeature } = useSubscription();
   const { t } = useTranslation();
   if (!hasFeature(feature)) return <UpgradePrompt featureName={t(featureI18nKey)} />;
   return <Outlet />;
 }
-
-// --- Router builders ---
 
 function buildAuthRouter(clerkEnabled) {
   const premiumRoutes = [
@@ -469,8 +439,6 @@ function buildAuthRouter(clerkEnabled) {
   );
 }
 
-// --- App router (Clerk enabled) ---
-
 function AppRouterAuthed() {
   const { hydrated } = useOnboardingFlow();
   const router = useMemo(() => buildAuthRouter(true), []);
@@ -481,8 +449,6 @@ function AppRouterAuthed() {
     </AuthProvider>
   );
 }
-
-// --- App router (no auth) ---
 
 function AppRouterNoAuth() {
   const { hydrated } = useOnboardingFlow();
@@ -495,13 +461,10 @@ function AppRouterNoAuth() {
   );
 }
 
-// --- Root App ---
-
 export default function App({ clerkEnabled = false }) {
   const { paperTheme } = useTheme();
   useBackgroundSync();
 
-  // Track app open
   React.useEffect(() => {
     track(Events.APP_OPEN, { clerkEnabled });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps

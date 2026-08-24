@@ -2,11 +2,11 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useR
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import i18n from 'i18next';
 import useOnboardingFlow from '../../hooks/useOnboardingFlow.jsx';
-import { getSpeechOptions } from '../../utils/speechOptions.js';
 
 const TINT_STORAGE_KEY = 'accessibility:tint';
 const REDUCE_MOTION_STORAGE_KEY = 'accessibility:reduceMotion';
 const ANIMATIONS_STORAGE_KEY = 'accessibility:animationsEnabled';
+const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
 
 type SpeechModule = {
   speak: (text: string, options?: Record<string, any>) => void;
@@ -30,23 +30,42 @@ type AccessibilityContextValue = {
   setTtsEnabled: (enabled: boolean) => void;
 };
 
-type MotionPreference = 'reduced' | 'standard' | '';
-type TextStylePreference = 'dyslexic' | 'standard' | 'large' | '';
+type MotionPreference = 'system' | 'reduced' | 'standard' | '';
+type TextStylePreference = 'dyslexic' | 'standard' | 'large' | 'spaced' | '';
 
 const AccessibilityContext = createContext<AccessibilityContextValue | null>(null);
 
+const systemPrefersReducedMotion = () =>
+  typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+    ? window.matchMedia(REDUCED_MOTION_QUERY).matches
+    : false;
+
+const resolveReducedMotion = (preference: MotionPreference) => {
+  if (preference === 'reduced') return true;
+  if (preference === 'standard') return false;
+  return systemPrefersReducedMotion();
+};
+
 function useAccessibilityInternal(): AccessibilityContextValue {
   const { selections, hydrated, updateSelections } = useOnboardingFlow();
+  const initialMotion = (selections?.accessibility?.motion ?? 'system') as MotionPreference;
   const [isTinted, setIsTinted] = useState(false);
-  const [reduceMotionEnabled, setReduceMotionEnabled] = useState(
-    () => selections?.accessibility?.motion === 'reduced'
-  );
+  const [reduceMotionEnabled, setReduceMotionEnabled] = useState(() => resolveReducedMotion(initialMotion));
   const [animationsEnabled, setAnimationsEnabled] = useState(true);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const speechModuleRef = useRef<SpeechModule | null>(null);
   const activeUtteranceRef = useRef(0);
   const isSpeakingRef = useRef(false);
   const hasHydratedPrefsRef = useRef(false);
+
+  const motionPreference = useMemo<MotionPreference>(
+    () => (selections?.accessibility?.motion ?? 'system') as MotionPreference,
+    [selections]
+  );
+  const textStylePreference = useMemo<TextStylePreference>(
+    () => (selections?.accessibility?.textStyle ?? 'standard') as TextStylePreference,
+    [selections]
+  );
 
   useEffect(() => {
     if (hasHydratedPrefsRef.current || !hydrated) return;
@@ -55,20 +74,14 @@ function useAccessibilityInternal(): AccessibilityContextValue {
       try {
         const storedEntries = await AsyncStorage.multiGet([
           TINT_STORAGE_KEY,
-          REDUCE_MOTION_STORAGE_KEY,
           ANIMATIONS_STORAGE_KEY
         ]);
 
         const storedTint = storedEntries.find(([key]) => key === TINT_STORAGE_KEY)?.[1];
-        const storedReduceMotion = storedEntries.find(([key]) => key === REDUCE_MOTION_STORAGE_KEY)?.[1];
         const storedAnimations = storedEntries.find(([key]) => key === ANIMATIONS_STORAGE_KEY)?.[1];
 
         setIsTinted(storedTint === 'true');
-        setReduceMotionEnabled(
-          storedReduceMotion === null || storedReduceMotion === undefined
-            ? selections?.accessibility?.motion === 'reduced'
-            : storedReduceMotion === 'true'
-        );
+        setReduceMotionEnabled(resolveReducedMotion(motionPreference));
         setAnimationsEnabled(
           storedAnimations === null || storedAnimations === undefined
             ? selections?.accessibility?.animations ?? true
@@ -76,13 +89,25 @@ function useAccessibilityInternal(): AccessibilityContextValue {
         );
         hasHydratedPrefsRef.current = true;
       } catch (error) {
-        // Non-blocking persistence failure.
+        setReduceMotionEnabled(resolveReducedMotion(motionPreference));
         hasHydratedPrefsRef.current = true;
       }
     };
 
     hydratePreferences();
-  }, [hydrated, selections]);
+  }, [hydrated, motionPreference, selections]);
+
+  // When the user chooses "follow device", keep the app synchronized with the
+  // operating-system preference instead of taking a one-time snapshot.
+  useEffect(() => {
+    if (motionPreference !== 'system' || typeof window === 'undefined' || !window.matchMedia) return undefined;
+
+    const media = window.matchMedia(REDUCED_MOTION_QUERY);
+    const sync = () => setReduceMotionEnabled(media.matches);
+    sync();
+    media.addEventListener?.('change', sync);
+    return () => media.removeEventListener?.('change', sync);
+  }, [motionPreference]);
 
   useEffect(() => {
     AsyncStorage.setItem(TINT_STORAGE_KEY, isTinted ? 'true' : 'false').catch(() => {
@@ -90,6 +115,8 @@ function useAccessibilityInternal(): AccessibilityContextValue {
     });
   }, [isTinted]);
 
+  // Retain the legacy cache key for compatibility with older releases, while
+  // the source of truth is now the explicit preference in onboarding/settings.
   useEffect(() => {
     AsyncStorage.setItem(REDUCE_MOTION_STORAGE_KEY, reduceMotionEnabled ? 'true' : 'false').catch(() => {
       // Ignore persistence issues to avoid blocking UI.
@@ -106,31 +133,33 @@ function useAccessibilityInternal(): AccessibilityContextValue {
     isSpeakingRef.current = isSpeaking;
   }, [isSpeaking]);
 
-  const motionPreference = useMemo<MotionPreference>(
-    () => selections?.accessibility?.motion ?? '',
-    [selections]
-  );
-  const textStylePreference = useMemo<TextStylePreference>(
-    () => selections?.accessibility?.textStyle ?? '',
-    [selections]
-  );
-
   useEffect(() => {
     if (typeof document === 'undefined') return;
+
+    // Always clear presentation properties before applying the selected mode so
+    // switching between options is fully reversible.
+    document.documentElement.style.setProperty('--font-body', '');
+    document.body.style.fontFamily = '';
+    document.body.style.fontSize = '';
+    document.body.style.lineHeight = '';
+    document.body.style.letterSpacing = '';
+    document.body.style.wordSpacing = '';
+
+    // Legacy support only: users from older releases may still have the old
+    // diagnosis-labelled font preference saved. New onboarding does not offer
+    // or recommend a dyslexia-specific font because aggregate evidence is mixed.
     if (textStylePreference === 'dyslexic') {
-      document.documentElement.style.setProperty('--font-body', "'OpenDyslexic', 'Comic Sans MS', cursive, sans-serif");
-      document.body.style.fontFamily = "'OpenDyslexic', 'Comic Sans MS', cursive, sans-serif";
-      document.body.style.fontSize = '';
+      document.documentElement.style.setProperty('--font-body', "'OpenDyslexic', 'Open Sans', system-ui, sans-serif");
+      document.body.style.fontFamily = "'OpenDyslexic', 'Open Sans', system-ui, sans-serif";
     } else if (textStylePreference === 'large') {
-      document.documentElement.style.setProperty('--font-body', '');
-      document.body.style.fontFamily = '';
       document.body.style.fontSize = '20px';
-    } else {
-      document.documentElement.style.setProperty('--font-body', '');
-      document.body.style.fontFamily = '';
-      document.body.style.fontSize = '';
+    } else if (textStylePreference === 'spaced') {
+      document.body.style.lineHeight = '1.65';
+      document.body.style.letterSpacing = '0.025em';
+      document.body.style.wordSpacing = '0.08em';
     }
   }, [textStylePreference]);
+
   const ttsEnabled = useMemo(() => Boolean(selections?.accessibility?.tts), [selections]);
   const ttsOptIn = useMemo(() => hydrated && ttsEnabled, [hydrated, ttsEnabled]);
 
@@ -165,9 +194,7 @@ function useAccessibilityInternal(): AccessibilityContextValue {
       const speechModule = await loadSpeechModule();
       if (!speechModule?.speak) return;
 
-      if (isSpeakingRef.current && speechModule.stop) {
-        speechModule.stop();
-      }
+      if (isSpeakingRef.current && speechModule.stop) speechModule.stop();
 
       const utteranceId = activeUtteranceRef.current + 1;
       activeUtteranceRef.current = utteranceId;
@@ -179,19 +206,13 @@ function useAccessibilityInternal(): AccessibilityContextValue {
         language: locale,
         voice,
         onDone: () => {
-          if (activeUtteranceRef.current === utteranceId) {
-            setIsSpeaking(false);
-          }
+          if (activeUtteranceRef.current === utteranceId) setIsSpeaking(false);
         },
         onStopped: () => {
-          if (activeUtteranceRef.current === utteranceId) {
-            setIsSpeaking(false);
-          }
+          if (activeUtteranceRef.current === utteranceId) setIsSpeaking(false);
         },
         onError: () => {
-          if (activeUtteranceRef.current === utteranceId) {
-            setIsSpeaking(false);
-          }
+          if (activeUtteranceRef.current === utteranceId) setIsSpeaking(false);
         }
       });
     },
@@ -204,7 +225,7 @@ function useAccessibilityInternal(): AccessibilityContextValue {
 
   const setMotionPreference = useCallback(
     (preference: MotionPreference) => {
-      setReduceMotionEnabled(preference === 'reduced');
+      setReduceMotionEnabled(resolveReducedMotion(preference));
       updateSelections('accessibility', { motion: preference });
     },
     [updateSelections]
@@ -263,8 +284,6 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
 
 export default function useAccessibility(): AccessibilityContextValue {
   const context = useContext(AccessibilityContext);
-  if (!context) {
-    throw new Error('useAccessibility must be used within an AccessibilityProvider');
-  }
+  if (!context) throw new Error('useAccessibility must be used within an AccessibilityProvider');
   return context;
 }

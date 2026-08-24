@@ -1,0 +1,62 @@
+{
+  "intro": "Configura solo lo que te ayude. Puedes cambiar estas opciones más adelante en Configuración.",
+  "stepSection": "Configuración inicial",
+  "progress": "Paso {{current}} de {{total}}",
+  "back": "Atrás",
+  "next": "Siguiente",
+  "finish": "Finalizar",
+  "flow": {
+    "savedAndEditable": "Se guarda en este dispositivo. Puedes salir ahora y cambiar estas opciones después en Configuración."
+  },
+  "predictableSteps": {
+    "accessibility": "Primero: elige preferencias de interfaz. Ya hay opciones neutrales seleccionadas.",
+    "quickSetup": "Luego: opcionalmente agrega una primera tarea.",
+    "tour": "Al final: revisa dónde están las partes principales de GYLIO."
+  },
+  "accessibility": {
+    "title": "Haz que GYLIO sea cómodo de usar",
+    "subtitle": "Ya seleccionamos opciones neutrales. Cambia solo lo que te ayude.",
+    "helper": "Elige lo que te resulte cómodo. Estas son preferencias de interfaz, no recomendaciones médicas.",
+    "textStyleLabel": "Apariencia de lectura",
+    "standardText": "Texto estándar",
+    "largeText": "Texto más grande",
+    "spacedText": "Más espaciado",
+    "textStyleHelper": "El tamaño y el espaciado pueden sentirse distintos según la persona. Elige la versión que te funcione mejor.",
+    "contrastLabel": "Contraste",
+    "balancedContrast": "Usar el tema de la app",
+    "highContrast": "Mayor contraste",
+    "contrastHelper": "Un contraste mayor puede facilitar distinguir texto y controles para algunas personas; otras prefieren el tema normal.",
+    "motionLabel": "Preferencia de movimiento",
+    "motionSystem": "Seguir la configuración de mi dispositivo",
+    "reducedMotion": "Reducir movimiento no esencial",
+    "standardMotion": "Permitir movimiento no esencial",
+    "motionHelper": "Seguir tu dispositivo respeta su configuración de movimiento reducido. Reduce el movimiento si las animaciones te distraen o generan incomodidad.",
+    "tts": "Leer en voz alta resúmenes de secciones",
+    "ttsHelper": "Opcional. GYLIO lee encabezados y resúmenes de secciones mientras recorres la app. Estudios en estudiantes con dificultades de lectura encuentran un beneficio promedio con apoyo de lectura en voz alta, pero los efectos varían.",
+    "evidenceTitle": "¿Por qué estas opciones?",
+    "evidenceBody": "GYLIO sigue estándares de accesibilidad para movimiento, cambio de tamaño, contraste y control del usuario. Los apoyos de lectura pueden ayudar a algunas personas, pero no funcionan igual para todos. No inferimos ajustes a partir de un diagnóstico."
+  },
+  "quickSetup": {
+    "title": "Empieza con algo útil",
+    "subtitle": "Agregar una primera tarea es opcional. Puedes omitirla si prefieres explorar primero.",
+    "helper": "Si quieres, agrega una cosa concreta que te gustaría hacer primero. GYLIO la colocará en Hoy para que sea visible al terminar la configuración.",
+    "goalLabel": "Primera tarea (opcional)",
+    "goalPlaceholder": "Ejemplo: Dejar junto a la puerta los documentos de mañana",
+    "goalHint": "Hazla específica y realizable para que la siguiente acción quede clara. Es opcional; úsala solo si te ayuda a empezar.",
+    "preview": "Qué creará GYLIO",
+    "previewTask": "Tarea de hoy: {{goal}}"
+  },
+  "tour": {
+    "title": "Conoce dónde está cada cosa",
+    "subtitle": "Un mapa breve de la app antes de comenzar.",
+    "helper": "Puedes finalizar de inmediato. Nada en esta pantalla es un requisito de consentimiento o elegibilidad.",
+    "summary": "Las áreas principales son:",
+    "items": {
+      "tasks": "Tareas — captura pendientes y elige la siguiente acción pequeña.",
+      "calendar": "Calendario — ubica tareas y eventos en el tiempo.",
+      "budget": "Presupuesto — asigna tu ingreso usando tus propias categorías.",
+      "rewards": "Recompensas — retroalimentación de progreso opcional que tú controlas."
+    },
+    "guideLater": "La Guía interactiva estará disponible después de la configuración, así que no necesitas memorizar esto ahora."
+  }
+}
