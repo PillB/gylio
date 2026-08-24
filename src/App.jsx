@@ -273,9 +273,9 @@ function OnboardingRoute() {
   const seedStarterData = useCallback(
     async (flowSelections) => {
       const starterGoal = flowSelections?.quickSetup?.starterGoal?.trim() ?? '';
-      const budgetInput = flowSelections?.quickSetup?.monthlyBudget ?? '';
-      const budgetValue = Number.parseFloat(String(budgetInput));
-      const shouldSeedBudget = Number.isFinite(budgetValue) && budgetValue >= 0;
+      const incomeInput = flowSelections?.quickSetup?.monthlyIncome ?? flowSelections?.quickSetup?.monthlyBudget ?? '';
+      const incomeValue = Number.parseFloat(String(incomeInput));
+      const shouldSeedIncome = String(incomeInput).trim() !== '' && Number.isFinite(incomeValue) && incomeValue >= 0;
 
       if (starterGoal) {
         const existingTasks = await getTasks();
@@ -288,15 +288,15 @@ function OnboardingRoute() {
         }
       }
 
-      if (shouldSeedBudget) {
+      if (shouldSeedIncome) {
         const month = getDefaultBudgetMonth();
         const existingBudgets = await getBudgets();
         const hasMonthBudget = existingBudgets.some((budget) => budget.month === month);
         if (!hasMonthBudget) {
           await insertBudget(
             month,
-            [{ source: t('onboarding.quickSetup.seedIncomeSource'), amount: budgetValue }],
-            [{ name: t('budget.needsLabel'), type: 'NEED', plannedAmount: budgetValue }]
+            [{ source: t('onboarding.quickSetup.seedIncomeSource'), amount: incomeValue }],
+            []
           );
         }
       }
