@@ -24,6 +24,7 @@
     "standardText": "Texto estándar",
     "largeText": "Texto más grande",
     "spacedText": "Más espaciado",
+    "legacyTextStyle": "Fuente personalizada heredada",
     "textStyleHelper": "El texto más grande y el espaciado adicional son ayudas controladas por ti. No existe un único estilo de texto ideal para todas las personas.",
     "contrastLabel": "Contraste",
     "balancedContrast": "Usar el tema de la app",
@@ -58,7 +59,7 @@
       },
       "reading": {
         "label": "Apoyo para la lectura",
-        "description": "Texto más grande y lectura en voz alta opcional. Evita prescribir una fuente especial para dislexia, cuyo beneficio promedio en lectura no es consistente."
+        "description": "Texto más grande y lectura en voz alta opcional. Útil para probar si leer o seguir textos densos requiere un esfuerzo adicional."
       },
       "visibility": {
         "label": "Alta visibilidad",
