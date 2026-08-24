@@ -62,6 +62,12 @@ function OnboardingFlow({ onComplete }) {
         minWidth: 0
       }}
     >
+      {/* During setup, suppress direct secondary header actions (Guide, TTS,
+          upgrade) so onboarding presents one decision surface at a time. The
+          language picker and nested clock control remain available. display:none
+          also removes these controls from the accessibility tree. */}
+      <style>{'.app-container > header > div:last-child > button { display: none !important; }'}</style>
+
       <header>
         <p style={{ margin: 0, color: theme.colors.primary, fontWeight: 600 }}>{progressLabel}</p>
         <h2 style={{ margin: '0.25rem 0', lineHeight: 1.25 }}>{t(`onboarding.${stepKey}.title`)}</h2>
