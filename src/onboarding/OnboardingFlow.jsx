@@ -6,7 +6,6 @@ import AccessibilityPrefs from './steps/AccessibilityPrefs.jsx';
 import SupportProfiles from './steps/SupportProfiles.jsx';
 import QuickSetup from './steps/QuickSetup.jsx';
 import MiniTour from './steps/MiniTour.jsx';
-import LanguageToggle from '../components/atoms/LanguageToggle.tsx';
 import { useTheme } from '../core/context/ThemeContext';
 
 const validators = {
@@ -66,24 +65,15 @@ function OnboardingFlow({ onComplete }) {
         border: `1px solid ${theme.colors.border}`,
         borderRadius: theme.shape.radiusMd,
         padding: theme.spacing.lg,
-        boxShadow: theme.shadow.sm
+        boxShadow: theme.shadow.sm,
+        boxSizing: 'border-box',
+        minWidth: 0
       }}
     >
-      <header
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
-          gap: theme.spacing.md,
-          flexWrap: 'wrap'
-        }}
-      >
-        <div style={{ minWidth: 0, flex: '1 1 320px' }}>
-          <p style={{ margin: 0, color: theme.colors.primary, fontWeight: 600 }}>{progressLabel}</p>
-          <h2 style={{ margin: '0.25rem 0', lineHeight: 1.25 }}>{t(`onboarding.${stepKey}.title`)}</h2>
-          <p style={{ margin: 0, color: theme.colors.muted }}>{t(`onboarding.${stepKey}.subtitle`)}</p>
-        </div>
-        <LanguageToggle placement="inline" />
+      <header>
+        <p style={{ margin: 0, color: theme.colors.primary, fontWeight: 600 }}>{progressLabel}</p>
+        <h2 style={{ margin: '0.25rem 0', lineHeight: 1.25 }}>{t(`onboarding.${stepKey}.title`)}</h2>
+        <p style={{ margin: 0, color: theme.colors.muted }}>{t(`onboarding.${stepKey}.subtitle`)}</p>
       </header>
 
       <div style={{ margin: '0.6rem 0 1rem', color: theme.colors.muted }}>
