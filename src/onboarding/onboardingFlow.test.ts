@@ -1,8 +1,22 @@
 import { describe, expect, it } from 'vitest';
 import { stepOrder } from '../hooks/useOnboardingFlow.jsx';
+import { SUPPORT_PROFILES } from './utils/supportProfiles';
 
-describe('evidence-based onboarding structure', () => {
-  it('uses preference setup, optional quick start, and orientation without a diagnosis screen', () => {
-    expect(stepOrder).toEqual(['accessibility', 'quickSetup', 'tour']);
+describe('evidence-calibrated onboarding structure', () => {
+  it('uses preferences, optional support profiles, optional quick start, and orientation', () => {
+    expect(stepOrder).toEqual(['accessibility', 'supportProfile', 'quickSetup', 'tour']);
+  });
+
+  it('keeps starter profiles low-risk and reversible instead of diagnosis keyed', () => {
+    expect(Object.keys(SUPPORT_PROFILES)).toEqual(['focus', 'quiet', 'reading', 'visibility']);
+    expect(Object.keys(SUPPORT_PROFILES)).not.toEqual(expect.arrayContaining(['adhd', 'autism', 'anxiety', 'dyslexia']));
+
+    for (const profile of Object.values(SUPPORT_PROFILES)) {
+      expect(['standard', 'large', 'spaced']).toContain(profile.textStyle);
+      expect(['balanced', 'high']).toContain(profile.contrast);
+      expect(['system', 'reduced', 'standard']).toContain(profile.motion);
+      expect(typeof profile.animations).toBe('boolean');
+      expect(typeof profile.tts).toBe('boolean');
+    }
   });
 });
