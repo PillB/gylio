@@ -11,24 +11,28 @@ Onboarding is a preference/setup flow, not a diagnostic questionnaire or treatme
 | Strong / standards-backed | May inform a neutral default or clear accessibility option. |
 | Moderate / directionally supported | May be offered as an optional, reversible support with uncertainty stated. |
 | Mixed / heterogeneous | User-controlled experiment only; do not imply reliable benefit. |
-| Unsupported, harmful, redundant, or not implemented | Do not collect, prescribe, or claim it works. |
+| Unsupported, harmful, redundant, unnecessary, or not implemented | Do not collect, prescribe, or claim it works. |
 
-Every onboarding choice must be low-risk, reversible, explain what it changes, and remain editable later. A diagnosis must not determine a user's interface.
+Every onboarding choice must be low-risk, reversible, explain what it changes, remain editable later, and be necessary for setup. A diagnosis must not determine a user's interface.
 
 ## Why onboarding is only three screens
 
 The current sequence is:
 
 1. **Interface preferences** — direct choices for reading appearance, contrast, motion, and optional read-aloud.
-2. **Optional starter data** — one first task and/or monthly take-home income; both may be left blank.
+2. **Optional first action** — one starter task may be added or skipped.
 3. **Orientation** — a short map of the app with no acknowledgement or consent checkbox.
 
-An intermediate "support profile" screen was removed after review. It bundled the same preferences already chosen on screen 1 and could overwrite a deliberate choice immediately afterward. Current W3C form guidance recommends simple, short forms, logical steps, clearly marked optional stages, and collecting only information needed for the process. The more defensible design is therefore to ask the user directly once, not infer or rebundle their preferences.
+An intermediate "support profile" screen was removed after review. It bundled the same preferences already chosen on screen 1 and could overwrite a deliberate choice immediately afterward. Monthly income was subsequently removed from screen 2 because Budget already collects income in context; asking for financial data before the user enters Budget added friction and unnecessary data collection without enabling onboarding itself.
+
+W3C form guidance says users generally prefer simple, short forms and recommends asking only for information required to complete the process. Cognitive-accessibility guidance likewise recommends requiring as little input as possible and keeping steps clear and concise.
 
 Sources:
 - W3C Forms Tutorial (updated 2026-03-27): https://www.w3.org/WAI/tutorials/forms/
 - W3C Multi-page Forms: https://www.w3.org/WAI/tutorials/forms/multi-page/
 - W3C Cognitive Accessibility, Make Each Step Clear: https://www.w3.org/WAI/WCAG2/supplemental/patterns/o1p04-clear-steps/
+- W3C Cognitive Accessibility, Design Forms to Prevent Mistakes: https://www.w3.org/WAI/WCAG2/supplemental/patterns/o4p04-supportive-forms/
+- W3C Cognitive Accessibility, Use Clear and Understandable Content: https://www.w3.org/WAI/WCAG2/supplemental/objectives/o3-clear-content/
 
 ## Screen 1 — Interface preferences
 
@@ -56,7 +60,7 @@ Sources:
 
 **Tier:** Moderate/directional as an optional preference.
 
-WCAG 2.2 SC 1.4.12 requires content to tolerate user-overridden line, paragraph, letter, and word spacing without loss of content or functionality. That does not establish one ideal spacing configuration for everyone. GYLIO therefore offers a reversible spacing option and separately tests that it does not break narrow layouts.
+WCAG 2.2 SC 1.4.12 requires content to tolerate user-overridden line, paragraph, letter, and word spacing without loss of content or functionality. It does **not** establish one ideal spacing preset for everyone. GYLIO therefore offers a reversible spacing option and tests that it does not break narrow layouts.
 
 Sources:
 - W3C, Understanding SC 1.4.12 Text Spacing: https://www.w3.org/WAI/WCAG22/Understanding/text-spacing
@@ -96,32 +100,40 @@ Sources:
 
 ### Read text aloud
 
-**Tier:** Moderate evidence with meaningful heterogeneity.
+**Tier:** Moderate evidence in a specific studied population, with meaningful heterogeneity.
 
-A meta-analysis of text-to-speech/read-aloud tools for students with reading disabilities found a positive average reading-comprehension effect (about d = 0.35) but substantial variation across implementations and readers. GYLIO therefore keeps it off by default and user-controlled; copy says benefit varies rather than promising improvement.
+A meta-analysis of text-to-speech/read-aloud tools for **students with reading difficulties** found a positive average reading-comprehension effect (about d = 0.35) but substantial variation across implementations and readers. That evidence should not be generalized into a universal adult benefit. GYLIO therefore keeps read-aloud off by default, describes the studied population in UI copy, and leaves the option fully user-controlled.
 
 Source:
-- Wood et al., text-to-speech/read-aloud meta-analysis: https://pubmed.ncbi.nlm.nih.gov/29839101/
+- Wood et al., text-to-speech/read-aloud meta-analysis: https://pubmed.ncbi.nlm.nih.gov/28112580/
 
-## Screen 2 — Optional starter data
+## Screen 2 — Optional first action
 
 ### First task (optional)
 
 **Tier:** Moderate directional support.
 
-A systematic review/meta-analysis of randomized studies found a small positive unique average effect of goal setting across behaviors (141 papers, 384 effect sizes, N=16,523; d=0.34). A separate experimental meta-analysis found that interventions increasing progress monitoring improved goal attainment on average (138 studies, N=19,951; d=0.40). Effects vary by context, so onboarding offers one optional concrete task without promising completion or productivity.
+A systematic review/meta-analysis of randomized studies found a small positive unique average effect of goal setting across behaviors (141 papers, 384 effect sizes, N=16,523; d=0.34). A separate experimental meta-analysis found that interventions increasing progress monitoring improved goal attainment on average (138 studies, N=19,951; d=0.40). Effects vary by context.
+
+GYLIO therefore offers one optional concrete starter task but does not promise productivity or completion. The UI copy stays practical rather than displaying study statistics during setup.
 
 Sources:
 - Epton et al., goal-setting meta-analysis: https://pubmed.ncbi.nlm.nih.gov/29189034/
 - Harkin et al., progress-monitoring meta-analysis: https://pubmed.ncbi.nlm.nih.gov/26479070/
 
-### Monthly take-home income (optional)
+### Why monthly income is not collected here
 
-**Tier:** Product setup, not behavioral science.
+**Tier:** Product/privacy architecture, not behavioral science.
 
-This field exists only to seed the first Budget month with an income record. It is optional. GYLIO does not infer spending categories from the amount.
+Budget already has its own income workflow. Onboarding can be completed and understood without financial data, so collecting monthly income here is not necessary for onboarding. Removing it reduces cognitive/form burden and follows a data-minimization-by-design principle: determine whether a purpose can be fulfilled with less personal data before collecting more.
 
-An older field named `monthlyBudget` is deliberately **not** migrated into `monthlyIncome`: the meanings differ, and silently changing the semantics of persisted user data would be incorrect.
+This is a product-design rationale, not a claim that GYLIO's legal obligations are identical in every jurisdiction.
+
+Sources:
+- W3C Forms Tutorial: only request what is required for the process: https://www.w3.org/WAI/tutorials/forms/
+- EDPB Guidelines 4/2019, section 3.5 Data Minimisation: https://www.edpb.europa.eu/sites/default/files/files/file1/edpb_guidelines_201904_dataprotection_by_design_and_by_default_v2.0_en.pdf
+
+Older onboarding fields named `monthlyBudget` or `monthlyIncome` are deliberately dropped from onboarding schema v5. Existing budget records in the Budget datastore are not changed by this migration.
 
 ## Screen 3 — Orientation
 
@@ -147,23 +159,27 @@ Defaults influence behavior, so they should be low-assumption and reversible. GY
 
 The onboarding deliberately avoids medical labels such as ADHD, autism, anxiety, or dyslexia because the product only needs interface preferences, not health information.
 
+Secondary app-header actions such as the interactive Guide, global TTS toggle, and upgrade CTA are visually suppressed while onboarding is active. This reduces competing actions; the relevant preference remains available inside onboarding and the other actions return afterward.
+
 ## Claims we intentionally do not make
 
 - "ADHD users need large text."
 - "Autistic users should use high contrast."
 - "Anxiety requires a light theme."
 - "OpenDyslexic improves reading for dyslexia."
+- "Text-to-speech improves comprehension for every reader."
 - "A starter task guarantees productivity."
 - "A particular support bundle is best for a diagnosis."
-- "Typing income is a behavioral intervention."
+- "Typing income during onboarding is necessary to use Budget."
 
 ## Review rule
 
 Whenever onboarding copy, defaults, questions, or options change:
 
 1. identify the factual/behavioral claim implied by the control;
-2. classify its evidence strength;
+2. classify its evidence strength and studied population;
 3. prefer direct user preference over diagnosis inference;
 4. make low-certainty supports optional and reversible;
-5. do not collect data the application does not use;
-6. run EN/es-PE localization, migration, 320/390px layout, keyboard/accessibility, and full-browser regression tests.
+5. do not collect data the onboarding process does not need;
+6. keep study detail in this evidence ledger unless the user needs it to make the choice;
+7. run EN/es-PE localization, migration, 320/390px layout, keyboard/accessibility, starter-task creation, and full-browser regression tests.
