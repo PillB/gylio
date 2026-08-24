@@ -66,22 +66,6 @@ function AccessibilityPrefs({ data, onUpdate, t }) {
     <div style={{ display: 'grid', gap: theme.spacing.lg }}>
       <p style={{ margin: 0, color: theme.colors.text }}>{t('onboarding.accessibility.helper')}</p>
 
-      {data.textStyle === 'dyslexic' && (
-        <p
-          role="status"
-          style={{
-            margin: 0,
-            padding: theme.spacing.md,
-            border: `1px solid ${theme.colors.border}`,
-            borderRadius: theme.shape.radiusSm,
-            color: theme.colors.muted,
-            background: theme.colors.background
-          }}
-        >
-          {t('onboarding.accessibility.legacyActive')}
-        </p>
-      )}
-
       {choiceGroup(
         t('onboarding.accessibility.textStyleLabel'),
         [
