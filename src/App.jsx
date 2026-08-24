@@ -273,7 +273,7 @@ function OnboardingRoute() {
   const seedStarterData = useCallback(
     async (flowSelections) => {
       const starterGoal = flowSelections?.quickSetup?.starterGoal?.trim() ?? '';
-      const incomeInput = flowSelections?.quickSetup?.monthlyIncome ?? flowSelections?.quickSetup?.monthlyBudget ?? '';
+      const incomeInput = flowSelections?.quickSetup?.monthlyIncome ?? '';
       const incomeValue = Number.parseFloat(String(incomeInput));
       const shouldSeedIncome = String(incomeInput).trim() !== '' && Number.isFinite(incomeValue) && incomeValue >= 0;
 
