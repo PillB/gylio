@@ -3,6 +3,14 @@ import PropTypes from 'prop-types';
 import useAccessibility from '../../core/hooks/useAccessibility';
 import { useTheme } from '../../core/context/ThemeContext';
 
+const PRE_HIGH_CONTRAST_THEME_KEY = 'accessibility:themeBeforeHighContrast';
+
+const readPreviousTheme = () => {
+  if (typeof window === 'undefined') return null;
+  const stored = window.localStorage?.getItem(PRE_HIGH_CONTRAST_THEME_KEY);
+  return stored === 'light' || stored === 'dark' ? stored : null;
+};
+
 function AccessibilityPrefs({ data, onUpdate, t }) {
   const { theme, mode, setTheme } = useTheme();
   const {
@@ -14,23 +22,40 @@ function AccessibilityPrefs({ data, onUpdate, t }) {
 
   const buttonStyle = (selected) => ({
     minHeight: 44,
-    padding: '0.65rem 0.75rem',
+    minWidth: 0,
+    padding: '0.5rem 0.6rem',
     borderRadius: theme.shape.radiusSm,
     border: `${selected ? 2 : 1}px solid ${selected ? theme.colors.primary : theme.colors.borderStrong}`,
     background: selected ? theme.colors.overlay : theme.colors.surface,
     color: theme.colors.text,
     cursor: 'pointer',
-    textAlign: 'left'
+    textAlign: 'left',
+    lineHeight: 1.25,
+    overflowWrap: 'anywhere'
   });
 
   const selectTextStyle = (value) => setTextStylePreference(value);
 
   const selectContrast = (contrast) => {
     onUpdate({ contrast });
+
     if (contrast === 'high') {
+      if (typeof window !== 'undefined' && (mode === 'light' || mode === 'dark')) {
+        window.localStorage?.setItem(PRE_HIGH_CONTRAST_THEME_KEY, mode);
+      }
       setTheme('highContrast');
-    } else if (mode === 'highContrast') {
-      const prefersDark = typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches;
+      return;
+    }
+
+    if (mode === 'highContrast') {
+      const previousTheme = readPreviousTheme();
+      if (previousTheme) {
+        setTheme(previousTheme);
+        return;
+      }
+
+      const prefersDark =
+        typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches;
       setTheme(prefersDark ? 'dark' : 'light');
     }
   };
@@ -44,9 +69,15 @@ function AccessibilityPrefs({ data, onUpdate, t }) {
   };
 
   const choiceGroup = (label, options, selectedValue, onSelect) => (
-    <fieldset style={{ border: 0, padding: 0, margin: 0, display: 'grid', gap: theme.spacing.sm }}>
+    <fieldset style={{ border: 0, padding: 0, margin: 0, display: 'grid', gap: theme.spacing.xs }}>
       <legend style={{ fontWeight: 700, padding: 0 }}>{label}</legend>
-      <div style={{ display: 'grid', gap: theme.spacing.sm, gridTemplateColumns: 'repeat(auto-fit, minmax(165px, 1fr))' }}>
+      <div
+        style={{
+          display: 'grid',
+          gap: theme.spacing.xs,
+          gridTemplateColumns: 'repeat(2, minmax(0, 1fr))'
+        }}
+      >
         {options.map(({ value, label: optionLabel }) => (
           <button
             key={value}
@@ -63,7 +94,7 @@ function AccessibilityPrefs({ data, onUpdate, t }) {
   );
 
   return (
-    <div style={{ display: 'grid', gap: theme.spacing.lg }}>
+    <div style={{ display: 'grid', gap: theme.spacing.md }}>
       <p style={{ margin: 0, color: theme.colors.text }}>{t('onboarding.accessibility.helper')}</p>
 
       {choiceGroup(
@@ -76,7 +107,6 @@ function AccessibilityPrefs({ data, onUpdate, t }) {
         data.textStyle,
         selectTextStyle
       )}
-      <small style={{ color: theme.colors.muted }}>{t('onboarding.accessibility.textStyleHelper')}</small>
 
       {choiceGroup(
         t('onboarding.accessibility.contrastLabel'),
@@ -87,7 +117,6 @@ function AccessibilityPrefs({ data, onUpdate, t }) {
         data.contrast,
         selectContrast
       )}
-      <small style={{ color: theme.colors.muted }}>{t('onboarding.accessibility.contrastHelper')}</small>
 
       {choiceGroup(
         t('onboarding.accessibility.motionLabel'),
@@ -99,7 +128,6 @@ function AccessibilityPrefs({ data, onUpdate, t }) {
         data.motion,
         selectMotion
       )}
-      <small style={{ color: theme.colors.muted }}>{t('onboarding.accessibility.motionHelper')}</small>
 
       <label
         style={{
@@ -118,20 +146,23 @@ function AccessibilityPrefs({ data, onUpdate, t }) {
         />
         <span style={{ fontWeight: 600 }}>{t('onboarding.accessibility.tts')}</span>
       </label>
-      <small style={{ color: theme.colors.muted }}>{t('onboarding.accessibility.ttsHelper')}</small>
 
       <details
         style={{
           border: `1px solid ${theme.colors.border}`,
           borderRadius: theme.shape.radiusSm,
-          padding: theme.spacing.md,
+          padding: theme.spacing.sm,
           background: theme.colors.background
         }}
       >
         <summary style={{ cursor: 'pointer', fontWeight: 600 }}>{t('onboarding.accessibility.evidenceTitle')}</summary>
-        <p style={{ margin: `${theme.spacing.sm}px 0 0`, color: theme.colors.muted }}>
-          {t('onboarding.accessibility.evidenceBody')}
-        </p>
+        <div style={{ display: 'grid', gap: theme.spacing.xs, marginTop: theme.spacing.sm, color: theme.colors.muted }}>
+          <small>{t('onboarding.accessibility.textStyleHelper')}</small>
+          <small>{t('onboarding.accessibility.contrastHelper')}</small>
+          <small>{t('onboarding.accessibility.motionHelper')}</small>
+          <small>{t('onboarding.accessibility.ttsHelper')}</small>
+          <small>{t('onboarding.accessibility.evidenceBody')}</small>
+        </div>
       </details>
     </div>
   );
