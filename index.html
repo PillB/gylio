@@ -49,19 +49,11 @@
         padding: 0 8px;
         text-underline-offset: 3px;
       }
-      @media (prefers-color-scheme: dark) {
-        .site-utility-footer { border-color: #3A3940; color: #B9B7C0; }
-        .site-utility-footer a { color: #A7A1FF; }
-      }
       @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
     </style>
   </head>
   <body>
     <div id="root"></div>
-    <footer class="site-utility-footer" aria-label="Product resources">
-      <span>GYLIO resources</span>
-      <a href="%BASE_URL%deployment-guide.html">Production Deployment Academy</a>
-    </footer>
     <!-- Vite will inject the compiled JavaScript here -->
     <script type="module" src="%BASE_URL%main.jsx"></script>
   </body>

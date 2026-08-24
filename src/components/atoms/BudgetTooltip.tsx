@@ -6,6 +6,7 @@
  * All strings passed as props (caller uses t()).
  */
 import React, { useState, useId } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../core/context/ThemeContext';
 
 type Props = {
@@ -16,6 +17,7 @@ type Props = {
 
 export default function BudgetTooltip({ content, position = 'top' }: Props) {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
   const id = useId();
 
@@ -69,7 +71,7 @@ export default function BudgetTooltip({ content, position = 'top' }: Props) {
           fontFamily: theme.typography.body.family,
           lineHeight: 1,
         }}
-        aria-label="Information"
+        aria-label={t('shell.information')}
       >
         i
       </button>

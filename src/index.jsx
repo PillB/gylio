@@ -11,6 +11,7 @@ import { AccessibilityProvider } from './core/hooks/useAccessibility';
 import AccessibleMotionBoundary from './core/accessibility/AccessibleMotionBoundary';
 import { ToastProvider } from './core/context/ToastContext';
 import ToastStack from './components/atoms/Toast';
+import SiteUtilityFooter from './components/SiteUtilityFooter';
 import { GuidedTourProvider } from './core/context/GuidedTourContext';
 import { TaskTimerProvider } from './core/context/TaskTimerContext';
 import { registerServiceWorker } from './core/utils/serviceWorker';
@@ -35,6 +36,7 @@ const providers = (
                 <AccessibilityProvider>
                   <AccessibleMotionBoundary>
                     <App clerkEnabled={Boolean(PUBLISHABLE_KEY)} />
+                    <SiteUtilityFooter />
                     <ToastStack />
                   </AccessibleMotionBoundary>
                 </AccessibilityProvider>

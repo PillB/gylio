@@ -5,8 +5,12 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const htmlPath = path.join(root, 'public', 'deployment-guide.html');
 const appIndexPath = path.join(root, 'index.html');
+const reactEntryPath = path.join(root, 'src', 'index.jsx');
+const utilityFooterPath = path.join(root, 'src', 'components', 'SiteUtilityFooter.tsx');
 const html = fs.readFileSync(htmlPath, 'utf8');
 const appIndex = fs.readFileSync(appIndexPath, 'utf8');
+const reactEntry = fs.readFileSync(reactEntryPath, 'utf8');
+const utilityFooter = fs.existsSync(utilityFooterPath) ? fs.readFileSync(utilityFooterPath, 'utf8') : '';
 
 let failures = 0;
 const pass = (round, label) => console.log(`[deployment-guide] pass ${round}/6 ✓ ${label}`);
@@ -95,8 +99,20 @@ requireAll(6, 'standalone guide features', [
 const externalAssets = [...html.matchAll(/<(?:script|link)[^>]+(?:src|href)="https?:\/\//gi)];
 if (externalAssets.length) fail(6, 'no required CDN JavaScript/CSS', `${externalAssets.length} external script/link assets found`);
 else pass(6, 'no required CDN JavaScript/CSS');
-if (!appIndex.includes('deployment-guide.html')) fail(6, 'main-site footer integration', 'index.html does not link deployment-guide.html');
-else pass(6, 'main-site footer integration');
+
+// The product footer may be static in index.html or, preferably, rendered
+// inside the React/i18next provider tree so it follows the active locale.
+const staticFooterLink = appIndex.includes('deployment-guide.html');
+const localizedReactFooter =
+  utilityFooter.includes('deployment-guide.html') &&
+  utilityFooter.includes("t('shell.deploymentAcademy')") &&
+  reactEntry.includes("import SiteUtilityFooter") &&
+  reactEntry.includes('<SiteUtilityFooter />');
+if (!staticFooterLink && !localizedReactFooter) {
+  fail(6, 'main-site footer integration', 'neither index.html nor the rendered SiteUtilityFooter links deployment-guide.html');
+} else {
+  pass(6, localizedReactFooter ? 'localized React footer integration' : 'main-site footer integration');
+}
 
 if (failures) {
   console.error(`\n[deployment-guide] FAILED with ${failures} validation issue(s).`);
