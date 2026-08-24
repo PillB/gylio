@@ -1,0 +1,78 @@
+name: Live production validation
+
+on:
+  push:
+    branches:
+      - validation/live-prod-2026-08-23
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: live-production-validation
+  cancel-in-progress: true
+
+jobs:
+  python-live:
+    name: Python HTTP/content validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout validation branch
+        uses: actions/checkout@v5
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Validate public HTTP artifact and content
+        run: python scripts/live_site_check.py --base https://pillb.github.io/gylio/ --report artifacts/live-python-report.json
+
+      - name: Upload Python validation evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: live-python-validation
+          path: artifacts/live-python-report.json
+          if-no-files-found: error
+          retention-days: 14
+
+  playwright-live:
+    name: Playwright live user-flow validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CI: true
+      PLAYWRIGHT_BASE_URL: https://pillb.github.io/gylio/
+    steps:
+      - name: Checkout validation branch
+        uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Reproducible dependency install
+        run: npm ci --ignore-scripts
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run live production user flows
+        run: npx playwright test e2e/live-site.spec.ts --project=chromium
+
+      - name: Upload Playwright live evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: live-playwright-validation
+          path: |
+            playwright-report/
+            test-results/
+            e2e/live-screenshots/
+          if-no-files-found: ignore
+          retention-days: 14
