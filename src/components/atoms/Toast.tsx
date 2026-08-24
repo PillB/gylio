@@ -3,6 +3,7 @@
  * Consumes ToastContext; mount once near the app root.
  */
 import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../core/context/ThemeContext';
 import { useToast, type ToastItem, type ToastType } from '../../core/context/ToastContext';
 
@@ -18,6 +19,7 @@ const ToastEntry: React.FC<{ toast: ToastItem; onDismiss: (id: string) => void }
   onDismiss,
 }) => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -69,7 +71,6 @@ const ToastEntry: React.FC<{ toast: ToastItem; onDismiss: (id: string) => void }
         pointerEvents: 'auto',
       }}
     >
-      {/* Icon */}
       <span
         aria-hidden="true"
         style={{
@@ -89,10 +90,8 @@ const ToastEntry: React.FC<{ toast: ToastItem; onDismiss: (id: string) => void }
         {icon}
       </span>
 
-      {/* Message */}
       <span style={{ flex: 1, lineHeight: 1.4 }}>{toast.message}</span>
 
-      {/* Action button (e.g. Undo) */}
       {toast.action && (
         <button
           type="button"
@@ -115,11 +114,10 @@ const ToastEntry: React.FC<{ toast: ToastItem; onDismiss: (id: string) => void }
         </button>
       )}
 
-      {/* Dismiss × */}
       <button
         type="button"
         onClick={dismiss}
-        aria-label="Dismiss notification"
+        aria-label={t('shell.dismissNotification')}
         style={{
           width: 20,
           height: 20,
@@ -145,10 +143,11 @@ const ToastEntry: React.FC<{ toast: ToastItem; onDismiss: (id: string) => void }
 /** Mount this once near the app root (inside ThemeProvider + ToastProvider). */
 const ToastStack: React.FC = () => {
   const { toasts, dismissToast } = useToast();
+  const { t } = useTranslation();
 
   return (
     <div
-      aria-label="Notifications"
+      aria-label={t('shell.notifications')}
       style={{
         position: 'fixed',
         bottom: 24,
