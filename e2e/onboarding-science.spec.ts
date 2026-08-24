@@ -10,29 +10,50 @@ async function startFreshOnboarding(page: Page) {
   await expect(page).toHaveURL(/\/gylio\/onboarding$/);
 }
 
-test.describe('science-backed onboarding', () => {
+test.describe('evidence-calibrated onboarding', () => {
   test('uses preference-based accessibility choices with safe defaults', async ({ page }) => {
     await startFreshOnboarding(page);
 
     await expect(page.getByRole('heading', { name: /make gylio comfortable to use/i })).toBeVisible();
-    await expect(page.getByLabel(/text size/i)).toHaveValue('standard');
-    await expect(page.getByLabel(/motion preference/i)).toHaveValue('system');
     await expect(page.getByText(/preferences, not medical recommendations/i)).toBeVisible();
-    await expect(page.getByText(/dyslexic|opendyslexic/i)).toHaveCount(0);
+    await expect(page.getByRole('button', { name: /standard text/i })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByRole('button', { name: /follow my device/i })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByRole('button', { name: /larger text/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /more spacing/i })).toBeVisible();
+    await expect(page.getByText(/opendyslexic/i)).toHaveCount(0);
     await expect(page.getByRole('button', { name: /next/i })).toBeEnabled();
   });
 
-  test('does not prescribe interface settings from diagnosis labels', async ({ page }) => {
+  test('offers optional evidence-informed starter profiles without diagnosis labels', async ({ page }) => {
     await startFreshOnboarding(page);
     await page.getByRole('button', { name: /next/i }).click();
 
+    await expect(page.getByRole('heading', { name: /try a starter support profile/i })).toBeVisible();
+    await expect(page.getByText(/optional experiment/i)).toBeVisible();
+    await expect(page.getByRole('button', { name: /focus-friendly/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /quiet motion/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /reading support/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /high visibility/i })).toBeVisible();
     await expect(page.getByText(/ADHD|Autism \/ ASD|Anxiety/i)).toHaveCount(0);
     await expect(page.getByText('Dyslexia', { exact: true })).toHaveCount(0);
-    await expect(page.getByRole('heading', { name: /start with something useful/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /keep my current choices/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /next/i })).toBeEnabled();
+  });
+
+  test('starter profiles are reversible suggestions rather than prescriptions', async ({ page }) => {
+    await startFreshOnboarding(page);
+    await page.getByRole('button', { name: /next/i }).click();
+    await page.getByRole('button', { name: /reading support/i }).click();
+    await expect(page.getByText(/settings applied.*change them anytime/i)).toBeVisible();
+    await page.getByRole('button', { name: /back/i }).click();
+    await expect(page.getByRole('button', { name: /larger text/i })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByRole('checkbox', { name: /read text aloud/i })).toBeChecked();
   });
 
   test('keeps starter task and income optional and explains their effects', async ({ page }) => {
     await startFreshOnboarding(page);
+    await page.getByRole('button', { name: /next/i }).click();
+    await page.getByRole('button', { name: /keep my current choices/i }).click();
     await page.getByRole('button', { name: /next/i }).click();
 
     await expect(page.getByLabel(/first task.*optional/i)).toBeVisible();
@@ -44,6 +65,8 @@ test.describe('science-backed onboarding', () => {
   test('does not collect a reminder preference or require acknowledgement', async ({ page }) => {
     await startFreshOnboarding(page);
     await page.getByRole('button', { name: /next/i }).click();
+    await page.getByRole('button', { name: /keep my current choices/i }).click();
+    await page.getByRole('button', { name: /next/i }).click();
     await page.getByRole('button', { name: /next/i }).click();
 
     await expect(page.getByRole('heading', { name: /know where things are/i })).toBeVisible();
@@ -52,15 +75,18 @@ test.describe('science-backed onboarding', () => {
     await expect(page.getByRole('button', { name: /finish/i })).toBeEnabled();
   });
 
-  test('localizes the evidence-based onboarding in Peruvian Spanish', async ({ page }) => {
+  test('localizes the evidence-calibrated onboarding in Peruvian Spanish', async ({ page }) => {
     await startFreshOnboarding(page);
 
     const language = page.getByRole('combobox', { name: /select language/i }).first();
     await language.selectOption('es-PE');
     await expect(page.locator('html')).toHaveAttribute('lang', 'es-PE');
     await expect(page.getByRole('heading', { name: /haz que gylio sea cómodo de usar/i })).toBeVisible();
-    await expect(page.getByLabel(/preferencia de movimiento/i)).toHaveValue('system');
+    await expect(page.getByRole('button', { name: /seguir la configuración de mi dispositivo/i })).toHaveAttribute('aria-pressed', 'true');
 
+    await page.getByRole('button', { name: /siguiente/i }).click();
+    await expect(page.getByRole('heading', { name: /prueba un perfil inicial de apoyo/i })).toBeVisible();
+    await page.getByRole('button', { name: /mantener mis opciones actuales/i }).click();
     await page.getByRole('button', { name: /siguiente/i }).click();
     await expect(page.getByLabel(/primera tarea.*opcional/i)).toBeVisible();
     await expect(page.getByLabel(/ingreso mensual neto.*opcional/i)).toBeVisible();
