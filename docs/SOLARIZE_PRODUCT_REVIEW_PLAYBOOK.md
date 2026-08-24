@@ -27,7 +27,7 @@ For every screen or flow:
 15. **Validate the real artifact.** Require lint/typecheck/unit/build/server/security/i18n plus Playwright. For production/deployment changes, validate the deployed artifact, not just source or build output.
 16. **Visual forensics.** Capture 320x568, 390x844, 768x1024, and 1440x900 evidence as relevant. Use Python/image inspection to measure page height, overflow, clipping, bounding geometry, and before/after density. A screenshot existing is not evidence that it is good.
 17. **Skeptic pass.** Before merge, argue against the proposed change: identify regressions, hidden assumptions, dark patterns, accessibility risks, scientific overclaims, security/privacy costs, and simpler alternatives.
-18. **Exact-head release discipline.** Merge only an exact head with all required gates green. After merge, verify any live/deployment status separately.
+18. **Exact-head release discipline.** Merge only an exact head with all required gates green. After merge, verify any live/deployment status separately. If automation updates a branch through low-level Git/ref APIs, confirm a CI run is actually attached to the resulting exact head; mergeability alone is never verification.
 
 ### Required review output per screen
 
