@@ -1,56 +1,70 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { useTheme } from '../../core/context/ThemeContext';
 
 function QuickSetup({ data, onUpdate, t }) {
+  const { theme } = useTheme();
+  const hasGoal = Boolean(data.starterGoal?.trim());
+  const hasIncome = String(data.monthlyIncome ?? '').trim() !== '';
+
+  const inputStyle = {
+    minHeight: 44,
+    padding: '0.75rem',
+    borderRadius: theme.shape.radiusSm,
+    border: `1px solid ${theme.colors.borderStrong}`,
+    background: theme.colors.surface,
+    color: theme.colors.text,
+    font: 'inherit'
+  };
+
   return (
-    <div style={{ display: 'grid', gap: '1rem' }}>
-      <p style={{ margin: 0, color: '#4a4a4a' }}>{t('onboarding.quickSetup.helper')}</p>
-      <div>
-        <label style={{ display: 'grid', gap: '0.35rem' }}>
-          <span style={{ fontWeight: 600 }}>{t('onboarding.quickSetup.goalLabel')}</span>
-          <textarea
-            value={data.starterGoal}
-            onChange={(e) => onUpdate({ starterGoal: e.target.value })}
-            rows={3}
-            placeholder={t('onboarding.quickSetup.goalPlaceholder')}
-            style={{
-              padding: '0.75rem',
-              borderRadius: '8px',
-              border: '1px solid #d6d8e2',
-              resize: 'vertical'
-            }}
-          />
-          <small style={{ color: '#666' }}>{t('onboarding.quickSetup.goalHint')}</small>
-        </label>
-      </div>
+    <div style={{ display: 'grid', gap: theme.spacing.lg }}>
+      <p style={{ margin: 0, color: theme.colors.text }}>{t('onboarding.quickSetup.helper')}</p>
 
-      <div>
-        <label style={{ display: 'grid', gap: '0.35rem' }}>
-          <span style={{ fontWeight: 600 }}>{t('onboarding.quickSetup.budgetLabel')}</span>
-          <input
-            type="number"
-            inputMode="decimal"
-            min="0"
-            value={data.monthlyBudget}
-            onChange={(e) => onUpdate({ monthlyBudget: e.target.value })}
-            placeholder={t('onboarding.quickSetup.budgetPlaceholder')}
-            style={{
-              padding: '0.75rem',
-              borderRadius: '8px',
-              border: '1px solid #d6d8e2'
-            }}
-          />
-          <small style={{ color: '#666' }}>{t('onboarding.quickSetup.budgetHint')}</small>
-        </label>
-      </div>
+      <label style={{ display: 'grid', gap: theme.spacing.xs }}>
+        <span style={{ fontWeight: 600 }}>{t('onboarding.quickSetup.goalLabel')}</span>
+        <textarea
+          value={data.starterGoal}
+          onChange={(event) => onUpdate({ starterGoal: event.target.value })}
+          rows={3}
+          placeholder={t('onboarding.quickSetup.goalPlaceholder')}
+          style={{ ...inputStyle, resize: 'vertical' }}
+        />
+        <small style={{ color: theme.colors.muted }}>{t('onboarding.quickSetup.goalHint')}</small>
+      </label>
 
-      <div style={{ background: '#f7f8ff', border: '1px dashed #cdd6ff', borderRadius: '10px', padding: '0.75rem' }}>
-        <p style={{ margin: 0 }}>{t('onboarding.quickSetup.preview')}</p>
-        <ul style={{ margin: '0.5rem 0 0 1rem', color: '#333' }}>
-          <li>{t('onboarding.quickSetup.previewTasks', { goal: data.starterGoal || '…' })}</li>
-          <li>{t('onboarding.quickSetup.previewBudget', { budget: data.monthlyBudget || '0' })}</li>
-        </ul>
-      </div>
+      <label style={{ display: 'grid', gap: theme.spacing.xs }}>
+        <span style={{ fontWeight: 600 }}>{t('onboarding.quickSetup.incomeLabel')}</span>
+        <input
+          type="number"
+          inputMode="decimal"
+          min="0"
+          step="0.01"
+          value={data.monthlyIncome}
+          onChange={(event) => onUpdate({ monthlyIncome: event.target.value })}
+          placeholder={t('onboarding.quickSetup.incomePlaceholder')}
+          style={inputStyle}
+        />
+        <small style={{ color: theme.colors.muted }}>{t('onboarding.quickSetup.incomeHint')}</small>
+      </label>
+
+      {(hasGoal || hasIncome) && (
+        <div
+          aria-live="polite"
+          style={{
+            background: theme.colors.background,
+            border: `1px dashed ${theme.colors.borderStrong}`,
+            borderRadius: theme.shape.radiusSm,
+            padding: theme.spacing.md
+          }}
+        >
+          <p style={{ margin: 0, fontWeight: 600 }}>{t('onboarding.quickSetup.preview')}</p>
+          <ul style={{ margin: `${theme.spacing.sm}px 0 0`, paddingLeft: '1.25rem', color: theme.colors.text }}>
+            {hasGoal && <li>{t('onboarding.quickSetup.previewTask', { goal: data.starterGoal.trim() })}</li>}
+            {hasIncome && <li>{t('onboarding.quickSetup.previewIncome', { income: data.monthlyIncome })}</li>}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
@@ -58,7 +72,7 @@ function QuickSetup({ data, onUpdate, t }) {
 QuickSetup.propTypes = {
   data: PropTypes.shape({
     starterGoal: PropTypes.string,
-    monthlyBudget: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+    monthlyIncome: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
   }).isRequired,
   onUpdate: PropTypes.func.isRequired,
   t: PropTypes.func.isRequired
