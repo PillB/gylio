@@ -25,7 +25,7 @@ import DateTimeWidget from './components/atoms/DateTimeWidget.tsx';
 import { useTheme } from './core/context/ThemeContext';
 import TintLayer from './components/TintLayer.jsx';
 import useDB from './core/hooks/useDB';
-import { getDefaultBudgetMonth } from './core/utils/date';
+import { getLocalDateKey } from './core/hooks/useClock';
 import useBackgroundSync from './core/hooks/useBackgroundSync';
 import SignInPage from './features/auth/SignInPage';
 import SignUpPage from './features/auth/SignUpPage';
@@ -65,7 +65,6 @@ function AppHeader({ clerkEnabled }) {
         marginBottom: theme.spacing.lg,
       }}
     >
-      {/* Brand */}
       <div style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm }}>
         <div
           style={{
@@ -99,7 +98,6 @@ function AppHeader({ clerkEnabled }) {
         </h1>
       </div>
 
-      {/* Controls */}
       <div style={{ display: 'flex', gap: theme.spacing.sm, alignItems: 'center', flexWrap: 'wrap' }}>
         <DateTimeWidget />
         <button
@@ -152,8 +150,6 @@ function AppHeader({ clerkEnabled }) {
   );
 }
 
-// --- Subscription badge in header ---
-
 function SubscriptionBadge() {
   const { theme } = useTheme();
   const { isFree } = useSubscription();
@@ -161,7 +157,6 @@ function SubscriptionBadge() {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-  // Don't show when signed out
   if (!userId) return null;
 
   if (!isFree) {
@@ -203,8 +198,6 @@ function SubscriptionBadge() {
   );
 }
 
-// --- Layout wrapper ---
-
 function AppLayout({ clerkEnabled }) {
   const { theme } = useTheme();
 
@@ -231,8 +224,6 @@ function AppLayout({ clerkEnabled }) {
   );
 }
 
-// --- Root redirect (with Clerk) ---
-
 function RootRedirectAuthed() {
   const { isOnboardingComplete } = useOnboardingFlow();
   const { isLoaded, isSignedIn } = useAuth();
@@ -246,8 +237,6 @@ function RootRedirectNoAuth() {
   return <Navigate to={isOnboardingComplete ? '/tasks' : '/onboarding'} replace />;
 }
 
-// --- Protected layout (with Clerk) ---
-
 function ProtectedLayoutAuthed() {
   const { isLoaded, isSignedIn } = useAuth();
   if (!isLoaded) return null;
@@ -259,49 +248,34 @@ function ProtectedLayoutNoAuth() {
   return <Outlet />;
 }
 
-// --- Onboarding ---
-
 function OnboardingRoute() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { isOnboardingComplete } = useOnboardingFlow();
   const { theme } = useTheme();
-  const { ready, getTasks, insertTask, getBudgets, insertBudget } = useDB();
+  const { ready, getTasks, insertTask } = useDB();
   const [pendingSeed, setPendingSeed] = useState(null);
   const [isSeeding, setIsSeeding] = useState(false);
 
   const seedStarterData = useCallback(
     async (flowSelections) => {
       const starterGoal = flowSelections?.quickSetup?.starterGoal?.trim() ?? '';
-      const incomeInput = flowSelections?.quickSetup?.monthlyIncome ?? '';
-      const incomeValue = Number.parseFloat(String(incomeInput));
-      const shouldSeedIncome = String(incomeInput).trim() !== '' && Number.isFinite(incomeValue) && incomeValue >= 0;
+      if (!starterGoal) return;
 
-      if (starterGoal) {
-        const existingTasks = await getTasks();
-        const normalizedGoal = starterGoal.toLowerCase();
-        const hasGoalTask = existingTasks.some(
-          (task) => task.title.trim().toLowerCase() === normalizedGoal
-        );
-        if (!hasGoalTask) {
-          await insertTask(starterGoal, 'pending', [], null, null, null);
-        }
-      }
+      const existingTasks = await getTasks();
+      const normalizedGoal = starterGoal.toLowerCase();
+      const hasGoalTask = existingTasks.some(
+        (task) => task.title.trim().toLowerCase() === normalizedGoal
+      );
 
-      if (shouldSeedIncome) {
-        const month = getDefaultBudgetMonth();
-        const existingBudgets = await getBudgets();
-        const hasMonthBudget = existingBudgets.some((budget) => budget.month === month);
-        if (!hasMonthBudget) {
-          await insertBudget(
-            month,
-            [{ source: t('onboarding.quickSetup.seedIncomeSource'), amount: incomeValue }],
-            []
-          );
-        }
+      if (!hasGoalTask) {
+        // Onboarding promises that the starter action is ready when setup ends.
+        // The Tasks destination opens on Today, so seed this one task onto the
+        // user's local calendar day instead of creating an invisible backlog item.
+        await insertTask(starterGoal, 'pending', [], getLocalDateKey(), null, null);
       }
     },
-    [getBudgets, getTasks, insertBudget, insertTask, t]
+    [getTasks, insertTask]
   );
 
   const handleOnboardingComplete = useCallback((selections) => {
@@ -333,8 +307,6 @@ function OnboardingRoute() {
     </section>
   );
 }
-
-// --- Tabs layout ---
 
 function TabsLayout() {
   const { t } = useTranslation();
@@ -376,8 +348,6 @@ function TabsLayout() {
   );
 }
 
-// --- Clerk setup screen (no key configured) ---
-
 function ClerkSetupScreen() {
   const { theme } = useTheme();
   return (
@@ -406,16 +376,12 @@ function ClerkSetupScreen() {
   );
 }
 
-// --- Premium gate ---
-
 function PremiumGate({ feature, featureI18nKey }) {
   const { hasFeature } = useSubscription();
   const { t } = useTranslation();
   if (!hasFeature(feature)) return <UpgradePrompt featureName={t(featureI18nKey)} />;
   return <Outlet />;
 }
-
-// --- Router builders ---
 
 function buildAuthRouter(clerkEnabled) {
   const premiumRoutes = [
@@ -469,8 +435,6 @@ function buildAuthRouter(clerkEnabled) {
   );
 }
 
-// --- App router (Clerk enabled) ---
-
 function AppRouterAuthed() {
   const { hydrated } = useOnboardingFlow();
   const router = useMemo(() => buildAuthRouter(true), []);
@@ -481,8 +445,6 @@ function AppRouterAuthed() {
     </AuthProvider>
   );
 }
-
-// --- App router (no auth) ---
 
 function AppRouterNoAuth() {
   const { hydrated } = useOnboardingFlow();
@@ -495,13 +457,10 @@ function AppRouterNoAuth() {
   );
 }
 
-// --- Root App ---
-
 export default function App({ clerkEnabled = false }) {
   const { paperTheme } = useTheme();
   useBackgroundSync();
 
-  // Track app open
   React.useEffect(() => {
     track(Events.APP_OPEN, { clerkEnabled });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
