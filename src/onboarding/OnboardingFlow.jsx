@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import useOnboardingFlow, { stepOrder } from '../hooks/useOnboardingFlow.jsx';
 import AccessibilityPrefs from './steps/AccessibilityPrefs.jsx';
+import SupportProfiles from './steps/SupportProfiles.jsx';
 import QuickSetup from './steps/QuickSetup.jsx';
 import MiniTour from './steps/MiniTour.jsx';
 import LanguageToggle from '../components/atoms/LanguageToggle.tsx';
@@ -10,9 +11,11 @@ import { useTheme } from '../core/context/ThemeContext';
 
 const validators = {
   accessibility: (state) =>
-    ['standard', 'large'].includes(state.textStyle) &&
+    ['standard', 'large', 'spaced'].includes(state.textStyle) &&
     ['balanced', 'high'].includes(state.contrast) &&
     ['system', 'reduced', 'standard'].includes(state.motion),
+  supportProfile: (state) =>
+    ['keep', 'focus', 'quiet', 'reading', 'visibility'].includes(state.profile),
   quickSetup: (state) => {
     if (String(state.monthlyIncome ?? '').trim() === '') return true;
     const income = Number(state.monthlyIncome);
@@ -23,6 +26,7 @@ const validators = {
 
 const stepComponents = {
   accessibility: AccessibilityPrefs,
+  supportProfile: SupportProfiles,
   quickSetup: QuickSetup,
   tour: MiniTour
 };
@@ -42,7 +46,6 @@ function OnboardingFlow({ onComplete }) {
 
     const isFinalStep = currentStep >= stepOrder.length - 1;
     completeStep();
-
     if (isFinalStep) onComplete(selections);
   };
 
