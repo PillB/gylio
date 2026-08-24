@@ -31,20 +31,20 @@
     "reducedMotion": "Reduce non-essential motion",
     "standardMotion": "Allow non-essential motion",
     "motionHelper": "Following your device respects its reduced-motion setting. Reduce motion if animation distracts you or causes discomfort.",
-    "tts": "Read text aloud",
-    "ttsHelper": "Optional. Research in students with reading difficulties finds a small average comprehension benefit from read-aloud or text-to-speech support, but effects vary between readers.",
+    "tts": "Read section summaries aloud",
+    "ttsHelper": "Optional. GYLIO speaks section headings and summaries as you move through the app. Research in students with reading difficulties finds an average benefit from read-aloud support, but effects vary.",
     "evidenceTitle": "Why these choices?",
     "evidenceBody": "GYLIO follows accessibility standards for motion, resizing, contrast and user control. Reading supports can help some people but do not work the same way for everyone. We do not infer settings from a diagnosis."
   },
   "quickSetup": {
     "title": "Start with something useful",
     "subtitle": "Adding a first task is optional. Skip it if you would rather explore first.",
-    "helper": "If you want, add one concrete thing you would like to do first.",
+    "helper": "If you want, add one concrete thing you would like to do first. GYLIO will place it on Today so it is visible when setup ends.",
     "goalLabel": "First task (optional)",
     "goalPlaceholder": "Example: Put tomorrow's documents by the door",
     "goalHint": "Make it specific and doable so the next action is clear. This is optional; use it only if it helps you get started.",
     "preview": "What GYLIO will create",
-    "previewTask": "Task: {{goal}}"
+    "previewTask": "Today's task: {{goal}}"
   },
   "tour": {
     "title": "Know where things are",
