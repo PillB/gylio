@@ -8,8 +8,10 @@ import React, {
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export const ONBOARDING_SCHEMA_VERSION = 2;
-export const stepOrder = ['accessibility', 'quickSetup', 'tour'];
+export const ONBOARDING_SCHEMA_VERSION = 3;
+export const stepOrder = ['accessibility', 'supportProfile', 'quickSetup', 'tour'];
+
+const PROFILE_KEYS = ['keep', 'focus', 'quiet', 'reading', 'visibility'];
 
 const defaultSelections = {
   accessibility: {
@@ -18,6 +20,9 @@ const defaultSelections = {
     motion: 'system',
     animations: true,
     tts: false
+  },
+  supportProfile: {
+    profile: 'keep'
   },
   quickSetup: {
     starterGoal: '',
@@ -39,12 +44,36 @@ const createInitialState = () => ({
 });
 
 const normalizeAccessibility = (value = {}) => ({
-  textStyle: value.textStyle === 'large' ? 'large' : 'standard',
+  textStyle: ['standard', 'large', 'spaced'].includes(value.textStyle)
+    ? value.textStyle
+    : 'standard',
   contrast: value.contrast === 'high' ? 'high' : 'balanced',
   motion: ['system', 'reduced', 'standard'].includes(value.motion) ? value.motion : 'system',
   animations: value.animations !== false,
   tts: Boolean(value.tts)
 });
+
+const normalizeProfile = (selections = {}) => {
+  const value = selections.supportProfile?.profile;
+  return PROFILE_KEYS.includes(value) ? value : 'keep';
+};
+
+const migrateCurrentStep = (schemaVersion, currentStep) => {
+  const step = Number.isFinite(Number(currentStep)) ? Number(currentStep) : 0;
+  if (schemaVersion >= 3) return Math.min(Math.max(step, 0), stepOrder.length - 1);
+
+  // Schema v2 temporarily had three screens: accessibility, quickSetup, tour.
+  if (schemaVersion === 2) {
+    if (step <= 0) return 0;
+    if (step === 1) return 2;
+    return 3;
+  }
+
+  // Schema v1 had four screens with a diagnosis-labelled preset screen at
+  // index 1. Preserve the user's position but replace that screen with the
+  // optional, preference-based support-profile screen.
+  return Math.min(Math.max(step, 0), stepOrder.length - 1);
+};
 
 const migratePersistedState = (persistedState) => {
   if (!persistedState || typeof persistedState !== 'object') return null;
@@ -52,40 +81,25 @@ const migratePersistedState = (persistedState) => {
   const selections = persistedState.selections ?? {};
   const legacyQuickSetup = selections.quickSetup ?? {};
   const schemaVersion = Number(persistedState.schemaVersion ?? 1);
-  const isOnboardingComplete = Boolean(persistedState.isOnboardingComplete);
-
-  // Schema v1 had a diagnosis-based screen at index 1. Collapse it into the
-  // optional quick-start step without re-onboarding users who already finished.
-  const legacyStep = Number.isFinite(Number(persistedState.currentStep))
-    ? Number(persistedState.currentStep)
-    : 0;
-  const migratedStep = schemaVersion >= ONBOARDING_SCHEMA_VERSION
-    ? Math.min(Math.max(legacyStep, 0), stepOrder.length - 1)
-    : legacyStep <= 0
-      ? 0
-      : legacyStep <= 2
-        ? 1
-        : 2;
 
   return {
     schemaVersion: ONBOARDING_SCHEMA_VERSION,
-    currentStep: migratedStep,
+    currentStep: migrateCurrentStep(schemaVersion, persistedState.currentStep),
     selections: {
       accessibility: normalizeAccessibility(selections.accessibility),
+      supportProfile: { profile: normalizeProfile(selections) },
       quickSetup: {
         starterGoal: String(legacyQuickSetup.starterGoal ?? ''),
         monthlyIncome: legacyQuickSetup.monthlyIncome ?? legacyQuickSetup.monthlyBudget ?? ''
       },
       tour: {}
     },
-    isOnboardingComplete
+    isOnboardingComplete: Boolean(persistedState.isOnboardingComplete)
   };
 };
 
 const getStorage = () => {
-  if (AsyncStorage && typeof AsyncStorage.getItem === 'function') {
-    return AsyncStorage;
-  }
+  if (AsyncStorage && typeof AsyncStorage.getItem === 'function') return AsyncStorage;
 
   if (typeof window !== 'undefined' && window?.localStorage) {
     return {
@@ -136,13 +150,11 @@ export function OnboardingFlowProvider({ children }) {
     const hydrate = async () => {
       const persistedState = await loadPersistedState();
       if (!isMounted) return;
-
       if (persistedState) setState(persistedState);
       setHydrated(true);
     };
 
     hydrate();
-
     return () => {
       isMounted = false;
     };
