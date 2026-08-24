@@ -11,14 +11,13 @@
     "validationReminder": "Ingresa un monto de ingreso no negativo o déjalo en blanco."
   },
   "predictableSteps": {
-    "accessibility": "Primero: elige preferencias de interfaz. Ya hay opciones seguras seleccionadas.",
-    "supportProfile": "Luego: prueba opcionalmente un perfil inicial reversible o mantén tus opciones actuales.",
-    "quickSetup": "Después: opcionalmente crea una primera tarea o agrega tu ingreso mensual.",
+    "accessibility": "Primero: elige preferencias de interfaz. Ya hay opciones neutrales seleccionadas.",
+    "quickSetup": "Luego: opcionalmente agrega una primera tarea o tu ingreso mensual neto.",
     "tour": "Al final: revisa dónde están las partes principales de GYLIO."
   },
   "accessibility": {
     "title": "Haz que GYLIO sea cómodo de usar",
-    "subtitle": "Ya seleccionamos opciones seguras. Cambia solo lo que te ayude.",
+    "subtitle": "Ya seleccionamos opciones neutrales. Cambia solo lo que te ayude.",
     "helper": "Elige lo que te resulte cómodo. Estas son preferencias de interfaz, no recomendaciones médicas, y puedes cambiarlas después en Configuración.",
     "textStyleLabel": "Apariencia de lectura",
     "standardText": "Texto estándar",
@@ -26,55 +25,28 @@
     "spacedText": "Más espaciado",
     "legacyTextStyle": "Fuente personalizada heredada",
     "legacyActive": "Sigue activa una preferencia de fuente personalizada de una versión anterior de GYLIO. Puedes mantenerla o reemplazarla eligiendo una de las opciones de abajo.",
-    "textStyleHelper": "El texto más grande y el espaciado adicional son ayudas controladas por ti. No existe un único estilo de texto ideal para todas las personas.",
+    "textStyleHelper": "El tamaño y el espaciado del texto pueden afectar la comodidad y la lectura de manera distinta según la persona. Elige la versión que te funcione mejor.",
     "contrastLabel": "Contraste",
     "balancedContrast": "Usar el tema de la app",
     "highContrast": "Mayor contraste",
-    "contrastHelper": "Un mayor contraste mejora la separación visual para muchas personas, mientras que otras prefieren paletas más suaves. Elige lo que te resulte cómodo.",
+    "contrastHelper": "Un contraste mayor puede facilitar distinguir texto y límites de los controles para algunas personas. Otras prefieren una paleta más suave, por eso tú eliges.",
     "motionLabel": "Preferencia de movimiento",
     "motionSystem": "Seguir la configuración de mi dispositivo",
     "reducedMotion": "Reducir movimiento no esencial",
     "standardMotion": "Permitir movimiento no esencial",
-    "motionHelper": "Seguir tu dispositivo respeta su configuración de movimiento reducido. Reducir movimiento puede ayudar cuando las animaciones distraen o generan incomodidad.",
+    "motionHelper": "Seguir tu dispositivo respeta su configuración de movimiento reducido. Reducir movimiento es especialmente útil cuando las animaciones distraen o generan incomodidad.",
     "tts": "Leer texto en voz alta",
-    "ttsHelper": "Opcional. El texto a voz puede apoyar a algunas personas lectoras y es seguro probarlo; el beneficio varía entre personas.",
+    "ttsHelper": "Opcional. Los estudios de lectura en voz alta y texto a voz encuentran un beneficio promedio de comprensión para algunas personas lectoras, con bastante variación individual.",
     "evidenceTitle": "¿Qué tan sólida es la evidencia?",
-    "evidenceBody": "GYLIO usa estándares sólidos de accesibilidad para movimiento, cambio de tamaño y control del usuario. Otras opciones, como mayor espaciado o lectura en voz alta, son apoyos reversibles y de bajo riesgo cuyo beneficio individual puede variar. No inferimos ajustes a partir de un diagnóstico."
-  },
-  "supportProfile": {
-    "title": "Prueba un perfil inicial de apoyo",
-    "subtitle": "Atajos opcionales. Puedes mantenerlos, cambiarlos o deshacerlos en cualquier momento.",
-    "helper": "Estos perfiles combinan ajustes de interfaz de bajo riesgo respaldados de manera direccional por investigación de accesibilidad y usabilidad.",
-    "evidenceNote": "Es un experimento opcional, no una recomendación basada en un diagnóstico. Personas con el mismo diagnóstico pueden preferir interfaces muy distintas.",
-    "groupLabel": "Perfiles iniciales opcionales de apoyo",
-    "keepCurrent": "Mantener mis opciones actuales",
-    "applied": "Ajustes aplicados — puedes cambiarlos cuando quieras volviendo Atrás ahora o usando Configuración después.",
-    "profiles": {
-      "focus": {
-        "label": "Favorecer el enfoque",
-        "description": "Más espaciado de texto, menos movimiento y menos animaciones no esenciales. Es un punto de inicio con menos distracciones para probar si las interfaces cargadas desvían tu atención."
-      },
-      "quiet": {
-        "label": "Movimiento tranquilo",
-        "description": "Texto estándar con movimiento reducido y animaciones no esenciales desactivadas. Útil para probar si el movimiento te distrae o incomoda."
-      },
-      "reading": {
-        "label": "Apoyo para la lectura",
-        "description": "Texto más grande y lectura en voz alta opcional. Útil para probar si leer o seguir textos densos requiere un esfuerzo adicional."
-      },
-      "visibility": {
-        "label": "Alta visibilidad",
-        "description": "Texto más grande con tema de alto contraste. Útil para probar si una separación visual más fuerte facilita encontrar los controles."
-      }
-    }
+    "evidenceBody": "GYLIO sigue estándares de accesibilidad para movimiento, cambio de tamaño, contraste y control del usuario. Los apoyos de lectura pueden ayudar a algunas personas, pero no funcionan igual para todos. No inferimos ajustes a partir de un diagnóstico."
   },
   "quickSetup": {
     "title": "Empieza con algo útil",
     "subtitle": "Ambos campos son opcionales. Puedes omitirlos si prefieres explorar primero.",
-    "helper": "Una primera tarea pequeña y concreta puede reducir la fricción inicial. El ingreso solo sirve como atajo para crear tu primer mes en Presupuesto.",
+    "helper": "Si quieres, agrega una tarea concreta para tener algo listo para hacer. El ingreso solo sirve para crear tu primer mes en Presupuesto.",
     "goalLabel": "Primera tarea (opcional)",
     "goalPlaceholder": "Ejemplo: Dejar junto a la puerta los documentos de mañana",
-    "goalHint": "Hazla concreta y realizable. En promedio, la fijación de metas y la planificación simple muestran efectos positivos pequeños a moderados en distintos estudios, pero los resultados varían según la persona y el contexto. Luego puedes editarla o eliminarla.",
+    "goalHint": "Hazla concreta y realizable. En muchos estudios aleatorizados, fijar una meta tiene un efecto positivo promedio pequeño sobre la conducta, pero no es una garantía y los resultados varían según el contexto.",
     "incomeLabel": "Ingreso mensual neto (opcional)",
     "incomePlaceholder": "Ejemplo: 3500",
     "incomeHint": "Solo se usa para crear un mes inicial en Presupuesto. GYLIO no inventará categorías de gasto a partir de este monto.",
