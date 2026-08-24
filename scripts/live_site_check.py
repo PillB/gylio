@@ -2,9 +2,10 @@
 """Live, dependency-free production validator for GYLIO GitHub Pages.
 
 This intentionally uses Python's standard library so it can run on a clean
-GitHub Actions runner. It validates the public artifact rather than repository
-source: HTTP reachability, app shell/deep-link fallback, same-origin assets,
-standalone Deployment Academy content/structure, and key response metadata.
+GitHub Actions runner. It validates facts present in the public static artifact:
+HTTP reachability, app-shell/deep-link fallback, same-origin assets, standalone
+Deployment Academy structure, and key response metadata. React-rendered UI and
+user flows belong to the companion Playwright live audit.
 """
 from __future__ import annotations
 
@@ -20,7 +21,7 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urljoin, urlparse
 from urllib.request import Request, urlopen
 
-USER_AGENT = "GYLIO-Live-Validator/1.0 (+https://github.com/PillB/gylio)"
+USER_AGENT = "GYLIO-Live-Validator/1.1 (+https://github.com/PillB/gylio)"
 
 
 class DocumentParser(HTMLParser):
@@ -104,14 +105,15 @@ def main() -> int:
         checks.append({"name": name, "ok": bool(ok), "detail": detail})
         print(f"{'PASS' if ok else 'FAIL'} | {name} | {detail}")
 
-    # 1) Public app shell.
+    # 1) Public static app shell. Runtime footer/navigation assertions live in
+    # Playwright because React renders them after this HTML is downloaded.
     root_status, root_headers, root_bytes = request(base)
     root = root_bytes.decode("utf-8", errors="replace")
     root_doc = parse(root)
     check("root_http_200", root_status == 200, root_status)
     check("root_html_content_type", "text/html" in root_headers.get("Content-Type", ""), root_headers.get("Content-Type"))
     check("root_mount_exists", 'id="root"' in root, "#root")
-    check("footer_links_deployment_academy", "Production Deployment Academy" in root and "deployment-guide.html" in root, "footer link present")
+    check("root_asset_references_present", bool(root_doc.scripts), {"scripts": root_doc.scripts, "stylesheets": root_doc.stylesheets})
     check("root_language_declared", bool(root_doc.html_attrs.get("lang")), root_doc.html_attrs.get("lang"))
     check("root_viewport_meta", meta_content(root_doc, "viewport") is not None, meta_content(root_doc, "viewport"))
 
