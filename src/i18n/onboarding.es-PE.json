@@ -31,20 +31,20 @@
     "reducedMotion": "Reducir movimiento no esencial",
     "standardMotion": "Permitir movimiento no esencial",
     "motionHelper": "Seguir tu dispositivo respeta su configuración de movimiento reducido. Reduce el movimiento si las animaciones te distraen o generan incomodidad.",
-    "tts": "Leer texto en voz alta",
-    "ttsHelper": "Opcional. Estudios en estudiantes con dificultades de lectura encuentran un beneficio promedio pequeño de comprensión con lectura en voz alta o texto a voz, pero los efectos varían entre personas.",
+    "tts": "Leer en voz alta resúmenes de secciones",
+    "ttsHelper": "Opcional. GYLIO lee encabezados y resúmenes de secciones mientras recorres la app. Estudios en estudiantes con dificultades de lectura encuentran un beneficio promedio con apoyo de lectura en voz alta, pero los efectos varían.",
     "evidenceTitle": "¿Por qué estas opciones?",
     "evidenceBody": "GYLIO sigue estándares de accesibilidad para movimiento, cambio de tamaño, contraste y control del usuario. Los apoyos de lectura pueden ayudar a algunas personas, pero no funcionan igual para todos. No inferimos ajustes a partir de un diagnóstico."
   },
   "quickSetup": {
     "title": "Empieza con algo útil",
     "subtitle": "Agregar una primera tarea es opcional. Puedes omitirla si prefieres explorar primero.",
-    "helper": "Si quieres, agrega una cosa concreta que te gustaría hacer primero.",
+    "helper": "Si quieres, agrega una cosa concreta que te gustaría hacer primero. GYLIO la colocará en Hoy para que sea visible al terminar la configuración.",
     "goalLabel": "Primera tarea (opcional)",
     "goalPlaceholder": "Ejemplo: Dejar junto a la puerta los documentos de mañana",
     "goalHint": "Hazla específica y realizable para que la siguiente acción quede clara. Es opcional; úsala solo si te ayuda a empezar.",
     "preview": "Qué creará GYLIO",
-    "previewTask": "Tarea: {{goal}}"
+    "previewTask": "Tarea de hoy: {{goal}}"
   },
   "tour": {
     "title": "Conoce dónde está cada cosa",
