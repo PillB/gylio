@@ -25,6 +25,7 @@
     "largeText": "Larger text",
     "spacedText": "More spacing",
     "legacyTextStyle": "Legacy custom font",
+    "legacyActive": "A custom font preference from an earlier GYLIO version is still active. You can keep it or replace it by choosing one of the options below.",
     "textStyleHelper": "Larger text and extra spacing are user-controlled reading aids. There is no single best text style for everyone.",
     "contrastLabel": "Contrast",
     "balancedContrast": "Use app theme",
@@ -51,7 +52,7 @@
     "profiles": {
       "focus": {
         "label": "Focus-friendly",
-        "description": "Larger text, reduced motion and fewer non-essential animations. A reasonable low-distraction starting point if busy interfaces pull your attention."
+        "description": "More text spacing, reduced motion and fewer non-essential animations. A low-distraction starting point to try if busy interfaces pull your attention."
       },
       "quiet": {
         "label": "Quiet motion",
@@ -73,7 +74,7 @@
     "helper": "A small, concrete first task can reduce setup friction. The income field is only a shortcut for creating your first Budget month.",
     "goalLabel": "First task (optional)",
     "goalPlaceholder": "Example: Put tomorrow's documents by the door",
-    "goalHint": "Keep it concrete and doable. Specific next actions and simple plans are directionally supported for turning intentions into action; you can edit or delete this later.",
+    "goalHint": "Keep it concrete and doable. Goal-setting and simple action planning have small-to-moderate positive average effects across studies, but results vary by person and context. You can edit or delete this later.",
     "incomeLabel": "Monthly take-home income (optional)",
     "incomePlaceholder": "Example: 3500",
     "incomeHint": "Used only to create a starting Budget month. GYLIO will not invent spending categories from this number.",
