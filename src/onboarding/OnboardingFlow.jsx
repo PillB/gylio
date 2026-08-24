@@ -12,11 +12,7 @@ const validators = {
     ['standard', 'large', 'spaced'].includes(state.textStyle) &&
     ['balanced', 'high'].includes(state.contrast) &&
     ['system', 'reduced', 'standard'].includes(state.motion),
-  quickSetup: (state) => {
-    if (String(state.monthlyIncome ?? '').trim() === '') return true;
-    const income = Number(state.monthlyIncome);
-    return Number.isFinite(income) && income >= 0;
-  },
+  quickSetup: () => true,
   tour: () => true
 };
 
@@ -73,8 +69,7 @@ function OnboardingFlow({ onComplete }) {
       </header>
 
       <div style={{ margin: '0.6rem 0 1rem', color: theme.colors.muted }}>
-        <p style={{ margin: 0 }}>{t('onboarding.flow.autosave')}</p>
-        <p style={{ margin: '0.25rem 0 0' }}>{t('onboarding.flow.resume')}</p>
+        <p style={{ margin: 0 }}>{t('onboarding.flow.savedAndEditable')}</p>
         <p style={{ margin: '0.25rem 0 0' }}>{stepPredictableNote}</p>
       </div>
 
@@ -129,12 +124,6 @@ function OnboardingFlow({ onComplete }) {
             : t('onboarding.next')}
         </button>
       </footer>
-
-      {!canProceed && (
-        <p role="status" style={{ margin: '0.5rem 0 0', color: theme.colors.error }}>
-          {t('onboarding.flow.validationReminder')}
-        </p>
-      )}
     </section>
   );
 }
