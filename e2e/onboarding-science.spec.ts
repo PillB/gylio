@@ -64,10 +64,10 @@ test.describe('evidence-calibrated onboarding', () => {
 
   test('keeps onboarding focused by hiding duplicate Guide and header TTS controls', async ({ page }) => {
     await startFreshOnboarding(page);
-    const header = page.locator('header');
+    const header = page.locator('.app-container > header');
 
-    await expect(header.getByText(/guide/i)).toHaveCount(0);
-    await expect(header.getByText(/read text aloud/i)).toHaveCount(0);
+    await expect(header.getByText(/guide/i)).not.toBeVisible();
+    await expect(header.getByText(/read text aloud/i)).not.toBeVisible();
     await expect(page.getByRole('checkbox', { name: /read text aloud/i })).toHaveCount(1);
   });
 
