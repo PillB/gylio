@@ -1,0 +1,68 @@
+{
+  "intro": "Set up only what helps you. You can change these choices later in Settings.",
+  "stepSection": "Onboarding setup",
+  "progress": "Step {{current}} of {{total}}",
+  "back": "Back",
+  "next": "Next",
+  "finish": "Finish",
+  "flow": {
+    "autosave": "Your choices are saved on this device as you go.",
+    "resume": "You can leave and continue later.",
+    "validationReminder": "Enter a non-negative income amount or leave it blank."
+  },
+  "predictableSteps": {
+    "accessibility": "First: choose interface preferences. Safe defaults are already selected.",
+    "quickSetup": "Next: optionally create one starter task or add monthly income.",
+    "tour": "Last: see where the main parts of GYLIO live."
+  },
+  "accessibility": {
+    "title": "Make GYLIO comfortable to use",
+    "subtitle": "Safe defaults are already selected. Change only what helps.",
+    "helper": "Choose what feels comfortable. These are interface preferences, not medical recommendations, and you can change them later in Settings.",
+    "textSizeLabel": "Text size",
+    "standardFont": "Default readable text",
+    "largeText": "Larger text",
+    "textSizeHelper": "Use the default size or make text larger. Browser zoom and system accessibility settings still work.",
+    "contrastLabel": "Contrast",
+    "balancedContrast": "Use app theme",
+    "highContrast": "Higher contrast",
+    "contrastHelper": "Higher contrast makes text and boundaries more visually distinct. Choose it only if you prefer it.",
+    "motionLabel": "Motion preference",
+    "motionSystem": "Follow device motion setting",
+    "reducedMotion": "Reduce non-essential motion",
+    "standardMotion": "Allow non-essential motion",
+    "motionHelper": "Following your device respects its reduced-motion setting. You can override it here.",
+    "tts": "Read-aloud support",
+    "ttsHelper": "Optional. Text-to-speech can help some people process written content; it is not required to use GYLIO.",
+    "evidenceTitle": "Why these options?",
+    "evidenceBody": "Accessibility needs vary between people. GYLIO asks about the interface you prefer instead of guessing from a diagnosis."
+  },
+  "quickSetup": {
+    "title": "Start with something useful",
+    "subtitle": "Both fields are optional. Skip them if you would rather explore first.",
+    "helper": "A small, concrete first task can give you a starting point. The income field is only a setup shortcut for the Budget screen.",
+    "goalLabel": "First task (optional)",
+    "goalPlaceholder": "Example: Put tomorrow's documents by the door",
+    "goalHint": "Keep it concrete and doable. You can edit, reschedule, or delete it later.",
+    "incomeLabel": "Monthly take-home income (optional)",
+    "incomePlaceholder": "Example: 3500",
+    "incomeHint": "Used only to create a starting Budget month. GYLIO will not invent spending categories from this number.",
+    "preview": "What GYLIO will create",
+    "previewTask": "Task: {{goal}}",
+    "previewIncome": "Budget month with income: {{income}}",
+    "seedIncomeSource": "Monthly take-home income"
+  },
+  "tour": {
+    "title": "Know where things are",
+    "subtitle": "A short map of the app before you start.",
+    "helper": "You can finish immediately. Nothing on this screen is a consent or eligibility requirement.",
+    "summary": "The main areas are:",
+    "items": {
+      "tasks": "Tasks — capture work and choose the next small action.",
+      "calendar": "Calendar — place tasks and events in time.",
+      "budget": "Budget — give income a job using your own categories.",
+      "rewards": "Rewards — optional progress feedback you control."
+    },
+    "guideLater": "The interactive Guide stays available from the header, so you do not need to memorize this now."
+  }
+}
