@@ -1,0 +1,68 @@
+{
+  "intro": "Configura solo lo que te ayude. Puedes cambiar estas opciones más adelante en Configuración.",
+  "stepSection": "Configuración inicial",
+  "progress": "Paso {{current}} de {{total}}",
+  "back": "Atrás",
+  "next": "Siguiente",
+  "finish": "Finalizar",
+  "flow": {
+    "autosave": "Tus opciones se guardan en este dispositivo mientras avanzas.",
+    "resume": "Puedes salir y continuar después.",
+    "validationReminder": "Ingresa un monto de ingreso no negativo o déjalo en blanco."
+  },
+  "predictableSteps": {
+    "accessibility": "Primero: elige preferencias de interfaz. Ya hay opciones seguras seleccionadas.",
+    "quickSetup": "Luego: opcionalmente crea una primera tarea o agrega tu ingreso mensual.",
+    "tour": "Al final: revisa dónde están las partes principales de GYLIO."
+  },
+  "accessibility": {
+    "title": "Haz que GYLIO sea cómodo de usar",
+    "subtitle": "Ya seleccionamos opciones seguras. Cambia solo lo que te ayude.",
+    "helper": "Elige lo que te resulte cómodo. Estas son preferencias de interfaz, no recomendaciones médicas, y puedes cambiarlas después en Configuración.",
+    "textSizeLabel": "Tamaño del texto",
+    "standardFont": "Texto legible predeterminado",
+    "largeText": "Texto más grande",
+    "textSizeHelper": "Usa el tamaño predeterminado o agranda el texto. El zoom del navegador y la accesibilidad del sistema siguen funcionando.",
+    "contrastLabel": "Contraste",
+    "balancedContrast": "Usar el tema de la app",
+    "highContrast": "Mayor contraste",
+    "contrastHelper": "El mayor contraste hace más distinguibles el texto y los límites. Elígelo solo si lo prefieres.",
+    "motionLabel": "Preferencia de movimiento",
+    "motionSystem": "Seguir la configuración de movimiento del dispositivo",
+    "reducedMotion": "Reducir movimiento no esencial",
+    "standardMotion": "Permitir movimiento no esencial",
+    "motionHelper": "Seguir tu dispositivo respeta su configuración de movimiento reducido. Puedes cambiarla aquí.",
+    "tts": "Lectura en voz alta",
+    "ttsHelper": "Opcional. El texto a voz puede ayudar a algunas personas a procesar contenido escrito; no es necesario para usar GYLIO.",
+    "evidenceTitle": "¿Por qué estas opciones?",
+    "evidenceBody": "Las necesidades de accesibilidad varían entre personas. GYLIO te pregunta qué interfaz prefieres en vez de asumirlo a partir de un diagnóstico."
+  },
+  "quickSetup": {
+    "title": "Empieza con algo útil",
+    "subtitle": "Ambos campos son opcionales. Puedes omitirlos si prefieres explorar primero.",
+    "helper": "Una primera tarea pequeña y concreta puede darte un punto de inicio. El ingreso solo sirve como atajo de configuración para Presupuesto.",
+    "goalLabel": "Primera tarea (opcional)",
+    "goalPlaceholder": "Ejemplo: Dejar junto a la puerta los documentos de mañana",
+    "goalHint": "Hazla concreta y realizable. Luego puedes editarla, reprogramarla o eliminarla.",
+    "incomeLabel": "Ingreso mensual neto (opcional)",
+    "incomePlaceholder": "Ejemplo: 3500",
+    "incomeHint": "Solo se usa para crear un mes inicial en Presupuesto. GYLIO no inventará categorías de gasto a partir de este monto.",
+    "preview": "Qué creará GYLIO",
+    "previewTask": "Tarea: {{goal}}",
+    "previewIncome": "Mes de presupuesto con ingreso: {{income}}",
+    "seedIncomeSource": "Ingreso mensual neto"
+  },
+  "tour": {
+    "title": "Conoce dónde está cada cosa",
+    "subtitle": "Un mapa breve de la app antes de comenzar.",
+    "helper": "Puedes finalizar de inmediato. Nada en esta pantalla es un requisito de consentimiento o elegibilidad.",
+    "summary": "Las áreas principales son:",
+    "items": {
+      "tasks": "Tareas — captura pendientes y elige la siguiente acción pequeña.",
+      "calendar": "Calendario — ubica tareas y eventos en el tiempo.",
+      "budget": "Presupuesto — asigna tu ingreso usando tus propias categorías.",
+      "rewards": "Recompensas — retroalimentación de progreso opcional que tú controlas."
+    },
+    "guideLater": "La Guía interactiva seguirá disponible desde el encabezado, así que no necesitas memorizar esto ahora."
+  }
+}
