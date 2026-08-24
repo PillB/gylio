@@ -1,24 +1,18 @@
 /**
  * PricingPage
  *
- * Displays the two plans (free_user and user_subscription) with clear value
- * propositions.
- *
- * Trial activation flow (per Clerk best practices):
- *  1. User clicks "Start trial" → POST /api/billing/activate-trial with Clerk JWT
- *  2. Backend calls PATCH https://api.clerk.com/v1/users/{id} with CLERK_SECRET_KEY
- *     to set publicMetadata.plan = 'user_subscription'
- *  3. Frontend calls user.reload() to re-fetch Clerk session
- *  4. useSubscription() detects new plan → PremiumGates open instantly
+ * Pricing remains renderable when Clerk or billing is not configured. Auth
+ * access is provided only through the app's AuthContext abstraction so a public
+ * static build never calls Clerk hooks outside <ClerkProvider>.
  */
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { useUser } from '@clerk/clerk-react';
 import { useTheme } from '../../core/context/ThemeContext';
 import { useSubscription } from './useSubscription';
 import { useAppAuth } from '../../core/context/AuthContext';
 import { authHeaders } from '../../core/utils/authToken';
+import { apiUrl } from '../../core/utils/apiUrl';
 
 const CheckIcon = () => (
   <span aria-hidden="true" style={{ color: '#22C55E', fontWeight: 700, marginRight: 8 }}>✓</span>
@@ -26,13 +20,14 @@ const CheckIcon = () => (
 
 type ActivationState = 'idle' | 'loading' | 'success' | 'error';
 
+const billingEnabled = import.meta.env.VITE_BILLING_ENABLED === 'true';
+
 export const PricingPage: React.FC = () => {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const navigate = useNavigate();
   const { plan, isFree, trialDays, monthlyPrice, yearlyPrice } = useSubscription();
   const { userId } = useAppAuth();
-  const { user } = useUser();
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('yearly');
   const [activation, setActivation] = useState<ActivationState>('idle');
   const [errorMsg, setErrorMsg] = useState('');
@@ -40,6 +35,10 @@ export const PricingPage: React.FC = () => {
   const price = billing === 'yearly' ? yearlyPrice : monthlyPrice;
 
   const handleStartTrial = async () => {
+    // Production checkout is explicitly opt-in. A static preview must never
+    // pretend that a trial was activated or attempt an unavailable backend.
+    if (!billingEnabled) return;
+
     if (!userId) {
       navigate('/sign-in');
       return;
@@ -50,7 +49,7 @@ export const PricingPage: React.FC = () => {
 
     try {
       const headers = await authHeaders({ 'Content-Type': 'application/json' });
-      const res = await fetch('/api/billing/activate-trial', {
+      const res = await fetch(apiUrl('/api/billing/activate-trial'), {
         method: 'POST',
         headers,
       });
@@ -60,16 +59,14 @@ export const PricingPage: React.FC = () => {
         throw new Error(body?.error || `Server error ${res.status}`);
       }
 
-      // Re-fetch Clerk user so publicMetadata.plan is fresh — this causes
-      // useSubscription() to update and premium gates to open immediately.
-      await user?.reload();
-
       setActivation('success');
 
-      // Brief pause so user sees the success state, then go to the app.
-      setTimeout(() => navigate('/social'), 1800);
+      // Reload the authenticated application boundary after the server changes
+      // Clerk metadata. This avoids coupling this presentation component to a
+      // Clerk-specific hook while still refreshing the session/user resources.
+      setTimeout(() => window.location.reload(), 1200);
     } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : 'Something went wrong');
+      setErrorMsg(err instanceof Error ? err.message : t('pricing.unknownError', 'Something went wrong'));
       setActivation('error');
     }
   };
@@ -97,13 +94,17 @@ export const PricingPage: React.FC = () => {
     display: 'flex',
     flexDirection: 'column',
     gap: theme.spacing.lg,
-    flex: 1,
-    minWidth: 260,
+    flex: '1 1 300px',
+    width: '100%',
+    minWidth: 0,
     maxWidth: 360,
+    boxSizing: 'border-box',
+    overflowWrap: 'anywhere',
   };
 
   const ctaLabel = () => {
     if (plan === 'user_subscription') return t('pricing.currentPlan', 'Current plan');
+    if (!billingEnabled) return t('pricing.previewCta', 'Premium checkout coming soon');
     if (activation === 'loading') return t('pricing.activating', 'Activating…');
     if (activation === 'success') return t('pricing.activated', '✓ Premium activated!');
     return t('pricing.startTrial', `Start ${trialDays}-day free trial`, { days: trialDays });
@@ -113,18 +114,21 @@ export const PricingPage: React.FC = () => {
     <div
       style={{
         minHeight: '80vh',
+        width: '100%',
+        maxWidth: '100%',
+        boxSizing: 'border-box',
         padding: `${theme.spacing.xxl}px ${theme.spacing.lg}px`,
         fontFamily: theme.typography.body.family,
         color: theme.colors.text,
+        overflowWrap: 'anywhere',
       }}
     >
-      {/* Heading */}
       <div style={{ textAlign: 'center', marginBottom: theme.spacing.xl }}>
         <h1
           style={{
             fontFamily: theme.typography.heading.family,
             fontWeight: theme.typography.heading.weight,
-            fontSize: '2rem',
+            fontSize: 'clamp(1.65rem, 6vw, 2rem)',
             margin: 0,
             color: theme.colors.text,
           }}
@@ -135,11 +139,12 @@ export const PricingPage: React.FC = () => {
           {t('pricing.subheading', "Start free. Upgrade when you're ready.")}
         </p>
 
-        {/* Billing toggle */}
         <div
           style={{
-            display: 'inline-flex',
-            marginTop: theme.spacing.lg,
+            display: 'grid',
+            gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
+            width: 'min(100%, 360px)',
+            margin: `${theme.spacing.lg}px auto 0`,
             borderRadius: theme.shape.radiusFull,
             border: `1.5px solid ${theme.colors.border}`,
             overflow: 'hidden',
@@ -152,7 +157,8 @@ export const PricingPage: React.FC = () => {
               type="button"
               onClick={() => setBilling(b)}
               style={{
-                padding: `${theme.spacing.xs}px ${theme.spacing.lg}px`,
+                minWidth: 0,
+                padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
                 border: 'none',
                 borderRadius: 0,
                 background: billing === b ? theme.colors.primary : 'transparent',
@@ -161,14 +167,18 @@ export const PricingPage: React.FC = () => {
                 fontSize: '0.875rem',
                 cursor: 'pointer',
                 transition: 'background 0.15s',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 4,
+                flexWrap: 'wrap',
               }}
             >
               {b === 'monthly'
                 ? t('pricing.monthly', 'Monthly')
                 : (
                   <>
-                    {t('pricing.yearly', 'Yearly')}
-                    {' '}
+                    <span>{t('pricing.yearly', 'Yearly')}</span>
                     <span
                       style={{
                         fontSize: '0.7rem',
@@ -176,8 +186,8 @@ export const PricingPage: React.FC = () => {
                         color: '#fff',
                         borderRadius: theme.shape.radiusFull,
                         padding: '1px 6px',
-                        marginLeft: 4,
                         fontWeight: 700,
+                        whiteSpace: 'nowrap',
                       }}
                     >
                       {t('pricing.saveBadge', 'Save 17%')}
@@ -189,18 +199,18 @@ export const PricingPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Cards */}
       <div
         style={{
           display: 'flex',
+          width: '100%',
           gap: theme.spacing.lg,
           justifyContent: 'center',
+          alignItems: 'stretch',
           flexWrap: 'wrap',
           maxWidth: 780,
           margin: '0 auto',
         }}
       >
-        {/* Free card */}
         <div
           style={{
             ...cardBase,
@@ -229,9 +239,9 @@ export const PricingPage: React.FC = () => {
             </div>
           </div>
           <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: theme.spacing.sm }}>
-            {freeFeatures.map((f) => (
-              <li key={f} style={{ display: 'flex', alignItems: 'flex-start', fontSize: '0.9375rem' }}>
-                <CheckIcon />{f}
+            {freeFeatures.map((feature) => (
+              <li key={feature} style={{ display: 'flex', alignItems: 'flex-start', fontSize: '0.9375rem' }}>
+                <CheckIcon />{feature}
               </li>
             ))}
           </ul>
@@ -255,7 +265,6 @@ export const PricingPage: React.FC = () => {
           </button>
         </div>
 
-        {/* Premium card */}
         <div
           style={{
             ...cardBase,
@@ -266,8 +275,8 @@ export const PricingPage: React.FC = () => {
             overflow: 'hidden',
           }}
         >
-          {/* Glow orb */}
           <div
+            aria-hidden="true"
             style={{
               position: 'absolute',
               top: -40,
@@ -303,26 +312,28 @@ export const PricingPage: React.FC = () => {
               </span>
             </div>
             <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.875rem' }}>
-              {billing === 'yearly'
-                ? t('pricing.billedYearly', 'billed yearly · save $24/year')
-                : t('pricing.billedMonthly', 'billed monthly')}
+              {!billingEnabled
+                ? t('pricing.previewPrice', 'Planned price · checkout not live')
+                : billing === 'yearly'
+                  ? t('pricing.billedYearly', 'billed yearly · save $24/year')
+                  : t('pricing.billedMonthly', 'billed monthly')}
             </div>
           </div>
 
           <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: theme.spacing.sm }}>
-            {premiumFeatures.map((f) => (
+            {premiumFeatures.map((feature) => (
               <li
-                key={f}
+                key={feature}
                 style={{ display: 'flex', alignItems: 'flex-start', fontSize: '0.9375rem', color: '#fff' }}
               >
-                <CheckIcon />{f}
+                <CheckIcon />{feature}
               </li>
             ))}
           </ul>
 
           <button
             type="button"
-            disabled={activation === 'loading' || activation === 'success' || plan === 'user_subscription'}
+            disabled={!billingEnabled || activation === 'loading' || activation === 'success' || plan === 'user_subscription'}
             onClick={handleStartTrial}
             style={{
               padding: `${theme.spacing.sm}px`,
@@ -331,18 +342,17 @@ export const PricingPage: React.FC = () => {
               background: activation === 'success' ? '#22C55E' : '#fff',
               color: activation === 'success' ? '#fff' : theme.colors.primary,
               fontWeight: 700,
-              cursor: activation === 'loading' || plan === 'user_subscription' ? 'default' : 'pointer',
+              cursor: !billingEnabled || activation === 'loading' || plan === 'user_subscription' ? 'default' : 'pointer',
               textAlign: 'center',
               fontSize: '0.9375rem',
               boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-              opacity: activation === 'loading' ? 0.8 : 1,
+              opacity: !billingEnabled || activation === 'loading' ? 0.78 : 1,
               transition: 'background 0.3s, color 0.3s',
             }}
           >
             {ctaLabel()}
           </button>
 
-          {/* Status area below button */}
           {activation === 'error' && (
             <div
               role="alert"
@@ -384,19 +394,20 @@ export const PricingPage: React.FC = () => {
               style={{
                 margin: 0,
                 fontSize: '0.8125rem',
-                color: activation === 'success' ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.65)',
+                color: activation === 'success' ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.7)',
                 textAlign: 'center',
               }}
             >
-              {activation === 'success'
-                ? t('pricing.redirecting', 'Unlocking premium features…')
-                : t('pricing.noCard', 'No credit card required for trial')}
+              {!billingEnabled
+                ? t('pricing.previewNotice', 'Premium is a product preview. Checkout is not live and no payment will be collected yet.')
+                : activation === 'success'
+                  ? t('pricing.redirecting', 'Unlocking premium features…')
+                  : t('pricing.noCard', 'No credit card required for trial')}
             </p>
           )}
         </div>
       </div>
 
-      {/* FAQ line */}
       <p
         style={{
           textAlign: 'center',
@@ -405,7 +416,9 @@ export const PricingPage: React.FC = () => {
           fontSize: '0.875rem',
         }}
       >
-        {t('pricing.faq', 'Cancel anytime. Downgrade to free at any point — your data stays safe.')}
+        {billingEnabled
+          ? t('pricing.faq', 'Cancel anytime. Downgrade to free at any point — your data stays safe.')
+          : t('pricing.previewFaq', 'Prices and premium features are shown for product planning; checkout is disabled in this build.')}
       </p>
     </div>
   );

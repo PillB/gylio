@@ -1,124 +1,303 @@
-# GYLIO – Get Your Life In Order
+# GYLIO — Get Your Life In Order
 
-Welcome to GYLIO, a cross‑platform app designed to help neurodivergent users manage tasks, schedules and personal finances.  
-This repository contains an early skeleton of the app, including a React front end (bundled with Vite), an Expo configuration for running on web and mobile, an Express backend with MongoDB/SQLite fallback, and localisation via `react‑i18next` for English and Peruvian Spanish.
+GYLIO is an accessibility-first life-management web/PWA that connects tasks, calendar planning, focus sessions, routines, budgeting, social planning and user-controlled supports in one offline-friendly React application.
 
-## Overview
+## Current production scope
 
-GYLIO provides three key modules — **Tasks**, **Calendar** and **Budgeting** — and layers them with accessibility features drawn from research into ADHD, autism, dyslexia and dyspraxia.  
-Gamification (points and streaks) and positive nudges can be enabled or disabled by the user.  
-For more detailed design rationale and research, see the files in the `docs/` directory.
+The current repository ships **web/PWA only**.
 
-## Getting Started
+The application boots through `src/index.jsx` with `ReactDOM.createRoot` and uses browser routing. Historical Expo/React-Native-shaped abstractions and browser shims remain in parts of the codebase, but there is no native iOS/Android application entry point in the current production architecture.
 
-These instructions assume you have Node.js ≥14 installed.  The repository uses Vite for rapid web development and Expo to run the same code on iOS/Android via React Native Web.  For offline testing, SQLite is used as a fallback database when MongoDB is not available.
+The repository contains:
 
-1. **Install dependencies**:
-   ```bash
-   npm install
-   ```
-2. **Start the development server (web)**:
-   ```bash
-   npm run dev
-   ```
-   This runs the Vite dev server on <http://localhost:5173>. The page will hot‑reload on changes.
+- a Vite + React web/PWA;
+- local-first browser persistence and background synchronization;
+- an Express API with MongoDB production persistence;
+- an explicit local/development SQLite server fallback;
+- Clerk-based authentication for protected API calls;
+- EN and Peruvian-Spanish production localization;
+- unit tests and a multi-viewport Playwright browser/layout audit.
 
-3. **Start the API server** (optional):
-   ```bash
-   npm run start
-   ```
-   The Express server listens on port 3001 and provides a simple JSON API.  It writes to a local SQLite database if `MONGODB_URI` is not set.
+For the deployment procedure, see [`docs/PRODUCTION_DEPLOYMENT.md`](docs/PRODUCTION_DEPLOYMENT.md).
 
+For the broader Solarize audit, see [`docs/production-readiness-solarize-v6.md`](docs/production-readiness-solarize-v6.md).
 
-### Environment variables
+## Product modules
 
-Backend AI suggestions are server-only. Configure these environment variables before `npm run start`:
+- Tasks and micro-steps
+- Focus/Pomodoro support
+- Calendar planning
+- Budgeting, transactions and debt tools
+- Routines
+- Social plans
+- Rewards/progress controls
+- Settings and accessibility preferences
+- Guided onboarding
+- Subscription/pricing surfaces
+
+The product is designed to be usable without requiring a diagnosis or a specific accessibility profile. Gamification, visual styling, reminders and motion should remain user-controlled rather than mandatory.
+
+## Requirements
+
+Node.js **24** is the repository runtime contract (`.nvmrc`). CI and the isolated production API both use Node 24.
+
+## Install the web workspace
 
 ```bash
-OPENAI_API_KEY=your_server_side_key
-# Optional override (defaults to gpt-4o-mini)
+npm ci --ignore-scripts
+```
+
+Use `npm install` only when intentionally changing dependencies and regenerating the root lockfile.
+
+## Run the web app
+
+```bash
+npm run dev
+```
+
+Vite runs locally at `http://localhost:5173`. The default repository base path remains `/gylio/` for GitHub Pages; set `VITE_BASE_PATH=/` for root-hosted Firebase builds.
+
+## Run the API locally
+
+The root convenience command remains available:
+
+```bash
+npm run start
+```
+
+The Express API listens on port `3001` unless `PORT` is set.
+
+For a production-like isolated API install, use the deployable server package directly:
+
+```bash
+cd server
+npm ci --ignore-scripts
+npm start
+```
+
+The `server/` package has its own `package.json` and committed `package-lock.json`; this is the dependency graph intended for Hostinger deployment.
+
+`/api` and `/api/health` are public health/diagnostic routes. Protected domain routes require Clerk authentication.
+
+## Server environment
+
+Copy `server/.env.example` to `server/.env` for local development or configure its values in the hosting platform.
+
+Important production values:
+
+```dotenv
+NODE_ENV=production
+MONGODB_URI=mongodb+srv://...
+CORS_ORIGINS=https://app.example.com
+CLERK_ISSUER=https://YOUR_INSTANCE.clerk.accounts.dev
+CLERK_AUTHORIZED_PARTIES=https://app.example.com
+ENABLE_MANUAL_TRIALS=false
+```
+
+Optional AI configuration:
+
+```dotenv
+OPENAI_API_KEY=
 OPENAI_MODEL=gpt-4o-mini
 ```
 
-Do **not** expose OpenAI keys in Vite/frontend variables (for example, `VITE_OPENAI_API_KEY` is not used).
+Do not expose server secrets through variables prefixed with `VITE_`.
 
-### Authentication & API security
+### Persistence contract
 
-All domain routes are now protected with JWT bearer authentication and user scoping.
+- Production requires `MONGODB_URI` and refuses implicit SQLite fallback.
+- MongoDB failure is treated as an availability failure, not permission to start writing to a second datastore.
+- SQLite is retained only for explicit local/development server use.
+- The browser's offline store is separate from server SQLite.
 
-- `POST /api/auth/signup` creates a user and returns an access token + refresh token.
-- `POST /api/auth/login` authenticates credentials and rotates refresh tokens.
-- `POST /api/auth/refresh` exchanges a valid refresh token for a new token pair.
-- `GET /api/auth/me` returns the authenticated profile from the bearer token.
+## Web environment
 
-Access tokens expire quickly (default `15m`) and refresh tokens expire in `7d` by default.
-Rate limiting is applied to auth routes and mutation endpoints (`POST`, `PUT`, `PATCH`, `DELETE`) to reduce abuse risk.
+Copy `.env.local.example` to `.env.local`.
 
-Additional backend environment variables:
+Local development can leave `VITE_API_BASE_URL` blank and use the Vite `/api` proxy:
+
+```dotenv
+VITE_CLERK_PUBLISHABLE_KEY=pk_test_replace_me
+VITE_API_BASE_URL=
+VITE_BASE_PATH=/gylio/
+VITE_BILLING_ENABLED=false
+```
+
+For Firebase + Hostinger production:
+
+```dotenv
+VITE_CLERK_PUBLISHABLE_KEY=pk_live_replace_me
+VITE_API_BASE_URL=https://api.example.com
+VITE_BASE_PATH=/
+VITE_BILLING_ENABLED=false
+```
+
+All browser API calls should resolve through `src/core/utils/apiUrl.ts`; this keeps local same-origin/proxy development and split-origin production consistent.
+
+## Authentication
+
+Clerk is the canonical identity provider.
+
+- The frontend obtains the active Clerk session token.
+- Protected requests send `Authorization: Bearer <token>`.
+- Express validates RS256 signature, issuer and expiry through Clerk JWKS.
+- `CLERK_AUTHORIZED_PARTIES` can restrict accepted token `azp` origins.
+- `GET /api/auth/me` returns the verified token subject/email.
+
+Legacy password endpoints `/api/auth/signup`, `/api/auth/login` and `/api/auth/refresh` return HTTP `410 AUTH_PROVIDER_MIGRATED`; they do not mint a second token type.
+
+If Clerk is not configured, health/local development can still be inspected, while protected routes fail closed with `AUTH_NOT_CONFIGURED`.
+
+## Offline behavior
+
+The web client queues supported task/event/transaction changes for background synchronization. Synchronization is attempted only when the browser is online and an authentication token is available. Conflict/error metadata is retained for recovery.
+
+The production API origin is supplied through `VITE_API_BASE_URL`; background sync, AI requests and pricing/billing requests share the same endpoint resolver.
+
+## Billing
+
+Billing is **not live** in the current production candidate.
+
+Keep:
+
+```dotenv
+VITE_BILLING_ENABLED=false
+ENABLE_MANUAL_TRIALS=false
+```
+
+The existing server trial routes are development-only entitlement helpers, not a payment processor. Do not enable a purchase CTA until checkout, webhook verification, renewals, cancellations/refunds and server-side entitlement enforcement are implemented.
+
+## Quality gates
 
 ```bash
-JWT_SECRET=replace_with_long_random_secret
-JWT_REFRESH_SECRET=replace_with_long_random_secret
-JWT_ACCESS_TTL=15m
-JWT_REFRESH_TTL=7d
-PASSWORD_HASH_ROUNDS=12
-AUTH_RATE_LIMIT_MAX=20
-MUTATION_RATE_LIMIT_MAX=120
+npm run lint
+npm run typecheck
+npm run check:i18n
+npm test
+npm run build
+npx playwright test
 ```
 
-Unauthorized and expired tokens return a consistent error payload shape:
+The CI workflow additionally:
 
-```json
-{
-  "error": {
-    "code": "UNAUTHORIZED",
-    "message": "Authorization header missing or malformed",
-    "details": null
-  }
-}
+- loads the real CommonJS API module graph;
+- verifies production refuses SQLite fallback;
+- performs a reproducible `server/` install;
+- blocks high/critical dependency advisories in the deployable API graph;
+- retains browser/layout and dependency evidence artifacts.
+
+The root dependency advisory inventory is still retained as engineering debt evidence. The Hostinger API deploys the isolated `server/` dependency graph instead of the root Node dependency tree.
+
+## Recommended production deployment
+
+```text
+Firebase Hosting (Spark)  ->  React/Vite web/PWA
+          |
+          | HTTPS
+          v
+Hostinger Node.js         ->  server/ Express API
+          |
+          v
+MongoDB Atlas Free        ->  production database
+
+Clerk Hobby               ->  authentication
+OpenAI                    ->  optional AI feature
 ```
 
+The detailed setup, cost posture, health checks, smoke tests and rollback process are in [`docs/PRODUCTION_DEPLOYMENT.md`](docs/PRODUCTION_DEPLOYMENT.md).
 
-4. **Run on mobile with Expo**:
-   ```bash
-   npm install -g expo-cli
-   npm run expo
-   ```
-   You can then open the project on your device or emulator via the Expo Go app.  Expo’s web target also works with this setup.
+### GitHub Pages
 
-## Project Structure
+GitHub Pages can remain a demo/preview path. Its build base is `/gylio/`.
 
-- **index.html** – HTML entry point for the web build.  
-- **src/** – React source code.  
-  - `App.jsx` – root component with navigation and language toggle.  
-  - `components/` – stubs for Tasks, Calendar, Budget, Rewards and Settings views.  
-  - `hooks/` – custom hooks (e.g. `useSpeech` for text‑to‑speech).  
-  - `i18n/` – translation setup and JSON dictionaries.  
-- **server/** – Express API with MongoDB/SQLite models and routes.  
-  - `server.js` – starts the API server.  
-  - `db/` – Mongoose schemas and SQLite fallback initialisation.  
-  - `routes/` – routers for tasks, events and budget (currently very simple stubs).  
-- **docs/** – design and research documentation describing accessible, ethical design practices for neurodivergent users.
+Automatic Pages deployment is gated on successful CI for the exact `main` commit being deployed.
 
-## Accessibility & Ethical Design
+### Firebase Hosting
 
-This project draws from the principles documented in `docs/design-document.md` and `docs/research-manual.md`.  
-Key accessibility considerations include:
+For a root-hosted static SPA:
 
-- **Typography** – uses sans‑serif fonts and offers a dyslexia‑friendly alternative; adjustable sizes and line spacing.  
-- **Colour palette** – soft, muted colours with high contrast options.  
-- **Large targets** – buttons are at least 44×44 CSS pixels.  
-- **Keyboard navigation** – all interactive controls are reachable via the keyboard with visible focus outlines.  
-- **Text‑to‑speech** – hooks are provided for reading content aloud via Expo’s audio API.  
-- **Gamification controls** – points/streaks can be hidden entirely for users who find them distracting.  
-- **Multilingual** – English and Peruvian Spanish translation files live under `src/i18n/`, with a language toggle in the UI.
+```bash
+VITE_BASE_PATH=/ npm run build
+firebase deploy --only hosting
+```
 
-## Notes
+`firebase.json` serves `dist/`, rewrites SPA routes to `/index.html`, gives hashed assets long-lived caching and keeps the service worker uncached.
 
-- **Incomplete features** – This skeleton focuses on structure.  The task management, calendar and budgeting modules include minimal UI to indicate where future logic and state will live.  The backend includes simple CRUD endpoints for tasks and demonstrates how to fall back to SQLite when offline.
-- **Offline support** – The Express API initialises a local SQLite database.  On the client side, service workers and IndexedDB integration would be added in later stages to provide offline caching and sync.  See `docs/design-document.md` for guidelines on implementing these features.
+### Hostinger API
+
+Host the `server/` package, not the full root workspace dependency graph.
+
+Typical install/start contract:
+
+```bash
+cd server
+npm ci --ignore-scripts
+npm start
+```
+
+Configure `CORS_ORIGINS` and `CLERK_AUTHORIZED_PARTIES` to exact production frontend origins. Verify `/api/health` before pointing the production frontend at the API.
+
+## Project structure
+
+```text
+src/
+  App.jsx                 application shell and routing
+  components/             shared and legacy view components
+  core/                   DB, contexts, themes, analytics, offline/sync utilities
+  features/
+    auth/
+    budget/
+    calendar/
+    routines/
+    social/
+    subscription/
+    tasks/
+    tour/
+  i18n/                   locale dictionaries and i18next setup
+  service-worker.ts
+server/
+  package.json             production API dependency boundary
+  package-lock.json        production API reproducibility contract
+  db/                     MongoDB + local SQLite infrastructure
+  lib/
+  middleware/
+  repositories/
+  routes/
+  services/
+  validation/
+e2e/                      Playwright browser/layout audits
+docs/                     design, research and production documentation
+.github/workflows/         CI and Pages deployment
+```
+
+Large legacy views still coexist with newer feature modules. Continue refactoring by extracting state/controller hooks and focused presentational components rather than growing monolithic view files.
+
+## Accessibility and evidence discipline
+
+Priorities include:
+
+- predictable navigation and stable labels;
+- clear language and short content blocks;
+- keyboard access and visible focus;
+- user-selectable text, contrast and motion preferences;
+- text-to-speech support;
+- non-color-only status cues;
+- reduced-motion behavior for nonessential animation;
+- user-controlled reminders/rewards and non-shaming restart flows.
+
+A dyslexia-specific font may be offered as a preference, but should not be marketed as improving reading performance without evidence. Behavioral features should likewise be described through measured/user-experience outcomes rather than unsupported neurological claims.
 
 ## Documentation
 
-- **Design Document** – `docs/design-document.md` summarises the high‑level architecture, feature list, user flows, functional specs, roadmap and testing plan for GYLIO.  
-- **Research Manual** – `docs/research-manual.md` contains a literature review on neurodivergent‑friendly design, gamification, nudge theory and Caleb Hammer‑style budgeting strategies.
+- `docs/PRODUCTION_DEPLOYMENT.md` — current production architecture, setup, smoke tests and rollback.
+- `docs/design-document.md` — earlier product/design architecture.
+- `docs/research-manual.md` — behavioral/accessibility rationale and sources.
+- `docs/production-readiness-solarize-v6.md` — Solarize audit, visual strategy and release gates.
+
+## Security notes
+
+- Never commit `.env`, credentials, browser session artifacts or database files.
+- Local `*.db`, SQLite WAL/SHM and similar files are ignored.
+- A previously tracked `gylio.db` has been removed from the current branch, but prior Git history still requires review if that file ever contained sensitive data.
+- Production CORS and Clerk authorized-party allowlists must be explicitly configured.
+- Financial/task data requires documented export, deletion, backup and retention behavior before a broad production launch.

@@ -2,6 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../../core/context/ThemeContext';
 import { useTaskTimer } from '../../../core/context/TaskTimerContext';
+import type { ThemeTokens } from '../../../core/themes';
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
@@ -21,7 +22,6 @@ const TaskTimerInline: React.FC<TaskTimerInlineProps> = ({ taskId }) => {
   const { activeTimer, pauseTimer, resumeTimer, skipPhase, stopTimer, startTask } = useTaskTimer();
 
   const isActive = activeTimer?.taskId === taskId;
-
   if (!isActive) return null;
 
   const timer = activeTimer!;
@@ -51,7 +51,6 @@ const TaskTimerInline: React.FC<TaskTimerInlineProps> = ({ taskId }) => {
         gap: `${theme.spacing.xs}px`,
       }}
     >
-      {/* Phase + countdown row */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: theme.spacing.sm }}>
         <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: phaseColor }}>
           {phaseCfg.emoji} {phaseLabel}
@@ -76,7 +75,6 @@ const TaskTimerInline: React.FC<TaskTimerInlineProps> = ({ taskId }) => {
         </span>
       </div>
 
-      {/* Progress bar */}
       <div
         style={{ height: 4, borderRadius: 2, backgroundColor: theme.colors.border, overflow: 'hidden' }}
         aria-hidden="true"
@@ -91,10 +89,8 @@ const TaskTimerInline: React.FC<TaskTimerInlineProps> = ({ taskId }) => {
         />
       </div>
 
-      {/* Controls */}
       <div style={{ display: 'flex', gap: theme.spacing.xs, flexWrap: 'wrap', alignItems: 'center' }}>
         {isPaused && timer.phase === 'focus' && timer.remainingSeconds === timer.totalSeconds ? (
-          // Ready to start new focus session
           <button
             type="button"
             onClick={() => startTask(taskId)}
@@ -129,7 +125,7 @@ const TaskTimerInline: React.FC<TaskTimerInlineProps> = ({ taskId }) => {
           aria-label={t('tasks.timerSkipAria')}
           style={btnStyle(theme, theme.colors.border, false)}
         >
-          {timer.phase === 'focus' ? `${t('tasks.timerSkipToBreak', 'Skip to break')}` : `${t('tasks.timerSkipToFocus', 'Skip break')}`}
+          {timer.phase === 'focus' ? t('tasks.timerSkipToBreak', 'Skip to break') : t('tasks.timerSkipToFocus', 'Skip break')}
         </button>
 
         <button
@@ -145,7 +141,7 @@ const TaskTimerInline: React.FC<TaskTimerInlineProps> = ({ taskId }) => {
   );
 };
 
-function btnStyle(theme: any, borderColor: string, filled: boolean): React.CSSProperties {
+function btnStyle(theme: ThemeTokens, borderColor: string, filled: boolean): React.CSSProperties {
   return {
     minHeight: 32,
     padding: `4px ${theme.spacing.sm}px`,

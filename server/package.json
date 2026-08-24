@@ -1,3 +1,22 @@
 {
-  "type": "commonjs"
+  "name": "gylio-api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "engines": {
+    "node": "24.x"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "check": "node --check server.js && node --check repositories/entityRepository.js && node --check routes/billing.js && node --check routes/ai.js",
+    "audit:prod": "npm audit --omit=dev"
+  },
+  "dependencies": {
+    "cors": "2.8.6",
+    "express": "4.22.2",
+    "express-rate-limit": "8.6.2",
+    "jsonwebtoken": "9.0.3",
+    "jwks-rsa": "4.0.1",
+    "mongoose": "7.8.12"
+  }
 }

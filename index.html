@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>GYLIO – Get Your Life In Order</title>
     <!-- Inter: high-legibility variable font; Open Sans as dyslexia-friendly fallback -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -25,13 +25,43 @@
         line-height: 1.6;
       }
       button { font-family: inherit; cursor: pointer; }
-      button:focus-visible { outline: 2px solid #5B5CF6; outline-offset: 2px; }
+      button:focus-visible, a:focus-visible { outline: 2px solid #5B5CF6; outline-offset: 2px; }
       input, textarea, select { font-family: inherit; }
+      .site-utility-footer {
+        width: min(1100px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 18px 0 max(22px, env(safe-area-inset-bottom));
+        border-top: 1px solid #D9D7D0;
+        display: flex;
+        justify-content: center;
+        gap: 10px 18px;
+        flex-wrap: wrap;
+        font-size: 0.8125rem;
+        color: #5C5A63;
+        text-align: center;
+      }
+      .site-utility-footer a {
+        color: #4F46E5;
+        font-weight: 600;
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        padding: 0 8px;
+        text-underline-offset: 3px;
+      }
+      @media (prefers-color-scheme: dark) {
+        .site-utility-footer { border-color: #3A3940; color: #B9B7C0; }
+        .site-utility-footer a { color: #A7A1FF; }
+      }
       @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
     </style>
   </head>
   <body>
     <div id="root"></div>
+    <footer class="site-utility-footer" aria-label="Product resources">
+      <span>GYLIO resources</span>
+      <a href="%BASE_URL%deployment-guide.html">Production Deployment Academy</a>
+    </footer>
     <!-- Vite will inject the compiled JavaScript here -->
     <script type="module" src="%BASE_URL%main.jsx"></script>
   </body>

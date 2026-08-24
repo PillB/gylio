@@ -4,7 +4,7 @@ import type { ThemeTokens } from '../../../core/themes';
 
 export type ChartBar = {
   label: string;
-  colorKey?: string; // original type code for color lookup (e.g. 'NEED'), falls back to label
+  colorKey?: string;
   planned: number;
   actual: number;
 };
@@ -21,10 +21,38 @@ const CATEGORY_COLORS: Record<string, string> = {
   DEBT: '#F59E0B',
 };
 
+const visuallyHidden: React.CSSProperties = {
+  position: 'absolute',
+  width: 1,
+  height: 1,
+  padding: 0,
+  margin: -1,
+  overflow: 'hidden',
+  clip: 'rect(0, 0, 0, 0)',
+  whiteSpace: 'nowrap',
+  border: 0,
+};
+
+const compactLabel = (label: string, max = 12) =>
+  label.length <= max ? label : `${label.slice(0, Math.max(1, max - 1))}…`;
+
 export const SpendingChart: React.FC<Props> = ({ bars, theme }) => {
   const { t } = useTranslation();
 
-  const maxValue = Math.max(...bars.flatMap((b) => [b.planned, b.actual, 1]));
+  if (bars.length === 0) {
+    return (
+      <div aria-live="polite">
+        <p style={{ margin: '0 0 0.5rem', fontWeight: 600, color: theme.colors.text }}>
+          {t('budget.chartHeading', 'Spending overview')}
+        </p>
+        <p style={{ margin: 0, color: theme.colors.muted, fontSize: '0.875rem' }}>
+          {t('budget.chartEmpty', 'Add budget categories to see planned vs actual spending.')}
+        </p>
+      </div>
+    );
+  }
+
+  const maxValue = Math.max(...bars.flatMap((bar) => [bar.planned, bar.actual]), 1);
 
   const CHART_W = 380;
   const CHART_H = 160;
@@ -32,15 +60,22 @@ export const SpendingChart: React.FC<Props> = ({ bars, theme }) => {
   const LABEL_H = 20;
   const BAR_AREA_H = CHART_H - AXIS_H - LABEL_H;
   const GROUP_W = CHART_W / bars.length;
-  const BAR_W = GROUP_W * 0.35;
-  const GAP = GROUP_W * 0.05;
+  const BAR_W = Math.max(6, GROUP_W * 0.35);
+  const GAP = Math.max(2, GROUP_W * 0.05);
 
   return (
-    <div>
-      <p style={{ margin: '0 0 0.5rem', fontWeight: 600, color: theme.colors.text }}>
+    <div role="group" aria-labelledby="spending-chart-heading">
+      <p
+        id="spending-chart-heading"
+        style={{ margin: '0 0 0.5rem', fontWeight: 600, color: theme.colors.text }}
+      >
         {t('budget.chartHeading', 'Spending overview')}
       </p>
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '0.5rem', fontSize: '0.75rem' }}>
+
+      <div
+        aria-hidden="true"
+        style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '0.5rem', fontSize: '0.75rem' }}
+      >
         <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           <span
             style={{
@@ -67,14 +102,14 @@ export const SpendingChart: React.FC<Props> = ({ bars, theme }) => {
           {t('budget.chartActual', 'Actual')}
         </span>
       </div>
+
       <svg
         viewBox={`0 0 ${CHART_W} ${CHART_H}`}
         width="100%"
-        role="img"
-        aria-label={t('budget.chartAriaLabel', 'Planned vs actual spending by category')}
-        style={{ display: 'block', overflow: 'visible' }}
+        aria-hidden="true"
+        focusable="false"
+        style={{ display: 'block', overflow: 'hidden', maxWidth: '100%' }}
       >
-        {/* grid lines */}
         {[0, 0.25, 0.5, 0.75, 1].map((ratio) => {
           const y = LABEL_H + BAR_AREA_H * (1 - ratio);
           return (
@@ -91,21 +126,18 @@ export const SpendingChart: React.FC<Props> = ({ bars, theme }) => {
           );
         })}
 
-        {bars.map((bar, i) => {
-          const groupX = i * GROUP_W;
+        {bars.map((bar, index) => {
+          const groupX = index * GROUP_W;
           const centerX = groupX + GROUP_W / 2;
-
-          const plannedH = maxValue > 0 ? (bar.planned / maxValue) * BAR_AREA_H : 0;
-          const actualH = maxValue > 0 ? (bar.actual / maxValue) * BAR_AREA_H : 0;
+          const plannedH = (Math.max(0, bar.planned) / maxValue) * BAR_AREA_H;
+          const actualH = (Math.max(0, bar.actual) / maxValue) * BAR_AREA_H;
           const isOver = bar.actual > bar.planned;
           const color = CATEGORY_COLORS[bar.colorKey ?? bar.label] ?? theme.colors.primary;
-
           const plannedX = centerX - BAR_W - GAP / 2;
           const actualX = centerX + GAP / 2;
 
           return (
-            <g key={bar.label}>
-              {/* planned bar */}
+            <g key={`${bar.colorKey ?? bar.label}-${index}`}>
               <rect
                 x={plannedX}
                 y={LABEL_H + BAR_AREA_H - plannedH}
@@ -115,42 +147,50 @@ export const SpendingChart: React.FC<Props> = ({ bars, theme }) => {
                 opacity={0.35}
                 rx={3}
               />
-              {/* actual bar */}
               <rect
                 x={actualX}
                 y={LABEL_H + BAR_AREA_H - actualH}
                 width={BAR_W}
                 height={Math.max(actualH, 2)}
-                fill={isOver ? '#EF4444' : color}
+                fill={isOver ? '#B42318' : color}
                 opacity={0.9}
                 rx={3}
               />
-              {/* category label */}
               <text
                 x={centerX}
                 y={LABEL_H + BAR_AREA_H + AXIS_H - 4}
                 textAnchor="middle"
-                fontSize={11}
+                fontSize={10}
                 fill={theme.colors.muted}
               >
-                {bar.label}
+                {compactLabel(bar.label)}
               </text>
-              {/* over budget marker */}
               {isOver && (
                 <text
                   x={actualX + BAR_W / 2}
-                  y={LABEL_H + BAR_AREA_H - actualH - 3}
+                  y={Math.max(10, LABEL_H + BAR_AREA_H - actualH - 3)}
                   textAnchor="middle"
-                  fontSize={9}
-                  fill="#EF4444"
+                  fontSize={10}
+                  fontWeight={700}
+                  fill="#B42318"
                 >
-                  ↑
+                  !
                 </text>
               )}
             </g>
           );
         })}
       </svg>
+
+      <ul style={visuallyHidden}>
+        {bars.map((bar, index) => (
+          <li key={`${bar.label}-summary-${index}`}>
+            {bar.label}: {t('budget.chartPlanned', 'Planned')} {bar.planned};{' '}
+            {t('budget.chartActual', 'Actual')} {bar.actual}
+            {bar.actual > bar.planned ? `; ${t('budget.chartOverBudget', 'over planned amount')}` : ''}.
+          </li>
+        ))}
+      </ul>
     </div>
   );
 };

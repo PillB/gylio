@@ -1,8 +1,9 @@
-import React, { useCallback, useState } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../../core/context/ThemeContext';
 import type { Routine } from '../../../core/hooks/useDB';
 import { StreakDots } from './StreakDots';
+import RoutineFlowDiagram from './RoutineFlowDiagram';
 import RoutineTemplateGallery from './RoutineTemplateGallery';
 import type { RoutineTemplate } from '../data/routineTemplateLibrary';
 import WinCard from '../../../components/WinCard';
@@ -124,14 +125,14 @@ const RoutinesView: React.FC = () => {
   ) =>
     setter((prev) => ({
       ...prev,
-      steps: prev.steps.map((s, i) => (i === index ? { ...s, label: value } : s)),
+      steps: prev.steps.map((step, stepIndex) => (stepIndex === index ? { ...step, label: value } : step)),
     }));
 
   const removeFormStep = (
     setter: React.Dispatch<React.SetStateAction<FormState>>,
     index: number
   ) =>
-    setter((prev) => ({ ...prev, steps: prev.steps.filter((_, i) => i !== index) }));
+    setter((prev) => ({ ...prev, steps: prev.steps.filter((_, stepIndex) => stepIndex !== index) }));
 
   const inputStyle = {
     padding: `${theme.spacing.sm}px`,
@@ -173,22 +174,22 @@ const RoutinesView: React.FC = () => {
     idPrefix: string
   ) => (
     <div style={{ display: 'grid', gap: `${theme.spacing.xs}px` }}>
-      {steps.map((step, i) => (
-        <div key={i} style={{ display: 'flex', gap: `${theme.spacing.xs}px`, alignItems: 'center' }}>
+      {steps.map((step, index) => (
+        <div key={index} style={{ display: 'flex', gap: `${theme.spacing.xs}px`, alignItems: 'center' }}>
           <input
-            id={`${idPrefix}-step-${i}`}
+            id={`${idPrefix}-step-${index}`}
             type="text"
             value={step.label}
-            onChange={(e) => updateFormStep(setter, i, e.target.value)}
-            placeholder={t('routines.stepPlaceholder', { index: i + 1 })}
-            aria-label={t('routines.stepPlaceholder', { index: i + 1 })}
+            onChange={(event) => updateFormStep(setter, index, event.target.value)}
+            placeholder={t('routines.stepPlaceholder', { index: index + 1 })}
+            aria-label={t('routines.stepPlaceholder', { index: index + 1 })}
             style={{ ...inputStyle }}
           />
           {steps.length > 1 && (
             <button
               type="button"
-              onClick={() => removeFormStep(setter, i)}
-              aria-label={t('routines.removeStep', { index: i + 1 })}
+              onClick={() => removeFormStep(setter, index)}
+              aria-label={t('routines.removeStep', { index: index + 1 })}
               style={{ ...ghostBtnStyle, minHeight: '44px' }}
             >
               ×
@@ -222,7 +223,6 @@ const RoutinesView: React.FC = () => {
         {t('routines.description')}
       </p>
 
-      {/* Research-backed routine templates */}
       <div style={{ marginBottom: `${theme.spacing.md}px` }}>
         <button
           type="button"
@@ -242,10 +242,10 @@ const RoutinesView: React.FC = () => {
             fontFamily: theme.typography.body.family,
           }}
         >
-          <span>🔬</span>
+          <span aria-hidden="true">🔬</span>
           {showRoutineGallery
-            ? t('routines.tpl.hideGallery', 'Hide protocols')
-            : t('routines.tpl.showGallery', 'Browse research-backed protocols')}
+            ? t('routines.tpl.hideGallery', 'Hide templates')
+            : t('routines.tpl.showGallery', 'Browse routine templates')}
         </button>
         {showRoutineGallery && (
           <div style={{ marginTop: `${theme.spacing.sm}px` }}>
@@ -254,7 +254,6 @@ const RoutinesView: React.FC = () => {
         )}
       </div>
 
-      {/* Add form */}
       <div
         style={{
           border: `1px solid ${theme.colors.border}`,
@@ -276,7 +275,7 @@ const RoutinesView: React.FC = () => {
             id="routine-title"
             type="text"
             value={form.title}
-            onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
+            onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
             placeholder={t('routines.titlePlaceholder')}
             aria-required="true"
             aria-describedby={touched && errors.title ? 'routine-title-error' : undefined}
@@ -295,7 +294,7 @@ const RoutinesView: React.FC = () => {
             id="routine-description"
             type="text"
             value={form.description}
-            onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
+            onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
             style={{ ...inputStyle, display: 'block', marginTop: `${theme.spacing.xs}px` }}
           />
         </label>
@@ -305,8 +304,8 @@ const RoutinesView: React.FC = () => {
           <select
             id="routine-frequency"
             value={form.frequency}
-            onChange={(e) =>
-              setForm((prev) => ({ ...prev, frequency: e.target.value as Routine['frequency'] }))
+            onChange={(event) =>
+              setForm((prev) => ({ ...prev, frequency: event.target.value as Routine['frequency'] }))
             }
             style={{ ...inputStyle, display: 'block', marginTop: `${theme.spacing.xs}px` }}
           >
@@ -322,7 +321,7 @@ const RoutinesView: React.FC = () => {
             id="routine-trigger"
             type="time"
             value={form.triggerTime}
-            onChange={(e) => setForm((prev) => ({ ...prev, triggerTime: e.target.value }))}
+            onChange={(event) => setForm((prev) => ({ ...prev, triggerTime: event.target.value }))}
             style={{ ...inputStyle, display: 'block', marginTop: `${theme.spacing.xs}px` }}
           />
         </label>
@@ -334,7 +333,7 @@ const RoutinesView: React.FC = () => {
           id="routine-anchor"
           type="text"
           value={form.anchorHabit}
-          onChange={(e) => setForm((prev) => ({ ...prev, anchorHabit: e.target.value }))}
+          onChange={(event) => setForm((prev) => ({ ...prev, anchorHabit: event.target.value }))}
           placeholder={t('routines.anchorPlaceholder', 'e.g. After morning coffee')}
           style={{
             width: '100%',
@@ -349,7 +348,7 @@ const RoutinesView: React.FC = () => {
           }}
         />
         <p style={{ margin: '2px 0 0', color: theme.colors.muted, fontSize: '0.8125rem' }}>
-          {t('routines.anchorHelper', 'Anchoring to an existing habit makes this much more likely to stick.')}
+          {t('routines.anchorHelper', 'Link this routine to an existing habit if that cue is useful to you.')}
         </p>
 
         <fieldset style={{ border: 'none', padding: 0, margin: 0 }}>
@@ -364,20 +363,19 @@ const RoutinesView: React.FC = () => {
         </button>
       </div>
 
-      {/* List */}
       {loading ? (
         <p style={{ color: theme.colors.muted }}>{t('loading')}</p>
       ) : routines.length === 0 ? (
         <EmptyStateAction
           emoji="⚡"
           headline={t('routines.empty', 'No routines yet.')}
-          body={t('routines.emptyBody', 'A single consistent routine — even 10 minutes — is more valuable than any app, book, or plan. Start with one thing you want to do every day.')}
+          body={t('routines.emptyBody', 'Start with one small routine you want to make easier to repeat. You can adjust it at any time.')}
           ctaLabel={t('routines.emptyCta', 'Build your first routine')}
           onCta={() => {
             const titleInput = document.getElementById('routine-title') as HTMLInputElement | null;
             titleInput?.focus();
           }}
-          secondaryLabel={t('routines.tpl.showGallery', '🔬 Browse research-backed protocols')}
+          secondaryLabel={t('routines.tpl.showGallery', 'Browse routine templates')}
           onSecondary={() => setShowRoutineGallery(true)}
           accentColor="#8B5CF6"
         />
@@ -406,7 +404,7 @@ const RoutinesView: React.FC = () => {
                         id={`edit-title-${routine.id}`}
                         type="text"
                         value={editForm.title}
-                        onChange={(e) => setEditForm((prev) => ({ ...prev, title: e.target.value }))}
+                        onChange={(event) => setEditForm((prev) => ({ ...prev, title: event.target.value }))}
                         style={{ ...inputStyle, display: 'block', marginTop: `${theme.spacing.xs}px` }}
                       />
                     </label>
@@ -422,7 +420,7 @@ const RoutinesView: React.FC = () => {
                         id={`edit-desc-${routine.id}`}
                         type="text"
                         value={editForm.description}
-                        onChange={(e) => setEditForm((prev) => ({ ...prev, description: e.target.value }))}
+                        onChange={(event) => setEditForm((prev) => ({ ...prev, description: event.target.value }))}
                         style={{ ...inputStyle, display: 'block', marginTop: `${theme.spacing.xs}px` }}
                       />
                     </label>
@@ -432,10 +430,10 @@ const RoutinesView: React.FC = () => {
                       <select
                         id={`edit-freq-${routine.id}`}
                         value={editForm.frequency}
-                        onChange={(e) =>
+                        onChange={(event) =>
                           setEditForm((prev) => ({
                             ...prev,
-                            frequency: e.target.value as Routine['frequency'],
+                            frequency: event.target.value as Routine['frequency'],
                           }))
                         }
                         style={{ ...inputStyle, display: 'block', marginTop: `${theme.spacing.xs}px` }}
@@ -452,7 +450,7 @@ const RoutinesView: React.FC = () => {
                         id={`edit-trigger-${routine.id}`}
                         type="time"
                         value={editForm.triggerTime}
-                        onChange={(e) => setEditForm((prev) => ({ ...prev, triggerTime: e.target.value }))}
+                        onChange={(event) => setEditForm((prev) => ({ ...prev, triggerTime: event.target.value }))}
                         style={{ ...inputStyle, display: 'block', marginTop: `${theme.spacing.xs}px` }}
                       />
                     </label>
@@ -464,7 +462,7 @@ const RoutinesView: React.FC = () => {
                       id={`edit-anchor-${routine.id}`}
                       type="text"
                       value={editForm.anchorHabit}
-                      onChange={(e) => setEditForm((prev) => ({ ...prev, anchorHabit: e.target.value }))}
+                      onChange={(event) => setEditForm((prev) => ({ ...prev, anchorHabit: event.target.value }))}
                       placeholder={t('routines.anchorPlaceholder', 'e.g. After morning coffee')}
                       style={{
                         width: '100%',
@@ -479,7 +477,7 @@ const RoutinesView: React.FC = () => {
                       }}
                     />
                     <p style={{ margin: '2px 0 0', color: theme.colors.muted, fontSize: '0.8125rem' }}>
-                      {t('routines.anchorHelper', 'Anchoring to an existing habit makes this much more likely to stick.')}
+                      {t('routines.anchorHelper', 'Link this routine to an existing habit if that cue is useful to you.')}
                     </p>
 
                     <fieldset style={{ border: 'none', padding: 0, margin: 0 }}>
@@ -572,29 +570,35 @@ const RoutinesView: React.FC = () => {
                       </p>
                     )}
 
-                    {/* Anchor habit display */}
                     {routine.anchorHabit && (
                       <p style={{ margin: '4px 0 0', color: theme.colors.primary, fontSize: '0.875rem', fontStyle: 'italic' }}>
                         {t('routines.anchorDisplay', { habit: routine.anchorHabit.replace(/^after\s+/i, ''), defaultValue: `After ${routine.anchorHabit.replace(/^after\s+/i, '')}, I will do this routine` })}
                       </p>
                     )}
-                    {/* 21-day streak dots */}
+
+                    <RoutineFlowDiagram
+                      routineTitle={routine.title}
+                      steps={routine.steps}
+                      anchorHabit={routine.anchorHabit}
+                      theme={theme}
+                    />
+
                     <StreakDots completionLog={routine.completionLog ?? []} theme={theme} />
 
                     {routine.steps.length > 0 && (
                       <ul style={{ listStyle: 'none', padding: 0, margin: `${theme.spacing.sm}px 0 0`, display: 'grid', gap: '4px' }}>
-                        {routine.steps.map((step, i) => (
-                          <li key={i} style={{ display: 'flex', alignItems: 'center', gap: `${theme.spacing.xs}px` }}>
+                        {routine.steps.map((step, index) => (
+                          <li key={index} style={{ display: 'flex', alignItems: 'center', gap: `${theme.spacing.xs}px` }}>
                             <input
                               type="checkbox"
-                              id={`step-${routine.id}-${i}`}
+                              id={`step-${routine.id}-${index}`}
                               checked={step.done}
-                              onChange={() => toggleStep(routine.id, i)}
+                              onChange={() => toggleStep(routine.id, index)}
                               aria-label={t('routines.toggleStep', { label: step.label })}
                               style={{ width: '18px', height: '18px', cursor: 'pointer' }}
                             />
                             <label
-                              htmlFor={`step-${routine.id}-${i}`}
+                              htmlFor={`step-${routine.id}-${index}`}
                               style={{
                                 color: step.done ? theme.colors.muted : theme.colors.text,
                                 textDecoration: step.done ? 'line-through' : 'none',
@@ -632,7 +636,7 @@ const RoutinesView: React.FC = () => {
       {showWinCard && (
         <WinCard
           type="routine_complete"
-          label={lastCompletedTitle || 'Routine complete'}
+          label={lastCompletedTitle || t('routines.completeButton', 'Routine complete')}
           onClose={() => setShowWinCard(false)}
         />
       )}

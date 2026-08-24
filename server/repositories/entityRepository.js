@@ -2,7 +2,25 @@ const mongoose = require('mongoose');
 const { get, all, run } = require('../lib/sqlite');
 const { ApiError } = require('../lib/errors');
 
+const isMongoConfigured = () => Boolean((process.env.MONGODB_URI || '').trim());
 const isMongoReady = () => mongoose.connection.readyState === 1;
+
+/**
+ * Persistence selection must be stable for the lifetime of the process.
+ * If MongoDB is configured, an outage is an availability problem—not a signal
+ * to start writing the same user's records into a second database.
+ */
+const shouldUseMongo = () => {
+  if (!isMongoConfigured()) return false;
+  if (!isMongoReady()) {
+    throw new ApiError(
+      503,
+      'DATABASE_UNAVAILABLE',
+      'Primary database is temporarily unavailable'
+    );
+  }
+  return true;
+};
 
 const toApiRecord = (record) => {
   if (!record) return null;
@@ -82,7 +100,7 @@ const createEntityRepository = (models, sqlite, config) => {
 
   return {
     async list(userId) {
-      if (isMongoReady()) {
+      if (shouldUseMongo()) {
         const docs = await mongoModel.find({ userId }).sort({ createdAt: -1 }).lean().exec();
         return docs.map(toApiRecord);
       }
@@ -91,7 +109,7 @@ const createEntityRepository = (models, sqlite, config) => {
     },
 
     async getById(id, userId) {
-      if (isMongoReady()) {
+      if (shouldUseMongo()) {
         const doc = await mongoModel.findOne({ _id: String(id), userId }).lean().exec();
         return toApiRecord(doc);
       }
@@ -105,7 +123,7 @@ const createEntityRepository = (models, sqlite, config) => {
       const data = { ...buildCreatePayload(payload, config), userId };
       assertHasRequired(data, config.requiredOnCreate);
 
-      if (isMongoReady()) {
+      if (shouldUseMongo()) {
         const created = await mongoModel.create(data);
         return toApiRecord(created.toObject());
       }
@@ -127,7 +145,7 @@ const createEntityRepository = (models, sqlite, config) => {
       const data = { ...buildCreatePayload(payload, config), userId };
       assertHasRequired(data, config.requiredOnCreate);
 
-      if (isMongoReady()) {
+      if (shouldUseMongo()) {
         const updated = await mongoModel
           .findOneAndReplace({ _id: String(id), userId }, data, {
             new: true,
@@ -163,7 +181,7 @@ const createEntityRepository = (models, sqlite, config) => {
         throw new ApiError(400, 'VALIDATION_ERROR', 'At least one updatable field is required');
       }
 
-      if (isMongoReady()) {
+      if (shouldUseMongo()) {
         const updated = await mongoModel
           .findOneAndUpdate({ _id: String(id), userId }, updates, { new: true, runValidators: true })
           .lean()
@@ -191,7 +209,7 @@ const createEntityRepository = (models, sqlite, config) => {
     },
 
     async remove(id, userId) {
-      if (isMongoReady()) {
+      if (shouldUseMongo()) {
         const deleted = await mongoModel.findOneAndDelete({ _id: String(id), userId }).lean().exec();
         return Boolean(deleted);
       }
@@ -204,5 +222,8 @@ const createEntityRepository = (models, sqlite, config) => {
 };
 
 module.exports = {
-  createEntityRepository
+  createEntityRepository,
+  isMongoConfigured,
+  isMongoReady,
+  shouldUseMongo,
 };

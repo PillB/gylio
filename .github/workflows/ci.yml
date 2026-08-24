@@ -1,0 +1,219 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Quality gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CI: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Reproducible dependency install
+        run: |
+          npm ci --ignore-scripts
+          npm ci --ignore-scripts --prefix server
+
+      - name: Lint feature code
+        id: lint
+        continue-on-error: true
+        run: npm run lint
+
+      - name: Typecheck task domain
+        id: typecheck
+        continue-on-error: true
+        run: npm run typecheck
+
+      - name: Production localization integrity
+        id: i18n
+        continue-on-error: true
+        run: npm run check:i18n
+
+      - name: Deployment academy six-pass validation
+        id: deployguide
+        continue-on-error: true
+        run: node scripts/check-deployment-guide.mjs
+
+      - name: Unit tests
+        id: unit
+        continue-on-error: true
+        run: npm test
+
+      - name: Production build
+        id: build
+        continue-on-error: true
+        run: npm run build
+
+      - name: Server runtime and syntax checks
+        id: server
+        continue-on-error: true
+        run: |
+          node --check server/server.js
+          node --check server/repositories/entityRepository.js
+          node --check server/routes/billing.js
+          node --check server/routes/ai.js
+
+          NODE_ENV=production MONGODB_URI='mongodb://unused.invalid/gylio' node - <<'NODE'
+          const runtime = require('./server/server.js');
+          if (!runtime.app || typeof runtime.initializePersistence !== 'function' || typeof runtime.startServer !== 'function') {
+            throw new Error('Server runtime exports are incomplete');
+          }
+          console.log('Server production module graph loaded successfully.');
+          NODE
+
+          NODE_ENV=production node - <<'NODE'
+          const { initializePersistence } = require('./server/server.js');
+          initializePersistence()
+            .then(() => {
+              throw new Error('Production persistence unexpectedly initialized without MONGODB_URI');
+            })
+            .catch((error) => {
+              if (!String(error?.message || error).includes('MONGODB_URI is required in production')) {
+                throw error;
+              }
+              console.log('Production persistence fails closed without MongoDB.');
+            });
+          NODE
+
+      - name: Aggregate quality gates
+        if: always()
+        env:
+          LINT: ${{ steps.lint.outcome }}
+          TYPECHECK: ${{ steps.typecheck.outcome }}
+          I18N: ${{ steps.i18n.outcome }}
+          DEPLOY_GUIDE: ${{ steps.deployguide.outcome }}
+          UNIT: ${{ steps.unit.outcome }}
+          BUILD: ${{ steps.build.outcome }}
+          SERVER: ${{ steps.server.outcome }}
+        run: |
+          printf 'lint=%s\ntypecheck=%s\ni18n=%s\ndeploy-guide=%s\nunit=%s\nbuild=%s\nserver=%s\n' \
+            "$LINT" "$TYPECHECK" "$I18N" "$DEPLOY_GUIDE" "$UNIT" "$BUILD" "$SERVER"
+          for result in "$LINT" "$TYPECHECK" "$I18N" "$DEPLOY_GUIDE" "$UNIT" "$BUILD" "$SERVER"; do
+            if [ "$result" != "success" ]; then
+              echo "One or more quality gates failed. Review the named step logs above."
+              exit 1
+            fi
+          done
+
+  browser:
+    name: Browser and layout audit
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      CI: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Install Chromium for Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Browser audit
+        run: npx playwright test
+
+      - name: Upload Playwright audit evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: playwright-audit
+          path: |
+            playwright-report/
+            test-results/
+            e2e/screenshots/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  dependency-security:
+    name: Dependency security gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install full repository graph
+        run: npm ci --ignore-scripts
+
+      - name: Capture full repository advisory report
+        run: npm audit --omit=dev --json > npm-audit-production.json || true
+
+      - name: Reproducible production API install
+        run: npm ci --ignore-scripts --prefix server
+
+      - name: Smoke-test isolated production API graph
+        run: |
+          cd server
+          NODE_ENV=production MONGODB_URI='mongodb://unused.invalid/gylio' node - <<'NODE'
+          const runtime = require('./server.js');
+          if (!runtime.app || typeof runtime.initializePersistence !== 'function') {
+            throw new Error('Isolated API graph failed to load');
+          }
+          console.log('Isolated production API graph loads successfully.');
+          NODE
+
+      - name: Capture production API audit
+        run: npm audit --omit=dev --prefix server --json > server/npm-audit-production.json || true
+
+      - name: Enforce API high/critical vulnerability budget
+        run: |
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const full = JSON.parse(fs.readFileSync('npm-audit-production.json', 'utf8'));
+          const api = JSON.parse(fs.readFileSync('server/npm-audit-production.json', 'utf8'));
+          console.log('Full repository advisory inventory:', full.metadata?.vulnerabilities ?? {});
+          const vulnerabilities = api.metadata?.vulnerabilities ?? {};
+          console.log('Production API vulnerabilities:', vulnerabilities);
+          if ((vulnerabilities.critical ?? 0) > 0 || (vulnerabilities.high ?? 0) > 0) {
+            throw new Error('Production API contains high or critical dependency advisories');
+          }
+          NODE
+
+      - name: Upload dependency evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: dependency-audits
+          path: |
+            npm-audit-production.json
+            server/npm-audit-production.json
+            server/package.json
+            server/package-lock.json
+          if-no-files-found: error
+          retention-days: 14

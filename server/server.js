@@ -25,30 +25,98 @@ if (missingAiEnvVars.length) {
   console.warn(`AI features disabled. Missing env vars: ${missingAiEnvVars.join(', ')}`);
 }
 
-if (!process.env.CLERK_JWKS_URL) {
-  console.warn('CLERK_JWKS_URL not set. Using default Clerk JWKS endpoint.');
+if (!process.env.CLERK_ISSUER) {
+  console.warn('CLERK_ISSUER not set. Protected API routes will return AUTH_NOT_CONFIGURED.');
 }
+
+const configuredOrigins = (process.env.CORS_ORIGINS || '')
+  .split(',')
+  .map((value) => value.trim())
+  .filter(Boolean);
+
+const developmentOrigins = ['http://localhost:5173', 'http://127.0.0.1:5173'];
+const allowedOrigins = new Set(
+  configuredOrigins.length > 0
+    ? configuredOrigins
+    : process.env.NODE_ENV === 'production'
+      ? []
+      : developmentOrigins
+);
 
 const app = express();
-app.use(cors());
-app.use(express.json());
+app.disable('x-powered-by');
+app.use((_, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Referrer-Policy', 'no-referrer');
+  res.setHeader('Cache-Control', 'no-store');
+  next();
+});
+app.use(
+  cors({
+    origin(origin, callback) {
+      // Requests without Origin (health checks, curl, same-process server calls)
+      // are allowed. Browser cross-origin requests must be explicitly allowlisted.
+      if (!origin || allowedOrigins.has(origin)) {
+        callback(null, true);
+        return;
+      }
+      callback(null, false);
+    },
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Authorization', 'Content-Type'],
+    maxAge: 600,
+  })
+);
+app.use(express.json({ limit: '256kb' }));
 
-const mongoUri = process.env.MONGODB_URI || '';
-if (mongoUri) {
-  mongoose
-    .connect(mongoUri)
-    .then(() => console.log('Connected to MongoDB'))
-    .catch((err) => console.error('MongoDB connection error:', err));
-} else {
-  console.log('MongoDB URI not provided; API will use SQLite');
+const mongoUri = (process.env.MONGODB_URI || '').trim();
+const persistenceMode = mongoUri ? 'mongodb' : 'sqlite';
+let persistenceReady = false;
+
+/**
+ * Initialize exactly one server-side persistence backend before accepting
+ * traffic. The previous implementation initialized SQLite unconditionally and
+ * repository methods could silently fall back to it while MongoDB was still
+ * connecting or temporarily unavailable. That creates a split-brain data risk.
+ *
+ * Production therefore requires MongoDB. SQLite remains a deliberate local/dev
+ * backend where a single-process file database is useful and predictable.
+ */
+async function initializePersistence() {
+  if (mongoUri) {
+    await mongoose.connect(mongoUri, {
+      serverSelectionTimeoutMS: 10_000,
+    });
+    persistenceReady = true;
+    console.log('Connected to MongoDB');
+    return;
+  }
+
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('MONGODB_URI is required in production; refusing implicit SQLite fallback');
+  }
+
+  await ensureSqliteSchema(sqlite);
+  persistenceReady = true;
+  console.log('SQLite schema is ready (development/local mode)');
 }
-
-ensureSqliteSchema(sqlite)
-  .then(() => console.log('SQLite schema is ready'))
-  .catch((err) => console.error('SQLite schema init error:', err));
 
 app.get('/api', (_req, res) => {
   res.json({ message: 'GYLIO API is running' });
+});
+
+app.get('/api/health', (_req, res) => {
+  const databaseReady = persistenceReady && (
+    persistenceMode === 'sqlite' || mongoose.connection.readyState === 1
+  );
+
+  res.status(databaseReady ? 200 : 503).json({
+    status: databaseReady ? 'ok' : 'degraded',
+    authConfigured: Boolean(process.env.CLERK_ISSUER),
+    aiConfigured: missingAiEnvVars.length === 0,
+    database: persistenceMode,
+    databaseReady,
+  });
 });
 
 app.use('/api/auth', authRateLimit, authRouter);
@@ -66,6 +134,28 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`Server listening on port ${PORT}`);
-});
+
+async function startServer() {
+  try {
+    await initializePersistence();
+    return app.listen(PORT, () => {
+      console.log(`Server listening on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error('Server startup failed before accepting traffic:', error);
+    process.exitCode = 1;
+    return null;
+  }
+}
+
+// Importing the server in tests/health tooling should validate the complete
+// runtime module graph without opening sockets or connecting to persistence.
+if (require.main === module) {
+  startServer();
+}
+
+module.exports = {
+  app,
+  initializePersistence,
+  startServer,
+};

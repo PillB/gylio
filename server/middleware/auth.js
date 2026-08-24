@@ -2,45 +2,85 @@ const jwt = require('jsonwebtoken');
 const jwksClient = require('jwks-rsa');
 const { ApiError } = require('../lib/errors');
 
-// Load server .env if dotenv is available (dev convenience)
+// Load server .env if dotenv is available (dev convenience).
 try { require('dotenv').config({ path: require('path').join(__dirname, '../.env') }); } catch (_) {}
 
-const JWKS_URL = process.env.CLERK_JWKS_URL;
-const CLERK_ISSUER = process.env.CLERK_ISSUER;
+let cachedClient = null;
+let cachedJwksUri = null;
 
-if (!JWKS_URL || !CLERK_ISSUER) {
-  throw new Error('Missing required env vars: CLERK_JWKS_URL and CLERK_ISSUER must be set in server/.env');
-}
+const normalizeIssuer = (value) =>
+  typeof value === 'string' ? value.trim().replace(/\/+$/, '') : '';
 
-const client = jwksClient({
-  jwksUri: JWKS_URL,
-  cache: true,
-  cacheMaxEntries: 5,
-  cacheMaxAge: 10 * 60 * 1000, // 10 minutes
-});
+const getAuthConfig = () => {
+  const issuer = normalizeIssuer(process.env.CLERK_ISSUER);
+  if (!issuer) {
+    throw new ApiError(
+      503,
+      'AUTH_NOT_CONFIGURED',
+      'Authentication is not configured on this server'
+    );
+  }
 
-const getSigningKey = (header, callback) => {
-  client.getSigningKey(header.kid, (err, key) => {
-    if (err) return callback(err);
-    callback(null, key.getPublicKey());
-  });
+  const jwksUri =
+    (typeof process.env.CLERK_JWKS_URL === 'string' && process.env.CLERK_JWKS_URL.trim()) ||
+    `${issuer}/.well-known/jwks.json`;
+
+  const authorizedParties = (process.env.CLERK_AUTHORIZED_PARTIES || '')
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean);
+
+  return { issuer, jwksUri, authorizedParties };
+};
+
+const getJwksClient = (jwksUri) => {
+  if (!cachedClient || cachedJwksUri !== jwksUri) {
+    cachedClient = jwksClient({
+      jwksUri,
+      cache: true,
+      cacheMaxEntries: 5,
+      cacheMaxAge: 10 * 60 * 1000,
+      rateLimit: true,
+      jwksRequestsPerMinute: 10,
+    });
+    cachedJwksUri = jwksUri;
+  }
+  return cachedClient;
 };
 
 const parseAuthHeader = (headerValue) => {
   if (!headerValue || typeof headerValue !== 'string') return null;
-  const [scheme, token] = headerValue.split(' ');
-  if (!scheme || scheme.toLowerCase() !== 'bearer' || !token) return null;
-  return token.trim();
+  const [scheme, token, ...extra] = headerValue.trim().split(/\s+/);
+  if (
+    !scheme ||
+    scheme.toLowerCase() !== 'bearer' ||
+    !token ||
+    extra.length > 0
+  ) {
+    return null;
+  }
+  return token;
 };
 
-const verifyClerkToken = (token) =>
-  new Promise((resolve, reject) => {
+const verifyClerkToken = (token) => {
+  const { issuer, jwksUri, authorizedParties } = getAuthConfig();
+  const client = getJwksClient(jwksUri);
+
+  const getSigningKey = (header, callback) => {
+    if (!header?.kid) return callback(new Error('Missing JWT key id'));
+    client.getSigningKey(header.kid, (err, key) => {
+      if (err) return callback(err);
+      callback(null, key.getPublicKey());
+    });
+  };
+
+  return new Promise((resolve, reject) => {
     jwt.verify(
       token,
       getSigningKey,
       {
         algorithms: ['RS256'],
-        issuer: CLERK_ISSUER,
+        issuer,
       },
       (err, payload) => {
         if (err) {
@@ -49,10 +89,19 @@ const verifyClerkToken = (token) =>
           }
           return reject(new ApiError(401, 'UNAUTHORIZED', 'Invalid access token'));
         }
+
+        if (authorizedParties.length > 0) {
+          const azp = typeof payload?.azp === 'string' ? payload.azp : '';
+          if (!azp || !authorizedParties.includes(azp)) {
+            return reject(new ApiError(401, 'UNAUTHORIZED', 'Token authorized party is not allowed'));
+          }
+        }
+
         resolve(payload);
       }
     );
   });
+};
 
 const requireAuth = async (req, _res, next) => {
   const token = parseAuthHeader(req.headers.authorization);
@@ -68,7 +117,7 @@ const requireAuth = async (req, _res, next) => {
 
     req.user = {
       id: String(payload.sub),
-      email: payload.email || null,
+      email: typeof payload.email === 'string' ? payload.email : null,
     };
 
     return next();
@@ -80,4 +129,6 @@ const requireAuth = async (req, _res, next) => {
 module.exports = {
   requireAuth,
   parseAuthHeader,
+  verifyClerkToken,
+  getAuthConfig,
 };
