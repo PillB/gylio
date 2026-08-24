@@ -10,6 +10,30 @@ async function startFreshOnboarding(page: Page) {
   await expect(page).toHaveURL(/\/gylio\/onboarding$/);
 }
 
+async function seedCompletedOnboarding(page: Page) {
+  await page.goto('/gylio/');
+  await page.evaluate(() => {
+    localStorage.setItem('gylio_lang', 'en');
+    localStorage.setItem('onboardingFlowState', JSON.stringify({
+      schemaVersion: 3,
+      currentStep: 3,
+      isOnboardingComplete: true,
+      selections: {
+        accessibility: {
+          textStyle: 'standard',
+          contrast: 'balanced',
+          motion: 'system',
+          animations: true,
+          tts: false
+        },
+        supportProfile: { profile: 'keep' },
+        quickSetup: { starterGoal: '', monthlyIncome: '' },
+        tour: {}
+      }
+    }));
+  });
+}
+
 test.describe('evidence-calibrated onboarding', () => {
   test('uses preference-based accessibility choices with safe defaults', async ({ page }) => {
     await startFreshOnboarding(page);
@@ -73,6 +97,35 @@ test.describe('evidence-calibrated onboarding', () => {
     await expect(page.getByText(/reminder/i)).toHaveCount(0);
     await expect(page.getByRole('checkbox')).toHaveCount(0);
     await expect(page.getByRole('button', { name: /finish/i })).toBeEnabled();
+  });
+
+  test('Settings exposes the same reversible reading and motion choices', async ({ page }) => {
+    await seedCompletedOnboarding(page);
+    await page.goto('/gylio/settings', { waitUntil: 'networkidle' });
+
+    const readingStyle = page.getByRole('combobox', { name: /reading style/i });
+    await expect(readingStyle).toBeVisible();
+    await expect(readingStyle.locator('option')).toHaveText([
+      'Standard text',
+      'Larger text',
+      'More spacing'
+    ]);
+    await expect(readingStyle.locator('option')).not.toContainText(/dyslex/i);
+
+    const motion = page.getByRole('combobox', { name: /motion preference/i });
+    await expect(motion).toBeVisible();
+    await expect(motion.locator('option')).toHaveText([
+      'Follow my device',
+      'Reduce non-essential motion',
+      'Allow non-essential motion'
+    ]);
+
+    await page.setViewportSize({ width: 320, height: 568 });
+    const geometry = await page.evaluate(() => ({
+      scrollWidth: document.documentElement.scrollWidth,
+      clientWidth: document.documentElement.clientWidth
+    }));
+    expect(geometry.scrollWidth).toBeLessThanOrEqual(geometry.clientWidth + 1);
   });
 
   test('localizes the evidence-calibrated onboarding in Peruvian Spanish', async ({ page }) => {
