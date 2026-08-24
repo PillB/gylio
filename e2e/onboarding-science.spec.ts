@@ -32,6 +32,11 @@ async function seedCompletedOnboarding(page: Page) {
       }
     }));
   });
+  // Force the provider tree to hydrate from the seeded state before the test
+  // navigates to a protected app route. This also makes retries independent of
+  // the page state left by a previous failed assertion.
+  await page.reload({ waitUntil: 'networkidle' });
+  await expect(page).toHaveURL(/\/gylio\/tasks$/);
 }
 
 test.describe('evidence-calibrated onboarding', () => {
@@ -105,12 +110,13 @@ test.describe('evidence-calibrated onboarding', () => {
 
     const readingStyle = page.getByRole('combobox', { name: /reading style/i });
     await expect(readingStyle).toBeVisible();
-    await expect(readingStyle.locator('option')).toHaveText([
+    const readingOptions = await readingStyle.locator('option').allTextContents();
+    expect(readingOptions).toEqual([
       'Standard text',
       'Larger text',
       'More spacing'
     ]);
-    await expect(readingStyle.locator('option')).not.toContainText(/dyslex/i);
+    expect(readingOptions.join(' ')).not.toMatch(/dyslex/i);
 
     const motion = page.getByRole('combobox', { name: /motion preference/i });
     await expect(motion).toBeVisible();
