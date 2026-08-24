@@ -4,24 +4,39 @@ Validated: 2026-08-24
 
 ## Product rule
 
-GYLIO does not require every supportive UI idea to have definitive clinical proof. The bar depends on risk and how strongly the product frames the claim.
+Onboarding is a preference/setup flow, not a diagnostic questionnaire or treatment recommendation. The evidence bar depends on risk and claim strength.
 
 | Evidence tier | Product use |
 | --- | --- |
-| Strong / standards-backed | May inform a safe default or clear recommendation. |
-| Moderate / directionally supported | May be offered as an optional, reversible starter setting or profile. |
-| Mixed / heterogeneous | May be offered only as a user-controlled experiment with uncertainty stated. |
-| Unsupported, harmful, or not implemented | Do not collect, prescribe, or claim it works. |
+| Strong / standards-backed | May inform a neutral default or clear accessibility option. |
+| Moderate / directionally supported | May be offered as an optional, reversible support with uncertainty stated. |
+| Mixed / heterogeneous | User-controlled experiment only; do not imply reliable benefit. |
+| Unsupported, harmful, redundant, or not implemented | Do not collect, prescribe, or claim it works. |
 
-All onboarding choices must also be low-risk, reversible, explain what they change, and remain editable later. A diagnosis alone must not silently determine a user's interface.
+Every onboarding choice must be low-risk, reversible, explain what it changes, and remain editable later. A diagnosis must not determine a user's interface.
+
+## Why onboarding is only three screens
+
+The current sequence is:
+
+1. **Interface preferences** — direct choices for reading appearance, contrast, motion, and optional read-aloud.
+2. **Optional starter data** — one first task and/or monthly take-home income; both may be left blank.
+3. **Orientation** — a short map of the app with no acknowledgement or consent checkbox.
+
+An intermediate "support profile" screen was removed after review. It bundled the same preferences already chosen on screen 1 and could overwrite a deliberate choice immediately afterward. Current W3C form guidance recommends simple, short forms, logical steps, clearly marked optional stages, and collecting only information needed for the process. The more defensible design is therefore to ask the user directly once, not infer or rebundle their preferences.
+
+Sources:
+- W3C Forms Tutorial (updated 2026-03-27): https://www.w3.org/WAI/tutorials/forms/
+- W3C Multi-page Forms: https://www.w3.org/WAI/tutorials/forms/multi-page/
+- W3C Cognitive Accessibility, Make Each Step Clear: https://www.w3.org/WAI/WCAG2/supplemental/patterns/o1p04-clear-steps/
 
 ## Screen 1 — Interface preferences
 
-### Standard readable text — default
+### Standard readable text — neutral default
 
 **Tier:** Strong/standards-backed default.
 
-A clear default plus user-controlled resizing is consistent with WCAG and W3C cognitive-accessibility guidance. WCAG 2.2 SC 1.4.4 requires text to remain usable when enlarged up to 200%. W3C cognitive guidance recommends allowing presentation preferences such as font style and size.
+A conventional readable default plus user-controlled enlargement is consistent with WCAG. WCAG 2.2 SC 1.4.4 requires text to remain usable when enlarged up to 200%; W3C cognitive guidance also supports personalization of presentation.
 
 Sources:
 - W3C, Understanding SC 1.4.4 Resize Text: https://www.w3.org/WAI/WCAG22/Understanding/resize-text
@@ -29,51 +44,51 @@ Sources:
 
 ### Larger text
 
-**Tier:** Strong direction for user choice; not a diagnosis-specific recommendation.
+**Tier:** Strong as a user choice; not diagnosis-specific.
 
-Larger text can improve readability for people with low vision and can be a useful preference for other readers. The user, not GYLIO, chooses it.
+Larger text is a standard accessibility option. GYLIO does not assume which users need it.
 
 Sources:
-- W3C, G178 controls for changing text size: https://www.w3.org/WAI/WCAG22/Techniques/general/G178
-- W3C, Customizable Text: https://www.w3.org/WAI/perspective-videos/customizable/
+- W3C G178, controls for changing text size: https://www.w3.org/WAI/WCAG22/Techniques/general/G178
+- W3C Customizable Text: https://www.w3.org/WAI/perspective-videos/customizable/
 
 ### More spacing
 
-**Tier:** Moderate/directional.
+**Tier:** Moderate/directional as an optional preference.
 
-WCAG 2.2 SC 1.4.12 requires content to tolerate user-defined spacing without loss of content or functionality; it does **not** require authors to force those spacing values on everyone. W3C also notes that different spacing can benefit some people. GYLIO therefore offers a reversible spacing preference and tests narrow layouts, rather than presenting spacing as a treatment.
+WCAG 2.2 SC 1.4.12 requires content to tolerate user-overridden line, paragraph, letter, and word spacing without loss of content or functionality. That does not establish one ideal spacing configuration for everyone. GYLIO therefore offers a reversible spacing option and separately tests that it does not break narrow layouts.
 
 Sources:
 - W3C, Understanding SC 1.4.12 Text Spacing: https://www.w3.org/WAI/WCAG22/Understanding/text-spacing
-- W3C, C36 Allowing for text spacing override: https://www.w3.org/WAI/WCAG22/Techniques/css/C36
+- W3C C36, Allowing for text spacing override: https://www.w3.org/WAI/WCAG22/Techniques/css/C36
 
-### Why GYLIO no longer recommends a dyslexia-specific font automatically
+### Why GYLIO does not recommend a dyslexia-specific font
 
 **Tier:** Mixed/negative aggregate evidence.
 
-A 2026 meta-analysis of 15 studies (91 effect sizes; N=688) found no consistent improvement in reading speed or accuracy from dyslexia-specific fonts versus standard fonts (overall g=-0.04, 95% CI -0.15 to 0.07). An earlier controlled study also found no group improvement from OpenDyslexic. Specialized fonts therefore should not be presented as a default treatment for dyslexia.
+A 2026 meta-analysis synthesized 15 studies, 91 effect sizes, and 688 participants. Dyslexia-friendly fonts such as OpenDyslexic/Dyslexie had no consistent reliable effect on reading speed or accuracy versus standard fonts (overall Hedges g = -0.04, 95% CI -0.15 to 0.07). Earlier controlled studies also found no reliable OpenDyslexic advantage. A diagnosis-specific font is therefore not an evidence-based default.
 
 Sources:
 - Azzarello et al. (2026), *Annals of Dyslexia*, DOI 10.1007/s11881-026-00389-8: https://pubmed.ncbi.nlm.nih.gov/42536336/
-- Wery & Diliberto (2017), OpenDyslexic reading rate/accuracy study: https://pubmed.ncbi.nlm.nih.gov/26993270/
+- Wery & Diliberto (2017): https://pubmed.ncbi.nlm.nih.gov/26993270/
 
-New onboarding and Settings do not advertise a diagnosis-specific font choice. Older onboarding state is normalized to the neutral standard reading style when it is migrated.
+Legacy diagnosis-font state is normalized to the neutral standard reading style when old onboarding data is migrated.
 
-### Follow device motion setting — default
+### Follow device motion setting — neutral default
 
 **Tier:** Strong/standards-backed.
 
-W3C documents `prefers-reduced-motion` specifically so sites can respect an operating-system preference. Motion can cause distraction or nausea for some users, including people with vestibular disorders. GYLIO therefore defaults to following the device and lets the user override it.
+W3C documents `prefers-reduced-motion` so websites can respect the operating-system preference. Motion may distract users or cause vestibular discomfort/nausea. GYLIO defaults to the device preference and permits explicit overrides.
 
 Sources:
-- W3C WCAG 2.2 Technique C39: https://www.w3.org/WAI/WCAG22/Techniques/css/C39
+- W3C WCAG Technique C39: https://www.w3.org/WAI/WCAG22/Techniques/css/C39
 - W3C, Let Users Control When Content Moves or Changes: https://www.w3.org/WAI/WCAG2/supplemental/patterns/o8p01-motion/
 
 ### Higher contrast
 
-**Tier:** Strong as an available user preference; not a universal default.
+**Tier:** Strong as an available preference; not a universal default.
 
-WCAG sets minimum contrast requirements for authored text, while W3C personalization guidance supports letting users choose presentation preferences such as contrast. GYLIO offers a stronger-contrast theme without assuming who needs it.
+WCAG defines minimum authored contrast requirements, while personalization guidance supports user-controlled presentation preferences. GYLIO provides a high-contrast theme but does not infer who should use it.
 
 Sources:
 - W3C, Understanding SC 1.4.3 Contrast (Minimum): https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum
@@ -81,84 +96,56 @@ Sources:
 
 ### Read text aloud
 
-**Tier:** Moderate/directional assistive support.
+**Tier:** Moderate evidence with meaningful heterogeneity.
 
-W3C cognitive-accessibility guidance explicitly includes text-to-speech as a personalization/assistive option. Individual benefit varies, so GYLIO keeps this off by default and user-controlled.
+A meta-analysis of text-to-speech/read-aloud tools for students with reading disabilities found a positive average reading-comprehension effect (about d = 0.35) but substantial variation across implementations and readers. GYLIO therefore keeps it off by default and user-controlled; copy says benefit varies rather than promising improvement.
 
 Source:
-- W3C, Support Adaptation and Personalization: https://www.w3.org/WAI/WCAG2/supplemental/objectives/o8-personalization/
+- Wood et al., text-to-speech/read-aloud meta-analysis: https://pubmed.ncbi.nlm.nih.gov/29839101/
 
-## Screen 2 — Optional starter support profiles
-
-**Tier:** Moderate/directional by construction.
-
-Profiles are convenience bundles of the low-risk preferences above. They are named by the interface experience they create, not by a medical diagnosis:
-
-- **Focus-friendly:** more text spacing + reduced motion + non-essential animations off.
-- **Quiet motion:** standard text + reduced motion + non-essential animations off.
-- **Reading support:** larger text + read-aloud + device motion preference.
-- **High visibility:** larger text + high-contrast theme + device motion preference.
-
-The profiles are deliberately labelled an **optional experiment**. W3C supports personalization, short critical paths, reduced interruptions/motion, text adaptation and TTS as useful accommodations, but the evidence does not justify inferring a single bundle from a diagnosis. Individual preferences can differ substantially.
-
-Sources:
-- W3C WAI-Adapt overview: https://www.w3.org/WAI/adapt/
-- W3C, Help Users Focus: https://www.w3.org/WAI/WCAG2/supplemental/objectives/o5-user-focus/
-- W3C, Limit Interruptions: https://www.w3.org/WAI/WCAG2/supplemental/patterns/o5p01-minimal-interruptions/
-- W3C, Support a Personalized and Familiar Interface: https://www.w3.org/WAI/WCAG2/supplemental/patterns/o8p04-interface/
-
-## Screen 3 — Start with something useful
+## Screen 2 — Optional starter data
 
 ### First task (optional)
 
 **Tier:** Moderate directional support.
 
-Goal setting has a small positive average effect across randomized behavior-change studies, while effects vary by context. Progress-monitoring interventions also improve goal attainment on average. GYLIO uses a much lighter product setup: optionally create one concrete next task. It does **not** claim that typing a task guarantees completion.
+A systematic review/meta-analysis of randomized studies found a small positive unique average effect of goal setting across behaviors (141 papers, 384 effect sizes, N=16,523; d=0.34). A separate experimental meta-analysis found that interventions increasing progress monitoring improved goal attainment on average (138 studies, N=19,951; d=0.40). Effects vary by context, so onboarding offers one optional concrete task without promising completion or productivity.
 
 Sources:
-- Epton et al., goal-setting systematic review/meta-analysis (141 papers; 384 effect sizes; N=16,523; d=0.34): https://pubmed.ncbi.nlm.nih.gov/29189034/
-- Harkin et al., experimental progress-monitoring meta-analysis (138 studies; N=19,951; goal attainment d=0.40): https://pubmed.ncbi.nlm.nih.gov/26479070/
+- Epton et al., goal-setting meta-analysis: https://pubmed.ncbi.nlm.nih.gov/29189034/
+- Harkin et al., progress-monitoring meta-analysis: https://pubmed.ncbi.nlm.nih.gov/26479070/
 
 ### Monthly take-home income (optional)
 
-**Tier:** Product setup, not a behavioral-science intervention.
+**Tier:** Product setup, not behavioral science.
 
-The field exists only to create the first Budget month with an income record. It must not be described as a psychological intervention. It is optional, and GYLIO does not infer spending categories from the amount.
+This field exists only to seed the first Budget month with an income record. It is optional. GYLIO does not infer spending categories from the amount.
 
-An older field called `monthlyBudget` is **not** migrated into this field because its meaning was different; silently reinterpreting it as take-home income would change the semantics of stored user data.
+An older field named `monthlyBudget` is deliberately **not** migrated into `monthlyIncome`: the meanings differ, and silently changing the semantics of persisted user data would be incorrect.
 
-## Screen 4 — Orientation
+## Screen 3 — Orientation
 
 **Tier:** Standards/usability-backed.
 
-A short predictable map reduces the amount users need to remember during first use. W3C cognitive guidance recommends clear labels, predictable interfaces, visible signposts, and short critical paths. No checkbox is required to prove that the user read or memorized the map.
+W3C cognitive-accessibility guidance notes that users may struggle with orientation, learning new interfaces, distraction, and remembering where they are in a multi-step process. It recommends clear signposts, current-step/progress information, concise instructions, and predictable structure. The final screen is therefore a brief map, not a quiz. No checkbox is required to prove the user read or memorized it.
 
 Sources:
 - W3C, Help Users Understand What Things Are and How to Use Them: https://www.w3.org/WAI/WCAG2/supplemental/objectives/o1-understandable/
-- W3C, Make Short Critical Paths: https://www.w3.org/WAI/WCAG2/supplemental/patterns/o5p02-short-paths/
-
-### Why onboarding no longer asks for a generic reminder preference
-
-Reminder interventions can be useful in specific contexts, but W3C says reminders should be created only at the user's request and the method should be personalized. The previous onboarding checkbox was not wired to a functioning reminder system. Collecting a preference that the product does not honor is misleading. Reminder preferences should return only when a concrete reminder feature can explain timing, channel, permission and opt-out behavior.
-
-Sources:
-- W3C, Provide Reminders: https://www.w3.org/WAI/WCAG2/supplemental/patterns/o7p07-reminders/
-- W3C, Limit Interruptions: https://www.w3.org/WAI/WCAG2/supplemental/patterns/o5p01-minimal-interruptions/
-
-## Form and choice-architecture rules applied across onboarding
-
-- Keep the critical path short; optional starter data must not block completion.
-- Label optional fields visibly, not only in placeholder text.
-- Keep controls reversible and available again in Settings.
-- Use clear labels describing the interface effect.
-- Do not collect health/diagnosis information merely to choose UI preferences.
-- Do not collect a preference for a feature the product cannot honor.
-
-Sources:
-- W3C Forms Tutorial (updated 2026-03-27): https://www.w3.org/WAI/tutorials/forms/
-- W3C Form Instructions: https://www.w3.org/WAI/tutorials/forms/instructions/
-- W3C, Use Clear Visible Labels: https://www.w3.org/WAI/WCAG2/supplemental/patterns/o4p06-clear-labels/
+- W3C, Make Each Step Clear: https://www.w3.org/WAI/WCAG2/supplemental/patterns/o1p04-clear-steps/
 - W3C, Use Clear Step-by-step Instructions: https://www.w3.org/WAI/WCAG2/supplemental/patterns/o4p07-step-instructions/
+
+### Why onboarding does not ask for a generic reminder preference
+
+The previous reminder checkbox was not connected to a working reminder delivery path. Collecting an option the product cannot honor is misleading. If reminders are added later, the relevant screen should explain timing, channel, permission, editability, and opt-out behavior where the reminder is actually configured.
+
+Source:
+- W3C, Provide Reminders: https://www.w3.org/WAI/WCAG2/supplemental/patterns/o7p07-reminders/
+
+## Choice-architecture rule
+
+Defaults influence behavior, so they should be low-assumption and reversible. GYLIO starts with standard text, the normal app theme, the device's own motion preference, and read-aloud off. None of these defaults encodes a diagnosis.
+
+The onboarding deliberately avoids medical labels such as ADHD, autism, anxiety, or dyslexia because the product only needs interface preferences, not health information.
 
 ## Claims we intentionally do not make
 
@@ -166,9 +153,17 @@ Sources:
 - "Autistic users should use high contrast."
 - "Anxiety requires a light theme."
 - "OpenDyslexic improves reading for dyslexia."
-- "One starter task will make you productive."
-- "These profiles diagnose or treat any condition."
+- "A starter task guarantees productivity."
+- "A particular support bundle is best for a diagnosis."
+- "Typing income is a behavioral intervention."
 
 ## Review rule
 
-When onboarding copy or options change, review this ledger and classify the new claim. If a setting is only directionally supported, use language such as **may help**, **some people prefer**, **useful to try**, or **optional experiment**. Do not silently upgrade directional evidence into certainty.
+Whenever onboarding copy, defaults, questions, or options change:
+
+1. identify the factual/behavioral claim implied by the control;
+2. classify its evidence strength;
+3. prefer direct user preference over diagnosis inference;
+4. make low-certainty supports optional and reversible;
+5. do not collect data the application does not use;
+6. run EN/es-PE localization, migration, 320/390px layout, keyboard/accessibility, and full-browser regression tests.
