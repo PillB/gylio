@@ -30,15 +30,16 @@ People with ADHD often struggle with task initiation, time‑blindness and susta
 
 * **Visual planners** – Kanban boards or timelines with colour cues reduce working memory demands.  
 * **Micro‑tasks** – breaking work into 2–5 minute steps increases the chance of getting started and leverages quick wins.  
-* **Pomodoro timers** – short focus intervals (5/10/25 minutes) paired with progress bars or growth metaphors improve attention.  
+* **Flexible focus timers** – short focus intervals (5/10/25 minutes) paired with progress bars improve attention. Note: rigid Pomodoro (forced 25-min breaks) can interrupt hyperfocus and be counterproductive for ADHD — offer flexible, opt-out intervals rather than mandatory breaks.  
 * **Immediate rewards** – awarding points or badges immediately after a small win produces dopamine spikes that maintain momentum.  
-* **Body doubling** – features that simulate co‑working (e.g. focus rooms or “I’m working now” status) can reduce procrastination.
+* **Body doubling** – features that simulate co‑working (e.g. focus rooms or “I’m working now” status) can reduce procrastination. A 2024 peer-reviewed ACM study of 220 neurodivergent participants found 85 % reported significant improvement in task completion from body doubling; a 2025 VR study confirmed comparable benefits from AI and human body doubles. Importantly, *silent* co-presence is as effective as or more effective than active check-ins for many users — interaction is not required.
+* **Adaptive, human‑in‑the‑loop design** – a 2025 systems review (arXiv 2507.06864) found that prescriptive, rigid workflows increase task paralysis and stress; effective ADHD tools learn with the user via reflective prompts and soft feedback loops, adapting to fluctuating energy and cognitive states.
 
 ### 2.3 Dyslexia Support
 
 Reading differences call for careful typographic and multisensory design:
 
-* **Sans‑serif fonts** – fonts like OpenDyslexic, Arial or Verdana at 16–19 px for body text with at least 20 % larger headings improve readability.  
+* **Sans‑serif fonts** – clear fonts like Arial, Verdana, or **Lexend** at 16–19 px for body text with at least 20 % larger headings improve readability. Note: despite widespread use, multiple peer-reviewed studies (PMC 2017; UCL 2023) found that OpenDyslexic does *not* reliably improve reading rate or accuracy — Lexend and **Atkinson Hyperlegible** (Braille Institute, 2019) have stronger evidence bases. Current BDA 2023 guidance states that *typography settings* (letter-spacing ≥0.35 em, word-spacing ≥1 em, line-height ≥1.5, unjustified text) matter more than font family choice.  
 * **Spacing & line length** – aim for 45–75 characters per line; use line height 1.5–1.8 and increase letter spacing slightly.  
 * **High contrast** – dark text on off‑white backgrounds; avoid red/green pairings; ensure contrast ratios ≥4.5:1.  
 * **Text‑to‑speech** – offer read‑aloud for all content, including task titles, notes and calendar events.  
@@ -76,8 +77,8 @@ Dyspraxia affects fine motor skills, making small tap targets and complex gestur
 
 Gamification leverages game mechanics to enhance motivation; nudges apply behavioural economics to gently steer choices.  Key principles:
 
-* **Fogg Behaviour Model** – behaviour happens when motivation, ability and a prompt converge.  Gamification increases motivation; simplifying tasks increases ability; gentle reminders serve as prompts.  
-* **Self‑Determination Theory** – support autonomy (user can opt in/out), competence (clear progress) and relatedness (body doubling, community).  
+* **Fogg Behaviour Model** – behaviour happens when motivation, ability and a prompt converge. Gamification increases motivation; simplifying tasks increases ability; gentle reminders serve as prompts. Note: motivation is highly variable in ADHD — focus design effort on **ability** (reducing friction, micro-steps) and well-timed **prompts** rather than trying to engineer motivation. The **COM-B model** (Capability, Opportunity, Motivation‑Behaviour) is a complementary framework gaining traction in digital health for its more complete structural account of behaviour.  
+* **Self‑Determination Theory** – support autonomy (user can opt in/out), competence (clear progress) and relatedness (body doubling, community). Caveat: SDT assumes stable internal motivation — supplement with **Implementation Intention** (if-then planning prompts) for users with executive dysfunction where internal motivation access is neurologically impaired.  
 * **Points & XP** – award points for completing tasks, focus sessions and budget updates; a level system unlocks cosmetic rewards rather than competitive advantages.  
 * **Streaks & skip tokens** – track consecutive days of engagement but allow skip tokens so a missed day doesn’t reset the streak, preventing all‑or‑nothing crashes.  
 * **Quests & challenges** – group related tasks into quests (e.g. “Clean the kitchen,” “Debt‑crush month”) with incremental rewards.  
@@ -140,5 +141,11 @@ This manual draws from a variety of sources, including:
 - UX design resources on autistic user research, dyslexia‑friendly typography and inclusive UI patterns.  
 - Behavioural economics literature on Fogg’s Behaviour Model, self‑nudging and ethical persuasive design.  
 - Financial advice from Caleb Hammer and other consumer finance educators on zero‑based budgeting, Needs vs Wants and debt payoff methods.
+- Branson, T. et al. (2024). "Proposing Body Doubling as a Continuum of Space/Time and Mutuality." *ACM TACCESS*. — First formal peer-reviewed study; 85 % of 220 neurodivergent participants reported improved task completion.
+- Lott, S. et al. (2025). "You Are Not Alone: Designing Body Doubling for ADHD in Virtual Reality." arXiv:2509.12153. — VR study confirming benefits from both human and AI body doubles.
+- Marinus, E. et al. (PMC 2017). "The effect of OpenDyslexic on reading rate and accuracy." *PLOS ONE*. — Found no reliable improvement; some reduction in reading speed vs Arial.
+- Broadbent, L. (2023). "Comparing the impact of OpenDyslexic and Arial fonts." UCL EdD thesis.
+- W3C WCAG 2.2 Recommendation (October 2023) — current legally-recognised accessibility standard; WCAG 3.0 remains a Working Draft (Sept 2025), W3C Recommendation not expected before 2028.
+- arXiv:2507.06864 (2025). "Toward Neurodivergent-Aware Productivity: A Systems and AI-Based Human-in-the-Loop Framework for ADHD-Affected Professionals."
 
-The manual intentionally omits long citations for readability; see `docs/design-document.md` for further details.
+The manual intentionally omits inline citations for readability; see `docs/design-document.md` for further details.

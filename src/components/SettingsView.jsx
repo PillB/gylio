@@ -1,10 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import SectionCard from './SectionCard.jsx';
+import BudgetTooltip from './atoms/BudgetTooltip';
 import useAccessibility from '../core/hooks/useAccessibility';
 import useGamification from '../core/hooks/useGamification';
 import { useTheme } from '../core/context/ThemeContext';
 import useDB from '../core/hooks/useDB';
+import { useDailyMode } from '../features/dashboard/useDailyMode';
 import { requestBackgroundSync } from '../core/utils/backgroundSync';
 import { enqueueSyncAction, listSyncConflicts, removeSyncConflict } from '../core/utils/offlineSync';
 import { useGuidedTour } from '../core/context/GuidedTourContext';
@@ -39,6 +41,7 @@ const SettingsView = () => {
     setTtsEnabled
   } = useAccessibility();
   const { gamificationEnabled, setGamificationEnabled } = useGamification();
+  const { dailyMode, setDailyMode } = useDailyMode();
   const { settings: timerSettings, updateSettings } = useTaskTimer();
   const { updateTask, deleteTask, updateEvent, deleteEvent, updateTransaction, deleteTransaction } = useDB();
   const [syncConflicts, setSyncConflicts] = useState([]);
@@ -179,33 +182,42 @@ const SettingsView = () => {
       ariaLabel={`${t('settings')} module`}
       title={t('settings')}
       subtitle={t('settingsDescription') || ''}
+      badge={<BudgetTooltip content={t('tooltips.settings.section', 'Customize how the app looks, sounds, and behaves. Changes apply everywhere instantly. All preferences are stored locally on your device.')} />}
     >
       <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
-        <button
-          type="button"
-          onClick={toggleTint}
-          style={{ padding: '0.5rem 0.75rem', borderRadius: theme.shape.radiusSm, border: `1px solid ${theme.colors.border}` }}
-        >
-          {isTinted ? t('disableTint') || 'Disable screen tint' : t('enableTint') || 'Enable screen tint'}
-        </button>
-        <button
-          type="button"
-          onClick={announceSettings}
-          disabled={isSpeaking}
-          style={{ padding: '0.5rem 0.75rem', borderRadius: theme.shape.radiusSm, border: `1px solid ${theme.colors.border}` }}
-        >
-          {isSpeaking ? t('speaking') || 'Speaking…' : t('announceSettings') || 'Announce settings'}
-        </button>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+          <button
+            type="button"
+            onClick={toggleTint}
+            style={{ padding: '0.5rem 0.75rem', minHeight: 44, borderRadius: theme.shape.radiusSm, border: `1px solid ${theme.colors.border}` }}
+          >
+            {isTinted ? t('disableTint') || 'Disable screen tint' : t('enableTint') || 'Enable screen tint'}
+          </button>
+          <BudgetTooltip content={t('tooltips.settings.tint', 'Applies a warm color overlay to reduce blue light and harsh contrast. Many neurodivergent users find this reduces eye strain and sensory overwhelm during long sessions.')} />
+        </span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+          <button
+            type="button"
+            onClick={announceSettings}
+            disabled={isSpeaking}
+            style={{ padding: '0.5rem 0.75rem', minHeight: 44, borderRadius: theme.shape.radiusSm, border: `1px solid ${theme.colors.border}` }}
+          >
+            {isSpeaking ? t('speaking') || 'Speaking…' : t('announceSettings') || 'Announce settings'}
+          </button>
+          <BudgetTooltip content={t('tooltips.settings.announceSettings', 'Reads your current settings aloud so you can confirm everything is configured as expected without reading through the list.')} />
+        </span>
       </div>
       <p style={{ color: theme.colors.muted, marginTop: theme.spacing.sm }}>
         {t('onboarding.accessibility.helper') ||
           'We apply these readability and sensory settings everywhere for predictability.'}
       </p>
       <div
+        data-tour="settings-theme"
         style={{
           display: 'grid',
           gap: theme.spacing.md,
-          marginTop: theme.spacing.md
+          marginTop: theme.spacing.md,
+          gridTemplateColumns: 'minmax(0, 1fr)',
         }}
       >
         <div
@@ -218,7 +230,10 @@ const SettingsView = () => {
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: theme.spacing.md, flexWrap: 'wrap' }}>
             <div>
-              <p style={{ margin: 0, fontWeight: 600 }}>{t('settingsThemeLabel') || 'Theme mode'}</p>
+              <p style={{ margin: 0, fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+                {t('settingsThemeLabel') || 'Theme mode'}
+                <BudgetTooltip content={t('tooltips.settings.theme', 'Choose a visual theme that feels comfortable. Dark mode reduces glare in low-light environments; light mode improves contrast for many users. Auto follows your device setting.')} />
+              </p>
               <small style={{ color: theme.colors.muted }}>
                 {t('settingsThemeHelper') || 'Choose light, dark, or high-contrast to reduce visual strain.'}
               </small>
@@ -255,7 +270,10 @@ const SettingsView = () => {
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: theme.spacing.md, flexWrap: 'wrap' }}>
             <div>
-              <p style={{ margin: 0, fontWeight: 600 }}>{t('settingsFontLabel') || 'Reading style'}</p>
+              <p style={{ margin: 0, fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+                {t('settingsFontLabel') || 'Reading style'}
+                <BudgetTooltip content={t('tooltips.settings.font', 'Larger text reduces cognitive load when scanning long lists. The default size is designed for readability; increase it if you find yourself squinting or losing your place.')} />
+              </p>
               <small style={{ color: theme.colors.muted }}>
                 {t('settingsFontHelper') || 'Switch to dyslexia-friendly fonts or larger text for steadier reading.'}
               </small>
@@ -306,7 +324,10 @@ const SettingsView = () => {
         >
           <div style={{ display: 'grid', gap: theme.spacing.sm }}>
             <div>
-              <p style={{ margin: 0, fontWeight: 600 }}>{t('settingsMotionLabel') || 'Motion preference'}</p>
+              <p style={{ margin: 0, fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+                {t('settingsMotionLabel') || 'Motion preference'}
+                <BudgetTooltip content={t('tooltips.settings.motion', 'Disabling animations removes all sliding, fading, and bouncing effects. Essential if motion causes distraction, dizziness, or sensory overload.')} />
+              </p>
               <small id="motion-helper" style={{ color: theme.colors.muted }}>
                 {t('settingsMotionHelper') ||
                   'Reduce motion to lower sensory load; we only animate essentials.'}
@@ -368,7 +389,10 @@ const SettingsView = () => {
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: theme.spacing.md, flexWrap: 'wrap' }}>
             <div>
-              <p style={{ margin: 0, fontWeight: 600 }}>{t('settingsTtsLabel') || t('onboarding.accessibility.tts')}</p>
+              <p style={{ margin: 0, fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+                {t('settingsTtsLabel') || t('onboarding.accessibility.tts')}
+                <BudgetTooltip content={t('tooltips.settings.tts', 'When on, important status messages are read aloud. Useful for hands-free use, low-vision accessibility, or if reading long lists is tiring.')} />
+              </p>
               <small style={{ color: theme.colors.muted }}>
                 {t('settingsTtsHelper') || t('onboarding.accessibility.ttsHelper')}
               </small>
@@ -392,6 +416,7 @@ const SettingsView = () => {
         </div>
 
         <div
+          data-tour="settings-gamification"
           style={{
             border: `1px solid ${theme.colors.border}`,
             borderRadius: theme.shape.radiusMd,
@@ -401,7 +426,10 @@ const SettingsView = () => {
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: theme.spacing.md, flexWrap: 'wrap' }}>
             <div>
-              <p style={{ margin: 0, fontWeight: 600 }}>{t('settingsGamificationLabel') || 'Gamification'}</p>
+              <p style={{ margin: 0, fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+                {t('settingsGamificationLabel') || 'Gamification'}
+                <BudgetTooltip content={t('tooltips.settings.gamification', 'Turns XP, levels, and streaks on or off globally. Your progress data is preserved either way — you can re-enable anytime.')} />
+              </p>
               <small style={{ color: theme.colors.muted }}>
                 {t('settingsGamificationHelper') ||
                   'Opt in to XP, streaks, and cosmetic unlocks. You can disable this any time.'}
@@ -502,16 +530,16 @@ const SettingsView = () => {
     </SectionCard>
 
     {/* Focus timer settings */}
-    <SectionCard ariaLabel={t('settingsPanel.timerHeading', 'Focus timer')} title={t('settingsPanel.timerHeading', 'Focus timer')}>
+    <SectionCard ariaLabel={t('timerHeading', 'Focus timer')} title={t('timerHeading', 'Focus timer')} badge={<BudgetTooltip content={t('tooltips.settings.timer', 'Customize your Pomodoro focus sprints. Shorter sessions (25 min) work for most tasks; longer ones (45–90 min) suit deep work but need proportionally longer breaks.')} />}>
       <div style={{ display: 'grid', gap: theme.spacing.md, fontFamily: theme.typography.body.family }}>
         <p style={{ margin: 0, color: theme.colors.muted, fontSize: '0.875rem', lineHeight: 1.55 }}>
-          {t('settingsPanel.timerInsight', 'Research shows the brain works in ~90-minute ultradian cycles. Shorter sprints (25 min) suit most tasks; longer sprints (45–90 min) require proportionally longer breaks to avoid cognitive fatigue. Find your window.')}
+          {t('timerInsight', 'Research shows the brain works in ~90-minute ultradian cycles. Shorter sprints (25 min) suit most tasks; longer sprints (45–90 min) require proportionally longer breaks to avoid cognitive fatigue. Find your window.')}
         </p>
         {[
-          { labelKey: 'settingsPanel.timerFocusLabel', key: 'focusMinutes', options: [10, 15, 25, 45, 60, 90], unit: 'min' },
-          { labelKey: 'settingsPanel.timerShortBreakLabel', key: 'shortBreakMinutes', options: [3, 5, 10, 15], unit: 'min' },
-          { labelKey: 'settingsPanel.timerLongBreakLabel', key: 'longBreakMinutes', options: [10, 15, 20, 30], unit: 'min' },
-          { labelKey: 'settingsPanel.timerSessionsLabel', key: 'sessionsBeforeLongBreak', options: [2, 3, 4, 5, 6], unit: '' },
+          { labelKey: 'timerFocusLabel', key: 'focusMinutes', options: [10, 15, 25, 45, 60, 90], unit: 'min' },
+          { labelKey: 'timerShortBreakLabel', key: 'shortBreakMinutes', options: [3, 5, 10, 15], unit: 'min' },
+          { labelKey: 'timerLongBreakLabel', key: 'longBreakMinutes', options: [10, 15, 20, 30], unit: 'min' },
+          { labelKey: 'timerSessionsLabel', key: 'sessionsBeforeLongBreak', options: [2, 3, 4, 5, 6], unit: '' },
         ].map(({ labelKey, key, options, unit }) => (
           <div key={key}>
             <p style={{ margin: '0 0 6px', fontWeight: 600, fontSize: '0.875rem', color: theme.colors.text }}>
@@ -527,7 +555,9 @@ const SettingsView = () => {
                     aria-pressed={active}
                     onClick={() => updateSettings({ [key]: val })}
                     style={{
-                      padding: `4px ${theme.spacing.sm}px`,
+                      padding: `8px ${theme.spacing.sm}px`,
+                      minHeight: 44,
+                      minWidth: 44,
                       borderRadius: theme.shape.radiusMd,
                       border: `1.5px solid ${active ? theme.colors.primary : theme.colors.border}`,
                       background: active ? theme.colors.primary : 'transparent',
@@ -554,21 +584,21 @@ const SettingsView = () => {
             style={{ width: 18, height: 18, accentColor: theme.colors.primary, cursor: 'pointer' }}
           />
           <label htmlFor="auto-break" style={{ fontSize: '0.875rem', color: theme.colors.text, cursor: 'pointer' }}>
-            {t('settingsPanel.timerAutoBreak', 'Auto-start breaks when focus ends')}
+            {t('timerAutoBreak', 'Auto-start breaks when focus ends')}
           </label>
         </div>
         <p style={{ margin: 0, fontSize: '0.75rem', color: theme.colors.muted, fontStyle: 'italic' }}>
-          {t('settingsPanel.timerBreakInsight', 'Longer focus sprints need longer breaks: 45 min → 15 min break; 90 min → 20 min break. Skipping breaks compounds mental fatigue.')}
+          {t('timerBreakInsight', 'Longer focus sprints need longer breaks: 45 min → 15 min break; 90 min → 20 min break. Skipping breaks compounds mental fatigue.')}
         </p>
       </div>
     </SectionCard>
 
     {/* Keyboard shortcuts reference */}
-    <SectionCard ariaLabel={t('settingsPanel.shortcutsHeading', 'Keyboard shortcuts')} title={t('settingsPanel.shortcutsHeading', 'Keyboard shortcuts')}>
+    <SectionCard ariaLabel={t('shortcutsHeading', 'Keyboard shortcuts')} title={t('shortcutsHeading', 'Keyboard shortcuts')} badge={<BudgetTooltip content={t('tooltips.settings.shortcuts', 'Keyboard shortcuts let you navigate the app without a mouse. Press N anywhere to jump to the task input. More shortcuts are added as the app grows.')} />}>
       <div style={{ display: 'grid', gap: theme.spacing.sm, fontFamily: theme.typography.body.family }}>
         {[
-          { keys: 'N', description: t('settingsPanel.shortcutAddTask', 'Focus "Add task" input') },
-          { keys: 'Esc', description: t('settingsPanel.shortcutDismiss', 'Dismiss notification / close modal') },
+          { keys: 'N', description: t('shortcutAddTask', 'Focus "Add task" input') },
+          { keys: 'Esc', description: t('shortcutDismiss', 'Dismiss notification / close modal') },
         ].map(({ keys, description }) => (
           <div key={keys} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: `${theme.spacing.xs}px 0`, borderBottom: `1px solid ${theme.colors.border}` }}>
             <span style={{ color: theme.colors.text }}>{description}</span>
@@ -590,16 +620,17 @@ const SettingsView = () => {
     </SectionCard>
 
     {/* Guided tour */}
-    <SectionCard ariaLabel={t('tour.restartButton', 'Restart guide')} title={t('tour.restartButton', 'Restart guide')}>
-      <div style={{ fontFamily: theme.typography.body.family }}>
+    <SectionCard ariaLabel={t('tour.restartButton', 'Restart guide')} title={t('tour.restartButton', 'Restart guide')} badge={<BudgetTooltip content={t('tooltips.settings.restartGuide', 'Replay the interactive walkthrough that introduced the app. Useful if you want to rediscover a feature or show someone else how it works.')} />}>
+      <div data-tour="settings-tour" style={{ fontFamily: theme.typography.body.family }}>
         <p style={{ margin: `0 0 ${theme.spacing.sm}px`, color: theme.colors.muted, fontSize: '0.875rem' }}>
-          {t('settingsPanel.tourDescription', 'Take the interactive tour again to rediscover features or share the app with someone new.')}
+          {t('tourDescription', 'Take the interactive tour again to rediscover features or share the app with someone new.')}
         </p>
         <button
           type="button"
           onClick={resetTour}
           style={{
             padding: `${theme.spacing.xs + 2}px ${theme.spacing.md}px`,
+            minHeight: 44,
             borderRadius: theme.shape.radiusMd,
             border: `1px solid ${theme.colors.primary}`,
             background: theme.colors.overlay,
@@ -615,23 +646,43 @@ const SettingsView = () => {
       </div>
     </SectionCard>
 
+    {/* Daily View */}
+    <SectionCard ariaLabel={t('dailyViewHeading', 'Daily view')} title={t('dailyViewHeading', 'Daily view')} badge={<BudgetTooltip content={t('tooltips.settings.dailyView', 'Daily view simplifies the Tasks tab to show only your top 3 priorities, next event, and a budget nudge — ideal for mornings when you need a quick plan without overwhelm.')} />}>
+      <div style={{ display: 'grid', gap: theme.spacing.sm, fontFamily: theme.typography.body.family }}>
+        <p style={{ margin: 0, color: theme.colors.muted, fontSize: '0.875rem', lineHeight: 1.55 }}>
+          {t('dailyViewDescription', 'Show a simplified Daily Command Center on the Tasks tab — just your top 3 tasks, next event, and a budget nudge.')}
+        </p>
+        <label style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm, cursor: 'pointer' }}>
+          <input
+            type="checkbox"
+            checked={dailyMode}
+            onChange={(e) => setDailyMode(e.target.checked)}
+            style={{ width: 18, height: 18 }}
+          />
+          <span style={{ fontSize: '0.875rem', color: theme.colors.text }}>
+            {t('dailyViewToggle', 'Enable daily view')}
+          </span>
+        </label>
+      </div>
+    </SectionCard>
+
     {/* About */}
-    <SectionCard ariaLabel={t('settingsPanel.aboutHeading', 'About')} title={t('settingsPanel.aboutHeading', 'About')}>
+    <SectionCard ariaLabel={t('aboutHeading', 'About')} title={t('aboutHeading', 'About')}>
       <div style={{ display: 'grid', gap: theme.spacing.sm, fontFamily: theme.typography.body.family, fontSize: '0.875rem', color: theme.colors.muted }}>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span>{t('settingsPanel.appVersion', 'Version')}</span>
+          <span>{t('appVersion', 'Version')}</span>
           <span style={{ color: theme.colors.text, fontWeight: 600 }}>0.1.0</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span>{t('settingsPanel.buildDate', 'Build')}</span>
+          <span>{t('buildDate', 'Build')}</span>
           <span style={{ color: theme.colors.text }}>2026-03-30</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span>{t('settingsPanel.stack', 'Stack')}</span>
+          <span>{t('stack', 'Stack')}</span>
           <span style={{ color: theme.colors.text }}>React 18 · Vite · i18n · IndexedDB</span>
         </div>
         <p style={{ margin: 0, marginTop: theme.spacing.xs, lineHeight: 1.5 }}>
-          {t('settingsPanel.aboutDescription', 'GYLIO is a neurodivergent-friendly productivity app built with accessibility, low cognitive load, and gentle UX at its core.')}
+          {t('aboutDescription', 'GYLIO is a neurodivergent-friendly productivity app built with accessibility, low cognitive load, and gentle UX at its core.')}
         </p>
       </div>
     </SectionCard>

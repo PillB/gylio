@@ -15,7 +15,9 @@ const NavBar = ({ items, activeKey, onNavigate, languageToggle }) => {
       data-tour="nav-bar"
       style={{
         display: 'flex',
-        flexWrap: 'wrap',
+        flexWrap: 'nowrap',
+        overflowX: 'auto',
+        overflowY: 'hidden',
         gap: theme.spacing.xs,
         marginBottom: theme.spacing.xl,
         padding: `${theme.spacing.xs}px`,
@@ -24,6 +26,8 @@ const NavBar = ({ items, activeKey, onNavigate, languageToggle }) => {
         border: `1px solid ${theme.colors.border}`,
         boxShadow: theme.shadow.sm,
         alignItems: 'center',
+        scrollbarWidth: 'none',
+        WebkitOverflowScrolling: 'touch',
       }}
     >
       {items.map(({ key, label, locked }) => {
@@ -38,6 +42,8 @@ const NavBar = ({ items, activeKey, onNavigate, languageToggle }) => {
             aria-label={label}
             style={{
               padding: `${theme.spacing.xs + 2}px ${theme.spacing.md}px`,
+              minHeight: '44px',
+              minWidth: '44px',
               borderRadius: theme.shape.radiusMd,
               border: 'none',
               backgroundColor: isActive ? theme.colors.primary : 'transparent',
@@ -51,6 +57,7 @@ const NavBar = ({ items, activeKey, onNavigate, languageToggle }) => {
               alignItems: 'center',
               gap: theme.spacing.xs,
               whiteSpace: 'nowrap',
+              flexShrink: 0,
             }}
           >
             {label}

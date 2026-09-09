@@ -5,10 +5,12 @@ export type RoutineTemplate = {
   category: RoutineCategory;
   titleKey: string;
   whyKey: string;
-  anchorHabit: string | null; // what to attach to
+  /** i18n key for the anchor habit (e.g. 'routines.anchor.afterWaking'), or null */
+  anchorHabitKey: string | null;
   frequency: 'DAILY' | 'WEEKLY';
   triggerTime: string | null; // e.g. "06:30" for 6:30am
-  steps: string[]; // step labels, English
+  /** i18n keys for each step (e.g. 'routines.tpl.hubermanMorning.step1') */
+  stepKeys: string[];
   estimatedMinutes: number;
   sourceLabel: string;
 };
@@ -31,17 +33,17 @@ export const ROUTINE_TEMPLATE_LIBRARY: RoutineTemplate[] = [
     category: 'morning',
     titleKey: 'routines.tpl.hubermanMorning.title',
     whyKey: 'routines.tpl.hubermanMorning.why',
-    anchorHabit: 'After waking',
+    anchorHabitKey: 'routines.anchor.afterWaking',
     frequency: 'DAILY',
     triggerTime: '06:30',
     estimatedMinutes: 30,
     sourceLabel: 'Huberman · Morning Protocol',
-    steps: [
-      'Wake at consistent time (no snooze)',
-      'Go outside within 30–60 min — face the morning sky for 10–15 min',
-      'Delay caffeine 90–120 min after waking',
-      'Do 10 min of light movement or stretching',
-      'Cold shower or face splash (30 sec) — activates alertness',
+    stepKeys: [
+      'routines.tpl.hubermanMorning.step1',
+      'routines.tpl.hubermanMorning.step2',
+      'routines.tpl.hubermanMorning.step3',
+      'routines.tpl.hubermanMorning.step4',
+      'routines.tpl.hubermanMorning.step5',
     ],
   },
   {
@@ -49,15 +51,15 @@ export const ROUTINE_TEMPLATE_LIBRARY: RoutineTemplate[] = [
     category: 'morning',
     titleKey: 'routines.tpl.morningPages.title',
     whyKey: 'routines.tpl.morningPages.why',
-    anchorHabit: 'After coffee',
+    anchorHabitKey: 'routines.anchor.afterCoffee',
     frequency: 'DAILY',
     triggerTime: '07:00',
     estimatedMinutes: 20,
     sourceLabel: "Cameron · The Artist's Way",
-    steps: [
-      'Sit with pen and paper before screens',
-      'Write 3 pages longhand — stream of consciousness, no editing',
-      'Do not reread until at least a week later',
+    stepKeys: [
+      'routines.tpl.morningPages.step1',
+      'routines.tpl.morningPages.step2',
+      'routines.tpl.morningPages.step3',
     ],
   },
   {
@@ -65,16 +67,16 @@ export const ROUTINE_TEMPLATE_LIBRARY: RoutineTemplate[] = [
     category: 'morning',
     titleKey: 'routines.tpl.deepWorkLaunch.title',
     whyKey: 'routines.tpl.deepWorkLaunch.why',
-    anchorHabit: 'Before opening email',
+    anchorHabitKey: 'routines.anchor.beforeEmail',
     frequency: 'DAILY',
     triggerTime: '08:00',
     estimatedMinutes: 15,
     sourceLabel: 'Newport · Deep Work',
-    steps: [
-      "Write today's single most important task (MIT)",
-      'Clear your desk of everything not related to that task',
-      'Set a 90-min focus timer before checking messages',
-      'Put phone in another room or drawer',
+    stepKeys: [
+      'routines.tpl.deepWorkLaunch.step1',
+      'routines.tpl.deepWorkLaunch.step2',
+      'routines.tpl.deepWorkLaunch.step3',
+      'routines.tpl.deepWorkLaunch.step4',
     ],
   },
   {
@@ -82,16 +84,16 @@ export const ROUTINE_TEMPLATE_LIBRARY: RoutineTemplate[] = [
     category: 'morning',
     titleKey: 'routines.tpl.exerciseMorning.title',
     whyKey: 'routines.tpl.exerciseMorning.why',
-    anchorHabit: 'After waking',
+    anchorHabitKey: 'routines.anchor.afterWaking',
     frequency: 'DAILY',
     triggerTime: '06:00',
     estimatedMinutes: 30,
     sourceLabel: 'Huberman · Exercise Science',
-    steps: [
-      'Put on workout clothes before any decision-making',
-      'Do 20–30 min of cardio or resistance training',
-      'Do NOT check phone until workout is complete',
-      'Take protein or meal within 60 min of finishing',
+    stepKeys: [
+      'routines.tpl.exerciseMorning.step1',
+      'routines.tpl.exerciseMorning.step2',
+      'routines.tpl.exerciseMorning.step3',
+      'routines.tpl.exerciseMorning.step4',
     ],
   },
 
@@ -101,17 +103,17 @@ export const ROUTINE_TEMPLATE_LIBRARY: RoutineTemplate[] = [
     category: 'evening',
     titleKey: 'routines.tpl.hubermanEvening.title',
     whyKey: 'routines.tpl.hubermanEvening.why',
-    anchorHabit: 'After sunset',
+    anchorHabitKey: 'routines.anchor.afterSunset',
     frequency: 'DAILY',
     triggerTime: '21:00',
     estimatedMinutes: 30,
     sourceLabel: 'Huberman · Sleep Science',
-    steps: [
-      'View sunset or dim lights 2+ hours before bed',
-      'No bright overhead lights after 9pm — use lamps',
-      'No caffeine after 2pm (if you haven\'t already)',
-      'Do not eat within 2–3 hours of sleep',
-      'Keep room cool: 65–68°F / 18–20°C',
+    stepKeys: [
+      'routines.tpl.hubermanEvening.step1',
+      'routines.tpl.hubermanEvening.step2',
+      'routines.tpl.hubermanEvening.step3',
+      'routines.tpl.hubermanEvening.step4',
+      'routines.tpl.hubermanEvening.step5',
     ],
   },
   {
@@ -119,15 +121,15 @@ export const ROUTINE_TEMPLATE_LIBRARY: RoutineTemplate[] = [
     category: 'evening',
     titleKey: 'routines.tpl.powerDownHour.title',
     whyKey: 'routines.tpl.powerDownHour.why',
-    anchorHabit: 'After dinner',
+    anchorHabitKey: 'routines.anchor.afterDinner',
     frequency: 'DAILY',
     triggerTime: '21:30',
     estimatedMinutes: 60,
     sourceLabel: 'Breus · Sleep Doctor',
-    steps: [
-      "First 20 min: finish small tasks and tomorrow's to-do list",
-      'Next 20 min: hygiene (shower, brush teeth, skincare)',
-      'Final 20 min: only relaxing activities — reading, light stretching, breathing',
+    stepKeys: [
+      'routines.tpl.powerDownHour.step1',
+      'routines.tpl.powerDownHour.step2',
+      'routines.tpl.powerDownHour.step3',
     ],
   },
   {
@@ -135,16 +137,16 @@ export const ROUTINE_TEMPLATE_LIBRARY: RoutineTemplate[] = [
     category: 'evening',
     titleKey: 'routines.tpl.eveningReview.title',
     whyKey: 'routines.tpl.eveningReview.why',
-    anchorHabit: 'Before getting into bed',
+    anchorHabitKey: 'routines.anchor.beforeBed',
     frequency: 'DAILY',
     triggerTime: '22:00',
     estimatedMinutes: 10,
     sourceLabel: 'Stoic · Evening Reflection',
-    steps: [
-      'Write: What did I do well today?',
-      'Write: What could I have done better?',
-      'Write: What am I grateful for today?',
-      'Close your notebook — do not review screens after this',
+    stepKeys: [
+      'routines.tpl.eveningReview.step1',
+      'routines.tpl.eveningReview.step2',
+      'routines.tpl.eveningReview.step3',
+      'routines.tpl.eveningReview.step4',
     ],
   },
   {
@@ -152,16 +154,16 @@ export const ROUTINE_TEMPLATE_LIBRARY: RoutineTemplate[] = [
     category: 'evening',
     titleKey: 'routines.tpl.tomorrowPrep.title',
     whyKey: 'routines.tpl.tomorrowPrep.why',
-    anchorHabit: 'Before shutdown ritual',
+    anchorHabitKey: 'routines.anchor.beforeShutdown',
     frequency: 'DAILY',
     triggerTime: '21:00',
     estimatedMinutes: 10,
     sourceLabel: 'Allen · GTD',
-    steps: [
-      "Write tomorrow's top 3 priorities",
-      "Set out anything you'll need (gym bag, work items, etc)",
-      "Pre-decide tomorrow's wake time",
-      'Close all browser tabs and apps',
+    stepKeys: [
+      'routines.tpl.tomorrowPrep.step1',
+      'routines.tpl.tomorrowPrep.step2',
+      'routines.tpl.tomorrowPrep.step3',
+      'routines.tpl.tomorrowPrep.step4',
     ],
   },
 
@@ -171,17 +173,17 @@ export const ROUTINE_TEMPLATE_LIBRARY: RoutineTemplate[] = [
     category: 'weekly',
     titleKey: 'routines.tpl.weeklyReview.title',
     whyKey: 'routines.tpl.weeklyReview.why',
-    anchorHabit: 'Sunday afternoon',
+    anchorHabitKey: 'routines.anchor.sundayAfternoon',
     frequency: 'WEEKLY',
     triggerTime: null,
     estimatedMinutes: 45,
     sourceLabel: 'Allen · GTD + Newport',
-    steps: [
-      'Clear all inboxes (email, messages, notes)',
-      "Review last week: what got done, what didn't, what blocked you",
-      'Set 3 intentions for the coming week',
-      'Schedule any important tasks as calendar blocks',
-      'Review your finances — check spending vs budget',
+    stepKeys: [
+      'routines.tpl.weeklyReview.step1',
+      'routines.tpl.weeklyReview.step2',
+      'routines.tpl.weeklyReview.step3',
+      'routines.tpl.weeklyReview.step4',
+      'routines.tpl.weeklyReview.step5',
     ],
   },
   {
@@ -189,16 +191,16 @@ export const ROUTINE_TEMPLATE_LIBRARY: RoutineTemplate[] = [
     category: 'weekly',
     titleKey: 'routines.tpl.healthAudit.title',
     whyKey: 'routines.tpl.healthAudit.why',
-    anchorHabit: 'Sunday morning',
+    anchorHabitKey: 'routines.anchor.sundayMorning',
     frequency: 'WEEKLY',
     triggerTime: null,
     estimatedMinutes: 15,
     sourceLabel: 'Patrick · Health Optimization',
-    steps: [
-      'Note sleep quality this week (1–5 scale)',
-      'Note exercise days this week',
-      'Note how many days you ate vegetables',
-      'Identify the #1 health habit to improve next week',
+    stepKeys: [
+      'routines.tpl.healthAudit.step1',
+      'routines.tpl.healthAudit.step2',
+      'routines.tpl.healthAudit.step3',
+      'routines.tpl.healthAudit.step4',
     ],
   },
 
@@ -208,16 +210,16 @@ export const ROUTINE_TEMPLATE_LIBRARY: RoutineTemplate[] = [
     category: 'focus',
     titleKey: 'routines.tpl.pomodoroBlock.title',
     whyKey: 'routines.tpl.pomodoroBlock.why',
-    anchorHabit: 'Before starting work',
+    anchorHabitKey: 'routines.anchor.beforeWork',
     frequency: 'DAILY',
     triggerTime: null,
     estimatedMinutes: 55,
     sourceLabel: 'Cirillo · Pomodoro Technique',
-    steps: [
-      'Choose one task and write it down',
-      'Set 25-min timer — work on nothing else',
-      'Take 5-min break (stand up, walk)',
-      'Repeat 4 times then take a 20–30 min break',
+    stepKeys: [
+      'routines.tpl.pomodoroBlock.step1',
+      'routines.tpl.pomodoroBlock.step2',
+      'routines.tpl.pomodoroBlock.step3',
+      'routines.tpl.pomodoroBlock.step4',
     ],
   },
   {
@@ -225,15 +227,15 @@ export const ROUTINE_TEMPLATE_LIBRARY: RoutineTemplate[] = [
     category: 'focus',
     titleKey: 'routines.tpl.noPhoneMorning.title',
     whyKey: 'routines.tpl.noPhoneMorning.why',
-    anchorHabit: 'Immediately on waking',
+    anchorHabitKey: 'routines.anchor.immediatelyOnWaking',
     frequency: 'DAILY',
     triggerTime: '06:00',
     estimatedMinutes: 60,
     sourceLabel: 'Newport · Digital Minimalism',
-    steps: [
-      'Do not check your phone for the first 60 minutes after waking',
-      'Do your morning routine first (light, movement, breakfast)',
-      'After 60 min, check messages for a defined 10-min window only',
+    stepKeys: [
+      'routines.tpl.noPhoneMorning.step1',
+      'routines.tpl.noPhoneMorning.step2',
+      'routines.tpl.noPhoneMorning.step3',
     ],
   },
 
@@ -243,15 +245,15 @@ export const ROUTINE_TEMPLATE_LIBRARY: RoutineTemplate[] = [
     category: 'health',
     titleKey: 'routines.tpl.zone2Cardio.title',
     whyKey: 'routines.tpl.zone2Cardio.why',
-    anchorHabit: 'After work',
+    anchorHabitKey: 'routines.anchor.afterWork',
     frequency: 'WEEKLY',
     triggerTime: null,
     estimatedMinutes: 45,
     sourceLabel: 'Attia · Longevity Medicine',
-    steps: [
-      "Do 30–45 minutes of cardio at a 'conversational' pace — you could speak in sentences",
-      'Keep heart rate around 60–70% of your max (roughly 180 minus your age)',
-      'Aim for 3–4 sessions per week — this is the minimum effective dose for longevity',
+    stepKeys: [
+      'routines.tpl.zone2Cardio.step1',
+      'routines.tpl.zone2Cardio.step2',
+      'routines.tpl.zone2Cardio.step3',
     ],
   },
   {
@@ -259,17 +261,17 @@ export const ROUTINE_TEMPLATE_LIBRARY: RoutineTemplate[] = [
     category: 'health',
     titleKey: 'routines.tpl.mobility.title',
     whyKey: 'routines.tpl.mobility.why',
-    anchorHabit: 'After morning light',
+    anchorHabitKey: 'routines.anchor.afterMorningLight',
     frequency: 'DAILY',
     triggerTime: '07:00',
     estimatedMinutes: 10,
     sourceLabel: 'Huberman · Injury Prevention',
-    steps: [
-      'Neck rolls: 5 slow circles each direction',
-      'Hip circles: 10 each direction',
-      'Cat-cow spinal stretch: 10 reps',
-      'Reach toward toes: hold 30 seconds',
-      'Arm across chest: 30 seconds each side',
+    stepKeys: [
+      'routines.tpl.mobility.step1',
+      'routines.tpl.mobility.step2',
+      'routines.tpl.mobility.step3',
+      'routines.tpl.mobility.step4',
+      'routines.tpl.mobility.step5',
     ],
   },
 ];
@@ -277,9 +279,8 @@ export const ROUTINE_TEMPLATE_LIBRARY: RoutineTemplate[] = [
 export const getRoutinesByCategory = (
   category: RoutineCategory | null,
 ): RoutineTemplate[] => {
-  if (!category) return ROUTINE_TEMPLATE_LIBRARY;
+  if (category === null) return ROUTINE_TEMPLATE_LIBRARY;
   return ROUTINE_TEMPLATE_LIBRARY.filter((t) => t.category === category);
 };
 
-export const getAllRoutineTemplates = (): RoutineTemplate[] =>
-  ROUTINE_TEMPLATE_LIBRARY;
+export const getAllRoutineTemplates = (): RoutineTemplate[] => ROUTINE_TEMPLATE_LIBRARY;

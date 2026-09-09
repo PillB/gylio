@@ -16,6 +16,7 @@ import {
   formatDateTimeInputValue,
 } from '../features/calendar/utils/eventConversions';
 import { WeeklyGrid } from '../features/calendar/components/WeeklyGrid';
+import BudgetTooltip from './atoms/BudgetTooltip';
 
 const getDateKey = (value) => {
   if (!value) return null;
@@ -452,11 +453,14 @@ const CalendarView = () => {
       style={{
         display: 'grid',
         gap: `${theme.spacing.sm}px`,
-        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))'
+        gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))'
       }}
     >
       <label style={{ display: 'grid', gap: `${theme.spacing.xs}px` }}>
-        {t('titleLabel')}
+        <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+          {t('titleLabel')}
+          <BudgetTooltip content={t('tooltips.calendar.title', "Give your event a clear name. Include who or what it's for: 'Team standup' or 'Dentist — Dr. Smith'. This appears in your calendar grid.")} />
+        </span>
         <input
           type="text"
           value={fields.title}
@@ -477,7 +481,10 @@ const CalendarView = () => {
         ) : null}
       </label>
       <label style={{ display: 'grid', gap: `${theme.spacing.xs}px` }}>
-        {t('calendarStartLabel')}
+        <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+          {t('calendarStartLabel')}
+          <BudgetTooltip content={t('tooltips.calendar.startDate', 'When does this event begin? Setting an exact time blocks it in your calendar and prevents scheduling conflicts.')} />
+        </span>
         <input
           type="datetime-local"
           value={fields.startDate}
@@ -498,7 +505,10 @@ const CalendarView = () => {
         ) : null}
       </label>
       <label style={{ display: 'grid', gap: `${theme.spacing.xs}px` }}>
-        {t('calendarEndLabel')}
+        <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+          {t('calendarEndLabel')}
+          <BudgetTooltip content={t('tooltips.calendar.endDate', 'When does this event end? Accurate end times help you see free windows for tasks and avoid back-to-back overload.')} />
+        </span>
         <input
           type="datetime-local"
           value={fields.endDate}
@@ -519,7 +529,10 @@ const CalendarView = () => {
         ) : null}
       </label>
       <label style={{ display: 'grid', gap: `${theme.spacing.xs}px` }}>
-        {t('calendarLocationLabel')}
+        <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+          {t('calendarLocationLabel')}
+          <BudgetTooltip content={t('tooltips.calendar.location', 'Where is this happening? Optional, but useful for travel time reminders and context.')} />
+        </span>
         <input
           type="text"
           value={fields.location}
@@ -536,7 +549,10 @@ const CalendarView = () => {
         />
       </label>
       <label style={{ display: 'grid', gap: `${theme.spacing.xs}px` }}>
-        {t('calendarDescriptionLabel')}
+        <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+          {t('calendarDescriptionLabel')}
+          <BudgetTooltip content={t('tooltips.calendar.description', 'Optional details — agenda items, prep notes, access codes. You will see this when you click the event.')} />
+        </span>
         <input
           type="text"
           value={fields.description}
@@ -553,7 +569,10 @@ const CalendarView = () => {
         />
       </label>
       <label style={{ display: 'grid', gap: `${theme.spacing.xs}px` }}>
-        {t('calendarTaskLinkLabel')}
+        <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+          {t('calendarTaskLinkLabel')}
+          <BudgetTooltip content={t('tooltips.calendar.taskLink', 'Connect this event to an existing task. When you complete the event, it can mark the task done too — keeping both lists in sync.')} />
+        </span>
         <select
           value={fields.taskId}
           onChange={(event) => {
@@ -576,7 +595,10 @@ const CalendarView = () => {
         </select>
       </label>
       <label style={{ display: 'grid', gap: `${theme.spacing.xs}px` }}>
-        {t('calendarReminderLabel')}
+        <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+          {t('calendarReminderLabel')}
+          <BudgetTooltip content={t('tooltips.calendar.reminder', 'Get a notification before the event starts. Especially helpful for appointments that need travel time or preparation.')} />
+        </span>
         <input
           type="number"
           min="0"
@@ -605,6 +627,7 @@ const CalendarView = () => {
       ariaLabel={`${t('calendar')} module`}
       title={t('calendar')}
       subtitle={t('calendarIntro')}
+      badge={<BudgetTooltip content={t('tooltips.calendar.section', 'Your visual timeline — schedule events, convert tasks to time blocks, and see suggestions for when to focus. Putting tasks on a calendar makes them 3× more likely to happen.')} />}
     >
       <div
         style={{
@@ -629,6 +652,7 @@ const CalendarView = () => {
               onClick={() => setViewMode(mode)}
               style={{
                 padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
+                minHeight: 44,
                 borderRadius: theme.shape.radiusSm,
                 border: `1px solid ${viewMode === mode ? theme.colors.primary : theme.colors.border}`,
                 backgroundColor: viewMode === mode ? theme.colors.primary : theme.colors.surface,
@@ -650,6 +674,8 @@ const CalendarView = () => {
             onClick={() => navigatePeriod(-1)}
             style={{
               padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
+              minHeight: 44,
+              minWidth: 44,
               borderRadius: theme.shape.radiusSm,
               border: `1px solid ${theme.colors.border}`,
               backgroundColor: theme.colors.surface,
@@ -666,6 +692,7 @@ const CalendarView = () => {
             onClick={goToToday}
             style={{
               padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
+              minHeight: 44,
               borderRadius: theme.shape.radiusSm,
               border: `1px solid ${theme.colors.border}`,
               backgroundColor: theme.colors.surface,
@@ -683,6 +710,8 @@ const CalendarView = () => {
             onClick={() => navigatePeriod(1)}
             style={{
               padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
+              minHeight: 44,
+              minWidth: 44,
               borderRadius: theme.shape.radiusSm,
               border: `1px solid ${theme.colors.border}`,
               backgroundColor: theme.colors.surface,
@@ -715,15 +744,17 @@ const CalendarView = () => {
       </div>
 
       {viewMode === 'week' && (
-        <WeeklyGrid
-          events={events}
-          weekStartDate={weekStart}
-          theme={theme}
-          onEventClick={(event) => {
-            startEdit(event);
-          }}
-          reduceMotion={false}
-        />
+        <div data-tour="calendar-grid">
+          <WeeklyGrid
+            events={events}
+            weekStartDate={weekStart}
+            theme={theme}
+            onEventClick={(event) => {
+              startEdit(event);
+            }}
+            reduceMotion={false}
+          />
+        </div>
       )}
 
       {/* Day view: detailed single-day card */}
@@ -731,7 +762,7 @@ const CalendarView = () => {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: '1fr',
+            gridTemplateColumns: 'minmax(0, 1fr)',
             gap: `${theme.spacing.sm}px`,
             marginBottom: `${theme.spacing.lg}px`
           }}
@@ -770,11 +801,14 @@ const CalendarView = () => {
                             backgroundColor: color,
                             color: theme.colors.text,
                             cursor: 'pointer',
+                            minWidth: 0,
+                            overflow: 'hidden',
                           }}
                           onClick={() => startEdit(event)}
                         >
-                          <div style={{ fontWeight: theme.typography.heading.weight }}>{event.title}</div>
+                          <div style={{ fontWeight: theme.typography.heading.weight, wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{event.title}</div>
                           <div style={{ fontSize: '0.85rem', color: theme.colors.muted }}>{timeLabel}</div>
+                          {event.description && <div style={{ fontSize: '0.8rem', color: theme.colors.muted, wordBreak: 'break-word' }}>{event.description}</div>}
                           {event.location && <div style={{ fontSize: '0.8rem', color: theme.colors.muted }}>{event.location}</div>}
                         </li>
                       );
@@ -791,9 +825,9 @@ const CalendarView = () => {
 
       {/* Month view: density calendar */}
       {viewMode === 'month' && (
-        <div style={{ marginBottom: `${theme.spacing.lg}px` }}>
+        <div style={{ marginBottom: `${theme.spacing.lg}px`, minWidth: 0, overflow: 'hidden' }}>
           {/* Day-of-week headers */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2, marginBottom: 2 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: 2, marginBottom: 2 }}>
             {(() => {
               // Monday-anchored localized weekday headers
               const fmt = new Intl.DateTimeFormat(i18n.language, { weekday: 'short' });
@@ -808,7 +842,7 @@ const CalendarView = () => {
               });
             })()}
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: 2 }}>
             {monthDays.map((date) => {
               const dateKey = formatDateInputValue(date);
               const dayEvents = eventsByDate.get(dateKey) ?? [];
@@ -868,7 +902,10 @@ const CalendarView = () => {
                   </div>
                   {/* First event title preview */}
                   {dayEvents.length > 0 && (
-                    <span style={{ fontSize: '0.65rem', color: theme.colors.muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <span
+                      title={dayEvents.map(({ event }) => event.title).join('\n')}
+                      style={{ fontSize: '0.65rem', color: theme.colors.muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, display: 'block' }}
+                    >
                       {dayEvents[0].event.title}
                     </span>
                   )}
@@ -879,9 +916,10 @@ const CalendarView = () => {
         </div>
       )}
 
-      <div style={{ display: 'grid', gap: `${theme.spacing.md}px` }}>
-        <div>
+      <div style={{ display: 'grid', gap: `${theme.spacing.md}px`, gridTemplateColumns: 'minmax(0, 1fr)' }}>
+        <div data-tour="calendar-add-section">
           <button
+            data-tour="calendar-add-btn"
             type="button"
             onClick={() => setAddFormOpen((prev) => !prev)}
             style={{
@@ -889,6 +927,7 @@ const CalendarView = () => {
               alignItems: 'center',
               gap: theme.spacing.xs,
               padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
+              minHeight: 44,
               borderRadius: theme.shape.radiusFull,
               border: `1.5px solid ${addFormOpen ? theme.colors.primary : theme.colors.border}`,
               background: addFormOpen ? `${theme.colors.primary}12` : 'transparent',
@@ -901,6 +940,7 @@ const CalendarView = () => {
           >
             {addFormOpen ? '✕ ' : '+ '}{t('calendarAddEvent')}
           </button>
+          <BudgetTooltip content={t('tooltips.calendar.addEvent', 'Create a new calendar event. Putting tasks on the calendar makes them 3× more likely to happen — this is the step between planning and doing.')} />
           {addFormOpen && renderEventFormFields(form, setForm, addValidation, touched, setTouched)}
           {addFormOpen && (
             <div style={{ display: 'flex', gap: `${theme.spacing.sm}px`, marginTop: `${theme.spacing.sm}px` }}>
@@ -935,7 +975,10 @@ const CalendarView = () => {
         </div>
 
         <div>
-          <h3 style={{ marginTop: 0 }}>{t('calendarSuggestedFocusHeading')}</h3>
+          <h3 style={{ marginTop: 0, display: 'flex', alignItems: 'center' }}>
+            {t('calendarSuggestedFocusHeading')}
+            <BudgetTooltip content={t('tooltips.calendar.suggestedFocus', 'AI-generated windows based on your task list and available time. Accepting a suggestion creates a calendar event — your future self will thank you.')} />
+          </h3>
           <p style={{ color: theme.colors.muted }}>{t('calendarSuggestedFocusHelper')}</p>
           {scheduleSuggestions.length ? (
             <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: `${theme.spacing.sm}px` }}>
@@ -969,6 +1012,7 @@ const CalendarView = () => {
                       style={{
                         marginTop: `${theme.spacing.xs}px`,
                         padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
+                        minHeight: 44,
                         borderRadius: theme.shape.radiusSm,
                         border: `1px solid ${theme.colors.primary}`,
                         backgroundColor: theme.colors.surface,
@@ -987,9 +1031,12 @@ const CalendarView = () => {
         </div>
 
         <div>
-          <h3 style={{ marginTop: 0 }}>{t('calendarTasksToConvert')}</h3>
+          <h3 style={{ marginTop: 0, display: 'flex', alignItems: 'center' }}>
+            {t('calendarTasksToConvert')}
+            <BudgetTooltip content={t('tooltips.calendar.tasksToConvert', 'Tasks without a scheduled time slot. Converting them to calendar events gives each task a dedicated time block — the key difference between a wish and a plan.')} />
+          </h3>
           {availableTasks.length ? (
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: `${theme.spacing.sm}px` }}>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: `${theme.spacing.sm}px`, gridTemplateColumns: 'minmax(0, 1fr)' }}>
               {availableTasks.map((task) => (
                 <li
                   key={task.id}
@@ -999,21 +1046,37 @@ const CalendarView = () => {
                     padding: `${theme.spacing.sm}px`,
                     backgroundColor: theme.colors.surface,
                     display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: `${theme.spacing.sm}px`
+                    flexDirection: 'column',
+                    gap: `${theme.spacing.xs}px`,
+                    minWidth: 0,
                   }}
                 >
-                  <span>{task.title}</span>
+                  <span style={{
+                    fontSize: '0.8125rem',
+                    color: theme.colors.muted,
+                    wordBreak: 'break-word',
+                    overflowWrap: 'anywhere',
+                    lineHeight: 1.45,
+                  }}>
+                    {task.title}
+                  </span>
                   <button
                     type="button"
                     onClick={() => handleConvertTask(task)}
                     style={{
+                      alignSelf: 'flex-start',
                       padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
+                      minHeight: 44,
                       borderRadius: theme.shape.radiusSm,
                       border: `1px solid ${theme.colors.primary}`,
                       backgroundColor: theme.colors.surface,
-                      color: theme.colors.text
+                      color: theme.colors.primary,
+                      fontWeight: 600,
+                      fontSize: '0.875rem',
+                      cursor: 'pointer',
+                      flexShrink: 0,
+                      whiteSpace: 'nowrap',
+                      fontFamily: 'inherit',
                     }}
                   >
                     {t('calendarConvertTask')}
@@ -1027,14 +1090,17 @@ const CalendarView = () => {
         </div>
 
         <div>
-          <h3 style={{ marginTop: 0 }}>{t('calendarEventsHeading')}</h3>
+          <h3 style={{ marginTop: 0, display: 'flex', alignItems: 'center' }}>
+            {t('calendarEventsHeading')}
+            <BudgetTooltip content={t('tooltips.calendar.events', 'All scheduled events in chronological order. Click an event to edit or delete it. Events linked to tasks keep your task list in sync.')} />
+          </h3>
           {loading ? (
             <p style={{ color: theme.colors.muted }}>{t('loading')}</p>
           ) : null}
           {!loading && sortedEvents.length === 0 ? (
             <p style={{ color: theme.colors.muted }}>{t('calendarNoEvents')}</p>
           ) : null}
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: `${theme.spacing.md}px` }}>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: `${theme.spacing.md}px`, gridTemplateColumns: 'minmax(0, 1fr)' }}>
             {sortedEvents.map((event, index) => {
               const start = parseDateTime(event.startDate);
               const end = parseDateTime(event.endDate);
@@ -1098,8 +1164,8 @@ const CalendarView = () => {
                     backgroundColor: cardColor
                   }}
                 >
-                  <div style={{ display: 'grid', gap: `${theme.spacing.xs}px` }}>
-                    <div style={{ fontWeight: theme.typography.heading.weight }}>{event.title}</div>
+                  <div style={{ display: 'grid', gap: `${theme.spacing.xs}px`, minWidth: 0 }}>
+                    <div style={{ fontWeight: theme.typography.heading.weight, wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{event.title}</div>
                     <div style={{ color: theme.colors.muted }}>{timeLabel}</div>
                     {event.location ? <div>{t('calendarAtLocation', { location: event.location })}</div> : null}
                     {event.description ? <div>{event.description}</div> : null}

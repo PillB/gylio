@@ -1,3 +1,6 @@
 {
-  "type": "commonjs"
+  "type": "commonjs",
+  "dependencies": {
+    "helmet": "^8.1.0"
+  }
 }

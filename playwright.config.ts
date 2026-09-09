@@ -7,7 +7,7 @@ export default defineConfig({
   workers: 1,
   reporter: 'list',
   use: {
-    baseURL: 'http://localhost:5173/gylio/',
+    baseURL: 'http://localhost:5174/gylio/',
     screenshot: 'on',
     trace: 'off',
   },
@@ -18,8 +18,8 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:5173/gylio/',
+    command: 'npm run dev:noauth',
+    url: 'http://localhost:5174/gylio/',
     reuseExistingServer: true,
     timeout: 60000,
   },

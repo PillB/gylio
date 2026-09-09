@@ -2,6 +2,7 @@ try { require('dotenv').config({ path: require('path').join(__dirname, '.env') }
 
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
 const mongoose = require('mongoose');
 
 const authRouter = require('./routes/auth');
@@ -16,21 +17,35 @@ const billingRouter = require('./routes/billing');
 const { sqlite } = require('./db/sqliteClient');
 const { ensureSqliteSchema } = require('./lib/sqlite');
 const { notFoundHandler, errorHandler } = require('./middleware/errorHandler');
-const { requireAuth } = require('./middleware/auth');
+const { requireAuth, requirePlan } = require('./middleware/auth');
 const { authRateLimit, mutationRateLimit } = require('./middleware/rateLimit');
 
-const requiredAiEnvVars = ['OPENAI_API_KEY'];
-const missingAiEnvVars = requiredAiEnvVars.filter((envVar) => !process.env[envVar]);
-if (missingAiEnvVars.length) {
-  console.warn(`AI features disabled. Missing env vars: ${missingAiEnvVars.join(', ')}`);
+// Startup env-var checks
+const requiredEnvVars = [
+  { name: 'CLERK_SECRET_KEY',  feature: 'billing API (trial activation/cancel)' },
+  { name: 'CLERK_JWKS_URL',    feature: 'JWT verification' },
+  { name: 'CLERK_ISSUER',      feature: 'JWT verification' },
+];
+for (const { name, feature } of requiredEnvVars) {
+  if (!process.env[name]) {
+    console.warn(`⚠️  Missing env var ${name} — ${feature} will fail at request time`);
+  }
 }
 
-if (!process.env.CLERK_JWKS_URL) {
-  console.warn('CLERK_JWKS_URL not set. Using default Clerk JWKS endpoint.');
+if (!process.env.OPENAI_API_KEY) {
+  console.warn('⚠️  Missing env var OPENAI_API_KEY — AI social suggestions disabled');
 }
 
 const app = express();
-app.use(cors());
+app.set('trust proxy', 1);
+app.use(helmet());
+app.use(cors({
+  origin: process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
+    : ['http://localhost:5173', 'http://localhost:4173'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 app.use(express.json());
 
 const mongoUri = process.env.MONGODB_URI || '';
@@ -53,19 +68,24 @@ app.get('/api', (_req, res) => {
 
 app.use('/api/auth', authRateLimit, authRouter);
 
-app.use('/api/tasks', requireAuth, tasksRouter);
-app.use('/api/events', requireAuth, eventsRouter);
-app.use('/api/budgets', requireAuth, budgetsRouter);
-app.use('/api/budget', requireAuth, budgetsRouter);
+app.use('/api/tasks',        requireAuth, tasksRouter);
+app.use('/api/events',       requireAuth, eventsRouter);
+app.use('/api/budgets',      requireAuth, budgetsRouter);
+app.use('/api/budget',       requireAuth, budgetsRouter);
 app.use('/api/transactions', requireAuth, transactionsRouter);
-app.use('/api/debts', requireAuth, debtsRouter);
-app.use('/api/ai', requireAuth, mutationRateLimit, aiRouter);
-app.use('/api/billing', requireAuth, billingRouter);
+app.use('/api/debts',        requireAuth, debtsRouter);
+app.use('/api/ai',           requireAuth, requirePlan('user_subscription'), mutationRateLimit, aiRouter);
+app.use('/api/billing',      requireAuth, billingRouter);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`Server listening on port ${PORT}`);
-});
+// Export app for testing — only listen when run directly
+if (require.main === module) {
+  const PORT = process.env.PORT || 3001;
+  app.listen(PORT, () => {
+    console.log(`Server listening on port ${PORT}`);
+  });
+}
+
+module.exports = app;

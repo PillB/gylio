@@ -45,6 +45,16 @@ async function patchClerkUser(userId, publicMetadata) {
   return res.json();
 }
 
+async function getClerkUser(userId) {
+  const key = process.env.CLERK_SECRET_KEY;
+  if (!key) throw new Error('CLERK_SECRET_KEY not configured');
+  const res = await fetch(`${CLERK_API}/users/${userId}`, {
+    headers: { Authorization: `Bearer ${key}` },
+  });
+  if (!res.ok) throw new Error(`Clerk API ${res.status}`);
+  return res.json();
+}
+
 /**
  * POST /api/billing/activate-trial
  * Activates the 10-day free trial for the authenticated user.
@@ -52,6 +62,14 @@ async function patchClerkUser(userId, publicMetadata) {
 router.post('/activate-trial', async (req, res, next) => {
   try {
     const clerkUserId = req.user.id;
+
+    const clerkUser = await getClerkUser(clerkUserId);
+    const existingMeta = clerkUser.public_metadata || {};
+    if (existingMeta.trialStartedAt || existingMeta.hadTrial) {
+      return res.status(409).json({
+        error: { code: 'TRIAL_ALREADY_USED', message: 'Free trial has already been used on this account.' },
+      });
+    }
 
     const trialStartedAt = new Date().toISOString();
     const trialEndsAt = new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000).toISOString();
@@ -92,6 +110,7 @@ router.post('/cancel', async (req, res, next) => {
       trialStartedAt: null,
       trialEndsAt: null,
       cancelledAt: new Date().toISOString(),
+      hadTrial: true,
     });
 
     return res.json({ success: true, plan: 'free_user' });

@@ -14,7 +14,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { useUser } from '@clerk/clerk-react';
 import { useTheme } from '../../core/context/ThemeContext';
 import { useSubscription } from './useSubscription';
 import { useAppAuth } from '../../core/context/AuthContext';
@@ -31,8 +30,7 @@ export const PricingPage: React.FC = () => {
   const { theme } = useTheme();
   const navigate = useNavigate();
   const { plan, isFree, trialDays, monthlyPrice, yearlyPrice } = useSubscription();
-  const { userId } = useAppAuth();
-  const { user } = useUser();
+  const { userId, reloadUser, clerkEnabled } = useAppAuth();
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('yearly');
   const [activation, setActivation] = useState<ActivationState>('idle');
   const [errorMsg, setErrorMsg] = useState('');
@@ -40,6 +38,11 @@ export const PricingPage: React.FC = () => {
   const price = billing === 'yearly' ? yearlyPrice : monthlyPrice;
 
   const handleStartTrial = async () => {
+    if (!clerkEnabled) {
+      setErrorMsg(t('pricing.noAuthError', 'Sign in to activate your trial'));
+      setActivation('error');
+      return;
+    }
     if (!userId) {
       navigate('/sign-in');
       return;
@@ -62,7 +65,7 @@ export const PricingPage: React.FC = () => {
 
       // Re-fetch Clerk user so publicMetadata.plan is fresh — this causes
       // useSubscription() to update and premium gates to open immediately.
-      await user?.reload();
+      await reloadUser?.();
 
       setActivation('success');
 
@@ -153,6 +156,7 @@ export const PricingPage: React.FC = () => {
               onClick={() => setBilling(b)}
               style={{
                 padding: `${theme.spacing.xs}px ${theme.spacing.lg}px`,
+                minHeight: '44px',
                 border: 'none',
                 borderRadius: 0,
                 background: billing === b ? theme.colors.primary : 'transparent',
@@ -240,6 +244,7 @@ export const PricingPage: React.FC = () => {
             onClick={() => navigate('/tasks')}
             style={{
               padding: `${theme.spacing.sm}px`,
+              minHeight: '44px',
               borderRadius: theme.shape.radiusFull,
               border: `1.5px solid ${theme.colors.border}`,
               background: 'transparent',
@@ -326,6 +331,7 @@ export const PricingPage: React.FC = () => {
             onClick={handleStartTrial}
             style={{
               padding: `${theme.spacing.sm}px`,
+              minHeight: '44px',
               borderRadius: theme.shape.radiusFull,
               border: 'none',
               background: activation === 'success' ? '#22C55E' : '#fff',

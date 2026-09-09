@@ -11,29 +11,17 @@ const router = express.Router();
 const authRepository = createAuthRepository(models, sqlite);
 const authService = createAuthService(authRepository);
 
-router.post(
-  '/signup',
-  asyncHandler(async (req, res) => {
-    const result = await authService.signup(req.body || {});
-    res.status(201).json(result);
-  })
-);
+router.post('/signup', (_req, res) => {
+  res.status(501).json({ error: { code: 'NOT_IMPLEMENTED', message: 'Use Clerk authentication' } });
+});
 
-router.post(
-  '/login',
-  asyncHandler(async (req, res) => {
-    const result = await authService.login(req.body || {});
-    res.json(result);
-  })
-);
+router.post('/login', (_req, res) => {
+  res.status(501).json({ error: { code: 'NOT_IMPLEMENTED', message: 'Use Clerk authentication' } });
+});
 
-router.post(
-  '/refresh',
-  asyncHandler(async (req, res) => {
-    const result = await authService.refresh(req.body || {});
-    res.json(result);
-  })
-);
+router.post('/refresh', (_req, res) => {
+  res.status(501).json({ error: { code: 'NOT_IMPLEMENTED', message: 'Use Clerk authentication' } });
+});
 
 router.get(
   '/me',

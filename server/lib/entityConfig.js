@@ -12,7 +12,8 @@ const ENTITY_CONFIG = {
       focusPresetMinutes: null
     },
     jsonFields: ['subtasks'],
-    numericFields: ['calendarEventId', 'focusPresetMinutes']
+    numericFields: ['calendarEventId', 'focusPresetMinutes'],
+    hasUpdatedAt: true
   },
   events: {
     tableName: 'events',
@@ -26,7 +27,8 @@ const ENTITY_CONFIG = {
       reminderMinutesBefore: null
     },
     jsonFields: [],
-    numericFields: ['taskId', 'reminderMinutesBefore']
+    numericFields: ['taskId', 'reminderMinutesBefore'],
+    hasUpdatedAt: false
   },
   budgets: {
     tableName: 'budgets',
@@ -38,7 +40,8 @@ const ENTITY_CONFIG = {
       categories: []
     },
     jsonFields: ['income', 'categories'],
-    numericFields: []
+    numericFields: [],
+    hasUpdatedAt: false
   },
   transactions: {
     tableName: 'transactions',
@@ -49,7 +52,8 @@ const ENTITY_CONFIG = {
       note: null
     },
     jsonFields: [],
-    numericFields: ['amount']
+    numericFields: ['amount'],
+    hasUpdatedAt: false
   },
   debts: {
     tableName: 'debts',
@@ -60,7 +64,8 @@ const ENTITY_CONFIG = {
       categoryName: null
     },
     jsonFields: [],
-    numericFields: ['balance', 'annualRate', 'minPayment']
+    numericFields: ['balance', 'annualRate', 'minPayment'],
+    hasUpdatedAt: false
   }
 };
 

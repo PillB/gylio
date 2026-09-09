@@ -15,6 +15,7 @@ server/.env
 
 # Playwright artifacts (may contain URLs, session data, screenshots)
 .playwright-mcp/
+.playwright-cli/
 test-results/
 playwright-report/
 *.png

@@ -11,7 +11,16 @@ const __dirname = path.dirname(__filename);
 // - Maps 'react-native' imports to 'react-native-web' so that React Native components can run in the browser
 // - Configures Vite to allow serving files from the parent directory (docs, assets)
 // - Sets base for GitHub Pages deployment
-export default defineConfig({
+export default defineConfig(({ mode }) => {
+  // Fail the build if running in production without Clerk key
+  if (mode === 'production' && !process.env.VITE_CLERK_PUBLISHABLE_KEY) {
+    throw new Error(
+      '[build] VITE_CLERK_PUBLISHABLE_KEY is required for production builds. ' +
+      'Set it in your CI environment or .env.local file.'
+    );
+  }
+
+  return {
   base: '/gylio/',
   plugins: [react()],
   build: {
@@ -123,4 +132,5 @@ export default defineConfig({
       }
     }
   }
+  };
 });
