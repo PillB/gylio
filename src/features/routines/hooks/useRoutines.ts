@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import useDB, { type Routine, type RoutineStep } from '../../../core/hooks/useDB';
-import { normalizeRoutineSteps } from '../utils/routineHelpers';
+import { formatLocalDateKey, normalizeRoutineSteps } from '../utils/routineHelpers';
 
 type UseRoutinesResult = {
   routines: Routine[];
@@ -64,7 +64,15 @@ const useRoutines = (): UseRoutinesResult => {
       const trimmed = title.trim();
       if (!trimmed) return null;
       try {
-        const created = await insertRoutine({ title: trimmed, description, frequency, triggerTime, steps: normalizeRoutineSteps(steps), anchorHabit, completionLog });
+        const created = await insertRoutine({
+          title: trimmed,
+          description,
+          frequency,
+          triggerTime,
+          steps: normalizeRoutineSteps(steps),
+          anchorHabit,
+          completionLog,
+        });
         await refreshRoutines();
         return created;
       } catch (error) {
@@ -119,11 +127,12 @@ const useRoutines = (): UseRoutinesResult => {
   const completeRoutine = useCallback(
     async (id: number) => {
       const target = routines.find((r) => r.id === id);
-      const todayKey = new Date().toISOString().slice(0, 10);
+      const now = new Date();
+      const todayKey = formatLocalDateKey(now);
       const nextLog = target && !target.completionLog.includes(todayKey)
         ? [...target.completionLog, todayKey]
         : (target?.completionLog ?? [todayKey]);
-      await editRoutine(id, { lastCompletedAt: new Date().toISOString(), completionLog: nextLog });
+      await editRoutine(id, { lastCompletedAt: now.toISOString(), completionLog: nextLog });
     },
     [editRoutine, routines]
   );
@@ -144,7 +153,7 @@ const useRoutines = (): UseRoutinesResult => {
     updateRoutine: editRoutine,
     removeRoutine,
     toggleStep,
-    completeRoutine
+    completeRoutine,
   };
 };
 

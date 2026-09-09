@@ -1,28 +1,22 @@
 import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { ThemeTokens } from '../../../core/themes';
+import { formatLocalDateKey, recentLocalDateKeys } from '../utils/routineHelpers';
 
 type Props = {
   completionLog: string[];
   theme: ThemeTokens;
-  reduceMotion?: boolean;
 };
 
 export const StreakDots: React.FC<Props> = ({ completionLog, theme }) => {
   const { t } = useTranslation();
 
-  const days = useMemo(() => {
-    return Array.from({ length: 21 }, (_, i) => {
-      const d = new Date();
-      d.setDate(d.getDate() - (20 - i));
-      return d.toISOString().slice(0, 10);
-    });
-  }, []);
-
-  const todayKey = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  const now = useMemo(() => new Date(), []);
+  const days = useMemo(() => recentLocalDateKeys(21, now), [now]);
+  const todayKey = useMemo(() => formatLocalDateKey(now), [now]);
   const logSet = useMemo(() => new Set(completionLog), [completionLog]);
 
-  const completedCount = days.filter((d) => logSet.has(d) && d <= todayKey).length;
+  const completedCount = days.filter((day) => logSet.has(day) && day <= todayKey).length;
 
   return (
     <div
@@ -38,17 +32,17 @@ export const StreakDots: React.FC<Props> = ({ completionLog, theme }) => {
         const isFuture = day > todayKey;
         const isToday = day === todayKey;
 
-        let bg = '#D1D5DB'; // gray = missed past
-        let border = 'none';
+        let backgroundColor = '#D1D5DB';
+        let border = `1px solid ${theme.colors.border}`;
 
         if (isCompleted) {
-          bg = '#22C55E'; // green = completed
+          backgroundColor = '#22C55E';
+          border = '2px solid currentColor';
         } else if (isFuture) {
-          bg = 'transparent';
-          border = `1.5px solid ${theme.colors.border}`;
-        } else if (isToday && !isCompleted) {
-          bg = 'transparent';
-          border = `1.5px dashed ${theme.colors.primary}`;
+          backgroundColor = 'transparent';
+        } else if (isToday) {
+          backgroundColor = 'transparent';
+          border = `2px dashed ${theme.colors.primary}`;
         }
 
         return (
@@ -59,8 +53,10 @@ export const StreakDots: React.FC<Props> = ({ completionLog, theme }) => {
               width: 10,
               height: 10,
               borderRadius: '50%',
-              backgroundColor: bg,
+              backgroundColor,
               border,
+              color: theme.colors.text,
+              boxSizing: 'border-box',
               flexShrink: 0,
               display: 'inline-block',
             }}

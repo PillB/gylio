@@ -5,6 +5,8 @@ import {
   validateRoutineForm,
   isRoutineDueToday,
   formatTriggerTime,
+  formatLocalDateKey,
+  recentLocalDateKeys,
 } from './routineHelpers';
 
 const t = (key: string) => key;
@@ -48,6 +50,23 @@ describe('validateRoutineForm', () => {
   it('passes valid form', () => {
     const result = validateRoutineForm({ title: 'Morning routine', steps: [] }, t);
     expect(result.title).toBe('');
+  });
+});
+
+describe('local calendar keys', () => {
+  it('uses local calendar fields instead of UTC serialization', () => {
+    const localLateEvening = new Date(2026, 7, 23, 23, 30, 0, 0);
+    expect(formatLocalDateKey(localLateEvening)).toBe('2026-08-23');
+  });
+
+  it('builds a stable ordered local-day window', () => {
+    const now = new Date(2026, 0, 2, 23, 30, 0, 0);
+    expect(recentLocalDateKeys(3, now)).toEqual(['2025-12-31', '2026-01-01', '2026-01-02']);
+  });
+
+  it('returns an empty window for non-positive counts', () => {
+    expect(recentLocalDateKeys(0, new Date())).toEqual([]);
+    expect(recentLocalDateKeys(-5, new Date())).toEqual([]);
   });
 });
 

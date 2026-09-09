@@ -1,3 +1,6 @@
+import { authHeaders } from '../../../core/utils/authToken';
+import { apiUrl } from '../../../core/utils/apiUrl';
+
 export type SocialSuggestion = {
   steps: string[];
   notes?: string;
@@ -8,10 +11,6 @@ type FetchSocialSuggestionsArgs = {
   energyLevel: 'LOW' | 'MED' | 'HIGH';
   locale: string;
 };
-
-import { authHeaders } from '../../../core/utils/authToken';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 
 const ensureStringArray = (value: unknown): string[] => {
   if (!Array.isArray(value)) return [];
@@ -34,8 +33,7 @@ export const fetchSocialSuggestions = async ({
   energyLevel,
   locale
 }: FetchSocialSuggestionsArgs): Promise<SocialSuggestion | null> => {
-  const endpoint = `${API_BASE_URL}/api/ai/social-suggestions`;
-  const response = await fetch(endpoint, {
+  const response = await fetch(apiUrl('/api/ai/social-suggestions'), {
     method: 'POST',
     headers: await authHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify({

@@ -9,8 +9,8 @@ import {
   type SyncErrorCode,
 } from './offlineSync';
 import { authHeaders, getAuthToken } from './authToken';
+import { apiUrl } from './apiUrl';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 export const SYNC_TAG = 'gylio-sync';
 
 const ENTITY_ROUTE_MAP: Record<SyncEntityType, string> = {
@@ -20,11 +20,9 @@ const ENTITY_ROUTE_MAP: Record<SyncEntityType, string> = {
 };
 
 export const resolveSyncEndpoint = (entityType: SyncEntityType, id?: string | number) => {
-  const base =
-    API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
   const root = ENTITY_ROUTE_MAP[entityType];
   const path = id ? `${root}/${id}` : root;
-  return new URL(path, base).toString();
+  return apiUrl(path);
 };
 
 export const methodForSyncAction = (action: SyncActionType): 'POST' | 'PUT' | 'DELETE' => {

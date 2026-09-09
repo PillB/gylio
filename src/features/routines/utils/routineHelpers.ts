@@ -15,6 +15,28 @@ export const validateRoutineForm = (
   title: form.title.trim() ? '' : t('routines.errorTitleRequired'),
 });
 
+const padDatePart = (value: number) => String(value).padStart(2, '0');
+
+/**
+ * Returns a calendar-date key in the user's/device's local timezone.
+ *
+ * Routine completion is a human calendar concept, not a UTC timestamp. Using
+ * `toISOString().slice(0, 10)` can move an evening completion into tomorrow for
+ * users west of UTC (and into yesterday for some users east of UTC).
+ */
+export const formatLocalDateKey = (date: Date = new Date()): string =>
+  `${date.getFullYear()}-${padDatePart(date.getMonth() + 1)}-${padDatePart(date.getDate())}`;
+
+export const recentLocalDateKeys = (count = 21, now: Date = new Date()): string[] => {
+  const safeCount = Math.max(0, Math.floor(count));
+  return Array.from({ length: safeCount }, (_, index) => {
+    const date = new Date(now);
+    date.setHours(12, 0, 0, 0);
+    date.setDate(date.getDate() - (safeCount - 1 - index));
+    return formatLocalDateKey(date);
+  });
+};
+
 export const isRoutineDueToday = (routine: {
   frequency: RoutineFrequency;
   lastCompletedAt: string | null;

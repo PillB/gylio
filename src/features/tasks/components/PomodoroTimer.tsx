@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../../core/context/ThemeContext';
+import useAccessibility from '../../../core/hooks/useAccessibility';
 import type { PomodoroStatus } from '../hooks/usePomodoroTimer';
 
 type PomodoroTimerProps = {
@@ -26,10 +27,14 @@ const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
 }) => {
   const { t } = useTranslation();
   const { theme } = useTheme();
+  const { reduceMotionEnabled, animationsEnabled } = useAccessibility();
 
-  const mm = pad(Math.floor(remainingSeconds / 60));
-  const ss = pad(remainingSeconds % 60);
-  const progress = totalSeconds > 0 ? (totalSeconds - remainingSeconds) / totalSeconds : 0;
+  const safeRemainingSeconds = Math.max(0, remainingSeconds);
+  const mm = pad(Math.floor(safeRemainingSeconds / 60));
+  const ss = pad(safeRemainingSeconds % 60);
+  const rawProgress = totalSeconds > 0 ? (totalSeconds - safeRemainingSeconds) / totalSeconds : 0;
+  const progress = Math.max(0, Math.min(1, rawProgress));
+  const shouldAnimateProgress = animationsEnabled && !reduceMotionEnabled;
 
   useEffect(() => {
     if (status === 'done') {
@@ -45,8 +50,8 @@ const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
   const statusLabel = isDone
     ? t('tasks.timerDone')
     : isPaused
-    ? t('tasks.timerPaused', { mm, ss })
-    : t('tasks.timerRunning', { mm, ss });
+      ? t('tasks.timerPaused', { mm, ss })
+      : t('tasks.timerRunning', { mm, ss });
 
   return (
     <div
@@ -61,7 +66,6 @@ const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
         gap: `${theme.spacing.sm}px`,
       }}
     >
-      {/* Live region for screen-reader announcements */}
       <div
         aria-live="polite"
         aria-atomic="true"
@@ -69,13 +73,12 @@ const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
       >
         {!isDone
           ? t('tasks.timerAriaLive', {
-              mm: String(Math.floor(remainingSeconds / 60)),
-              ss: String(remainingSeconds % 60),
+              mm: String(Math.floor(safeRemainingSeconds / 60)),
+              ss: String(safeRemainingSeconds % 60),
             })
           : t('tasks.timerDone')}
       </div>
 
-      {/* Countdown display */}
       <div
         aria-hidden="true"
         style={{
@@ -90,7 +93,6 @@ const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
         {isDone ? t('tasks.timerDone') : `${mm}:${ss}`}
       </div>
 
-      {/* Progress bar */}
       {!isDone && (
         <div
           role="progressbar"
@@ -110,18 +112,16 @@ const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
               height: '100%',
               width: `${progress * 100}%`,
               backgroundColor: isPaused ? theme.colors.muted : theme.colors.primary,
-              transition: 'width 0.9s linear',
+              transition: shouldAnimateProgress ? 'width 0.9s linear' : 'none',
             }}
           />
         </div>
       )}
 
-      {/* Status label */}
       <p style={{ margin: 0, textAlign: 'center', color: theme.colors.muted }}>
         {statusLabel}
       </p>
 
-      {/* Controls */}
       <div style={{ display: 'flex', gap: `${theme.spacing.sm}px`, justifyContent: 'center', flexWrap: 'wrap' }}>
         {!isDone && (
           <>

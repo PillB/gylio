@@ -116,7 +116,6 @@ const BudgetView = () => {
       .catch((error) => {
         console.error('Failed to apply diagnostic', error);
       });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [updateBudget]);
 
   useEffect(() => {

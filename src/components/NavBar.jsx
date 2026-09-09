@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../core/context/ThemeContext';
 
 /**
@@ -8,10 +9,11 @@ import { useTheme } from '../core/context/ThemeContext';
  */
 const NavBar = ({ items, activeKey, onNavigate, languageToggle }) => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
 
   return (
     <nav
-      aria-label="Primary navigation"
+      aria-label={t('shell.primaryNavigation')}
       data-tour="nav-bar"
       style={{
         display: 'flex',

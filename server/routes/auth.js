@@ -1,35 +1,33 @@
 const express = require('express');
-const { createAuthRepository } = require('../repositories/authRepository');
-const { createAuthService } = require('../services/authService');
-const models = require('../db/models');
-const { sqlite } = require('../db/sqliteClient');
-const { asyncHandler } = require('../middleware/errorHandler');
 const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
-const authRepository = createAuthRepository(models, sqlite);
-const authService = createAuthService(authRepository);
+const legacyAuthGone = (_req, res) => {
+  res.status(410).json({
+    error: {
+      code: 'AUTH_PROVIDER_MIGRATED',
+      message: 'Password-based API authentication has been retired. Use the configured Clerk sign-in flow.',
+      details: null,
+    },
+  });
+};
 
-router.post('/signup', (_req, res) => {
-  res.status(501).json({ error: { code: 'NOT_IMPLEMENTED', message: 'Use Clerk authentication' } });
+// The web client uses Clerk as the canonical identity provider. Keeping the
+// legacy password/JWT endpoints active would mint tokens that the protected API
+// intentionally does not accept. Return an explicit migration response instead
+// of creating unusable credentials.
+router.post('/signup', legacyAuthGone);
+router.post('/login', legacyAuthGone);
+router.post('/refresh', legacyAuthGone);
+
+router.get('/me', requireAuth, (req, res) => {
+  res.json({
+    user: {
+      id: req.user.id,
+      email: req.user.email || null,
+    },
+  });
 });
-
-router.post('/login', (_req, res) => {
-  res.status(501).json({ error: { code: 'NOT_IMPLEMENTED', message: 'Use Clerk authentication' } });
-});
-
-router.post('/refresh', (_req, res) => {
-  res.status(501).json({ error: { code: 'NOT_IMPLEMENTED', message: 'Use Clerk authentication' } });
-});
-
-router.get(
-  '/me',
-  requireAuth,
-  asyncHandler(async (req, res) => {
-    const user = await authService.me(req.user.id);
-    res.json({ user });
-  })
-);
 
 module.exports = router;

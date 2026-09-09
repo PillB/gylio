@@ -1,0 +1,795 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#111827">
+  <meta name="description" content="GYLIO production deployment academy: validated step-by-step Hostinger KVM 1, MongoDB Atlas, Clerk, Nginx, PM2, HTTPS, local laptop testing, verification and rollback.">
+  <meta name="gylio-guide-validated" content="2026-08-23">
+  <title>GYLIO Production Deployment Academy</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --surface: #ffffff;
+      --surface-2: #eef3f8;
+      --text: #142033;
+      --muted: #5d6b7e;
+      --line: #d7e0ea;
+      --brand: #4f46e5;
+      --brand-2: #0f766e;
+      --good: #0f766e;
+      --warn: #9a6700;
+      --danger: #b42318;
+      --code: #111827;
+      --code-text: #e5eefb;
+      --radius: 18px;
+      --shadow: 0 10px 34px rgba(20, 32, 51, .08);
+      --max: 1180px;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0d1420;
+        --surface: #121d2c;
+        --surface-2: #192638;
+        --text: #e8eef7;
+        --muted: #a8b5c6;
+        --line: #2c3b50;
+        --brand: #8b83ff;
+        --brand-2: #5eead4;
+        --good: #5eead4;
+        --warn: #facc15;
+        --danger: #fda29b;
+        --code: #080d14;
+        --code-text: #dce8f8;
+        --shadow: 0 10px 34px rgba(0,0,0,.28);
+      }
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-width: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.65 ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      overflow-wrap: anywhere;
+    }
+    a { color: var(--brand); text-underline-offset: 3px; }
+    button, input { font: inherit; }
+    button, input, a.button { min-height: 44px; }
+    button:focus-visible, input:focus-visible, a:focus-visible, summary:focus-visible {
+      outline: 3px solid var(--brand);
+      outline-offset: 3px;
+    }
+    .skip-link {
+      position: fixed; top: 8px; left: 8px; transform: translateY(-160%);
+      z-index: 1000; background: var(--surface); color: var(--text); padding: 10px 14px;
+      border: 2px solid var(--brand); border-radius: 10px;
+    }
+    .skip-link:focus { transform: none; }
+    .wrap { width: min(var(--max), calc(100% - 32px)); margin: 0 auto; }
+    header {
+      background: linear-gradient(135deg, #111827 0%, #202a44 48%, #123d3a 100%);
+      color: white; padding: max(28px, env(safe-area-inset-top)) 0 34px;
+    }
+    header a { color: #d7fffa; }
+    .eyebrow { text-transform: uppercase; letter-spacing: .11em; font-weight: 800; font-size: .76rem; opacity: .85; }
+    h1 { font-size: clamp(2rem, 7vw, 4.2rem); line-height: 1.03; letter-spacing: -.045em; max-width: 950px; margin: 10px 0 14px; }
+    h2 { font-size: clamp(1.45rem, 4vw, 2.25rem); line-height: 1.15; letter-spacing: -.025em; margin-top: 0; }
+    h3 { line-height: 1.25; margin: 0; font-size: 1.16rem; }
+    h4 { margin: 18px 0 6px; font-size: .95rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+    p { margin: 8px 0 12px; }
+    .hero-copy { max-width: 800px; font-size: clamp(1rem, 2.4vw, 1.18rem); color: #d8e1ee; }
+    .badge-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+    .badge { display: inline-flex; align-items: center; gap: 7px; min-height: 34px; padding: 5px 10px; border-radius: 999px; font-size: .78rem; font-weight: 750; border: 1px solid rgba(255,255,255,.24); background: rgba(255,255,255,.08); }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #5eead4; box-shadow: 0 0 0 4px rgba(94,234,212,.15); }
+    main { padding: 22px 0 80px; }
+    section { scroll-margin-top: 18px; margin: 24px 0; }
+    .panel, .step, .ui-shot, .prompt-card {
+      background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow);
+    }
+    .panel { padding: clamp(18px, 4vw, 30px); }
+    .notice { border-left: 5px solid var(--warn); }
+    .notice.danger { border-left-color: var(--danger); }
+    .notice.good { border-left-color: var(--good); }
+    .grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 16px; }
+    .span-4 { grid-column: span 4; } .span-6 { grid-column: span 6; } .span-8 { grid-column: span 8; } .span-12 { grid-column: span 12; }
+    .toolbar { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); padding: 10px 0; }
+    .toolbar-inner { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .progress-shell { height: 12px; border-radius: 999px; background: var(--surface-2); overflow: hidden; flex: 1 1 220px; border: 1px solid var(--line); }
+    .progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--brand), var(--brand-2)); transition: width .25s ease; }
+    .button, button {
+      border: 1px solid var(--line); border-radius: 12px; padding: 8px 13px; background: var(--surface); color: var(--text); cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    }
+    .button.primary, button.primary { background: var(--brand); color: white; border-color: transparent; }
+    .button.ghost, button.ghost { background: transparent; }
+    .config-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; }
+    label { display: grid; gap: 5px; font-weight: 700; font-size: .88rem; }
+    input[type="text"] { width: 100%; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); color: var(--text); padding: 10px 11px; }
+    .micro { color: var(--muted); font-size: .84rem; }
+    .architecture { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .architecture svg { display: block; width: 100%; min-width: 680px; height: auto; }
+    .flow-line { stroke-dasharray: 10 8; animation: dash 2.8s linear infinite; }
+    @keyframes dash { to { stroke-dashoffset: -36; } }
+    .phase-title { display: flex; align-items: center; gap: 10px; margin: 32px 0 12px; }
+    .phase-number { width: 35px; height: 35px; display: inline-grid; place-items: center; border-radius: 50%; background: var(--brand); color: white; font-weight: 800; flex: 0 0 auto; }
+    .steps { display: grid; gap: 14px; }
+    .step { padding: 18px; position: relative; }
+    .step.done { border-color: color-mix(in srgb, var(--good) 55%, var(--line)); background: color-mix(in srgb, var(--surface) 93%, var(--good)); }
+    .step-head { display: grid; grid-template-columns: 44px minmax(0,1fr) auto; gap: 12px; align-items: start; }
+    .check-wrap { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 13px; background: var(--surface-2); }
+    .step-check { width: 23px; height: 23px; accent-color: var(--good); cursor: pointer; }
+    .step-id { color: var(--muted); font-weight: 750; font-size: .78rem; }
+    .source-link { font-size: .78rem; font-weight: 750; white-space: nowrap; }
+    details { margin-top: 12px; }
+    summary { cursor: pointer; font-weight: 800; min-height: 44px; display: flex; align-items: center; }
+    .do-list { padding-left: 20px; margin: 8px 0; }
+    .do-list li { margin: 7px 0; }
+    pre { position: relative; margin: 10px 0; padding: 15px 48px 15px 15px; border-radius: 13px; background: var(--code); color: var(--code-text); overflow: auto; max-width: 100%; white-space: pre; tab-size: 2; font-size: .84rem; line-height: 1.55; -webkit-overflow-scrolling: touch; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .copy-code { position: absolute; right: 6px; top: 6px; min-height: 34px; padding: 5px 8px; font-size: .72rem; border-color: #526176; background: #1d2939; color: #fff; }
+    .test-box { margin-top: 12px; border: 1px dashed var(--good); border-radius: 12px; padding: 12px; background: color-mix(in srgb, var(--surface) 94%, var(--good)); }
+    .expected { color: var(--good); font-weight: 750; }
+    .ui-shots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+    .ui-shot { overflow: hidden; }
+    .ui-bar { height: 38px; background: #111827; display: flex; gap: 6px; align-items: center; padding: 0 11px; }
+    .ui-dot { width: 9px; height: 9px; border-radius: 50%; background: #64748b; }
+    .ui-body { display: grid; grid-template-columns: 90px minmax(0,1fr); min-height: 220px; background: #f8fafc; color: #172033; }
+    .ui-side { background: #eef2f7; padding: 10px 7px; font-size: 10px; }
+    .ui-side b { display: block; padding: 6px; margin: 2px 0; border-radius: 6px; background: #dfe6ef; }
+    .ui-main { padding: 13px; }
+    .ui-card { border: 1px solid #d7dee8; border-radius: 9px; padding: 10px; margin: 8px 0; background: white; font-size: 11px; }
+    .ui-action { display: inline-block; background: #4f46e5; color: white; border-radius: 6px; padding: 5px 8px; font-size: 10px; font-weight: 800; }
+    .ui-caption { padding: 12px; font-size: .82rem; color: var(--muted); }
+    .validation-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+    .validation-item { border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+    .result-list { display: grid; gap: 7px; margin-top: 12px; }
+    .result { border-radius: 10px; padding: 9px 10px; background: var(--surface-2); }
+    .result.pass { border-left: 4px solid var(--good); }
+    .result.warn { border-left: 4px solid var(--warn); }
+    .prompt-card { padding: 18px; margin: 14px 0; }
+    .prompt-card textarea { width: 100%; min-height: 280px; resize: vertical; border: 1px solid var(--line); border-radius: 12px; background: var(--code); color: var(--code-text); padding: 14px; font: .82rem/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .bib { display: grid; gap: 9px; }
+    .bib-item { padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+    .filter-hidden { display: none !important; }
+    footer { padding: 30px 0 max(30px, env(safe-area-inset-bottom)); border-top: 1px solid var(--line); color: var(--muted); }
+    @media (max-width: 850px) {
+      .span-4, .span-6, .span-8 { grid-column: span 12; }
+      .config-grid, .ui-shots, .validation-grid { grid-template-columns: 1fr; }
+      .step-head { grid-template-columns: 44px minmax(0,1fr); }
+      .source-link { grid-column: 2; white-space: normal; }
+    }
+    @media (max-width: 430px) {
+      .wrap { width: min(100% - 20px, var(--max)); }
+      header { padding-bottom: 25px; }
+      .panel, .step { padding: 14px; border-radius: 15px; }
+      .toolbar-inner { align-items: stretch; }
+      .progress-shell { order: 4; flex-basis: 100%; }
+      pre { font-size: .76rem; }
+      .architecture svg { min-width: 620px; }
+    }
+    @media print {
+      .toolbar, .copy-code, #self-check-controls, .skip-link { display: none !important; }
+      body { background: white; color: black; }
+      .panel, .step, .prompt-card, .bib-item { box-shadow: none; break-inside: avoid; }
+      details > * { display: block !important; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+<a class="skip-link" href="#guide-main">Skip to the deployment steps</a>
+<header>
+  <div class="wrap">
+    <div class="eyebrow">GYLIO · Production Deployment Academy</div>
+    <h1>From your laptop to a real production app, one verified step at a time.</h1>
+    <p class="hero-copy">An ELI5 deployment lab for the current GYLIO web/PWA: first prove the stack locally, then deploy the same idea to a Hostinger KVM 1 VPS with Nginx, PM2, MongoDB Atlas and Clerk. Every step has a test before you move on.</p>
+    <div class="badge-row" aria-label="Guide status">
+      <span class="badge"><span class="status-dot"></span>Validated 23 Aug 2026</span>
+      <span class="badge">Primary path: Ubuntu 24.04 LTS</span>
+      <span class="badge">Hostinger KVM 1</span>
+      <span class="badge">No secret values stored by this page</span>
+    </div>
+  </div>
+</header>
+
+<div class="toolbar" aria-label="Guide controls">
+  <div class="wrap toolbar-inner">
+    <strong id="progress-label">0 / 24 done</strong>
+    <div class="progress-shell" role="progressbar" aria-label="Deployment progress" aria-valuemin="0" aria-valuemax="24" aria-valuenow="0"><div class="progress-bar" id="progress-bar"></div></div>
+    <button type="button" id="resume-btn" class="primary">Resume next step</button>
+    <button type="button" id="print-btn">Print / save PDF</button>
+  </div>
+</div>
+
+<main id="guide-main" class="wrap">
+  <section class="panel notice good" id="start-here">
+    <h2>Start here: the mental model</h2>
+    <p><strong>ELI5:</strong> your VPS is a small computer that stays online. Nginx is the front desk. It gives visitors the built website and quietly sends anything beginning with <code>/api</code> to the Node server behind it. MongoDB Atlas stores shared data. Clerk proves who the user is.</p>
+    <p><strong>Why this is the primary path:</strong> you already have a KVM 1, so serving both the static frontend and API from the same VPS keeps the first production deployment understandable and avoids an extra cross-origin hosting layer.</p>
+  </section>
+
+  <section class="panel notice danger" id="current-limitations">
+    <h2>Read this before touching production</h2>
+    <ul class="do-list">
+      <li><strong>Billing is not live.</strong> Keep <code>VITE_BILLING_ENABLED=false</code>. The current repository intentionally treats checkout as a preview.</li>
+      <li><strong>AI is optional.</strong> The core app works without an OpenAI key; the AI endpoint reports unavailable.</li>
+      <li><strong>Clerk package drift:</strong> this repository still imports <code>@clerk/clerk-react</code>. Current Clerk React documentation uses <code>@clerk/react</code>. Do not “fix” that during infrastructure setup; migrate the SDK as a separately tested code change.</li>
+      <li><strong>KVM 1 is a CLI server.</strong> Do not choose Hostinger's Remote Desktop image; Hostinger currently requires KVM 2 or higher for that image.</li>
+      <li><strong>Never paste passwords, MongoDB URIs, Clerk secret keys or OpenAI keys into this guide.</strong> Only non-secret deployment labels below are stored in your browser.</li>
+    </ul>
+  </section>
+
+  <section class="panel" id="configuration">
+    <h2>1-minute configuration helper</h2>
+    <p>Fill only non-secret values. Code blocks marked “personalized” update automatically and these values persist on this device.</p>
+    <div class="config-grid">
+      <label>Domain<input type="text" data-config="DOMAIN" placeholder="app.example.com" autocomplete="off"></label>
+      <label>VPS IPv4<input type="text" data-config="VPS_IP" placeholder="203.0.113.10" autocomplete="off"></label>
+      <label>Deploy user<input type="text" data-config="DEPLOY_USER" value="deploy" autocomplete="off"></label>
+      <label>Repository URL<input type="text" data-config="REPO_URL" value="https://github.com/PillB/gylio.git" autocomplete="off"></label>
+      <label>Git branch<input type="text" data-config="BRANCH" value="main" autocomplete="off"></label>
+      <label>App directory<input type="text" data-config="APP_DIR" value="/var/www/gylio" autocomplete="off"></label>
+      <label>Laptop LAN IP<input type="text" data-config="LAPTOP_IP" placeholder="192.168.1.50" autocomplete="off"></label>
+    </div>
+    <p class="micro">Saved locally under <code>gylio-deploy-guide-settings-v1</code>. No credential input exists on this page by design.</p>
+  </section>
+
+  <section class="panel" id="architecture">
+    <h2>Production architecture</h2>
+    <div class="architecture" role="img" aria-label="Browser connects over HTTPS to Nginx on Hostinger. Nginx serves the frontend and proxies API calls to Node on port 3001. Node connects to MongoDB Atlas, Clerk and optionally OpenAI.">
+      <svg viewBox="0 0 1080 430" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="g1" x1="0" x2="1"><stop stop-color="#4f46e5"/><stop offset="1" stop-color="#0f766e"/></linearGradient>
+          <filter id="shadow"><feDropShadow dx="0" dy="6" stdDeviation="8" flood-opacity=".12"/></filter>
+        </defs>
+        <g font-family="system-ui, sans-serif" filter="url(#shadow)">
+          <rect x="30" y="155" width="185" height="110" rx="20" fill="#ffffff" stroke="#cbd5e1"/>
+          <text x="122" y="198" text-anchor="middle" font-size="18" font-weight="800" fill="#172033">iPhone / Browser</text>
+          <text x="122" y="226" text-anchor="middle" font-size="13" fill="#516174">HTTPS :443</text>
+          <rect x="305" y="80" width="440" height="270" rx="28" fill="#f8fafc" stroke="#94a3b8" stroke-width="2"/>
+          <text x="525" y="112" text-anchor="middle" font-size="16" font-weight="800" fill="#172033">Hostinger KVM 1 · Ubuntu 24.04</text>
+          <rect x="345" y="140" width="160" height="150" rx="18" fill="#111827"/>
+          <text x="425" y="177" text-anchor="middle" font-size="20" font-weight="800" fill="#ffffff">Nginx</text>
+          <text x="425" y="206" text-anchor="middle" font-size="13" fill="#dbeafe">/ → dist/</text>
+          <text x="425" y="231" text-anchor="middle" font-size="13" fill="#dbeafe">/api → 3001</text>
+          <text x="425" y="258" text-anchor="middle" font-size="12" fill="#94a3b8">TLS + reverse proxy</text>
+          <rect x="548" y="140" width="160" height="150" rx="18" fill="url(#g1)"/>
+          <text x="628" y="177" text-anchor="middle" font-size="20" font-weight="800" fill="#ffffff">Node API</text>
+          <text x="628" y="206" text-anchor="middle" font-size="13" fill="#e0e7ff">Express · PM2</text>
+          <text x="628" y="231" text-anchor="middle" font-size="13" fill="#e0e7ff">localhost:3001</text>
+          <text x="628" y="258" text-anchor="middle" font-size="12" fill="#d1fae5">never opened in UFW</text>
+          <rect x="830" y="34" width="210" height="90" rx="18" fill="#eef2ff" stroke="#a5b4fc"/>
+          <text x="935" y="72" text-anchor="middle" font-size="17" font-weight="800" fill="#312e81">MongoDB Atlas</text>
+          <text x="935" y="98" text-anchor="middle" font-size="12" fill="#516174">Free cluster · VPS /32</text>
+          <rect x="830" y="169" width="210" height="90" rx="18" fill="#ecfeff" stroke="#67e8f9"/>
+          <text x="935" y="207" text-anchor="middle" font-size="17" font-weight="800" fill="#155e75">Clerk</text>
+          <text x="935" y="233" text-anchor="middle" font-size="12" fill="#516174">identity + JWT issuer</text>
+          <rect x="830" y="304" width="210" height="90" rx="18" fill="#f8fafc" stroke="#cbd5e1"/>
+          <text x="935" y="342" text-anchor="middle" font-size="17" font-weight="800" fill="#172033">OpenAI</text>
+          <text x="935" y="368" text-anchor="middle" font-size="12" fill="#516174">optional AI feature</text>
+        </g>
+        <g fill="none" stroke="#4f46e5" stroke-width="4" marker-end="url(#none)">
+          <path class="flow-line" d="M215 210 H345"/>
+          <path class="flow-line" d="M505 215 H548"/>
+          <path class="flow-line" d="M708 185 C770 185 770 79 830 79"/>
+          <path class="flow-line" d="M708 215 H830"/>
+          <path class="flow-line" d="M708 250 C770 250 770 349 830 349"/>
+        </g>
+        <g fill="#4f46e5"><circle cx="343" cy="210" r="6"/><circle cx="546" cy="215" r="6"/><circle cx="828" cy="79" r="6"/><circle cx="828" cy="215" r="6"/><circle cx="828" cy="349" r="6"/></g>
+      </svg>
+    </div>
+    <p class="micro">Animated lines show request flow. Animation automatically stops when your device requests reduced motion.</p>
+  </section>
+
+  <section id="current-screens">
+    <div class="phase-title"><span class="phase-number">0</span><h2>Know what the current dashboards look like</h2></div>
+    <p>These are <strong>recreated screen maps</strong>, not frozen vendor screenshots. They use current menu labels verified against official documentation on 23 Aug 2026. Vendor UI moves frequently; each card links to the official page containing the live screenshots.</p>
+    <div class="ui-shots">
+      <article class="ui-shot">
+        <div class="ui-bar"><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-dot"></span></div>
+        <div class="ui-body"><div class="ui-side"><b>Overview</b><b>Settings</b><b>OS &amp; Panel</b><b>Backup &amp; Monitoring</b><b>Security</b><b>DNS Manager</b></div><div class="ui-main"><strong>Hostinger VPS</strong><div class="ui-card">VPS IP · status · uptime · OS</div><div class="ui-card">SSH information<br><span class="ui-action">Terminal</span></div><div class="ui-card">CPU · RAM · disk · bandwidth</div></div></div>
+        <div class="ui-caption"><strong>Hostinger hPanel → VPS → Manage.</strong> <a href="https://www.hostinger.com/support/5726606-how-to-use-the-vps-dashboard-in-hostinger/" target="_blank" rel="noopener">Open current official screenshots ↗</a></div>
+      </article>
+      <article class="ui-shot">
+        <div class="ui-bar"><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-dot"></span></div>
+        <div class="ui-body"><div class="ui-side"><b>Database</b><b>Network Access</b><b>Database Access</b></div><div class="ui-main"><strong>MongoDB Atlas</strong><div class="ui-card">Create deployment<br><span class="ui-action">M0 / Free</span></div><div class="ui-card">Network Access<br>VPS_IP/32</div><div class="ui-card">Connect → Drivers<br>mongodb+srv://…</div></div></div>
+        <div class="ui-caption"><strong>Atlas Free cluster flow.</strong> <a href="https://www.mongodb.com/docs/atlas/tutorial/deploy-free-tier-cluster/" target="_blank" rel="noopener">Open current official screenshots ↗</a></div>
+      </article>
+      <article class="ui-shot">
+        <div class="ui-bar"><span class="ui-dot"></span><span class="ui-dot"></span><span class="ui-dot"></span></div>
+        <div class="ui-body"><div class="ui-side"><b>Production</b><b>Domains</b><b>API keys</b><b>Sessions</b></div><div class="ui-main"><strong>Clerk Dashboard</strong><div class="ui-card">Production instance</div><div class="ui-card">API keys<br><span class="ui-action">Quick Copy</span></div><div class="ui-card">Domain + DNS records<br>Frontend API URL</div></div></div>
+        <div class="ui-caption"><strong>Clerk production configuration.</strong> <a href="https://clerk.com/docs/guides/development/deployment/production" target="_blank" rel="noopener">Open current official screenshots ↗</a></div>
+      </article>
+    </div>
+  </section>
+
+  <section class="panel" id="guide-search-panel">
+    <h2>Find a step</h2>
+    <label>Filter the guide<input id="step-filter" type="text" placeholder="Try: nginx, Clerk, DNS, laptop, rollback…" autocomplete="off"></label>
+    <p class="micro" id="filter-count">Showing all 24 steps.</p>
+  </section>
+
+  <section id="phase-local">
+    <div class="phase-title"><span class="phase-number">1</span><h2>Local laptop lab — prove the idea before the VPS</h2></div>
+    <div class="steps">
+      <article class="step" id="step-01" data-step="01"><div class="step-head"><label class="check-wrap" title="Mark step 1 complete"><input class="step-check" type="checkbox" aria-label="Mark step 1 complete"></label><div><div class="step-id">STEP 01 · LAPTOP</div><h3>Install Node 24 with nvm</h3></div><a class="source-link" href="https://github.com/nvm-sh/nvm" target="_blank" rel="noopener">Official nvm ↗</a></div>
+        <p><strong>ELI5:</strong> Node is the engine. nvm is the engine selector, so the project can use the same major Node version locally and in CI.</p>
+        <details open><summary>Do this</summary><p>Install nvm using its current official installer, reopen your terminal if needed, then install Node 24.</p><pre><code>curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.6/install.sh | bash
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+nvm install 24
+nvm use 24
+node --version
+npm --version</code></pre></details>
+        <div class="test-box"><strong>Test:</strong> <code>node --version</code><br><span class="expected">Expected: a version beginning with v24.</span></div>
+      </article>
+
+      <article class="step" id="step-02" data-step="02"><div class="step-head"><label class="check-wrap"><input class="step-check" type="checkbox" aria-label="Mark step 2 complete"></label><div><div class="step-id">STEP 02 · LAPTOP</div><h3>Clone GYLIO and install both dependency trees</h3></div><a class="source-link" href="https://github.com/PillB/gylio" target="_blank" rel="noopener">Repository ↗</a></div>
+        <p><strong>ELI5:</strong> the website and API deliberately have separate lockfiles. Install both exactly as locked; do not improvise versions.</p>
+        <details open><summary>Do this</summary><pre><code class="templated" data-template="git clone {{REPO_URL}} gylio&#10;cd gylio&#10;git checkout {{BRANCH}}&#10;nvm use 24&#10;npm ci --ignore-scripts&#10;npm ci --ignore-scripts --prefix server"></code></pre></details>
+        <div class="test-box"><strong>Test:</strong> <code>npm test</code><br><span class="expected">Expected: unit tests pass. If this fails, stop; do not deploy a broken checkout.</span></div>
+      </article>
+
+      <article class="step" id="step-03" data-step="03"><div class="step-head"><label class="check-wrap"><input class="step-check" type="checkbox" aria-label="Mark step 3 complete"></label><div><div class="step-id">STEP 03 · ACCOUNTS</div><h3>Create the free MongoDB Atlas database first</h3></div><a class="source-link" href="https://www.mongodb.com/docs/atlas/tutorial/deploy-free-tier-cluster/" target="_blank" rel="noopener">Atlas Free docs ↗</a></div>
+        <p><strong>ELI5:</strong> both your laptop and VPS need somewhere shared to store production-style data. Atlas's Free cluster is enough for this learning/deployment path.</p>
+        <details open><summary>Dashboard clicks</summary><ol class="do-list"><li>Atlas → create a new deployment.</li><li>Select <strong>M0 / Free</strong> when offered, choose a nearby supported region.</li><li>Create a dedicated database user and save its password in your password manager.</li><li>Network Access → temporarily add <strong>your laptop's current public IP</strong> for the local lab.</li><li>Connect → Drivers → copy the <code>mongodb+srv://…</code> URI and replace its password placeholder.</li></ol><p class="micro">Do not use <code>0.0.0.0/0</code> as the validated path. Later you will add the VPS's single IPv4 as <code>/32</code>.</p></details>
+        <div class="test-box"><strong>Test:</strong> Atlas should show the deployment as available and your laptop IP in Network Access.<br><span class="expected">Expected: one database user + a restricted IP rule.</span></div>
+      </article>
+
+      <article class="step" id="step-04" data-step="04"><div class="step-head"><label class="check-wrap"><input class="step-check" type="checkbox" aria-label="Mark step 4 complete"></label><div><div class="step-id">STEP 04 · AUTH</div><h3>Create a Clerk development instance and collect current values</h3></div><a class="source-link" href="https://clerk.com/docs/react/getting-started/quickstart" target="_blank" rel="noopener">Current Clerk React ↗</a></div>
+        <p><strong>ELI5:</strong> Clerk gives the browser a signed identity token. Your API checks who signed it before returning a user's private data.</p>
+        <details open><summary>Dashboard clicks</summary><ol class="do-list"><li>Create/select a <strong>development</strong> instance in Clerk.</li><li>API keys → Quick Copy → copy the Publishable Key for the browser.</li><li>Record your Clerk Frontend API / issuer URL. Development issuer format is similar to <code>https://verb-noun-00.clerk.accounts.dev</code>.</li><li>Do not copy a Clerk Secret Key into frontend variables.</li></ol><p class="micro">Current Clerk React docs install <code>@clerk/react</code>. The current GYLIO branch still uses the older package name; leave source migration for its own tested change.</p></details>
+        <div class="test-box"><strong>Test:</strong> API keys page shows a <code>pk_test_…</code> publishable key and the development instance is selected.<br><span class="expected">Expected: no production key used for this local lab.</span></div>
+      </article>
+
+      <article class="step" id="step-05" data-step="05"><div class="step-head"><label class="check-wrap"><input class="step-check" type="checkbox" aria-label="Mark step 5 complete"></label><div><div class="step-id">STEP 05 · LOCAL CONFIG</div><h3>Configure local frontend and API without committing secrets</h3></div><a class="source-link" href="https://nodejs.org/docs/latest-v24.x/api/cli.html" target="_blank" rel="noopener">Node 24 CLI ↗</a></div>
+        <p><strong>ELI5:</strong> environment files are sticky notes for your computer. Git should never receive the sticky notes containing secrets.</p>
+        <details open><summary>Do this</summary><pre><code>cp .env.local.example .env.local
+cp server/.env.example server/.env
+# Edit .env.local:
+# VITE_CLERK_PUBLISHABLE_KEY=pk_test_...
+# VITE_API_BASE_URL=
+# VITE_BILLING_ENABLED=false
+
+# Edit server/.env:
+# NODE_ENV=development
+# PORT=3001
+# MONGODB_URI='mongodb+srv://...'
+# CORS_ORIGINS=http://localhost:5173
+# CLERK_ISSUER=https://YOUR_DEV_INSTANCE.clerk.accounts.dev
+# CLERK_AUTHORIZED_PARTIES=http://localhost:5173
+# ENABLE_MANUAL_TRIALS=false</code></pre><p class="micro">For the validated laptop path, use Atlas rather than the repository's optional SQLite fallback so local and production persistence behave similarly.</p></details>
+        <div class="test-box"><strong>Test:</strong> <code>git status --short</code><br><span class="expected">Expected: your real <code>.env.local</code> and <code>server/.env</code> are not staged for commit.</span></div>
+      </article>
+
+      <article class="step" id="step-06" data-step="06"><div class="step-head"><label class="check-wrap"><input class="step-check" type="checkbox" aria-label="Mark step 6 complete"></label><div><div class="step-id">STEP 06 · LOCAL RUN</div><h3>Run API + Vite, then open it from your iPhone</h3></div><a class="source-link" href="https://vite.dev/guide/cli" target="_blank" rel="noopener">Vite CLI ↗</a></div>
+        <p><strong>ELI5:</strong> two terminals simulate production: one runs the private API, the other serves the browser app and forwards <code>/api</code> requests to it.</p>
+        <details open><summary>Do this</summary><p><strong>Terminal A:</strong></p><pre><code>cd gylio/server
+node --env-file=.env server.js</code></pre><p><strong>Terminal B:</strong></p><pre><code>cd gylio
+npm run dev -- --host 0.0.0.0</code></pre><p>Same laptop: open <code>http://localhost:5173/gylio/</code>. Same Wi-Fi iPhone:</p><pre><code class="templated" data-template="http://{{LAPTOP_IP}}:5173/gylio/"></code></pre><p class="micro">For iPhone Clerk testing, add the LAN origin to local <code>CORS_ORIGINS</code> and <code>CLERK_AUTHORIZED_PARTIES</code> (comma-separated) and restart the API.</p></details>
+        <div class="test-box"><strong>Test:</strong> <code>curl -i http://localhost:3001/api/health</code><br><span class="expected">Expected: HTTP 200 with <code>status:"ok"</code> and <code>databaseReady:true</code>. The iPhone page should fit without horizontal scrolling.</span></div>
+      </article>
+    </div>
+  </section>
+
+  <section id="phase-vps-foundation">
+    <div class="phase-title"><span class="phase-number">2</span><h2>Prepare the Hostinger KVM 1 safely</h2></div>
+    <div class="steps">
+      <article class="step" id="step-07" data-step="07"><div class="step-head"><label class="check-wrap"><input class="step-check" type="checkbox" aria-label="Mark step 7 complete"></label><div><div class="step-id">STEP 07 · HOSTINGER</div><h3>Confirm the VPS and record its IP</h3></div><a class="source-link" href="https://www.hostinger.com/support/5726606-how-to-use-the-vps-dashboard-in-hostinger/" target="_blank" rel="noopener">VPS dashboard ↗</a></div>
+        <p><strong>ELI5:</strong> before changing anything, write down which computer you are about to change.</p>
+        <details open><summary>Dashboard clicks</summary><ol class="do-list"><li>hPanel → <strong>VPS</strong> → your KVM 1 → <strong>Manage</strong>.</li><li>Overview → record IPv4, status, current OS and backups.</li><li>If this VPS already hosts anything important, take/verify a backup before an OS reinstall.</li></ol></details>
+        <div class="test-box"><strong>Test:</strong> compare the dashboard IPv4 with the <strong>VPS IPv4</strong> field at the top of this guide.<br><span class="expected">Expected: they match exactly.</span></div>
+      </article>
+
+      <article class="step" id="step-08" data-step="08"><div class="step-head"><label class="check-wrap"><input class="step-check" type="checkbox" aria-label="Mark step 8 complete"></label><div><div class="step-id">STEP 08 · OS</div><h3>Use plain Ubuntu 24.04 LTS</h3></div><a class="source-link" href="https://www.hostinger.com/support/1583571-what-are-the-available-operating-systems-for-vps-at-hostinger/" target="_blank" rel="noopener">Hostinger OS list ↗</a></div>
+        <p><strong>ELI5:</strong> a server does not need a desktop. A smaller plain OS leaves more of your 4 GB RAM for GYLIO.</p>
+        <details open><summary>Dashboard clicks</summary><ol class="do-list"><li>VPS → Manage → <strong>OS &amp; Panel</strong>.</li><li>If a clean install is appropriate, choose plain <strong>Ubuntu 24.04</strong>, not a desktop/remote-desktop image.</li><li>Read Hostinger's destructive reinstall warning before confirming.</li></ol></details>
+        <div class="test-box"><strong>Test after install:</strong> open Hostinger Browser Terminal and run <code>cat /etc/os-release</code>.<br><span class="expected">Expected: Ubuntu 24.04 LTS.</span></div>
+      </article>
+
+      <article class="step" id="step-09" data-step="09"><div class="step-head"><label class="check-wrap"><input class="step-check" type="checkbox" aria-label="Mark step 9 complete"></label><div><div class="step-id">STEP 09 · SSH</div><h3>Add an SSH key, connect, then create a normal deploy user</h3></div><a class="source-link" href="https://www.hostinger.com/support/4792364-how-to-use-ssh-keys-at-hostinger-vps/" target="_blank" rel="noopener">Hostinger SSH keys ↗</a></div>
+        <p><strong>ELI5:</strong> root is the master key. Use it to set up the house, then do everyday work as a normal user with sudo.</p>
+        <details open><summary>Do this</summary><p>First add your public SSH key in Hostinger. Connect as root once:</p><pre><code class="templated" data-template="ssh root@{{VPS_IP}}"></code></pre><p>Create the deploy user and copy the already-authorized key:</p><pre><code class="templated" data-template="adduser {{DEPLOY_USER}}&#10;usermod -aG sudo {{DEPLOY_USER}}&#10;install -d -m 700 -o {{DEPLOY_USER}} -g {{DEPLOY_USER}} /home/{{DEPLOY_USER}}/.ssh&#10;cp /root/.ssh/authorized_keys /home/{{DEPLOY_USER}}/.ssh/authorized_keys&#10;chown {{DEPLOY_USER}}:{{DEPLOY_USER}} /home/{{DEPLOY_USER}}/.ssh/authorized_keys&#10;chmod 600 /home/{{DEPLOY_USER}}/.ssh/authorized_keys"></code></pre><p>Open a new terminal and prove the new login works <strong>before</strong> closing root:</p><pre><code class="templated" data-template="ssh {{DEPLOY_USER}}@{{VPS_IP}}&#10;sudo whoami"></code></pre></details>
+        <div class="test-box"><strong>Expected:</strong> SSH succeeds and <code>sudo whoami</code> prints <code>root</code>.<br><span class="expected">Do not continue if the deploy-user login fails.</span></div>
+      </article>
+
+      <article class="step" id="step-10" data-step="10"><div class="step-head"><label class="check-wrap"><input class="step-check" type="checkbox" aria-label="Mark step 10 complete"></label><div><div class="step-id">STEP 10 · BASIC SECURITY</div><h3>Patch Ubuntu and enable the firewall without locking yourself out</h3></div><a class="source-link" href="https://ubuntu.com/server/docs/how-to/security/firewalls/" target="_blank" rel="noopener">Ubuntu firewall ↗</a></div>
+        <p><strong>ELI5:</strong> the firewall is a door list. We explicitly keep SSH open first, then allow the web doors. Port 3001 stays off the public list.</p>
+        <details open><summary>Run in this exact order</summary><pre><code>sudo apt update
+sudo apt upgrade -y
+sudo apt install -y ufw curl git ca-certificates nginx
+sudo ufw allow OpenSSH
+sudo ufw allow 'Nginx Full'
+sudo ufw enable
+sudo ufw status verbose</code></pre><p class="micro">Never add a UFW allow rule for port 3001 in this architecture. Nginx is the public front door.</p></details>
+        <div class="test-box"><strong>Test:</strong> keep your current SSH session open, start a second SSH session, and run <code>sudo ufw status</code>.<br><span class="expected">Expected: OpenSSH + Nginx Full allowed; no 3001 rule.</span></div>
+      </article>
+
+      <article class="step" id="step-11" data-step="11"><div class="step-head"><label class="check-wrap"><input class="step-check" type="checkbox" aria-label="Mark step 11 complete"></label><div><div class="step-id">STEP 11 · RUNTIME</div><h3>Install Node 24 and PM2 as the deploy user</h3></div><a class="source-link" href="https://pm2.keymetrics.io/docs/usage/quick-start/" target="_blank" rel="noopener">PM2 Quick Start ↗</a></div>
+        <p><strong>ELI5:</strong> Node runs the API; PM2 notices if the API process exits and also remembers how to start it after a reboot.</p>
+        <details open><summary>Do this as the deploy user</summary><pre><code>curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.6/install.sh | bash
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+nvm install 24
+nvm alias default 24
+npm install -g pm2
+node --version
+pm2 --version
+nginx -v</code></pre></details>
+        <div class="test-box"><strong>Expected:</strong> Node begins with <code>v24</code>, PM2 prints a version, Nginx prints a version.<br><span class="expected">All three commands must work before cloning the app.</span></div>
+      </article>
+    </div>
+  </section>
+
+  <section id="phase-prod-services">
+    <div class="phase-title"><span class="phase-number">3</span><h2>Production database + identity</h2></div>
+    <div class="steps">
+      <article class="step" id="step-12" data-step="12"><div class="step-head"><label class="check-wrap"><input class="step-check" type="checkbox" aria-label="Mark step 12 complete"></label><div><div class="step-id">STEP 12 · ATLAS</div><h3>Allow only the VPS public IP in Atlas</h3></div><a class="source-link" href="https://www.mongodb.com/docs/atlas/security/quick-start/" target="_blank" rel="noopener">Atlas security ↗</a></div>
+        <p><strong>ELI5:</strong> Atlas should know exactly which server is allowed to knock on the database door.</p>
+        <details open><summary>Dashboard clicks</summary><ol class="do-list"><li>Atlas → Network Access.</li><li>Add the VPS IPv4 as a single-host rule: <code class="templated" data-template="{{VPS_IP}}/32"></code>.</li><li>Keep the laptop rule only while you need local development; remove stale IPs.</li><li>Database Access → confirm the GYLIO database user has only the permissions it needs.</li></ol></details>
+        <div class="test-box"><strong>Test:</strong> Network Access contains the VPS IP with a <code>/32</code> mask.<br><span class="expected">Expected: no allow-from-anywhere <code>0.0.0.0/0</code> rule.</span></div>
+      </article>
+
+      <article class="step" id="step-13" data-step="13"><div class="step-head"><label class="check-wrap"><input class="step-check" type="checkbox" aria-label="Mark step 13 complete"></label><div><div class="step-id">STEP 13 · CLERK</div><h3>Create/configure the Clerk production instance for your domain</h3></div><a class="source-link" href="https://clerk.com/docs/guides/development/deployment/production" target="_blank" rel="noopener">Clerk production ↗</a></div>
+        <p><strong>ELI5:</strong> development identity and production identity are separate houses. Production gets your real domain and live publishable key.</p>
+        <details open><summary>Dashboard clicks</summary><ol class="do-list"><li>In Clerk, create/select the <strong>production</strong> instance.</li><li>Configure the production domain exactly as your intended HTTPS app origin.</li><li>Domains → add the DNS records Clerk requests. DNS can take time to propagate.</li><li>API keys → Quick Copy → record the new <code>pk_live_…</code> publishable key.</li><li>Record the production Frontend API / issuer URL. Current Clerk docs show production issuer format similar to <code>https://clerk.your-domain.com</code>.</li><li>Restrict allowed subdomains / authorized parties to the real app origin.</li></ol><p class="micro">If you later change the production domain, Clerk generates a new publishable key; update and rebuild the frontend.</p></details>
+        <div class="test-box"><strong>Test:</strong> production instance selected, domain configured, and a <code>pk_live_…</code> key exists.<br><span class="expected">Expected: no development key in the production build.</span></div>
+      </article>
+    </div>
+  </section>
+
+  <section id="phase-deploy">
+    <div class="phase-title"><span class="phase-number">4</span><h2>Put the app on the VPS</h2></div>
+    <div class="steps">
+      <article class="step" id="step-14" data-step="14"><div class="step-head"><label class="check-wrap"><input class="step-check" type="checkbox" aria-label="Mark step 14 complete"></label><div><div class="step-id">STEP 14 · GIT</div><h3>Clone the app into /var/www and install locked dependencies</h3></div><a class="source-link" href="https://docs.npmjs.com/cli/v11/commands/npm-ci" target="_blank" rel="noopener">npm ci ↗</a></div>
+        <p><strong>ELI5:</strong> production should reproduce the dependency versions that CI already tested.</p>
+        <details open><summary>Do this</summary><pre><code class="templated" data-template="sudo mkdir -p {{APP_DIR}}&#10;sudo chown {{DEPLOY_USER}}:{{DEPLOY_USER}} {{APP_DIR}}&#10;git clone {{REPO_URL}} {{APP_DIR}}&#10;cd {{APP_DIR}}&#10;git checkout {{BRANCH}}&#10;nvm use 24&#10;npm ci --ignore-scripts&#10;npm ci --ignore-scripts --prefix server"></code></pre></details>
+        <div class="test-box"><strong>Test:</strong> <code>npm test</code> and <code>npm run check:i18n</code>.<br><span class="expected">Expected: both pass before you create production config.</span></div>
+      </article>
+
+      <article class="step" id="step-15" data-step="15"><div class="step-head"><label class="check-wrap"><input class="step-check" type="checkbox" aria-label="Mark step 15 complete"></label><div><div class="step-id">STEP 15 · FRONTEND ENV</div><h3>Create the production browser environment and build at the domain root</h3></div><a class="source-link" href="https://vite.dev/guide/env-and-mode" target="_blank" rel="noopener">Vite env ↗</a></div>
+        <p><strong>ELI5:</strong> Vite bakes browser-visible settings into the static files. The Clerk publishable key may be visible; secret keys may not.</p>
+        <details open><summary>Do this</summary><pre><code class="templated" data-template="cd {{APP_DIR}}&#10;nano .env.production.local&#10;# Add:&#10;# VITE_CLERK_PUBLISHABLE_KEY=pk_live_REPLACE_ME&#10;# VITE_API_BASE_URL=&#10;# VITE_BILLING_ENABLED=false&#10;&#10;VITE_BASE_PATH=/ npm run build"></code></pre><p class="micro">The explicit shell variable matters because the current Vite config reads <code>process.env.VITE_BASE_PATH</code> while loading configuration. An empty API base means same-origin <code>/api</code>, which Nginx will proxy.</p></details>
+        <div class="test-box"><strong>Test:</strong> <code>test -f dist/index.html &amp;&amp; test -f dist/deployment-guide.html &amp;&amp; echo BUILD_OK</code><br><span class="expected">Expected: BUILD_OK.</span></div>
+      </article>
+
+      <article class="step" id="step-16" data-step="16"><div class="step-head"><label class="check-wrap"><input class="step-check" type="checkbox" aria-label="Mark step 16 complete"></label><div><div class="step-id">STEP 16 · API SECRETS</div><h3>Put backend secrets outside the repository</h3></div><a class="source-link" href="https://nodejs.org/docs/latest-v24.x/api/cli.html" target="_blank" rel="noopener">Node env-file ↗</a></div>
+        <p><strong>ELI5:</strong> your code is shareable; your production secrets are not. Keep the secret file in <code>/etc</code> with narrow permissions.</p>
+        <details open><summary>Do this</summary><pre><code class="templated" data-template="sudo install -d -m 750 -o root -g {{DEPLOY_USER}} /etc/gylio&#10;sudo nano /etc/gylio/gylio-api.env&#10;&#10;# Put REAL values in that file, for example:&#10;# NODE_ENV=production&#10;# PORT=3001&#10;# MONGODB_URI='mongodb+srv://USER:PASSWORD@CLUSTER.mongodb.net/gylio?retryWrites=true&amp;w=majority'&#10;# CORS_ORIGINS=https://{{DOMAIN}}&#10;# CLERK_ISSUER=https://YOUR_PRODUCTION_CLERK_ISSUER&#10;# CLERK_JWKS_URL=&#10;# CLERK_AUTHORIZED_PARTIES=https://{{DOMAIN}}&#10;# OPENAI_API_KEY=&#10;# OPENAI_MODEL=gpt-4o-mini&#10;# ENABLE_MANUAL_TRIALS=false&#10;&#10;sudo chown root:{{DEPLOY_USER}} /etc/gylio/gylio-api.env&#10;sudo chmod 640 /etc/gylio/gylio-api.env"></code></pre><p class="micro">If your MongoDB password contains shell-special characters, keep the URI quoted as shown.</p></details>
+        <div class="test-box"><strong>Test:</strong> <code>stat -c '%a %U %G' /etc/gylio/gylio-api.env</code><br><span class="expected">Expected: 640 root deploy (or your chosen deploy group).</span></div>
+      </article>
+
+      <article class="step" id="step-17" data-step="17"><div class="step-head"><label class="check-wrap"><input class="step-check" type="checkbox" aria-label="Mark step 17 complete"></label><div><div class="step-id">STEP 17 · API PROCESS</div><h3>Start the production API with PM2 and make it survive reboots</h3></div><a class="source-link" href="https://pm2.keymetrics.io/docs/usage/startup/" target="_blank" rel="noopener">PM2 startup ↗</a></div>
+        <p><strong>ELI5:</strong> load the secret sticky notes into this shell, start the process, then ask PM2 to remember it.</p>
+        <details open><summary>Do this</summary><pre><code class="templated" data-template="cd {{APP_DIR}}&#10;set -a&#10;source /etc/gylio/gylio-api.env&#10;set +a&#10;pm2 start server/server.js --name gylio-api --cwd {{APP_DIR}}&#10;pm2 status&#10;pm2 save&#10;pm2 startup"></code></pre><p><strong>Important:</strong> <code>pm2 startup</code> prints a second command beginning with <code>sudo</code>. Copy and run <em>that exact generated command</em>, then run <code>pm2 save</code> again.</p></details>
+        <div class="test-box"><strong>Test:</strong> <code>curl -fsS http://127.0.0.1:3001/api/health</code><br><span class="expected">Expected: JSON with status ok, database mongodb, databaseReady true and authConfigured true. aiConfigured may be false.</span></div>
+      </article>
+
+      <article class="step" id="step-18" data-step="18"><div class="step-head"><label class="check-wrap"><input class="step-check" type="checkbox" aria-label="Mark step 18 complete"></label><div><div class="step-id">STEP 18 · NGINX</div><h3>Make Nginx serve the frontend and proxy /api</h3></div><a class="source-link" href="https://nginx.org/en/docs/http/ngx_http_proxy_module.html" target="_blank" rel="noopener">Nginx proxy docs ↗</a></div>
+        <p><strong>ELI5:</strong> users talk only to Nginx. Static page? Nginx reads a file. API request? Nginx whispers it to Node on the same machine.</p>
+        <details open><summary>Create the site file</summary><pre><code class="templated" data-template="sudo nano /etc/nginx/sites-available/gylio&#10;&#10;# Paste:&#10;server {&#10;  listen 80;&#10;  listen [::]:80;&#10;  server_name {{DOMAIN}};&#10;&#10;  root {{APP_DIR}}/dist;&#10;  index index.html;&#10;&#10;  location /api/ {&#10;    proxy_pass http://127.0.0.1:3001;&#10;    proxy_http_version 1.1;&#10;    proxy_set_header Host $host;&#10;    proxy_set_header X-Real-IP $remote_addr;&#10;    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;&#10;    proxy_set_header X-Forwarded-Proto $scheme;&#10;  }&#10;&#10;  location /assets/ {&#10;    try_files $uri =404;&#10;    expires 1y;&#10;    add_header Cache-Control &quot;public, immutable&quot;;&#10;  }&#10;&#10;  location = /service-worker.js {&#10;    add_header Cache-Control &quot;no-cache, no-store, must-revalidate&quot;;&#10;  }&#10;&#10;  location / {&#10;    try_files $uri $uri/ /index.html;&#10;  }&#10;}&#10;&#10;sudo ln -sfn /etc/nginx/sites-available/gylio /etc/nginx/sites-enabled/gylio&#10;sudo rm -f /etc/nginx/sites-enabled/default&#10;sudo nginx -t&#10;sudo systemctl reload nginx"></code></pre></details>
+        <div class="test-box"><strong>Test from the VPS:</strong> <code>curl -I -H 'Host: your-domain' http://127.0.0.1/</code> and <code>curl -H 'Host: your-domain' http://127.0.0.1/api/health</code>.<br><span class="expected">Expected: frontend returns HTTP 200 and API returns health JSON through Nginx.</span></div>
+      </article>
+    </div>
+  </section>
+
+  <section id="phase-public">
+    <div class="phase-title"><span class="phase-number">5</span><h2>Make it public: DNS + HTTPS</h2></div>
+    <div class="steps">
+      <article class="step" id="step-19" data-step="19"><div class="step-head"><label class="check-wrap"><input class="step-check" type="checkbox" aria-label="Mark step 19 complete"></label><div><div class="step-id">STEP 19 · DNS</div><h3>Point your domain at the VPS</h3></div><a class="source-link" href="https://www.hostinger.com/support/1583227-how-to-point-a-domain-to-your-vps-at-hostinger/" target="_blank" rel="noopener">Hostinger DNS ↗</a></div>
+        <p><strong>ELI5:</strong> DNS is the internet's address book. Your domain's A record must contain the VPS IPv4.</p>
+        <details open><summary>Dashboard clicks</summary><ol class="do-list"><li>At the DNS provider for the domain, create/update the <strong>A</strong> record that represents the hostname you chose.</li><li>Point it to <code class="templated" data-template="{{VPS_IP}}"></code>.</li><li>If you use a separate <code>www</code> hostname, either add its A record too and include it in Nginx/Certbot, or redirect it intentionally. Do not add it blindly.</li><li>Wait for DNS propagation if the old value is cached.</li></ol></details>
+        <div class="test-box"><strong>Test from your laptop:</strong> <code class="templated" data-template="dig +short {{DOMAIN}}"></code><br><span class="expected">Expected: it eventually returns the VPS IPv4.</span></div>
+      </article>
+
+      <article class="step" id="step-20" data-step="20"><div class="step-head"><label class="check-wrap"><input class="step-check" type="checkbox" aria-label="Mark step 20 complete"></label><div><div class="step-id">STEP 20 · TLS</div><h3>Add HTTPS with Certbot's current Nginx flow</h3></div><a class="source-link" href="https://certbot.eff.org/instructions?ws=nginx&amp;os=snap" target="_blank" rel="noopener">Certbot official ↗</a></div>
+        <p><strong>ELI5:</strong> HTTPS gives the browser proof that it reached your real domain and encrypts traffic.</p>
+        <details open><summary>Do this only after DNS points correctly</summary><pre><code class="templated" data-template="sudo snap install core&#10;sudo snap refresh core&#10;sudo snap install --classic certbot&#10;sudo ln -sfn /snap/bin/certbot /usr/bin/certbot&#10;sudo certbot --nginx -d {{DOMAIN}}&#10;sudo certbot renew --dry-run"></code></pre><p class="micro">If you intentionally configured additional hostnames in Nginx, include each with its own <code>-d</code>. Do not request certificates for hostnames that do not resolve to this VPS.</p></details>
+        <div class="test-box"><strong>Test:</strong> <code class="templated" data-template="curl -I https://{{DOMAIN}}"></code><br><span class="expected">Expected: successful TLS and an HTTP 200/3xx response with no certificate warning.</span></div>
+      </article>
+
+      <article class="step" id="step-21" data-step="21"><div class="step-head"><label class="check-wrap"><input class="step-check" type="checkbox" aria-label="Mark step 21 complete"></label><div><div class="step-id">STEP 21 · CLERK FINALIZE</div><h3>Rebuild after Clerk production DNS and key are final</h3></div><a class="source-link" href="https://clerk.com/docs/guides/development/deployment/changing-domains" target="_blank" rel="noopener">Clerk domain notes ↗</a></div>
+        <p><strong>ELI5:</strong> Clerk may issue a new production publishable key when the production domain changes. The static frontend must contain the current one.</p>
+        <details open><summary>Do this</summary><ol class="do-list"><li>Clerk production instance → verify requested DNS records are verified.</li><li>API keys → copy the final production publishable key.</li><li>Update <code>.env.production.local</code>.</li><li>Ensure <code>CLERK_ISSUER</code> and <code>CLERK_AUTHORIZED_PARTIES</code> in <code>/etc/gylio/gylio-api.env</code> match production.</li></ol><pre><code class="templated" data-template="cd {{APP_DIR}}&#10;VITE_BASE_PATH=/ npm run build&#10;set -a; source /etc/gylio/gylio-api.env; set +a&#10;pm2 restart gylio-api --update-env&#10;pm2 save&#10;sudo nginx -t &amp;&amp; sudo systemctl reload nginx"></code></pre></details>
+        <div class="test-box"><strong>Test:</strong> use a private/incognito browser, sign up/sign in, reload, then open a protected GYLIO page.<br><span class="expected">Expected: session works on the HTTPS production domain and protected API calls do not return 401.</span></div>
+      </article>
+    </div>
+  </section>
+
+  <section id="phase-release">
+    <div class="phase-title"><span class="phase-number">6</span><h2>Prove production, learn updates, keep a rollback</h2></div>
+    <div class="steps">
+      <article class="step" id="step-22" data-step="22"><div class="step-head"><label class="check-wrap"><input class="step-check" type="checkbox" aria-label="Mark step 22 complete"></label><div><div class="step-id">STEP 22 · RELEASE TEST</div><h3>Run a production smoke test before calling it done</h3></div><a class="source-link" href="https://playwright.dev/docs/test-cli" target="_blank" rel="noopener">Playwright CLI ↗</a></div>
+        <p><strong>ELI5:</strong> “it opened once” is not a release test. Check frontend, database health, auth, navigation and mobile layout.</p>
+        <details open><summary>Run these checks</summary><pre><code class="templated" data-template="curl -fsS https://{{DOMAIN}}/api/health&#10;curl -fsSI https://{{DOMAIN}}/&#10;curl -fsSI https://{{DOMAIN}}/deployment-guide.html&#10;&#10;# From a clean local repo with Playwright installed:&#10;PLAYWRIGHT_BASE_URL=https://{{DOMAIN}}/ npx playwright test"></code></pre><ul class="do-list"><li>iPhone Safari: onboarding/tasks/settings fit the viewport.</li><li>Production sign-in works.</li><li>Create a small test task, reload, confirm it persists/syncs.</li><li>Open this Deployment Academy from the app footer.</li></ul></details>
+        <div class="test-box"><strong>Expected health:</strong> <code>status:"ok"</code>, <code>database:"mongodb"</code>, <code>databaseReady:true</code>, <code>authConfigured:true</code>.<br><span class="expected">Only then mark production deployed.</span></div>
+      </article>
+
+      <article class="step" id="step-23" data-step="23"><div class="step-head"><label class="check-wrap"><input class="step-check" type="checkbox" aria-label="Mark step 23 complete"></label><div><div class="step-id">STEP 23 · UPDATE</div><h3>Use the same small deployment routine for future releases</h3></div><a class="source-link" href="https://git-scm.com/docs/git-pull" target="_blank" rel="noopener">Git docs ↗</a></div>
+        <p><strong>ELI5:</strong> updates should be boring and repeatable. Pull only fast-forward code, reinstall from lockfiles, rebuild, restart, test.</p>
+        <details open><summary>Routine</summary><pre><code class="templated" data-template="cd {{APP_DIR}}&#10;git fetch origin&#10;git checkout {{BRANCH}}&#10;git pull --ff-only&#10;npm ci --ignore-scripts&#10;npm ci --ignore-scripts --prefix server&#10;npm test&#10;npm run check:i18n&#10;VITE_BASE_PATH=/ npm run build&#10;set -a; source /etc/gylio/gylio-api.env; set +a&#10;pm2 restart gylio-api --update-env&#10;pm2 save&#10;sudo nginx -t &amp;&amp; sudo systemctl reload nginx&#10;curl -fsS https://{{DOMAIN}}/api/health"></code></pre></details>
+        <div class="test-box"><strong>Test:</strong> health endpoint + one real browser smoke test after every deploy.<br><span class="expected">Expected: never deploy merely because <code>git pull</code> succeeded.</span></div>
+      </article>
+
+      <article class="step" id="step-24" data-step="24"><div class="step-head"><label class="check-wrap"><input class="step-check" type="checkbox" aria-label="Mark step 24 complete"></label><div><div class="step-id">STEP 24 · ROLLBACK</div><h3>Practice returning to a known-good Git commit</h3></div><a class="source-link" href="https://git-scm.com/docs/git-switch" target="_blank" rel="noopener">Git switch ↗</a></div>
+        <p><strong>ELI5:</strong> rollback means “put yesterday's known-good code back, rebuild it, and restart”—without deleting your database.</p>
+        <details open><summary>Emergency procedure</summary><pre><code class="templated" data-template="cd {{APP_DIR}}&#10;git log --oneline -10&#10;# Copy the last known-good SHA, then:&#10;git switch --detach GOOD_SHA&#10;npm ci --ignore-scripts&#10;npm ci --ignore-scripts --prefix server&#10;VITE_BASE_PATH=/ npm run build&#10;set -a; source /etc/gylio/gylio-api.env; set +a&#10;pm2 restart gylio-api --update-env&#10;sudo nginx -t &amp;&amp; sudo systemctl reload nginx&#10;curl -fsS https://{{DOMAIN}}/api/health"></code></pre><p class="micro">A code rollback does not automatically undo incompatible database migrations. GYLIO should add explicit migration/versioning discipline before introducing destructive production schema changes.</p></details>
+        <div class="test-box"><strong>Practice:</strong> know the SHA of one known-good release and where Atlas/Hostinger backups live.<br><span class="expected">Expected: rollback is a rehearsed procedure, not a guess during an outage.</span></div>
+      </article>
+    </div>
+  </section>
+
+  <section class="panel notice" id="troubleshooting">
+    <h2>Troubleshooting by symptom</h2>
+    <div class="grid">
+      <div class="span-6"><h3>502 Bad Gateway</h3><p>Nginx is alive but Node is not answering. Run:</p><pre><code>pm2 status
+pm2 logs gylio-api --lines 100
+curl -i http://127.0.0.1:3001/api/health</code></pre></div>
+      <div class="span-6"><h3>Health says databaseReady:false</h3><p>Check Atlas IP access, database user, URI and PM2 env:</p><pre><code>pm2 env gylio-api
+pm2 logs gylio-api --lines 100</code></pre></div>
+      <div class="span-6"><h3>Frontend works, login fails</h3><p>Check production Clerk key, domain/DNS, issuer and <code>CLERK_AUTHORIZED_PARTIES</code>. Rebuild after changing a Vite variable.</p></div>
+      <div class="span-6"><h3>Deep link gives 404</h3><p>Nginx must keep <code>try_files $uri $uri/ /index.html;</code> in <code>location /</code>.</p></div>
+      <div class="span-6"><h3>SSH stopped working</h3><p>Use Hostinger Browser Terminal / console. Check UFW and SSH settings. This is why the guide tests a second SSH session before progressing.</p></div>
+      <div class="span-6"><h3>Certificate command fails</h3><p>First verify DNS resolves to this VPS and port 80 is reachable. Certbot cannot prove control of a hostname pointed elsewhere.</p></div>
+    </div>
+  </section>
+
+  <section class="panel" id="self-validation">
+    <h2>Built-in guide self-check</h2>
+    <p>This checks the tutorial page itself. It cannot magically prove your external accounts, but it can catch broken persistence, duplicate step IDs, missing sections, layout metadata and a reachable same-origin health endpoint.</p>
+    <div id="self-check-controls"><button type="button" id="run-self-check" class="primary">Run guide self-check</button> <button type="button" id="reset-progress">Reset checkmarks</button></div>
+    <div id="self-check-results" class="result-list" aria-live="polite"></div>
+  </section>
+
+  <section class="panel" id="six-pass-validation">
+    <h2>The six Solarize validation passes</h2>
+    <p>Instead of six subjective rereads, the repository validator runs six named gates on this page every CI run.</p>
+    <div class="validation-grid">
+      <div class="validation-item"><strong>Pass 1 — Source freshness</strong><br><span class="micro">Current official domains + 2026-08-23 validation stamp.</span></div>
+      <div class="validation-item"><strong>Pass 2 — Completeness</strong><br><span class="micro">All phases, 24 unique steps, local + KVM paths, tests and expected results.</span></div>
+      <div class="validation-item"><strong>Pass 3 — Command safety</strong><br><span class="micro">SSH before UFW enable, Nginx test, renewal dry-run, no public 3001, no 0.0.0.0/0 recommendation.</span></div>
+      <div class="validation-item"><strong>Pass 4 — Accessibility / ELI5</strong><br><span class="micro">Viewport, skip link, reduced motion, focus, readable steps and ELI5 language.</span></div>
+      <div class="validation-item"><strong>Pass 5 — Persistence / mobile</strong><br><span class="micro">LocalStorage progress, safe areas, narrow viewport layout and code scrolling.</span></div>
+      <div class="validation-item"><strong>Pass 6 — Standalone + integration</strong><br><span class="micro">No CDN JS/CSS dependency, bibliography, prompts and app footer link.</span></div>
+    </div>
+  </section>
+
+  <section id="agent-prompts">
+    <div class="phase-title"><span class="phase-number">AI</span><h2>Reusable perfected prompts</h2></div>
+    <article class="prompt-card">
+      <h3>System prompt — deployment tutor + skeptical verifier</h3>
+      <p class="micro">Use this with a coding agent when maintaining the academy.</p>
+      <textarea id="system-prompt" readonly>You are the GYLIO Production Deployment Tutor and Skeptical Verifier. Your job is to maintain a beginner-safe, current, executable deployment guide for the real GYLIO repository.
+
+Operating rules:
+1. Apply Solarize/TDD ordering: current research → plan → failing/negative checks → minimal implementation → refactor → independent validation → report.
+2. Prefer official, current documentation. Treat vendor dashboard labels, package names, versions and deprecations as time-sensitive. Record a validation date for each external claim.
+3. Never claim a command or setup works because it looks plausible. Validate against the repository and current vendor documentation; use real CI/browser evidence where available.
+4. Primary production path: existing Hostinger KVM 1, lean Ubuntu LTS, Nginx serving the Vite build and reverse-proxying /api to the local Express process, PM2 for process lifecycle, MongoDB Atlas for production data, Clerk for identity. Keep alternatives clearly optional.
+5. Teach with ELI5 wording: one purpose per step, then Do → Why → Test → Expected result → Source. Explain jargon the first time.
+6. Security scope is basic but non-negotiable: SSH keys, non-root deploy user, OS updates, UFW with SSH/HTTP/HTTPS only, HTTPS, secrets outside Git, restrictive secret-file permissions, Atlas /32 IP allowlisting, current Clerk token verification/authorized parties. Never recommend exposing API port 3001, 0.0.0.0/0 Atlas access, or putting server secrets in VITE_* variables.
+7. Keep billing truthfully disabled until a real provider lifecycle exists. Treat OpenAI as optional. Do not invent native iOS/Android deployment for the current web/PWA release.
+8. Respect implementation drift. If current docs changed (for example a renamed Clerk package), label the mismatch and make code migration a separately tested change instead of silently rewriting setup instructions.
+9. The standalone guide must remain usable when the React app or API is down: no required external JS/CSS, mobile-first, keyboard accessible, reduced-motion aware, and persistent progress using local browser storage only for non-secret values.
+10. Validation must converge: run six explicit lenses—freshness, completeness, command safety, accessibility/ELI5, persistence/mobile, standalone/integration—then browser tests at 320px, 390px and desktop widths. Stop only when all required gates are quiet.
+
+Return concise evidence: changed files, tests executed, failures found/fixed, authoritative source links, remaining real limitations. Never hide an unverified step behind confident wording.</textarea>
+      <button type="button" data-copy-target="system-prompt">Copy system prompt</button>
+    </article>
+    <article class="prompt-card">
+      <h3>User prompt — regenerate/repair the complete academy</h3>
+      <textarea id="user-prompt" readonly>Research, Solarize, test and improve the GYLIO production Deployment Academy against the current repository and current official documentation. The result must be a standalone responsive HTML page and accessible from the main app footer.
+
+Use the existing Hostinger KVM 1 as the primary production path and include a separate laptop-local learning/test path. Cover the whole route from zero to a working HTTPS production web/PWA: prerequisites, local run, MongoDB Atlas, Clerk development/production setup, Hostinger hPanel/SSH/Ubuntu, Node, Nginx, PM2, domain/DNS, TLS, environment variables, build, API health, authentication smoke test, iPhone test, future updates and rollback.
+
+Use ELI5 language but do not remove technical accuracy. Every action step must contain: purpose, exact action/command, why it exists, a concrete verification command/action, expected result, and a direct official source. Use recreated current UI maps plus links to vendor pages containing live screenshots where dashboard imagery changes frequently. Include diagrams and subtle animation with prefers-reduced-motion support.
+
+The page must persist step checkmarks and only non-secret helper fields across reloads. It must never store or request passwords/API secrets. Include built-in self-tests, search/filter, resume-next-step, print/PDF, copyable commands, a current limitations panel, troubleshooting, bibliography with validation dates, and the reusable system/user prompts used to maintain the guide.
+
+Run six explicit validation passes: (1) source freshness/deprecation, (2) content completeness, (3) command/security safety, (4) accessibility/ELI5 quality, (5) persistence/iPhone responsiveness, (6) standalone/footer integration. Add automated repository checks and Playwright tests at 320px, 390px and desktop, preserve screenshots as CI artifacts, fix findings, and rerun until all gates pass. Do not merge or claim production readiness unless the exact final head is green.</textarea>
+      <button type="button" data-copy-target="user-prompt">Copy user prompt</button>
+    </article>
+  </section>
+
+  <section class="panel" id="bibliography">
+    <h2>Bibliography — authoritative sources checked 23 Aug 2026</h2>
+    <p class="micro">Use these links to revalidate the guide whenever a dashboard, package or platform changes.</p>
+    <div class="bib">
+      <div class="bib-item"><strong>Hostinger VPS dashboard</strong> — current menu/terminal/IP workflow. <a href="https://www.hostinger.com/support/5726606-how-to-use-the-vps-dashboard-in-hostinger/" target="_blank" rel="noopener">Official documentation ↗</a></div>
+      <div class="bib-item"><strong>Hostinger Browser Terminal</strong> — hPanel → VPS → Manage → Terminal. <a href="https://www.hostinger.com/support/7978544-how-to-use-the-browser-terminal-in-hostinger/" target="_blank" rel="noopener">Official documentation ↗</a></div>
+      <div class="bib-item"><strong>Hostinger SSH keys</strong>. <a href="https://www.hostinger.com/support/4792364-how-to-use-ssh-keys-at-hostinger-vps/" target="_blank" rel="noopener">Official documentation ↗</a></div>
+      <div class="bib-item"><strong>Hostinger VPS OS templates</strong> — Ubuntu 24.04 currently available. <a href="https://www.hostinger.com/support/1583571-what-are-the-available-operating-systems-for-vps-at-hostinger/" target="_blank" rel="noopener">Official documentation ↗</a></div>
+      <div class="bib-item"><strong>Hostinger KVM resources</strong> — KVM 1 limits. <a href="https://www.hostinger.com/support/6976044-parameters-and-limits-of-hosting-plans-in-hostinger/" target="_blank" rel="noopener">Official documentation ↗</a></div>
+      <div class="bib-item"><strong>Hostinger domain → VPS</strong>. <a href="https://www.hostinger.com/support/1583227-how-to-point-a-domain-to-your-vps-at-hostinger/" target="_blank" rel="noopener">Official documentation ↗</a></div>
+      <div class="bib-item"><strong>Ubuntu firewall / UFW</strong>. <a href="https://ubuntu.com/server/docs/how-to/security/firewalls/" target="_blank" rel="noopener">Ubuntu Server docs ↗</a></div>
+      <div class="bib-item"><strong>Ubuntu Nginx installation</strong>. <a href="https://ubuntu.com/server/docs/how-to/web-services/install-nginx/" target="_blank" rel="noopener">Ubuntu Server docs ↗</a></div>
+      <div class="bib-item"><strong>Nginx proxy module</strong>. <a href="https://nginx.org/en/docs/http/ngx_http_proxy_module.html" target="_blank" rel="noopener">Nginx docs ↗</a></div>
+      <div class="bib-item"><strong>nvm</strong> — current installer and Node selection. <a href="https://github.com/nvm-sh/nvm" target="_blank" rel="noopener">Official repository ↗</a></div>
+      <div class="bib-item"><strong>PM2 Quick Start + startup hook</strong>. <a href="https://pm2.keymetrics.io/docs/usage/quick-start/" target="_blank" rel="noopener">Quick Start ↗</a> · <a href="https://pm2.keymetrics.io/docs/usage/startup/" target="_blank" rel="noopener">Startup ↗</a></div>
+      <div class="bib-item"><strong>Certbot for Nginx via snap</strong>. <a href="https://certbot.eff.org/instructions?ws=nginx&amp;os=snap" target="_blank" rel="noopener">EFF / Certbot ↗</a></div>
+      <div class="bib-item"><strong>MongoDB Atlas Free deployment</strong>. <a href="https://www.mongodb.com/docs/atlas/tutorial/deploy-free-tier-cluster/" target="_blank" rel="noopener">Atlas docs ↗</a></div>
+      <div class="bib-item"><strong>MongoDB Atlas network security</strong> — smallest practical segments / individual IP access. <a href="https://www.mongodb.com/docs/atlas/architecture/current/network-security/" target="_blank" rel="noopener">Atlas docs ↗</a></div>
+      <div class="bib-item"><strong>MongoDB driver connection</strong>. <a href="https://www.mongodb.com/docs/atlas/driver-connection/" target="_blank" rel="noopener">Atlas docs ↗</a></div>
+      <div class="bib-item"><strong>Clerk React Quickstart</strong> — current <code>@clerk/react</code> package and Vite publishable-key setup. <a href="https://clerk.com/docs/react/getting-started/quickstart" target="_blank" rel="noopener">Clerk docs ↗</a></div>
+      <div class="bib-item"><strong>Clerk production deployment</strong> — domain/DNS/production keys/authorized parties. <a href="https://clerk.com/docs/guides/development/deployment/production" target="_blank" rel="noopener">Clerk docs ↗</a></div>
+      <div class="bib-item"><strong>Clerk token verification</strong>. <a href="https://clerk.com/docs/reference/backend/verify-token" target="_blank" rel="noopener">verifyToken ↗</a> · <a href="https://clerk.com/docs/guides/sessions/manual-jwt-verification" target="_blank" rel="noopener">manual JWT verification ↗</a></div>
+      <div class="bib-item"><strong>Node 24 CLI</strong> — <code>--env-file</code>. <a href="https://nodejs.org/docs/latest-v24.x/api/cli.html" target="_blank" rel="noopener">Node docs ↗</a></div>
+      <div class="bib-item"><strong>Current GYLIO repository</strong> — the source of truth for scripts, API health contract and build behavior. <a href="https://github.com/PillB/gylio" target="_blank" rel="noopener">GitHub ↗</a></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap"><strong>GYLIO Production Deployment Academy</strong><br>Progress is local to this browser. Secrets are never requested or stored. Revalidate vendor-dependent instructions when the “Validated” date becomes stale.</div>
+</footer>
+
+<script>
+(() => {
+  'use strict';
+  const PROGRESS_KEY = 'gylio-deploy-guide-progress-v1';
+  const SETTINGS_KEY = 'gylio-deploy-guide-settings-v1';
+  const checks = [...document.querySelectorAll('.step-check')];
+  const steps = [...document.querySelectorAll('.step[data-step]')];
+  const settingsInputs = [...document.querySelectorAll('[data-config]')];
+  const progressBar = document.getElementById('progress-bar');
+  const progressLabel = document.getElementById('progress-label');
+  const progressShell = document.querySelector('.progress-shell');
+  const defaultSettings = Object.fromEntries(settingsInputs.map((input) => [input.dataset.config, input.value || '']));
+
+  const safeParse = (raw, fallback) => {
+    try { return JSON.parse(raw) ?? fallback; } catch (_) { return fallback; }
+  };
+
+  const loadProgress = () => safeParse(localStorage.getItem(PROGRESS_KEY), {});
+  const loadSettings = () => ({ ...defaultSettings, ...safeParse(localStorage.getItem(SETTINGS_KEY), {}) });
+  let progress = loadProgress();
+  let settings = loadSettings();
+
+  const escapeTokenValue = (value) => String(value ?? '').trim();
+  const renderTemplates = () => {
+    document.querySelectorAll('[data-template]').forEach((node) => {
+      const template = node.dataset.template || '';
+      node.textContent = template.replace(/{{([A-Z_]+)}}/g, (_, key) => escapeTokenValue(settings[key]) || `{{${key}}}`);
+    });
+  };
+
+  const updateProgress = () => {
+    const done = checks.filter((check) => check.checked).length;
+    const pct = checks.length ? Math.round((done / checks.length) * 100) : 0;
+    progressLabel.textContent = `${done} / ${checks.length} done · ${pct}%`;
+    progressBar.style.width = `${pct}%`;
+    progressShell.setAttribute('aria-valuemax', String(checks.length));
+    progressShell.setAttribute('aria-valuenow', String(done));
+    steps.forEach((step) => step.classList.toggle('done', step.querySelector('.step-check')?.checked));
+  };
+
+  checks.forEach((check) => {
+    const step = check.closest('[data-step]');
+    check.checked = Boolean(progress[step.dataset.step]);
+    check.addEventListener('change', () => {
+      progress[step.dataset.step] = check.checked;
+      localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
+      updateProgress();
+    });
+  });
+
+  settingsInputs.forEach((input) => {
+    const key = input.dataset.config;
+    if (settings[key]) input.value = settings[key];
+    input.addEventListener('input', () => {
+      settings[key] = input.value.trim();
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+      renderTemplates();
+    });
+  });
+
+  document.getElementById('resume-btn').addEventListener('click', () => {
+    const next = steps.find((step) => !step.querySelector('.step-check')?.checked && !step.classList.contains('filter-hidden'));
+    (next || steps[steps.length - 1])?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
+    next?.querySelector('summary')?.focus();
+  });
+
+  document.getElementById('print-btn').addEventListener('click', () => window.print());
+
+  document.querySelectorAll('pre').forEach((pre) => {
+    const code = pre.querySelector('code');
+    if (!code) return;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'copy-code';
+    button.textContent = 'Copy';
+    button.setAttribute('aria-label', 'Copy command block');
+    button.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(code.textContent);
+        button.textContent = 'Copied';
+      } catch (_) {
+        button.textContent = 'Select text';
+      }
+      setTimeout(() => { button.textContent = 'Copy'; }, 1400);
+    });
+    pre.append(button);
+  });
+
+  document.querySelectorAll('[data-copy-target]').forEach((button) => {
+    button.addEventListener('click', async () => {
+      const target = document.getElementById(button.dataset.copyTarget);
+      try { await navigator.clipboard.writeText(target.value); button.textContent = 'Copied'; }
+      catch (_) { target.select(); button.textContent = 'Text selected'; }
+      setTimeout(() => { button.textContent = button.dataset.copyTarget === 'system-prompt' ? 'Copy system prompt' : 'Copy user prompt'; }, 1400);
+    });
+  });
+
+  const filter = document.getElementById('step-filter');
+  const filterCount = document.getElementById('filter-count');
+  filter.addEventListener('input', () => {
+    const q = filter.value.trim().toLowerCase();
+    let visible = 0;
+    steps.forEach((step) => {
+      const show = !q || step.textContent.toLowerCase().includes(q);
+      step.classList.toggle('filter-hidden', !show);
+      if (show) visible += 1;
+    });
+    filterCount.textContent = q ? `Showing ${visible} of ${steps.length} steps.` : `Showing all ${steps.length} steps.`;
+  });
+
+  document.getElementById('reset-progress').addEventListener('click', () => {
+    if (!confirm('Reset all deployment checkmarks on this device?')) return;
+    progress = {};
+    localStorage.removeItem(PROGRESS_KEY);
+    checks.forEach((check) => { check.checked = false; });
+    updateProgress();
+  });
+
+  const pushResult = (container, passed, title, detail) => {
+    const item = document.createElement('div');
+    item.className = `result ${passed ? 'pass' : 'warn'}`;
+    item.innerHTML = `<strong>${passed ? '✓' : '△'} ${title}</strong><br><span class="micro"></span>`;
+    item.querySelector('.micro').textContent = detail;
+    container.append(item);
+  };
+
+  document.getElementById('run-self-check').addEventListener('click', async () => {
+    const out = document.getElementById('self-check-results');
+    out.textContent = '';
+    let storageOK = false;
+    try {
+      const probe = `probe-${Date.now()}`;
+      localStorage.setItem(probe, '1'); storageOK = localStorage.getItem(probe) === '1'; localStorage.removeItem(probe);
+    } catch (_) {}
+    pushResult(out, storageOK, 'Local progress storage', storageOK ? 'localStorage is writable.' : 'Browser privacy settings may block local progress.');
+    const viewport = document.querySelector('meta[name="viewport"]')?.content || '';
+    pushResult(out, viewport.includes('viewport-fit=cover'), 'iPhone viewport metadata', viewport || 'missing');
+    const ids = steps.map((step) => step.id);
+    pushResult(out, new Set(ids).size === ids.length && ids.length === 24, '24 unique deployment steps', `${new Set(ids).size} unique step IDs found.`);
+    const required = ['architecture','phase-local','phase-vps-foundation','phase-prod-services','phase-deploy','phase-public','phase-release','bibliography','agent-prompts'];
+    const missing = required.filter((id) => !document.getElementById(id));
+    pushResult(out, missing.length === 0, 'Required guide sections', missing.length ? `Missing: ${missing.join(', ')}` : 'All required sections present.');
+    const widthOK = document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1;
+    pushResult(out, widthOK, 'No page-level horizontal overflow', `scrollWidth=${document.documentElement.scrollWidth}, viewport=${document.documentElement.clientWidth}`);
+    if (location.protocol === 'http:' || location.protocol === 'https:') {
+      try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 3500);
+        const response = await fetch(new URL('api/health', location.href), { cache: 'no-store', signal: controller.signal });
+        clearTimeout(timer);
+        const payload = await response.json().catch(() => ({}));
+        pushResult(out, response.ok && payload.status === 'ok', 'Same-origin API health', response.ok ? JSON.stringify(payload) : `HTTP ${response.status}`);
+      } catch (error) {
+        pushResult(out, false, 'Same-origin API health', 'Not reachable here. This is normal for the static demo/local guide if the API is not running.');
+      }
+    } else {
+      pushResult(out, false, 'Same-origin API health', 'Skipped when opened as file://. Use the hosted guide to test the API.');
+    }
+  });
+
+  renderTemplates();
+  updateProgress();
+})();
+</script>
+</body>
+</html>

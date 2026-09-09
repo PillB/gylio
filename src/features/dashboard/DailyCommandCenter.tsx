@@ -311,7 +311,7 @@ const DailyCommandCenter: React.FC<DailyCommandCenterProps> = ({ onExitSimplifie
     } finally {
       setLoading(false);
     }
-  }, [ready, todayKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [ready, todayKey]);
 
   useEffect(() => {
     loadData();
@@ -350,7 +350,6 @@ const DailyCommandCenter: React.FC<DailyCommandCenterProps> = ({ onExitSimplifie
         month: 'long',
         day: 'numeric',
       }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [todayKey],
   );
 

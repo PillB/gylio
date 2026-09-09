@@ -1,8 +1,10 @@
 /**
- * LanguageToggle — Multi-language selector dropdown.
+ * LanguageToggle — production-language selector.
  *
- * Shows all supported languages with flag emoji + native name.
- * Persists choice via i18next's localStorage detection.
+ * Only locales that have passed translation and UX QA are exposed. Draft
+ * catalogs may exist in src/i18n without appearing here until they meet the
+ * same release gate. Language names use autonyms instead of country flags:
+ * languages and countries are not a one-to-one relationship.
  */
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -64,14 +66,7 @@ function getLocalizedFlag(langCode: string, defaultFlag: string): string {
 
 const LANGUAGES = [
   { code: 'en',    flag: getLocalizedFlag('en',    '🇬🇧'), label: 'English' },
-  { code: 'es-PE', flag: getLocalizedFlag('es-PE', '🇵🇪'), label: 'Español (PE)' },
-  { code: 'de',    flag: getLocalizedFlag('de',    '🇩🇪'), label: 'Deutsch' },
-  { code: 'fr',    flag: getLocalizedFlag('fr',    '🇫🇷'), label: 'Français' },
-  { code: 'it',    flag: getLocalizedFlag('it',    '🇮🇹'), label: 'Italiano' },
-  { code: 'zh',    flag: getLocalizedFlag('zh',    '🇨🇳'), label: '中文' },
-  { code: 'sw',    flag: getLocalizedFlag('sw',    '🌍'),  label: 'Kiswahili' },
-  { code: 'hi',    flag: '🇮🇳',                           label: 'हिन्दी' },
-  { code: 'id',    flag: '🇮🇩',                           label: 'Bahasa Indonesia' },
+  { code: 'es-PE', flag: getLocalizedFlag('es-PE', '🇵🇪'), label: 'Español (Perú)' },
 ];
 
 const placementStyles: Record<NonNullable<LanguageToggleProps['placement']>, React.CSSProperties> = {
@@ -89,14 +84,12 @@ const LanguageToggle: React.FC<LanguageToggleProps> = ({
   const { i18n } = useTranslation();
   const { theme } = useTheme();
 
-  // Normalize: strip region variants not in our list (e.g. 'es' → 'es-PE')
-  const currentCode =
-    LANGUAGES.find((l) => l.code === i18n.language)?.code ??
-    LANGUAGES.find((l) => i18n.language.startsWith(l.code.split('-')[0]))?.code ??
-    'en';
+  // Generic browser Spanish intentionally maps to the reviewed es-PE catalog.
+  const currentCode = i18n.language.toLowerCase().startsWith('es') ? 'es-PE' : 'en';
+  const defaultAriaLabel = currentCode === 'es-PE' ? 'Seleccionar idioma' : 'Select language';
 
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    i18n.changeLanguage(e.target.value);
+  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    void i18n.changeLanguage(event.target.value);
   };
 
   const selectStyle: React.CSSProperties = {
@@ -116,13 +109,13 @@ const LanguageToggle: React.FC<LanguageToggleProps> = ({
     <select
       value={currentCode}
       onChange={handleChange}
-      aria-label={ariaLabel ?? 'Select language'}
+      aria-label={ariaLabel ?? defaultAriaLabel}
       className={className}
       style={selectStyle}
     >
-      {LANGUAGES.map(({ code, flag, label }) => (
+      {LANGUAGES.map(({ code, label }) => (
         <option key={code} value={code}>
-          {flag} {label}
+          {label}
         </option>
       ))}
     </select>

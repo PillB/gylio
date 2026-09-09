@@ -2,12 +2,15 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../core/context/ThemeContext';
+import useAccessibility from '../core/hooks/useAccessibility';
 import { useGuidedTour } from '../core/context/GuidedTourContext';
 import { useAppAuth } from '../core/context/AuthContext';
 
 const TOOLTIP_WIDTH = 320;
 const TOOLTIP_GAP = 14;
 const SPOTLIGHT_PAD = 8;
+const VIEWPORT_PAD = 12;
+const ESTIMATED_TOOLTIP_HEIGHT = 230;
 
 export default function GuidedTourOverlay() {
   const {
@@ -20,6 +23,7 @@ export default function GuidedTourOverlay() {
     totalSteps,
   } = useGuidedTour();
   const { theme } = useTheme();
+  const { reduceMotionEnabled, animationsEnabled } = useAccessibility();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
@@ -33,6 +37,7 @@ export default function GuidedTourOverlay() {
   const currentStep = isActive ? (currentSteps[stepIndex] ?? null) : null;
   const isLast = stepIndex === totalSteps - 1;
   const isFirst = stepIndex === 0;
+  const shouldAnimate = animationsEnabled && !reduceMotionEnabled;
 
   // True when user is on an auth page and the current step has a target element they can't visit
   const needsSignIn =
@@ -66,13 +71,14 @@ export default function GuidedTourOverlay() {
       }
       const gated = el.getAttribute('data-tour') === 'premium-gate';
       setIsPremiumGated(gated);
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      const t2 = setTimeout(() => {
+      el.scrollIntoView({ behavior: shouldAnimate ? 'smooth' : 'auto', block: 'center' });
+      const settleDelay = shouldAnimate ? 280 : 0;
+      const timer = setTimeout(() => {
         if (cancelled) return;
         const el2 = document.querySelector<HTMLElement>(currentStep.target!);
         setTargetRect(el2?.getBoundingClientRect() ?? null);
-      }, 280);
-      return () => clearTimeout(t2);
+      }, settleDelay);
+      return () => clearTimeout(timer);
     };
 
     if (currentStep.tab) {
@@ -80,21 +86,24 @@ export default function GuidedTourOverlay() {
       if (location.pathname !== expected && !pendingNav.current) {
         pendingNav.current = true;
         navigate(expected);
-        const t1 = setTimeout(() => {
+        const timer = setTimeout(() => {
           pendingNav.current = false;
           locate();
-        }, 350);
+        }, shouldAnimate ? 350 : 0);
         return () => {
           cancelled = true;
-          clearTimeout(t1);
+          clearTimeout(timer);
           pendingNav.current = false;
         };
       }
     }
 
-    locate();
-    return () => { cancelled = true; };
-  }, [stepIndex, isActive]); // eslint-disable-line react-hooks/exhaustive-deps
+    const cleanupLocate = locate();
+    return () => {
+      cancelled = true;
+      cleanupLocate?.();
+    };
+  }, [currentStep, isActive, location.pathname, navigate, shouldAnimate, stepIndex]);
 
   // Keep rect in sync on scroll / resize / visual viewport changes (mobile keyboard)
   useEffect(() => {
@@ -116,13 +125,21 @@ export default function GuidedTourOverlay() {
     };
   }, [isActive, currentStep?.target]);
 
-  // Keyboard navigation
   useEffect(() => {
     if (!isActive) return;
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { e.stopPropagation(); pauseTour(); }
-      if (e.key === 'ArrowRight' && !isLast) { e.preventDefault(); nextStep(); }
-      if (e.key === 'ArrowLeft' && !isFirst) { e.preventDefault(); prevStep(); }
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        pauseTour();
+      }
+      if (e.key === 'ArrowRight' && !isLast) {
+        e.preventDefault();
+        nextStep();
+      }
+      if (e.key === 'ArrowLeft' && !isFirst) {
+        e.preventDefault();
+        prevStep();
+      }
     };
     window.addEventListener('keydown', handler, { capture: true });
     return () => window.removeEventListener('keydown', handler, { capture: true });
@@ -138,6 +155,7 @@ export default function GuidedTourOverlay() {
   const vh = typeof window !== 'undefined'
     ? (window.visualViewport?.height ?? window.innerHeight)
     : 600;
+  const tooltipWidth = Math.min(TOOLTIP_WIDTH, Math.max(0, vw - VIEWPORT_PAD * 2));
   const isCenter = currentStep.placement === 'center' || !targetRect;
 
   let tooltipStyle: React.CSSProperties;
@@ -148,26 +166,41 @@ export default function GuidedTourOverlay() {
       top: '50%',
       left: '50%',
       transform: 'translate(-50%, -50%)',
-      width: Math.min(TOOLTIP_WIDTH, vw - 32),
-      zIndex: 8001,
+      width: tooltipWidth,
+      maxHeight: `calc(100vh - ${VIEWPORT_PAD * 2}px)`,
+      overflowY: 'auto',
+      boxSizing: 'border-box',
+      zIndex: theme.zIndex.tour + 1,
     };
   } else {
-    const spaceBelow = vh - (targetRect?.bottom ?? 0);
+    const spaceBelow = vh - targetRect.bottom;
     const useBottom =
-      currentStep.placement !== 'top' ? spaceBelow >= 180 : (targetRect?.top ?? 0) < 180;
+      currentStep.placement !== 'top' ? spaceBelow >= 180 : targetRect.top < 180;
 
-    let top: number;
-    if (useBottom) {
-      top = (targetRect?.bottom ?? 0) + TOOLTIP_GAP;
-    } else {
-      top = (targetRect?.top ?? 0) - TOOLTIP_GAP - 230;
-    }
+    let top = useBottom
+      ? targetRect.bottom + TOOLTIP_GAP
+      : targetRect.top - TOOLTIP_GAP - ESTIMATED_TOOLTIP_HEIGHT;
 
-    let left = (targetRect?.left ?? 0) + (targetRect?.width ?? 0) / 2 - TOOLTIP_WIDTH / 2;
-    left = Math.max(12, Math.min(left, vw - TOOLTIP_WIDTH - 12));
-    top = Math.max(12, Math.min(top, vh - 230 - 12));
+    let left = targetRect.left + targetRect.width / 2 - tooltipWidth / 2;
+    left = Math.max(
+      VIEWPORT_PAD,
+      Math.min(left, Math.max(VIEWPORT_PAD, vw - tooltipWidth - VIEWPORT_PAD))
+    );
+    top = Math.max(
+      VIEWPORT_PAD,
+      Math.min(top, Math.max(VIEWPORT_PAD, vh - ESTIMATED_TOOLTIP_HEIGHT - VIEWPORT_PAD))
+    );
 
-    tooltipStyle = { position: 'fixed', top, left, width: TOOLTIP_WIDTH, zIndex: 8001 };
+    tooltipStyle = {
+      position: 'fixed',
+      top,
+      left,
+      width: tooltipWidth,
+      maxHeight: Math.max(80, vh - top - VIEWPORT_PAD),
+      overflowY: 'auto',
+      boxSizing: 'border-box',
+      zIndex: theme.zIndex.tour + 1,
+    };
   }
 
   // ── Arrow pointer ─────────────────────────────────────────────────────────
@@ -176,12 +209,12 @@ export default function GuidedTourOverlay() {
       ? (() => {
           const tipLeft = (tooltipStyle.left as number) ?? 0;
           const tipTop = (tooltipStyle.top as number) ?? 0;
-          const isBelow = tipTop > (targetRect?.bottom ?? 0);
+          const isBelow = tipTop > targetRect.bottom;
           const arrowLeft = Math.max(
             16,
             Math.min(
-              (targetRect.left + targetRect.width / 2) - tipLeft,
-              TOOLTIP_WIDTH - 16
+              targetRect.left + targetRect.width / 2 - tipLeft,
+              Math.max(16, tooltipWidth - 16)
             )
           );
           return {
@@ -213,13 +246,14 @@ export default function GuidedTourOverlay() {
             borderRadius: 10,
             boxShadow: `0 0 0 3px ${theme.colors.primary}, 0 0 0 9999px rgba(0,0,0,0.48)`,
             pointerEvents: 'none',
-            zIndex: 8000,
-            transition: 'top 250ms ease-out, left 250ms ease-out, width 250ms ease-out, height 250ms ease-out',
+            zIndex: theme.zIndex.tour,
+            transition: shouldAnimate
+              ? 'top 250ms ease-out, left 250ms ease-out, width 250ms ease-out, height 250ms ease-out'
+              : 'none',
           }}
         />
       )}
 
-      {/* Center modal backdrop */}
       {isCenter && (
         <div
           aria-hidden="true"
@@ -227,13 +261,12 @@ export default function GuidedTourOverlay() {
             position: 'fixed',
             inset: 0,
             backgroundColor: 'rgba(0,0,0,0.52)',
-            zIndex: 8000,
+            zIndex: theme.zIndex.tour,
             pointerEvents: 'none',
           }}
         />
       )}
 
-      {/* Tooltip card */}
       <div
         role="dialog"
         aria-modal={isCenter ? 'true' : undefined}
@@ -251,7 +284,6 @@ export default function GuidedTourOverlay() {
       >
         {arrowStyle && <div aria-hidden="true" style={arrowStyle} />}
 
-        {/* Header row */}
         <div
           style={{
             display: 'flex',
@@ -285,6 +317,8 @@ export default function GuidedTourOverlay() {
             onClick={pauseTour}
             aria-label={t('tour.pauseAria', 'Pause tour')}
             style={{
+              minWidth: 44,
+              minHeight: 44,
               background: 'none',
               border: 'none',
               cursor: 'pointer',
@@ -300,7 +334,6 @@ export default function GuidedTourOverlay() {
           </button>
         </div>
 
-        {/* Progress bar */}
         <div
           role="progressbar"
           aria-valuenow={stepIndex + 1}
@@ -311,20 +344,19 @@ export default function GuidedTourOverlay() {
         >
           {currentSteps.map((_, i) => (
             <div
-              key={i}
+              key={index}
               aria-hidden="true"
               style={{
                 height: 4,
                 flex: 1,
                 borderRadius: 2,
-                backgroundColor: i <= stepIndex ? theme.colors.primary : theme.colors.border,
-                transition: 'background-color 250ms',
+                backgroundColor: index <= stepIndex ? theme.colors.primary : theme.colors.border,
+                transition: shouldAnimate ? 'background-color 250ms' : 'none',
               }}
             />
           ))}
         </div>
 
-        {/* Step content */}
         <h3
           style={{
             margin: `0 0 ${theme.spacing.xs}px`,
@@ -410,6 +442,7 @@ export default function GuidedTourOverlay() {
             gap: theme.spacing.sm,
             justifyContent: 'space-between',
             alignItems: 'center',
+            flexWrap: 'wrap',
           }}
         >
           <button
@@ -418,6 +451,7 @@ export default function GuidedTourOverlay() {
             disabled={isFirst}
             aria-label={t('tour.prevAria', 'Previous step')}
             style={{
+              minHeight: 44,
               padding: `6px ${theme.spacing.sm}px`,
               borderRadius: theme.shape.radiusMd,
               border: `1px solid ${theme.colors.border}`,
@@ -427,7 +461,7 @@ export default function GuidedTourOverlay() {
               fontSize: '0.875rem',
               fontFamily: theme.typography.body.family,
               opacity: isFirst ? 0.4 : 1,
-              transition: 'opacity 150ms',
+              transition: shouldAnimate ? 'opacity 150ms' : 'none',
               whiteSpace: 'nowrap',
               flexShrink: 0,
             }}
@@ -440,6 +474,7 @@ export default function GuidedTourOverlay() {
             onClick={isLast ? completeTour : nextStep}
             aria-label={isLast ? t('tour.finishAria', 'Finish tour') : t('tour.nextAria', 'Next step')}
             style={{
+              minHeight: 44,
               padding: `6px ${theme.spacing.md}px`,
               borderRadius: theme.shape.radiusMd,
               border: 'none',
@@ -457,7 +492,6 @@ export default function GuidedTourOverlay() {
           </button>
         </div>
 
-        {/* Keyboard hint */}
         <p
           aria-hidden="true"
           style={{

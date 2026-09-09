@@ -5,12 +5,23 @@
 'use strict';
 
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
-import sqlite3pkg from 'sqlite3';
 import { run, ensureSqliteSchema } from '../lib/sqlite.js';
 import { createEntityRepository } from './entityRepository.js';
 import { ENTITY_CONFIG } from '../lib/entityConfig.js';
 
 // NOTE: Mongoose is not connected (readyState=0) → SQLite code path used throughout
+
+// sqlite3 is a deliberately optional, local-only backend (see
+// server/db/sqliteClient.js) and is absent from both manifests, so it is not
+// installed in CI. Load it dynamically and skip this suite when unavailable
+// rather than making a native addon a required dependency.
+let sqlite3pkg = null;
+try {
+  ({ default: sqlite3pkg } = await import('sqlite3'));
+} catch {
+  sqlite3pkg = null;
+}
+const describeSqlite = sqlite3pkg ? describe : describe.skip;
 
 let db;
 let taskRepo;
@@ -22,6 +33,7 @@ const USER_A = 'user-a';
 const USER_B = 'user-b';
 
 beforeAll(async () => {
+  if (!sqlite3pkg) return;
   db = new sqlite3pkg.Database(':memory:');
   await ensureSqliteSchema(db);
   // Create repos only after db is initialised
@@ -36,7 +48,7 @@ afterAll(() => { db.close(); });
 // Tasks
 // ---------------------------------------------------------------------------
 
-describe('entityRepository — tasks', () => {
+describeSqlite('entityRepository — tasks', () => {
   beforeEach(async () => { await run(db, 'DELETE FROM tasks'); });
 
   it('create returns the created record with id', async () => {
@@ -123,7 +135,7 @@ describe('entityRepository — tasks', () => {
 // Transactions
 // ---------------------------------------------------------------------------
 
-describe('entityRepository — transactions', () => {
+describeSqlite('entityRepository — transactions', () => {
   beforeEach(async () => { await run(db, 'DELETE FROM transactions'); });
 
   it('create enforces required fields', async () => {
@@ -154,7 +166,7 @@ describe('entityRepository — transactions', () => {
 // Debts
 // ---------------------------------------------------------------------------
 
-describe('entityRepository — debts', () => {
+describeSqlite('entityRepository — debts', () => {
   beforeEach(async () => { await run(db, 'DELETE FROM debts'); });
 
   it('creates and retrieves debt with numeric fields', async () => {

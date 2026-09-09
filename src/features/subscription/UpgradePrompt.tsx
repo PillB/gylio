@@ -77,7 +77,6 @@ export const UpgradePrompt: React.FC<Props> = ({
       tryOnceAvailable,
     });
     // Only fire once per mount; featureName is the stable identity.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [featureName]);
 
   const handleUpgradeClick = useCallback(() => {

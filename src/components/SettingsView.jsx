@@ -15,11 +15,9 @@ import { useTaskTimer } from '../core/context/TaskTimerContext';
 /**
  * SettingsView component
  *
- * The settings page exposes personalisation and accessibility options. Users
- * will be able to toggle between light and dark themes, choose dyslexia‑friendly
- * fonts, enable or disable animations, adjust audio cue volumes and control
- * whether gamification features are displayed. This stub lists upcoming
- * settings features.
+ * Exposes the same presentation preferences introduced during onboarding so
+ * users can revisit them at any time. Labels describe the interface effect,
+ * rather than implying that a diagnosis determines a correct setting.
  */
 const SettingsView = () => {
   const { t } = useTranslation();
@@ -31,8 +29,7 @@ const SettingsView = () => {
     speak,
     isSpeaking,
     motionPreference,
-    reduceMotionEnabled,
-    setReduceMotionEnabled,
+    setMotionPreference,
     animationsEnabled,
     setAnimationsEnabled,
     textStylePreference,
@@ -208,8 +205,7 @@ const SettingsView = () => {
         </span>
       </div>
       <p style={{ color: theme.colors.muted, marginTop: theme.spacing.sm }}>
-        {t('onboarding.accessibility.helper') ||
-          'We apply these readability and sensory settings everywhere for predictability.'}
+        {t('onboarding.accessibility.helper')}
       </p>
       <div
         data-tour="settings-theme"
@@ -218,6 +214,8 @@ const SettingsView = () => {
           gap: theme.spacing.md,
           marginTop: theme.spacing.md,
           gridTemplateColumns: 'minmax(0, 1fr)',
+          minWidth: 0,
+          maxWidth: '100%'
         }}
       >
         <div
@@ -225,7 +223,10 @@ const SettingsView = () => {
             border: `1px solid ${theme.colors.border}`,
             borderRadius: theme.shape.radiusMd,
             padding: theme.spacing.md,
-            background: theme.colors.surface
+            background: theme.colors.surface,
+            minWidth: 0,
+            maxWidth: '100%',
+            boxSizing: 'border-box'
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: theme.spacing.md, flexWrap: 'wrap' }}>
@@ -235,7 +236,7 @@ const SettingsView = () => {
                 <BudgetTooltip content={t('tooltips.settings.theme', 'Choose a visual theme that feels comfortable. Dark mode reduces glare in low-light environments; light mode improves contrast for many users. Auto follows your device setting.')} />
               </p>
               <small style={{ color: theme.colors.muted }}>
-                {t('settingsThemeHelper') || 'Choose light, dark, or high-contrast to reduce visual strain.'}
+                {t('onboarding.accessibility.contrastHelper')}
               </small>
               <p style={{ margin: '0.25rem 0', color: theme.colors.text }}>
                 {t('settingsCurrentValue', { value: themeLabels[mode] }) || `Current: ${themeLabels[mode]}`}
@@ -250,7 +251,8 @@ const SettingsView = () => {
                 borderRadius: theme.shape.radiusSm,
                 border: `1px solid ${theme.colors.border}`,
                 background: theme.colors.background,
-                color: theme.colors.text
+                color: theme.colors.text,
+                maxWidth: '100%'
               }}
             >
               <option value="light">{themeLabels.light}</option>
@@ -265,38 +267,34 @@ const SettingsView = () => {
             border: `1px solid ${theme.colors.border}`,
             borderRadius: theme.shape.radiusMd,
             padding: theme.spacing.md,
-            background: theme.colors.surface
+            background: theme.colors.surface,
+            minWidth: 0,
+            maxWidth: '100%',
+            boxSizing: 'border-box'
           }}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: theme.spacing.md, flexWrap: 'wrap' }}>
-            <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: theme.spacing.md, flexWrap: 'wrap', minWidth: 0 }}>
+            <div style={{ minWidth: 0, flex: '1 1 220px' }}>
               <p style={{ margin: 0, fontWeight: 600, display: 'flex', alignItems: 'center' }}>
                 {t('settingsFontLabel') || 'Reading style'}
                 <BudgetTooltip content={t('tooltips.settings.font', 'Larger text reduces cognitive load when scanning long lists. The default size is designed for readability; increase it if you find yourself squinting or losing your place.')} />
               </p>
               <small style={{ color: theme.colors.muted }}>
-                {t('settingsFontHelper') || 'Switch to dyslexia-friendly fonts or larger text for steadier reading.'}
+                {t('onboarding.accessibility.textStyleHelper')}
               </small>
               <p style={{ margin: '0.25rem 0', color: theme.colors.text }}>
                 {t('settingsCurrentValue', {
                   value:
-                    textStylePreference === 'dyslexic'
-                      ? t('onboarding.accessibility.dyslexicFont')
-                      : textStylePreference === 'large'
-                        ? t('onboarding.accessibility.largeText')
-                        : t('onboarding.accessibility.standardFont')
-                }) ||
-                  `Current: ${
-                    textStylePreference === 'dyslexic'
-                      ? 'Dyslexia-friendly'
-                      : textStylePreference === 'large'
-                        ? 'Large text'
-                        : 'Standard'
-                  }`}
+                    textStylePreference === 'large'
+                      ? t('onboarding.accessibility.largeText')
+                      : textStylePreference === 'spaced'
+                        ? t('onboarding.accessibility.spacedText')
+                        : t('onboarding.accessibility.standardText')
+                })}
               </p>
             </div>
             <select
-              value={textStylePreference || 'standard'}
+              value={['standard', 'large', 'spaced'].includes(textStylePreference) ? textStylePreference : 'standard'}
               onChange={(e) => setTextStylePreference(e.target.value)}
               aria-label={t('settingsFontLabel') || 'Reading style'}
               style={{
@@ -304,12 +302,15 @@ const SettingsView = () => {
                 borderRadius: theme.shape.radiusSm,
                 border: `1px solid ${theme.colors.border}`,
                 background: theme.colors.background,
-                color: theme.colors.text
+                color: theme.colors.text,
+                minWidth: 0,
+                maxWidth: '100%',
+                flex: '1 1 180px'
               }}
             >
-              <option value="dyslexic">{t('onboarding.accessibility.dyslexicFont')}</option>
-              <option value="standard">{t('onboarding.accessibility.standardFont')}</option>
+              <option value="standard">{t('onboarding.accessibility.standardText')}</option>
               <option value="large">{t('onboarding.accessibility.largeText')}</option>
+              <option value="spaced">{t('onboarding.accessibility.spacedText')}</option>
             </select>
           </div>
         </div>
@@ -319,45 +320,53 @@ const SettingsView = () => {
             border: `1px solid ${theme.colors.border}`,
             borderRadius: theme.shape.radiusMd,
             padding: theme.spacing.md,
-            background: theme.colors.surface
+            background: theme.colors.surface,
+            minWidth: 0,
+            maxWidth: '100%',
+            boxSizing: 'border-box'
           }}
         >
-          <div style={{ display: 'grid', gap: theme.spacing.sm }}>
+          <div style={{ display: 'grid', gap: theme.spacing.sm, minWidth: 0 }}>
             <div>
               <p style={{ margin: 0, fontWeight: 600, display: 'flex', alignItems: 'center' }}>
                 {t('settingsMotionLabel') || 'Motion preference'}
                 <BudgetTooltip content={t('tooltips.settings.motion', 'Disabling animations removes all sliding, fading, and bouncing effects. Essential if motion causes distraction, dizziness, or sensory overload.')} />
               </p>
               <small id="motion-helper" style={{ color: theme.colors.muted }}>
-                {t('settingsMotionHelper') ||
-                  'Reduce motion to lower sensory load; we only animate essentials.'}
+                {t('onboarding.accessibility.motionHelper')}
               </small>
             </div>
-            <label style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm }}>
-              <input
-                type="checkbox"
-                checked={reduceMotionEnabled}
-                onChange={(e) => setReduceMotionEnabled(e.target.checked)}
-                aria-label={t('settingsMotionLabel') || 'Motion preference'}
-                aria-describedby="motion-helper"
-                style={{ width: 20, height: 20 }}
-              />
-              <span>
-                {reduceMotionEnabled
-                  ? t('onboarding.accessibility.reduceMotion')
-                  : t('onboarding.accessibility.allowMotion')}
-              </span>
-            </label>
+            <select
+              value={motionPreference || 'system'}
+              onChange={(e) => setMotionPreference(e.target.value)}
+              aria-label={t('settingsMotionLabel') || 'Motion preference'}
+              aria-describedby="motion-helper"
+              style={{
+                width: '100%',
+                minWidth: 0,
+                maxWidth: '100%',
+                padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
+                borderRadius: theme.shape.radiusSm,
+                border: `1px solid ${theme.colors.border}`,
+                background: theme.colors.background,
+                color: theme.colors.text
+              }}
+            >
+              <option value="system">{t('onboarding.accessibility.motionSystem')}</option>
+              <option value="reduced">{t('onboarding.accessibility.reducedMotion')}</option>
+              <option value="standard">{t('onboarding.accessibility.standardMotion')}</option>
+            </select>
             <small style={{ color: theme.colors.muted }}>
               {t('settingsCurrentValue', {
                 value:
                   motionPreference === 'reduced'
-                    ? t('onboarding.accessibility.reduceMotion')
-                    : t('onboarding.accessibility.allowMotion')
-              }) ||
-                `Current: ${motionPreference === 'reduced' ? 'Reduced motion' : 'Standard motion'}`}
+                    ? t('onboarding.accessibility.reducedMotion')
+                    : motionPreference === 'standard'
+                      ? t('onboarding.accessibility.standardMotion')
+                      : t('onboarding.accessibility.motionSystem')
+              })}
             </small>
-            <label style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm, minWidth: 0 }}>
               <input
                 type="checkbox"
                 checked={animationsEnabled}
@@ -373,8 +382,7 @@ const SettingsView = () => {
               </span>
             </label>
             <small id="animation-helper" style={{ color: theme.colors.muted }}>
-              {t('settingsAnimationHelper') ||
-                'Disable non-essential animations to keep the interface calm.'}
+              {t('settingsAnimationHelper') || 'Disable non-essential animations to keep the interface calm.'}
             </small>
           </div>
         </div>
@@ -384,7 +392,10 @@ const SettingsView = () => {
             border: `1px solid ${theme.colors.border}`,
             borderRadius: theme.shape.radiusMd,
             padding: theme.spacing.md,
-            background: theme.colors.surface
+            background: theme.colors.surface,
+            minWidth: 0,
+            maxWidth: '100%',
+            boxSizing: 'border-box'
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: theme.spacing.md, flexWrap: 'wrap' }}>
@@ -394,7 +405,7 @@ const SettingsView = () => {
                 <BudgetTooltip content={t('tooltips.settings.tts', 'When on, important status messages are read aloud. Useful for hands-free use, low-vision accessibility, or if reading long lists is tiring.')} />
               </p>
               <small style={{ color: theme.colors.muted }}>
-                {t('settingsTtsHelper') || t('onboarding.accessibility.ttsHelper')}
+                {t('onboarding.accessibility.ttsHelper')}
               </small>
               <p style={{ margin: '0.25rem 0', color: theme.colors.text }}>
                 {t('settingsCurrentValue', {
@@ -407,7 +418,7 @@ const SettingsView = () => {
                 type="checkbox"
                 checked={ttsEnabled}
                 onChange={(e) => setTtsEnabled(e.target.checked)}
-                aria-label={t('settingsTtsLabel') || t('onboarding.accessibility.tts')}
+                aria-label={t('onboarding.accessibility.tts')}
                 style={{ width: 20, height: 20 }}
               />
               <span>{ttsEnabled ? t('onboarding.summary.enabled') : t('onboarding.summary.disabled')}</span>

@@ -20,7 +20,7 @@
     <!-- Prevent auto-linking of phone/email on iOS/Android -->
     <meta name="format-detection" content="telephone=no,email=no,address=no" />
     <title>GYLIO – Get Your Life In Order</title>
-    <!-- Inter: high-legibility variable font; Open Sans as dyslexia-friendly fallback -->
+    <!-- Readable sans-serif font choices; users can adjust reading preferences in Settings. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Open+Sans:wght@400;700&display=swap" rel="stylesheet" />
@@ -47,10 +47,32 @@
         overflow-x: hidden;
       }
       button { font-family: inherit; cursor: pointer; }
-      button:focus-visible { outline: 2px solid #5B5CF6; outline-offset: 2px; }
+      button:focus-visible, a:focus-visible { outline: 2px solid #5B5CF6; outline-offset: 2px; }
       /* Minimum 16px on all inputs to prevent iOS Safari auto-zoom on focus.
          !important needed to override Clerk's component stylesheet. */
       input, textarea, select { font-family: inherit; font-size: max(16px, 1rem) !important; }
+      .site-utility-footer {
+        width: min(1100px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 18px 0 max(22px, env(safe-area-inset-bottom));
+        border-top: 1px solid #D9D7D0;
+        display: flex;
+        justify-content: center;
+        gap: 10px 18px;
+        flex-wrap: wrap;
+        font-size: 0.8125rem;
+        color: #5C5A63;
+        text-align: center;
+      }
+      .site-utility-footer a {
+        color: #4F46E5;
+        font-weight: 600;
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        padding: 0 8px;
+        text-underline-offset: 3px;
+      }
       @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
       /* iOS momentum scrolling for any overflow container */
       [data-scroll] {

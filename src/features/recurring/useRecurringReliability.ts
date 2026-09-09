@@ -279,7 +279,6 @@ export function useRecurringReliability(todayKey?: string) {
         setState((s) => ({ ...s, isChecking: false }));
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [dbReady, fetchAllTasks, buildRows, today, showToast, t],
   );
 
@@ -343,7 +342,6 @@ export function useRecurringReliability(todayKey?: string) {
     const lastGlobalCheckAt = deriveLastGlobalCheck(store);
     setState((s) => ({ ...s, lastGlobalCheckAt }));
     runCheck(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dbReady]);
 
   // ---------------------------------------------------------------------------

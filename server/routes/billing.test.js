@@ -18,6 +18,9 @@ global.fetch = mockFetch;
 // Minimal Express app wired with billing router
 // ---------------------------------------------------------------------------
 
+// billing.js gates every route behind this dev-only flag (NODE_ENV !== 'production'
+// && ENABLE_MANUAL_TRIALS === 'true'); without it each route returns 503.
+process.env.ENABLE_MANUAL_TRIALS = 'true';
 process.env.CLERK_SECRET_KEY = 'sk_test_MOCK_KEY_FOR_TESTS';
 process.env.CLERK_JWKS_URL   = 'https://test.clerk.dev/.well-known/jwks.json';
 process.env.CLERK_ISSUER     = 'https://test.clerk.dev';

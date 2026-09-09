@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../../core/context/ThemeContext';
 import { track, Events } from '../../../core/analytics';
@@ -119,7 +119,6 @@ export default function DataFreshnessBanner({ lastTransactionDate, budgetMonthKe
         lastTransactionDate: lastTransactionDate?.toISOString() ?? null,
       });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [freshness, budgetMonthKey]);
 
   const borderColor = colors[config.borderKey] ?? config.defaultColor;
