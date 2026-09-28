@@ -752,3 +752,15 @@ es-PE.json: full Spanish translations for all step and starter keys.
 - All controls aria-labeled, region labeled "Temporizador de tarea" ✓
 
 **Build:** 702 modules, clean.
+
+---
+
+### CHG-042 – 2026-09-28 (Dependency bump without the react-native 0.87 jump)
+
+**Why:** Dependabot PR #79 grouped `react-native` 0.73 → 0.87 as "non-major". Under 0.x semver that is breaking: RN 0.87 peers on React 19, so `npm ci` failed with ERESOLVE and every CI gate was skipped.
+
+**Files changed:**
+- `package.json`, `package-lock.json` — the rest of #79's bumps (@xyflow/react, motion, i18next-browser-languagedetector, react-native-paper, react-native-web 0.21, react-router-dom, Playwright 1.63, Testing Library, @typescript-eslint 8.70, vite 7.3.6, vitest 3.2.7). `react`/`react-dom` stay at 18.2.0 because RN 0.73 peers on that exact version.
+- `.github/dependabot.yml` — ignore semver-minor updates for `react-native`, `react`, `react-dom` so the group PR stops breaking install; that upgrade needs its own migration.
+
+**Verified:** `npm ci`, lint, typecheck, check:i18n, 71 unit tests, build all pass. Playwright: 104/105 pass; the one failure is external fonts blocked by the sandbox proxy certificate (ERR_CERT_AUTHORITY_INVALID), not app code.
