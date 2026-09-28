@@ -9,7 +9,7 @@ import { track, Events } from '../../core/analytics';
 // ---------------------------------------------------------------------------
 
 interface Task {
-  id: number | string;
+  id: number;
   title: string;
   status: string;
   priority?: 'high' | 'medium' | 'low' | string;
@@ -23,21 +23,6 @@ interface CalendarEvent {
   title: string;
   startDate: string; // ISO string stored by useDB
   endDate?: string | null;
-}
-
-interface Budget {
-  id: number | string;
-  month: string;
-  incomes?: { source: string; amount: number }[];
-  categories?: { name: string; type: string; plannedAmount: number }[];
-}
-
-interface Transaction {
-  id: number | string;
-  budgetMonth: string;
-  amount: number;
-  categoryName: string;
-  date?: string | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -66,6 +51,9 @@ function priorityScore(task: Task): number {
 function isTaskToday(task: Task, todayKey: string): boolean {
   const scheduled = task.plannedDate ?? task.dueDate;
   if (!scheduled) return false;
+  // A bare YYYY-MM-DD is already a local day; new Date() would read it as UTC midnight
+  // and shift it to the previous day west of Greenwich (e.g. Lima, UTC-5).
+  if (/^\d{4}-\d{2}-\d{2}$/.test(scheduled)) return scheduled === todayKey;
   try {
     return getLocalDateKey(new Date(scheduled)) === todayKey;
   } catch {
@@ -121,7 +109,7 @@ const Panel: React.FC<PanelProps> = ({ title, icon, children, theme }) => (
 
 interface TaskRowProps {
   task: Task;
-  onComplete: (id: number | string) => void;
+  onComplete: (id: number) => void;
   theme: ReturnType<typeof useTheme>['theme'];
 }
 
@@ -223,18 +211,7 @@ const DailyCommandCenter: React.FC<DailyCommandCenterProps> = ({ onExitSimplifie
   const now = new Date();
   const todayKey = getLocalDateKey(now);
 
-  const { ready, getTasks, updateTask, getEvents, getBudgets, getTransactions } = useDB() as {
-    ready: boolean;
-    getTasks: () => Promise<Task[]>;
-    updateTask: (
-      id: number | string,
-      patch: Partial<Task>,
-      opts?: Record<string, unknown>,
-    ) => Promise<void>;
-    getEvents: () => Promise<CalendarEvent[]>;
-    getBudgets: () => Promise<Budget[]>;
-    getTransactions: () => Promise<Transaction[]>;
-  };
+  const { ready, getTasks, updateTask, getEvents, getBudgets, getTransactions } = useDB();
 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [nextEvent, setNextEvent] = useState<CalendarEvent | null>(null);
@@ -260,7 +237,7 @@ const DailyCommandCenter: React.FC<DailyCommandCenterProps> = ({ onExitSimplifie
 
       // ── Next calendar event today (after now)
       const allEvents = await getEvents();
-      const nowMs = now.getTime();
+      const nowMs = Date.now();
       const todayEvents = allEvents.filter((ev) => {
         try {
           const evDate = new Date(ev.startDate);
@@ -311,7 +288,7 @@ const DailyCommandCenter: React.FC<DailyCommandCenterProps> = ({ onExitSimplifie
     } finally {
       setLoading(false);
     }
-  }, [ready, todayKey]);
+  }, [ready, todayKey, getTasks, getEvents, getBudgets, getTransactions]);
 
   useEffect(() => {
     loadData();
@@ -320,11 +297,12 @@ const DailyCommandCenter: React.FC<DailyCommandCenterProps> = ({ onExitSimplifie
   // ── Complete task ─────────────────────────────────────────────────────────
 
   const handleComplete = useCallback(
-    async (taskId: number | string) => {
+    async (taskId: number) => {
       try {
-        await updateTask(taskId, { status: 'done' });
+        // 'completed' is the status the rest of the app (Tasks, rewards) recognises.
+        await updateTask(taskId, { status: 'completed' });
         setTasks((prev) =>
-          prev.map((t) => (t.id === taskId ? { ...t, status: 'done' } : t)),
+          prev.map((t) => (t.id === taskId ? { ...t, status: 'completed' } : t)),
         );
         track(Events.DAILY_MODE_TASK_COMPLETED, { taskId });
       } catch (err) {
@@ -345,7 +323,7 @@ const DailyCommandCenter: React.FC<DailyCommandCenterProps> = ({ onExitSimplifie
 
   const dateLabel = useMemo(
     () =>
-      now.toLocaleDateString(undefined, {
+      new Date(`${todayKey}T00:00`).toLocaleDateString(undefined, {
         weekday: 'long',
         month: 'long',
         day: 'numeric',

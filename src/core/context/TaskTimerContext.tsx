@@ -118,6 +118,8 @@ export function TaskTimerProvider({ children }: { children: ReactNode }) {
     }, 1000);
 
     return clearIv;
+    // The interval only needs resetting when the timer starts, pauses or finishes, not on every tick.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timer?.status]);
 
   // ---- Handle phase-done: create entry + advance ----

@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../../core/context/ThemeContext';
 import { track, Events } from '../../../core/analytics';
 
+const toIsoOrNull = (date) => (date ? date.toISOString() : null);
+
 /**
  * Computes freshness level from a Date object.
  * Returns: 'fresh' | 'review' | 'stale'
@@ -112,14 +114,12 @@ export default function DataFreshnessBanner({ lastTransactionDate, budgetMonthKe
   const spacing = theme.spacing ?? {};
 
   // Fire analytics when stale warning is shown
+  const lastTransactionIso = toIsoOrNull(lastTransactionDate);
   useEffect(() => {
     if (freshness === 'stale') {
-      track(Events.BUDGET_DATA_STALE_WARNING_SHOWN, {
-        budgetMonthKey,
-        lastTransactionDate: lastTransactionDate?.toISOString() ?? null,
-      });
+      track(Events.BUDGET_DATA_STALE_WARNING_SHOWN, { budgetMonthKey, lastTransactionDate: lastTransactionIso });
     }
-  }, [freshness, budgetMonthKey]);
+  }, [freshness, budgetMonthKey, lastTransactionIso]);
 
   // The theme exposes semantic colours but no `successBg`/`warningBg`/`dangerBg`
   // variants, so those lookups always missed and the hardcoded pastel defaults
