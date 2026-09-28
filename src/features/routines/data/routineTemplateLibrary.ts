@@ -1,3 +1,4 @@
+import type { DataVizHue } from '../../../core/themes';
 export type RoutineCategory = 'morning' | 'evening' | 'weekly' | 'focus' | 'health';
 
 export type RoutineTemplate = {
@@ -15,13 +16,13 @@ export type RoutineTemplate = {
 
 export const ROUTINE_CATEGORY_META: Record<
   RoutineCategory,
-  { emoji: string; labelKey: string; color: string }
+  { emoji: string; labelKey: string; hue: DataVizHue }
 > = {
-  morning: { emoji: '🌅', labelKey: 'routines.tpl.cat.morning', color: '#F59E0B' },
-  evening: { emoji: '🌙', labelKey: 'routines.tpl.cat.evening', color: '#5B5CF6' },
-  weekly:  { emoji: '📅', labelKey: 'routines.tpl.cat.weekly',  color: '#22C55E' },
-  focus:   { emoji: '🧠', labelKey: 'routines.tpl.cat.focus',   color: '#3B82F6' },
-  health:  { emoji: '💪', labelKey: 'routines.tpl.cat.health',  color: '#EC4899' },
+  morning: { emoji: '🌅', labelKey: 'routines.tpl.cat.morning', hue: 'amber' },
+  evening: { emoji: '🌙', labelKey: 'routines.tpl.cat.evening', hue: 'indigo' },
+  weekly:  { emoji: '📅', labelKey: 'routines.tpl.cat.weekly',  hue: 'green' },
+  focus:   { emoji: '🧠', labelKey: 'routines.tpl.cat.focus',   hue: 'blue' },
+  health:  { emoji: '💪', labelKey: 'routines.tpl.cat.health',  hue: 'pink' },
 };
 
 export const ROUTINE_TEMPLATE_LIBRARY: RoutineTemplate[] = [

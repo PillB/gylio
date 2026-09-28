@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { ThemeTokens } from '../../../core/themes';
+import { readableTextOn, type ThemeTokens } from '../../../core/themes';
+import { energyTone } from '../utils/energyTone';
 import {
   type TaskCategory,
   type TaskTemplate,
@@ -11,13 +12,6 @@ import {
 type Props = {
   onSelect: (template: TaskTemplate) => void;
   theme: ThemeTokens;
-};
-
-const ENERGY_COLOR: Record<TaskTemplate['energyRequired'], string> = {
-  tiny:   '#22C55E',
-  low:    '#3B82F6',
-  medium: '#F59E0B',
-  high:   '#EF4444',
 };
 
 const CATEGORY_FILTERS: (TaskCategory | 'all')[] = [
@@ -55,7 +49,8 @@ export const TaskTemplateGallery: React.FC<Props> = ({ onSelect, theme }) => {
         {CATEGORY_FILTERS.map((cat) => {
           const isActive = activeCategory === cat;
           const meta = cat !== 'all' ? CATEGORY_META[cat] : null;
-          const activeColor = meta?.color ?? theme.colors.primary;
+          const activeColor = meta ? theme.dataViz[meta.hue] : theme.colors.primary;
+          const activeText = meta ? readableTextOn(activeColor) : theme.colors.primaryForeground;
 
           return (
             <button
@@ -68,7 +63,7 @@ export const TaskTemplateGallery: React.FC<Props> = ({ onSelect, theme }) => {
                 borderRadius: theme.shape.radiusFull,
                 border: `1.5px solid ${isActive ? activeColor : theme.colors.border}`,
                 background: isActive ? activeColor : 'transparent',
-                color: isActive ? '#fff' : theme.colors.text,
+                color: isActive ? activeText : theme.colors.text,
                 cursor: 'pointer',
                 fontSize: '0.8125rem',
                 fontWeight: isActive ? 700 : 400,
@@ -96,7 +91,8 @@ export const TaskTemplateGallery: React.FC<Props> = ({ onSelect, theme }) => {
       <div style={{ display: 'grid', gap: theme.spacing.md }}>
         {templates.map((tpl) => {
           const catMeta = CATEGORY_META[tpl.category];
-          const energyColor = ENERGY_COLOR[tpl.energyRequired];
+          const catColor = theme.dataViz[catMeta.hue];
+          const energy = energyTone(theme, tpl.energyRequired);
 
           return (
             <div
@@ -114,7 +110,7 @@ export const TaskTemplateGallery: React.FC<Props> = ({ onSelect, theme }) => {
                 style={{
                   padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
                   borderBottom: `1px solid ${theme.colors.border}`,
-                  borderLeft: `3px solid ${catMeta.color}`,
+                  borderLeft: `3px solid ${catColor}`,
                 }}
               >
                 <div
@@ -156,8 +152,8 @@ export const TaskTemplateGallery: React.FC<Props> = ({ onSelect, theme }) => {
                       fontWeight: 700,
                       padding: '2px 8px',
                       borderRadius: theme.shape.radiusFull,
-                      background: energyColor,
-                      color: '#fff',
+                      background: energy.fill,
+                      color: energy.onFill,
                       flexShrink: 0,
                       letterSpacing: '0.03em',
                     }}
@@ -212,7 +208,7 @@ export const TaskTemplateGallery: React.FC<Props> = ({ onSelect, theme }) => {
                   style={{
                     padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
                     borderBottom: `1px solid ${theme.colors.border}`,
-                    background: `${catMeta.color}08`,
+                    background: `${catColor}08`,
                   }}
                 >
                   <p
@@ -220,7 +216,7 @@ export const TaskTemplateGallery: React.FC<Props> = ({ onSelect, theme }) => {
                       margin: '0 0 6px',
                       fontSize: '0.6875rem',
                       fontWeight: 700,
-                      color: catMeta.color,
+                      color: theme.colors.text,
                       textTransform: 'uppercase',
                       letterSpacing: '0.07em',
                     }}
@@ -266,7 +262,7 @@ export const TaskTemplateGallery: React.FC<Props> = ({ onSelect, theme }) => {
                     borderRadius: theme.shape.radiusMd,
                     border: `1.5px solid ${theme.colors.primary}`,
                     background: theme.colors.primary,
-                    color: '#fff',
+                    color: theme.colors.primaryForeground,
                     fontWeight: 700,
                     cursor: 'pointer',
                     fontSize: '0.875rem',

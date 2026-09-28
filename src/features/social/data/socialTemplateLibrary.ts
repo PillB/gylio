@@ -1,3 +1,4 @@
+import type { DataVizHue } from '../../../core/themes';
 // Research basis:
 // - Arthur Aron (1997): Graduated self-disclosure doubles intimacy
 // - Dunbar (1992): Social brain - different relationship tiers need different interaction types
@@ -55,10 +56,10 @@ export const RELATIONSHIP_META: Record<RelationshipType, { emoji: string; labelK
   online_friend: { emoji: '💻', labelKey: 'social.relationship.online_friend',dunbarFrequencyDays: 21  },
 };
 
-export const DEPTH_META: Record<DepthLevel, { emoji: string; labelKey: string; color: string }> = {
-  light:  { emoji: '☀️', labelKey: 'social.depth.light',  color: '#22C55E' },
-  medium: { emoji: '🌤️', labelKey: 'social.depth.medium', color: '#F59E0B' },
-  deep:   { emoji: '🌊', labelKey: 'social.depth.deep',   color: '#5B5CF6' },
+export const DEPTH_META: Record<DepthLevel, { emoji: string; labelKey: string; hue: DataVizHue }> = {
+  light:  { emoji: '☀️', labelKey: 'social.depth.light',  hue: 'green' },
+  medium: { emoji: '🌤️', labelKey: 'social.depth.medium', hue: 'amber' },
+  deep:   { emoji: '🌊', labelKey: 'social.depth.deep',   hue: 'indigo' },
 };
 
 export const SOCIAL_TEMPLATE_LIBRARY: SocialTemplate[] = [
