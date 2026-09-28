@@ -130,7 +130,7 @@ function TaskRow({ row, theme }: RowProps) {
             alignItems: 'center',
             justifyContent: 'center',
             background: theme.colors.error,
-            color: '#fff',
+            color: theme.colors.onError,
             borderRadius: '999px',
             padding: '1px 8px',
             fontSize: '0.72rem',

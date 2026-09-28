@@ -130,9 +130,9 @@ const TaskRow: React.FC<TaskRowProps> = ({ task, onComplete, theme }) => {
   const isDone = !isIncomplete(task);
 
   const priorityColors: Record<string, string> = {
-    high: '#e53e3e',
-    medium: '#d69e2e',
-    low: '#38a169',
+    high: theme.colors.error,
+    medium: theme.colors.warning,
+    low: theme.colors.success,
   };
   const dotColor = priorityColors[task.priority ?? 'low'] ?? theme.colors.muted;
 
@@ -563,7 +563,7 @@ const DailyCommandCenter: React.FC<DailyCommandCenterProps> = ({ onExitSimplifie
           }}
           onMouseEnter={(e) => {
             (e.currentTarget as HTMLButtonElement).style.background = theme.colors.primary;
-            (e.currentTarget as HTMLButtonElement).style.color = '#fff';
+            (e.currentTarget as HTMLButtonElement).style.color = theme.colors.primaryForeground;
           }}
           onMouseLeave={(e) => {
             (e.currentTarget as HTMLButtonElement).style.background = 'none';

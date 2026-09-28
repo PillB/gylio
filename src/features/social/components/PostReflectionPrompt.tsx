@@ -138,7 +138,7 @@ export const PostReflectionPrompt: React.FC<Props> = ({ plan, theme, onSubmit })
           borderRadius: theme.shape.radiusFull,
           border: 'none',
           backgroundColor: selectedEnergy !== null ? theme.colors.primary : theme.colors.border,
-          color: '#fff',
+          color: selectedEnergy !== null ? theme.colors.primaryForeground : theme.colors.muted,
           fontWeight: 600,
           cursor: selectedEnergy !== null ? 'pointer' : 'default',
           fontSize: '0.875rem',

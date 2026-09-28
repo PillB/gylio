@@ -8,6 +8,7 @@
 
 import React from 'react';
 import { useTheme } from '../core/context/ThemeContext';
+import { readableTextOn } from '../core/contrast';
 
 type Props = {
   emoji: string;
@@ -80,7 +81,7 @@ export default function EmptyStateAction({
             padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
             borderRadius: theme.shape.radiusMd,
             background: color,
-            color: '#fff',
+            color: readableTextOn(color),
             border: 'none',
             fontWeight: 700,
             fontSize: 13,

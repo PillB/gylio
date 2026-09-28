@@ -405,7 +405,7 @@ const RoutinesView: React.FC = () => {
           }}
           secondaryLabel={t('routines.tpl.showGallery', 'Browse routine templates')}
           onSecondary={() => setShowRoutineGallery(true)}
-          accentColor="#8B5CF6"
+          accentColor={theme.dataViz.series[1]}
         />
       ) : (
         <ul data-tour="routines-list" style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: `${theme.spacing.md}px` }}>

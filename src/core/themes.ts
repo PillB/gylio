@@ -18,6 +18,11 @@ export interface ThemeTokens {
     onWarning: string;
     onError: string;
     primaryForeground: string;
+    /** Second stop for primary gradients; primaryForeground must stay AA on it. */
+    primaryGradientEnd: string;
+    /** Status colours safe for body-size text (AA 4.5:1) on surface and background. */
+    successStrong: string;
+    errorStrong: string;
     border: string;
     borderStrong: string;
     focus: string;
@@ -80,6 +85,8 @@ export interface ThemeTokens {
     energy: Record<'tiny' | 'low' | 'medium' | 'high', string>;
     budget: Record<'NEED' | 'WANT' | 'GOAL' | 'DEBT', string>;
     series: string[];
+    /** Soft calendar-event backgrounds; body text must stay AA on each. */
+    eventTints: string[];
   };
 }
 
@@ -146,6 +153,9 @@ const palettes = {
     onSuccess: '#1C1B22',
     onWarning: '#1C1B22',
     onError: '#1C1B22',
+    primaryGradientEnd: '#7C3AED',
+    successStrong: '#15803D',
+    errorStrong: '#B42318',
     border: '#E2E0EA',
     borderStrong: '#C4C0D4',
     focus: '#5B5CF6',
@@ -167,6 +177,9 @@ const palettes = {
     onSuccess: '#0D0D14',
     onWarning: '#0D0D14',
     onError: '#0D0D14',
+    primaryGradientEnd: '#A78BFA',
+    successStrong: '#4ADE80',
+    errorStrong: '#F87171',
     border: '#2A2940',
     borderStrong: '#3D3C58',
     focus: '#8182FA',
@@ -188,6 +201,9 @@ const palettes = {
     onSuccess: '#000000',
     onWarning: '#000000',
     onError: '#000000',
+    primaryGradientEnd: '#ffaa00',
+    successStrong: '#00ff88',
+    errorStrong: '#ff4444',
     border: '#ffffff',
     borderStrong: '#ffffff',
     focus: '#ff00ff',
@@ -217,20 +233,25 @@ const shadows = {
 };
 
 const dataViz = {
+  // Light hues are 600-level so each clears the 3:1 non-text contrast bar
+  // (WCAG 1.4.11) on the white surface; themes.test.ts enforces this.
   light: {
-    energy: { tiny: '#22C55E', low: '#3B82F6', medium: '#F59E0B', high: '#EF4444' },
-    budget: { NEED: '#5B5CF6', WANT: '#8B5CF6', GOAL: '#22C55E', DEBT: '#F59E0B' },
-    series: ['#5B5CF6', '#8B5CF6', '#EC4899', '#F59E0B', '#22C55E', '#3B82F6', '#EF4444'],
+    energy: { tiny: '#16A34A', low: '#3B82F6', medium: '#D97706', high: '#EF4444' },
+    budget: { NEED: '#5B5CF6', WANT: '#7C3AED', GOAL: '#16A34A', DEBT: '#D97706' },
+    series: ['#5B5CF6', '#7C3AED', '#EC4899', '#D97706', '#16A34A', '#3B82F6', '#EF4444'],
+    eventTints: ['#e8f1ff', '#eaf7f1', '#fdf1e7', '#f3e8ff', '#eaf3fb', '#f2f7e9'],
   },
   dark: {
     energy: { tiny: '#4ADE80', low: '#60A5FA', medium: '#FBD061', high: '#F87171' },
     budget: { NEED: '#8182FA', WANT: '#A78BFA', GOAL: '#4ADE80', DEBT: '#FBD061' },
     series: ['#8182FA', '#A78BFA', '#F472B6', '#FBD061', '#4ADE80', '#60A5FA', '#F87171'],
+    eventTints: ['#1f2a44', '#24324d', '#2b3c57', '#2e4360', '#304a69', '#314f72'],
   },
   highContrast: {
     energy: { tiny: '#00ff88', low: '#00ffff', medium: '#ffaa00', high: '#ff4444' },
     budget: { NEED: '#ffff00', WANT: '#ff00ff', GOAL: '#00ff88', DEBT: '#ffaa00' },
     series: ['#ffff00', '#ff00ff', '#00ffff', '#ffaa00', '#00ff88', '#ffffff', '#ff4444'],
+    eventTints: ['#0f0f0f', '#1a1a1a', '#0f0f0f', '#1a1a1a', '#0f0f0f', '#1a1a1a'],
   },
 };
 

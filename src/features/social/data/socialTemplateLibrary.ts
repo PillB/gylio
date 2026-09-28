@@ -55,10 +55,10 @@ export const RELATIONSHIP_META: Record<RelationshipType, { emoji: string; labelK
   online_friend: { emoji: '💻', labelKey: 'social.relationship.online_friend',dunbarFrequencyDays: 21  },
 };
 
-export const DEPTH_META: Record<DepthLevel, { emoji: string; labelKey: string; color: string }> = {
-  light:  { emoji: '☀️', labelKey: 'social.depth.light',  color: '#22C55E' },
-  medium: { emoji: '🌤️', labelKey: 'social.depth.medium', color: '#F59E0B' },
-  deep:   { emoji: '🌊', labelKey: 'social.depth.deep',   color: '#5B5CF6' },
+export const DEPTH_META: Record<DepthLevel, { emoji: string; labelKey: string; /** Index into theme.dataViz.series. */ hue: number }> = {
+  light:  { emoji: '☀️', labelKey: 'social.depth.light',  hue: 4 },
+  medium: { emoji: '🌤️', labelKey: 'social.depth.medium', hue: 3 },
+  deep:   { emoji: '🌊', labelKey: 'social.depth.deep',   hue: 0 },
 };
 
 export const SOCIAL_TEMPLATE_LIBRARY: SocialTemplate[] = [

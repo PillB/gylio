@@ -17,13 +17,13 @@ export type RoutineTemplate = {
 
 export const ROUTINE_CATEGORY_META: Record<
   RoutineCategory,
-  { emoji: string; labelKey: string; color: string }
+  { emoji: string; labelKey: string; /** Index into theme.dataViz.series. */ hue: number }
 > = {
-  morning: { emoji: '🌅', labelKey: 'routines.tpl.cat.morning', color: '#F59E0B' },
-  evening: { emoji: '🌙', labelKey: 'routines.tpl.cat.evening', color: '#5B5CF6' },
-  weekly:  { emoji: '📅', labelKey: 'routines.tpl.cat.weekly',  color: '#22C55E' },
-  focus:   { emoji: '🧠', labelKey: 'routines.tpl.cat.focus',   color: '#3B82F6' },
-  health:  { emoji: '💪', labelKey: 'routines.tpl.cat.health',  color: '#EC4899' },
+  morning: { emoji: '🌅', labelKey: 'routines.tpl.cat.morning', hue: 3 },
+  evening: { emoji: '🌙', labelKey: 'routines.tpl.cat.evening', hue: 0 },
+  weekly:  { emoji: '📅', labelKey: 'routines.tpl.cat.weekly',  hue: 4 },
+  focus:   { emoji: '🧠', labelKey: 'routines.tpl.cat.focus',   hue: 5 },
+  health:  { emoji: '💪', labelKey: 'routines.tpl.cat.health',  hue: 2 },
 };
 
 export const ROUTINE_TEMPLATE_LIBRARY: RoutineTemplate[] = [
