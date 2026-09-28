@@ -159,6 +159,12 @@ SocialPlan {
 - **Tests**: Run relevant checks when code changes affect behavior.
 - **Accessibility**: Validate keyboard navigation and screen reader labels for any UI change.
 
+## Complexity ceiling (enforced by `npm run lint`)
+- Every function must stay at cyclomatic complexity **10 or less** (ESLint core `complexity`, set in `eslint.complexity.js`).
+- Files that were already above it are listed in `COMPLEXITY_BASELINE`, each capped at its worst function's score. Never raise a cap. When you simplify one, lower its cap or delete the entry; `src/test/complexityBaseline.test.ts` fails while a cap is looser than the code needs.
+- Splitting a large view: pin its behaviour with tests first, then move logic into pure utils and hooks, and render one component per section.
+- `t('key') || 'Fallback'` counts as a branch; use `t('key', 'Fallback')` instead.
+
 ## Do / Don’t
 **Do**
 - Keep UI predictable and low-noise.

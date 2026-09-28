@@ -764,3 +764,18 @@ es-PE.json: full Spanish translations for all step and starter keys.
 - `.github/dependabot.yml` — ignore semver-minor updates for `react-native`, `react`, `react-dom` so the group PR stops breaking install; that upgrade needs its own migration.
 
 **Verified:** `npm ci`, lint, typecheck, check:i18n, 71 unit tests, build all pass. Playwright: 104/105 pass; the one failure is external fonts blocked by the sandbox proxy certificate (ERR_CERT_AUTHORITY_INVALID), not app code.
+
+---
+
+### CHG-043 – 2026-09-28 (Complexity ceiling, whole-src lint and typecheck, BudgetView split)
+
+**Why:** Nothing capped function complexity, `lint` only covered `src/features`, `typecheck` only a few util folders, and `BudgetView.jsx` was one component at complexity 115.
+
+**Files changed:**
+- `eslint.config.js`, `eslint.complexity.js` — core `complexity` rule at 10; 21 legacy files capped at their current worst score; react / react-hooks plugins so JSX usage and hook deps are checked; `lint` is now `eslint src --max-warnings 0`.
+- `tsconfig.json`, `tsconfig.sw.json` (replace `tsconfig.tasks.json`) — typecheck all of `src`; service worker checked against the WebWorker lib.
+- `src/test/complexityBaseline.test.ts` — fails if a baseline cap is looser than needed.
+- `src/components/BudgetView.jsx` → `src/features/budget/{components,hooks,utils}` — one component per section, `useBudgetData`, `useValidatedForm`, pure validation/totals helpers; characterization tests in `src/components/BudgetView.test.tsx`.
+- Bugs found by the wider checks: duplicate social reminders (web notification shim had no cancel/id), null rows resolved from inserts in `useDB`, undefined offline response in the service worker, spending chart summing every month.
+
+**Verified:** lint, typecheck, 100 unit tests, check:i18n, build. Playwright before/after budget flow screenshots match.
