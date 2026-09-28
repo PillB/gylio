@@ -26,6 +26,22 @@ const defaultSelections = {
 };
 
 const STORAGE_KEY = 'onboardingFlowState';
+/**
+ * @typedef {typeof defaultSelections & Record<string, Record<string, unknown>>} OnboardingSelections
+ * @typedef {{
+ *   currentStep: number,
+ *   currentStepKey: string,
+ *   isOnboardingComplete: boolean,
+ *   selections: OnboardingSelections,
+ *   hydrated: boolean,
+ *   updateSelections: (stepKey: string, payload: Record<string, unknown>) => void,
+ *   completeStep: () => void,
+ *   goToPreviousStep: () => void,
+ *   reset: () => void
+ * }} OnboardingFlowValue
+ */
+
+/** @type {import('react').Context<OnboardingFlowValue | undefined>} */
 const OnboardingFlowContext = createContext(undefined);
 
 const cloneSelections = () => JSON.parse(JSON.stringify(defaultSelections));

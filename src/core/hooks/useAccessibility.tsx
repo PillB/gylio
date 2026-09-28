@@ -9,7 +9,7 @@ const ANIMATIONS_STORAGE_KEY = 'accessibility:animationsEnabled';
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
 
 type SpeechModule = {
-  speak: (text: string, options?: Record<string, any>) => void;
+  speak: (text: string, options?: Record<string, unknown>) => void;
   stop?: () => void;
 };
 
@@ -168,7 +168,7 @@ function useAccessibilityInternal(): AccessibilityContextValue {
 
     try {
       const av = await import('expo-av');
-      if (av?.Speech?.speak) {
+      if (av?.Speech) {
         speechModuleRef.current = av.Speech as SpeechModule;
         return speechModuleRef.current;
       }

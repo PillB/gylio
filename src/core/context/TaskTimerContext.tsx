@@ -168,7 +168,7 @@ export function TaskTimerProvider({ children }: { children: ReactNode }) {
         phaseStartedAt: new Date().toISOString(),
       });
     }
-  }, [timer]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [timer]);
 
   // ---- Actions ----
 
