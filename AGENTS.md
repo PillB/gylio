@@ -11,7 +11,7 @@ NeuroFlow is a **React + TypeScript** web app focused on **neurodivergent-friend
 - **Build**: `npm run build`
 - **Preview (Vite)**: `npm run preview`
 - **Backend start**: `npm run start`
-- **Expo (mobile/web)**: `npm run expo`
+- **i18n parity check**: `npm run check:i18n`
 
 - **Lint**: `npm run lint`
 - **Test (Vitest)**: `npm run test`
@@ -63,13 +63,6 @@ Task {
 - Subtasks length is optional but capped to avoid overwhelm.
 - If linked calendar event is deleted, detach the link gracefully.
 
-**Implementation steps**
-1. Add Task model/types and create API client methods.
-2. Build `TaskForm` with validation and accessibility (labels, aria-describedby).
-3. Add Task list views with filters (Today/Week/Backlog).
-4. Implement XP/streak updates when tasks are completed.
-5. Wire optional calendar linkage.
-
 ---
 
 ## Calendar
@@ -94,12 +87,6 @@ Event {
 - End time must be after start time.
 - Overlapping events should remain visually distinct with soft colors.
 - Event deletion should not delete the linked task.
-
-**Implementation steps**
-1. Add Event API methods and calendar grid layout (Day/Week).
-2. Implement event form with validation for start/end.
-3. Add “Convert task to event” action.
-4. Wire TTS reminders and accessible controls.
 
 ---
 
@@ -138,12 +125,6 @@ Debt {
 - Transactions must map to a valid category.
 - Debt simulator should handle zero balances gracefully.
 
-**Implementation steps**
-1. Build Budget APIs and client hooks.
-2. Create zero-based allocation UI with Remaining indicator.
-3. Add Needs/Wants chart view.
-4. Implement debt simulator and payoff display.
-
 ---
 
 ## Socialization Helper
@@ -171,16 +152,9 @@ SocialPlan {
 - Energy level defaults to LOW to reduce friction.
 - If reminder is set, ensure it respects user’s low-motion and notification preferences.
 
-**Implementation steps**
-1. Add SocialPlan type and endpoints.
-2. Build Socialization Helper view with templates.
-3. Implement step checklist and gentle reminder behavior.
-4. Add accessibility features (TTS and keyboard-only flow).
-
 ---
 
 # AI agent best practices
-- **Plan before code**: Outline work in small, verifiable steps.
 - **Small commits**: Keep commits focused and scoped.
 - **Tests**: Run relevant checks when code changes affect behavior.
 - **Accessibility**: Validate keyboard navigation and screen reader labels for any UI change.

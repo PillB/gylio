@@ -9,10 +9,10 @@
 - i18n: `react-i18next` with English + es-PE dictionaries (`src/i18n`).
 
 ## Architecture Snapshot
-- `src/components`: primary views (Tasks, Calendar, Budget, Rewards, Settings).
-- `src/features/tasks` and `src/features/social`: feature-scoped hooks/components.
+- `src/components`: shared views and UI (Calendar, Budget, Rewards, Settings, NavBar, atoms).
+- `src/features/*`: feature-scoped views, hooks and utils (tasks, calendar, budget, routines, social, auth, subscription, tour).
 - `src/core`: themes, IndexedDB hooks, background sync/service worker helpers.
-- `server/routes`: REST endpoints for tasks/events/budget.
+- `server/routes`: REST endpoints (auth, tasks, events, budget(s), transactions, debts, ai, billing), mounted in `server/server.js`.
 - `docs/`: product and research context for neurodivergent-friendly design.
 
 ## Coding & Product Rules
@@ -26,7 +26,7 @@
 - Validate/sanitize all API inputs in routes.
 - Never log/store sensitive personal or financial data unnecessarily.
 - Keep secrets in environment variables (no hardcoded tokens).
-- Plan JWT protection for protected endpoints.
+- Mount protected routes behind `requireAuth` (`server/middleware/auth.js`).
 - Treat AI-generated text as untrusted input before rendering.
 
 ## Scheduling & Domain Guardrails
@@ -37,8 +37,6 @@
 - Recovery/restart paths should be non-punitive (skip without shame).
 
 ## Testing Strategy (current + target)
-- Current available check: `npm run build`.
-- Add project scripts for `lint`, `test`, `typecheck` as implementation progresses.
+- Checks: `npm run lint`, `npm run typecheck`, `npm run test` (Vitest), `npm run check:i18n`, `npm run build`; Playwright specs live in `e2e/`.
 - Use tests-first for new behavior where feasible (unit/integration).
 - For UI changes, validate keyboard navigation and labels.
-- Record every phase in `Claude_changes.md` with CHG IDs and references.

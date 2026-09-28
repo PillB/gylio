@@ -19,6 +19,18 @@ updates:
       - dependency-name: "*"
         update-types:
           - version-update:semver-major
+      # react-native is 0.x, so its "minor" releases are breaking (0.87 needs
+      # React 19). React stays on the exact version react-native 0.73 peers on.
+      # Upgrade these three together as a planned migration, not a grouped bump.
+      - dependency-name: "react-native"
+        update-types:
+          - version-update:semver-minor
+      - dependency-name: "react"
+        update-types:
+          - version-update:semver-minor
+      - dependency-name: "react-dom"
+        update-types:
+          - version-update:semver-minor
 
   - package-ecosystem: github-actions
     directory: /
