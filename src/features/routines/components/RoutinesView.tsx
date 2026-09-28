@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../../core/context/ThemeContext';
 import type { Routine } from '../../../core/hooks/useDB';
@@ -7,6 +7,7 @@ import RoutineFlowDiagram from './RoutineFlowDiagram';
 import RoutineTemplateGallery from './RoutineTemplateGallery';
 import type { RoutineTemplate } from '../data/routineTemplateLibrary';
 import WinCard from '../../../components/WinCard';
+import BudgetTooltip from '../../../components/atoms/BudgetTooltip';
 import EmptyStateAction from '../../../components/EmptyStateAction';
 import { track, Events } from '../../../core/analytics';
 import {
@@ -50,6 +51,7 @@ const RoutinesView: React.FC = () => {
   const [showRoutineGallery, setShowRoutineGallery] = useState(false);
   const [showWinCard, setShowWinCard] = useState(false);
   const [lastCompletedTitle, setLastCompletedTitle] = useState('');
+  const routineTitleRef = useRef<HTMLInputElement>(null);
 
   const handleSelectRoutineTemplate = (template: RoutineTemplate) => {
     const keyParts = template.titleKey.split('.');
@@ -60,11 +62,16 @@ const RoutinesView: React.FC = () => {
       description: t(template.whyKey, ''),
       frequency: template.frequency,
       triggerTime: template.triggerTime || '',
-      steps: template.steps.map((label) => ({ label, done: false })),
-      anchorHabit: template.anchorHabit || '',
+      steps: template.stepKeys.map((key) => ({ label: t(key), done: false })),
+      anchorHabit: template.anchorHabitKey ? t(template.anchorHabitKey) : '',
     });
     setTouched(false);
     setShowRoutineGallery(false);
+    // Scroll form into view so user sees the populated fields immediately
+    setTimeout(() => {
+      routineTitleRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      routineTitleRef.current?.focus();
+    }, 80);
   };
 
   const errors = validateRoutineForm(form, t);
@@ -190,7 +197,7 @@ const RoutinesView: React.FC = () => {
               type="button"
               onClick={() => removeFormStep(setter, index)}
               aria-label={t('routines.removeStep', { index: index + 1 })}
-              style={{ ...ghostBtnStyle, minHeight: '44px' }}
+              style={{ ...ghostBtnStyle, minHeight: '44px', minWidth: '44px' }}
             >
               ×
             </button>
@@ -215,15 +222,19 @@ const RoutinesView: React.FC = () => {
           fontFamily: theme.typography.heading.family,
           fontWeight: theme.typography.heading.weight,
           color: theme.colors.text,
+          display: 'flex',
+          alignItems: 'center',
         }}
       >
         {t('routines.title')}
+        <BudgetTooltip content={t('tooltips.routines.section', 'Routines are repeating sequences you run on a schedule. Chain small steps together and anchor them to existing habits — the fastest path to making new behaviors automatic.')} />
       </h2>
       <p style={{ margin: `0 0 ${theme.spacing.lg}px`, color: theme.colors.muted }}>
         {t('routines.description')}
       </p>
 
-      <div style={{ marginBottom: `${theme.spacing.md}px` }}>
+      {/* Research-backed routine templates */}
+      <div data-tour="routines-gallery" style={{ marginBottom: `${theme.spacing.md}px` }}>
         <button
           type="button"
           onClick={() => setShowRoutineGallery((prev) => !prev)}
@@ -232,6 +243,7 @@ const RoutinesView: React.FC = () => {
             alignItems: 'center',
             gap: 6,
             padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
+            minHeight: '44px',
             borderRadius: theme.shape.radiusFull,
             border: `1.5px solid ${showRoutineGallery ? theme.colors.primary : theme.colors.border}`,
             background: showRoutineGallery ? `${theme.colors.primary}12` : 'transparent',
@@ -255,6 +267,7 @@ const RoutinesView: React.FC = () => {
       </div>
 
       <div
+        data-tour="routines-form"
         style={{
           border: `1px solid ${theme.colors.border}`,
           borderRadius: theme.shape.radiusMd,
@@ -270,9 +283,13 @@ const RoutinesView: React.FC = () => {
         </h3>
 
         <label htmlFor="routine-title" style={{ color: theme.colors.text }}>
-          {t('routines.titleLabel')}
+          <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+            {t('routines.titleLabel')}
+            <BudgetTooltip content={t('tooltips.routines.title', "Name your routine clearly: 'Morning wind-down' or 'Pre-work focus ritual'. A good name makes it feel intentional and worth protecting in your schedule.")} />
+          </span>
           <input
             id="routine-title"
+            ref={routineTitleRef}
             type="text"
             value={form.title}
             onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
@@ -289,7 +306,10 @@ const RoutinesView: React.FC = () => {
         )}
 
         <label htmlFor="routine-description" style={{ color: theme.colors.text }}>
-          {t('routines.descriptionLabel')}
+          <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+            {t('routines.descriptionLabel')}
+            <BudgetTooltip content={t('tooltips.routines.description', 'Optional context — what this routine is for, when you do it, or how it makes you feel. Useful when you revisit it weeks later.')} />
+          </span>
           <input
             id="routine-description"
             type="text"
@@ -300,7 +320,10 @@ const RoutinesView: React.FC = () => {
         </label>
 
         <label htmlFor="routine-frequency" style={{ color: theme.colors.text }}>
-          {t('routines.frequencyLabel')}
+          <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+            {t('routines.frequencyLabel')}
+            <BudgetTooltip content={t('tooltips.routines.frequency', 'How often should this routine run? Daily routines build automaticity faster; weekly ones suit habits that need more recovery time between.')} />
+          </span>
           <select
             id="routine-frequency"
             value={form.frequency}
@@ -316,7 +339,10 @@ const RoutinesView: React.FC = () => {
         </label>
 
         <label htmlFor="routine-trigger" style={{ color: theme.colors.text }}>
-          {t('routines.triggerTimeLabel')}
+          <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+            {t('routines.triggerTimeLabel')}
+            <BudgetTooltip content={t('tooltips.routines.triggerTime', 'Set a time that reliably triggers this routine. Pairing with an existing time anchor (e.g., 7:00 AM right after waking) strengthens the habit loop.')} />
+          </span>
           <input
             id="routine-trigger"
             type="time"
@@ -326,8 +352,9 @@ const RoutinesView: React.FC = () => {
           />
         </label>
 
-        <label htmlFor="routine-anchor" style={{ fontWeight: 600, display: 'block' }}>
+        <label htmlFor="routine-anchor" style={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
           {t('routines.anchorLabel', 'Stack onto a habit (optional)')}
+          <BudgetTooltip content={t('tooltips.routines.anchor', 'Habit stacking attaches a new routine to something you already do automatically (e.g. "After I pour my coffee, I will…"). This triggers the new habit reliably without willpower.')} />
         </label>
         <input
           id="routine-anchor"
@@ -352,8 +379,9 @@ const RoutinesView: React.FC = () => {
         </p>
 
         <fieldset style={{ border: 'none', padding: 0, margin: 0 }}>
-          <legend style={{ color: theme.colors.text, marginBottom: `${theme.spacing.xs}px` }}>
+          <legend style={{ color: theme.colors.text, marginBottom: `${theme.spacing.xs}px`, display: 'flex', alignItems: 'center' }}>
             {t('routines.stepsLabel')}
+            <BudgetTooltip content={t('tooltips.routines.steps', 'Break your routine into small, specific actions. Each step becomes a checkbox you tick off — this reduces decision fatigue and makes it clear exactly what "done" looks like.')} />
           </legend>
           {renderStepFields(form.steps, setForm, 'new')}
         </fieldset>
@@ -380,7 +408,7 @@ const RoutinesView: React.FC = () => {
           accentColor="#8B5CF6"
         />
       ) : (
-        <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: `${theme.spacing.md}px` }}>
+        <ul data-tour="routines-list" style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: `${theme.spacing.md}px` }}>
           {routines.map((routine) => {
             const due = isRoutineDueToday(routine);
             const isEditing = editingId === routine.id;
@@ -501,8 +529,8 @@ const RoutinesView: React.FC = () => {
                     <div
                       style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: `${theme.spacing.xs}px` }}
                     >
-                      <div>
-                        <strong style={{ color: theme.colors.text, fontFamily: theme.typography.heading.family }}>
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <strong style={{ color: theme.colors.text, fontFamily: theme.typography.heading.family, wordBreak: 'break-word' }}>
                           {routine.title}
                         </strong>
                         {routine.triggerTime && (

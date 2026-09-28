@@ -2,7 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../../core/context/ThemeContext';
 import type { TypeTotals } from '../utils/budgetTotals';
-import { stackStyle } from './BudgetControls';
+import { SectionHeading, stackStyle } from './BudgetControls';
 
 type Props = { planned: TypeTotals; actual: TypeTotals };
 
@@ -26,9 +26,9 @@ const PlannedActualRow: React.FC<RowProps> = ({ label, planned, actual, max }) =
   const { theme } = useTheme();
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: theme.spacing.sm }}>
         <span>{label}</span>
-        <span>
+        <span style={{ flexShrink: 0, whiteSpace: 'nowrap' }}>
           {planned.toFixed(2)} / {actual.toFixed(2)}
         </span>
       </div>
@@ -55,7 +55,14 @@ const PlannedActualSection: React.FC<Props> = ({ planned, actual }) => {
   const max = Math.max(planned.NEED, planned.WANT, actual.NEED, actual.WANT, 1);
   return (
     <section style={stackStyle(theme)}>
-      <h3 style={{ margin: 0 }}>{t('budget.plannedActualHeading', 'Planned vs actual')}</h3>
+      <SectionHeading
+        tooltip={t(
+          'tooltips.budget.plannedActual',
+          'How close did reality match your plan? Use this to calibrate next month — consistently over on Wants? Move budget there deliberately next time.'
+        )}
+      >
+        {t('budget.plannedActualHeading', 'Planned vs actual')}
+      </SectionHeading>
       <div style={stackStyle(theme)}>
         <PlannedActualRow label={t('budget.needsLabel', 'Needs')} planned={planned.NEED} actual={actual.NEED} max={max} />
         <PlannedActualRow label={t('budget.wantsLabel', 'Wants')} planned={planned.WANT} actual={actual.WANT} max={max} />

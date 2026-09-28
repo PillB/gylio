@@ -1,9 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev https://*.clerk.dev; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' https://*.clerk.accounts.dev https://*.clerk.dev https://api.openai.com wss:; frame-src https://*.clerk.accounts.dev https://*.clerk.dev; object-src 'none'; base-uri 'self';">
     <meta charset="UTF-8" />
+    <!-- PWA manifest -->
+    <link rel="manifest" href="manifest.json" />
+    <!-- Icons -->
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <link rel="apple-touch-icon" href="icons/icon-192.png" />
+    <!-- Viewport: viewport-fit=cover for notch/Dynamic Island; interactive-widget for iOS keyboard -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
+    <!-- iOS PWA -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="GYLIO" />
+    <!-- Android Chrome theme color -->
+    <meta name="theme-color" content="#5B5CF6" />
+    <!-- Prevent auto-linking of phone/email on iOS/Android -->
+    <meta name="format-detection" content="telephone=no,email=no,address=no" />
     <title>GYLIO – Get Your Life In Order</title>
     <!-- Readable sans-serif font choices; users can adjust reading preferences in Settings. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -15,18 +30,50 @@
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
         text-rendering: optimizeLegibility;
+        /* Prevent horizontal scroll on mobile */
+        overflow-x: hidden;
+        /* Prevent pull-to-refresh rubberbanding on the root */
+        overscroll-behavior-y: none;
+        /* Force light mode — GYLIO is a light-theme app; dark-mode OS overrides break the palette */
+        color-scheme: light;
       }
       body {
         margin: 0;
         font-family: 'Inter', 'Open Sans', system-ui, sans-serif;
         background-color: #F8F7F4;
         color: #1C1B22;
-        min-height: 100vh;
+        min-height: 100dvh;
         line-height: 1.6;
+        overflow-x: hidden;
       }
       button { font-family: inherit; cursor: pointer; }
       button:focus-visible, a:focus-visible { outline: 2px solid #5B5CF6; outline-offset: 2px; }
-      input, textarea, select { font-family: inherit; }
+      /* Minimum 16px on all inputs to prevent iOS Safari auto-zoom on focus.
+         !important needed to override Clerk's component stylesheet. */
+      input, textarea, select { font-family: inherit; font-size: max(16px, 1rem) !important; }
+      /* Primary navigation must wrap (WCAG 2.2 SC 1.4.10 Reflow: no horizontal
+         scrolling to reach a destination), but seven wrapped destinations cost
+         ~198px at 320px — 35% of the viewport before any content. Tighten the
+         items on narrow screens so they occupy fewer rows while keeping the
+         44px touch target. !important is required because the component styles
+         these elements inline. */
+      @media (max-width: 430px) {
+        .app-nav { gap: 3px !important; padding: 3px !important; }
+        .app-nav__item {
+          padding-left: 7px !important;
+          padding-right: 7px !important;
+          font-size: 0.75rem !important;
+          gap: 3px !important;
+        }
+        /* Same treatment for the in-page view tabs, which stack a second
+           multi-row control strip directly beneath the primary navigation. */
+        .app-tabs { gap: 4px !important; }
+        .app-tabs__item {
+          padding-left: 9px !important;
+          padding-right: 9px !important;
+          font-size: 0.8125rem !important;
+        }
+      }
       .site-utility-footer {
         width: min(1100px, calc(100% - 32px));
         margin: 0 auto;
@@ -50,6 +97,23 @@
         text-underline-offset: 3px;
       }
       @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+      /* iOS momentum scrolling for any overflow container */
+      [data-scroll] {
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+      }
+      /* Ensure all scrollable main content areas get momentum scrolling */
+      main, [role="main"], .app-container {
+        -webkit-overflow-scrolling: touch;
+      }
+      /* Mobile header: hide clock + TTS button to keep header in 1–2 rows on small screens.
+         Time is visible in the system status bar; TTS is accessible from Settings. */
+      @media (max-width: 520px) {
+        .header-dt { display: none !important; }
+        .header-tts { display: none !important; }
+        /* Subscription badge hidden on mobile — status accessible from Settings */
+        .header-subscription { display: none !important; }
+      }
     </style>
   </head>
   <body>

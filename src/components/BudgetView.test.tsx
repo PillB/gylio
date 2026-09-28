@@ -103,6 +103,8 @@ const inputAfterLabel = (labelText: string) => {
   return control as HTMLInputElement;
 };
 
+const transactionSection = () => screen.getByText('budget.transactionsHeading').closest('section') as HTMLElement;
+
 const renderLoaded = async () => {
   render(<BudgetView />);
   await screen.findByText('budget.incomeHeading');
@@ -153,8 +155,11 @@ describe('BudgetView', () => {
 
   it('lists only transactions from the active budget month', async () => {
     await renderLoaded();
-    expect(screen.getByText('1300.00 · Rent · 2026-09-02')).toBeTruthy();
-    expect(screen.queryByText('999.00 · Rent · 2026-08-02')).toBeNull();
+    const section = within(transactionSection());
+    expect(section.getByText('2026-09-02')).toBeTruthy();
+    expect(section.getByText('1300.00')).toBeTruthy();
+    expect(section.queryByText('2026-08-02')).toBeNull();
+    expect(section.queryByText('999.00')).toBeNull();
   });
 
   it('marks a category over budget from this month spending only', async () => {
@@ -176,12 +181,12 @@ describe('BudgetView', () => {
     await renderLoaded();
     fireEvent.change(inputAfterLabel('amountLabel'), { target: { value: '45' } });
     fireEvent.change(inputAfterLabel('budget.transactionDateLabel'), { target: { value: '2026-09-10' } });
-    const categorySelects = screen.getAllByText('categoryLabel', { selector: 'label' });
-    const txSelect = categorySelects.map((label) => label.querySelector('select')).find(Boolean) as HTMLSelectElement;
-    fireEvent.change(txSelect, { target: { value: 'Fun' } });
+    fireEvent.change(within(transactionSection()).getByRole('combobox'), { target: { value: 'Fun' } });
     fireEvent.click(screen.getByText('budget.addTransaction'));
     await waitFor(() => expect(insertTransaction).toHaveBeenCalledWith('2026-09', 45, 'Fun', false, '2026-09-10', null));
-    await screen.findByText('45.00 · Fun · 2026-09-10');
+    const row = (await within(transactionSection()).findByText('2026-09-10')).closest('li') as HTMLElement;
+    expect(within(row).getByText('45.00')).toBeTruthy();
+    expect(within(row).getByText('Fun')).toBeTruthy();
   });
 
   it('only deletes the budget after an explicit confirmation', async () => {
@@ -218,5 +223,25 @@ describe('BudgetView', () => {
     fireEvent.click(screen.getByText('budget.logReview'));
     await screen.findByText('budget.reviewLogged');
     expect(applyRewardsProgress).toHaveBeenCalledWith({ points: 15, budgetReviewed: true });
+  });
+
+  it('offers the quick-start categories only while a budget has none, and adds all eight', async () => {
+    await renderLoaded();
+    expect(screen.queryByText(/budget\.quickStart\.btn/)).toBeNull();
+    cleanup();
+
+    db.budgets = [{ ...seedBudget(), categories: [] }];
+    await renderLoaded();
+    fireEvent.click(screen.getByText(/budget\.quickStart\.btn/));
+    await waitFor(() => expect(updateBudget).toHaveBeenCalledTimes(1));
+    const [, patch] = updateBudget.mock.calls[0];
+    expect(patch.categories?.map((entry) => entry.type)).toEqual(['NEED', 'NEED', 'NEED', 'NEED', 'WANT', 'WANT', 'GOAL', 'GOAL']);
+    await waitFor(() => expect(screen.queryByText(/budget\.quickStart\.btn/)).toBeNull());
+  });
+
+  it('says when the open month has no transactions yet', async () => {
+    db.transactions = [];
+    await renderLoaded();
+    expect(screen.getByRole('status').textContent).toContain('budget.noTransactionsYet');
   });
 });

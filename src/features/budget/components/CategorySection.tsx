@@ -3,11 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../../core/context/ThemeContext';
 import type { BudgetCategory } from '../../../core/hooks/useDB';
 import type { ThemeTokens } from '../../../core/themes';
-import BudgetTooltip from '../../../components/atoms/BudgetTooltip';
 import { useValidatedForm } from '../hooks/useValidatedForm';
 import { CATEGORY_TYPES, categoryProgress, type SpendingStatus } from '../utils/budgetTotals';
 import { parseNumber, validateCategory, type CategoryFields } from '../utils/budgetValidation';
-import { BudgetField, BudgetInput, PrimaryButton, fieldStyle, stackStyle } from './BudgetControls';
+import { BudgetField, BudgetInput, PrimaryButton, SectionHeading, fieldStyle, stackStyle } from './BudgetControls';
 
 const EMPTY_CATEGORY: CategoryFields = { name: '', type: 'NEED', plannedAmount: '' };
 
@@ -15,7 +14,49 @@ type Props = {
   categories: BudgetCategory[];
   spentByCategory: Map<string, number>;
   onAdd: (entry: BudgetCategory) => Promise<boolean>;
+  /** Adds several categories at once (the quick-start set). */
+  onAddMany: (entries: BudgetCategory[]) => Promise<boolean>;
   onRemove: (index: number) => void;
+};
+
+type Translate = ReturnType<typeof useTranslation>['t'];
+
+/** A realistic starting split people can edit, so an empty budget is never a blank page. */
+const starterCategories = (t: Translate): BudgetCategory[] => [
+  { name: t('budget.starter.housing', 'Housing'), type: 'NEED', plannedAmount: 800 },
+  { name: t('budget.starter.food', 'Food & Groceries'), type: 'NEED', plannedAmount: 300 },
+  { name: t('budget.starter.transport', 'Transport'), type: 'NEED', plannedAmount: 150 },
+  { name: t('budget.starter.health', 'Health'), type: 'NEED', plannedAmount: 100 },
+  { name: t('budget.starter.entertainment', 'Entertainment'), type: 'WANT', plannedAmount: 100 },
+  { name: t('budget.starter.dining', 'Dining Out'), type: 'WANT', plannedAmount: 100 },
+  { name: t('budget.starter.savings', 'Savings'), type: 'GOAL', plannedAmount: 200 },
+  { name: t('budget.starter.emergency', 'Emergency Fund'), type: 'GOAL', plannedAmount: 100 },
+];
+
+const QuickStartButton: React.FC<{ onClick: () => void }> = ({ onClick }) => {
+  const { t } = useTranslation();
+  const { theme } = useTheme();
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
+        minHeight: 44,
+        borderRadius: theme.shape.radiusMd,
+        border: `1.5px dashed ${theme.colors.primary}`,
+        background: `${theme.colors.primary}0d`,
+        color: theme.colors.primary,
+        fontWeight: 600,
+        cursor: 'pointer',
+        fontSize: '0.9rem',
+        fontFamily: theme.typography.body.family,
+        textAlign: 'left',
+      }}
+    >
+      ⚡ {t('budget.quickStart.btn', 'Quick-start with 8 suggested categories (YNAB method)')}
+    </button>
+  );
 };
 
 const statusColor = (theme: ThemeTokens, status: SpendingStatus): string =>
@@ -41,9 +82,9 @@ const CategoryRow: React.FC<RowProps> = ({ entry, spent, onRemove }) => {
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: theme.spacing.sm }}>
-        <span style={{ fontWeight: 600, color: theme.colors.text, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <span style={{ fontWeight: 600, color: theme.colors.text, minWidth: 0, wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
           {entry.name}
-          <span style={{ fontWeight: 400, color: theme.colors.muted, fontSize: '0.78rem', marginLeft: 6 }}>
+          <span style={{ fontWeight: 400, color: theme.colors.muted, fontSize: '0.78rem', marginLeft: 6, whiteSpace: 'nowrap' }}>
             {t(`budget.categoryType.${entry.type.toLowerCase()}`, entry.type)}
           </span>
         </span>
@@ -84,7 +125,7 @@ const CategoryRow: React.FC<RowProps> = ({ entry, spent, onRemove }) => {
   );
 };
 
-const CategorySection: React.FC<Props> = ({ categories, spentByCategory, onAdd, onRemove }) => {
+const CategorySection: React.FC<Props> = ({ categories, spentByCategory, onAdd, onAddMany, onRemove }) => {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const validate = useCallback((values: CategoryFields) => validateCategory(values, t), [t]);
@@ -100,24 +141,37 @@ const CategorySection: React.FC<Props> = ({ categories, spentByCategory, onAdd, 
     );
   };
 
-  const typeLabel = (
-    <span style={{ display: 'flex', alignItems: 'center' }}>
-      {t('budget.categoryTypeLabel', 'Type')}
-      <BudgetTooltip content={t('budget.needTooltip', 'Need: rent, food, transport. Want: dining, streaming, hobbies. Goal: savings, investments, emergency fund. Debt: loans and credit cards with interest.')} />
-    </span>
-  );
-
   return (
-    <section style={stackStyle(theme)}>
-      <h3 style={{ margin: 0 }}>{t('budget.categoryHeading', 'Categories')}</h3>
+    <section data-tour="budget-categories" style={stackStyle(theme)}>
+      <SectionHeading
+        tooltip={t(
+          'tooltips.budget.categories',
+          'Named spending buckets. Every transaction must belong to a category — this is how you track where your money really goes vs. where you planned it to go.'
+        )}
+      >
+        {t('budget.categoryHeading', 'Categories')}
+      </SectionHeading>
+      {!categories.length && <QuickStartButton onClick={() => onAddMany(starterCategories(t))} />}
       <div style={stackStyle(theme)}>
         <BudgetInput
           label={t('categoryLabel', 'Category')}
+          tooltip={t(
+            'tooltips.budget.categoryName',
+            'Give this spending bucket a clear, memorable name. Be specific: "Groceries" is better than "Food", "Netflix + Spotify" is better than "Subscriptions". You will see this name on every transaction you log.'
+          )}
           value={form.values.name}
           onChange={(value) => form.setField('name', value)}
           error={form.errorFor('name')}
         />
-        <BudgetField label={typeLabel} error={form.errorFor('type')}>
+        <BudgetField
+          label={t('budget.categoryTypeLabel', 'Type')}
+          tooltipPosition="bottom"
+          tooltip={t(
+            'tooltips.budget.categoryType',
+            'NEED: Essential expenses (rent, utilities, groceries, transport) — the floor below which life stops working. WANT: Lifestyle choices (dining out, streaming, hobbies) — not bad money, just honest about what it is. GOAL: Future building (savings, investments, emergency fund) — pay yourself first. DEBT: Repayments (loans, credit cards, anything with interest) — every extra dollar here shortens your debt-free date.'
+          )}
+          error={form.errorFor('type')}
+        >
           <select value={form.values.type} onChange={(event) => form.setField('type', event.target.value)} style={fieldStyle(theme)}>
             {CATEGORY_TYPES.map((type) => (
               <option key={type} value={type}>
@@ -129,6 +183,10 @@ const CategorySection: React.FC<Props> = ({ categories, spentByCategory, onAdd, 
         <BudgetInput
           type="number"
           label={t('budget.plannedAmountLabel', 'Planned amount')}
+          tooltip={t(
+            'tooltips.budget.plannedAmount',
+            'The maximum you intend to spend in this category for the month. Be realistic — set it based on recent history, not wishful thinking. You can always adjust it later as you learn your real patterns.'
+          )}
           value={form.values.plannedAmount}
           onChange={(value) => form.setField('plannedAmount', value)}
           error={form.errorFor('plannedAmount')}

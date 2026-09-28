@@ -133,6 +133,9 @@ export const useBudgetData = () => {
   const addCategory = (entry: CategoryEntry) =>
     patchBudget('add category', (budget) => ({ categories: [...budget.categories, entry] }));
 
+  const addCategories = (entries: CategoryEntry[]) =>
+    patchBudget('add starter categories', (budget) => ({ categories: [...budget.categories, ...entries] }));
+
   const removeCategory = (index: number) =>
     activeBudget &&
     patchBudget(
@@ -215,6 +218,7 @@ export const useBudgetData = () => {
     addIncome,
     removeIncome,
     addCategory,
+    addCategories,
     removeCategory,
     applyDiagnostic,
     addTransaction,

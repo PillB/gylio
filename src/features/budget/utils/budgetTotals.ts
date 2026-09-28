@@ -63,3 +63,11 @@ export const buildSpendingBars = (
   const actual = actualByType(categories, monthTransactions);
   return CATEGORY_TYPES.map((type) => ({ type, planned: planned[type], actual: actual[type] }));
 };
+
+/** The most recent valid transaction date, or null when none has one. */
+export const latestTransactionDate = (transactions: { date?: string | null }[]): Date | null => {
+  const times = transactions
+    .map((entry) => (entry.date ? new Date(entry.date).getTime() : Number.NaN))
+    .filter((time) => !Number.isNaN(time));
+  return times.length ? new Date(Math.max(...times)) : null;
+};

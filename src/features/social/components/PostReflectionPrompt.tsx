@@ -56,7 +56,7 @@ export const PostReflectionPrompt: React.FC<Props> = ({ plan, theme, onSubmit })
 
   if (submitted) {
     return (
-      <p style={{ margin: '0.5rem 0 0', fontSize: '0.875rem', color: theme.colors.success ?? '#22C55E' }}>
+      <p style={{ margin: '0.5rem 0 0', fontSize: '0.875rem', color: theme.colors.success }}>
         {t('social.reflectionSaved', 'Reflection saved!')}
       </p>
     );
@@ -85,6 +85,8 @@ export const PostReflectionPrompt: React.FC<Props> = ({ plan, theme, onSubmit })
             onClick={() => setSelectedEnergy(i + 1)}
             style={{
               fontSize: '1.5rem',
+              minHeight: '44px',
+              minWidth: '44px',
               background: 'none',
               border:
                 selectedEnergy === i + 1
@@ -132,6 +134,7 @@ export const PostReflectionPrompt: React.FC<Props> = ({ plan, theme, onSubmit })
         }}
         style={{
           padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
+          minHeight: '44px',
           borderRadius: theme.shape.radiusFull,
           border: 'none',
           backgroundColor: selectedEnergy !== null ? theme.colors.primary : theme.colors.border,

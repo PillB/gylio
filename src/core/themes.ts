@@ -70,6 +70,17 @@ export interface ThemeTokens {
     toast: number;
     tooltip: number;
   };
+  /**
+   * Categorical colours for data display (energy levels, budget categories,
+   * calendar event series). These previously lived as hardcoded hex maps in
+   * individual components, which froze them to the light palette and silently
+   * defeated both dark mode and the high-contrast accessibility theme.
+   */
+  dataViz: {
+    energy: Record<'tiny' | 'low' | 'medium' | 'high', string>;
+    budget: Record<'NEED' | 'WANT' | 'GOAL' | 'DEBT', string>;
+    series: string[];
+  };
 }
 
 const spacing = {
@@ -205,6 +216,24 @@ const shadows = {
   },
 };
 
+const dataViz = {
+  light: {
+    energy: { tiny: '#22C55E', low: '#3B82F6', medium: '#F59E0B', high: '#EF4444' },
+    budget: { NEED: '#5B5CF6', WANT: '#8B5CF6', GOAL: '#22C55E', DEBT: '#F59E0B' },
+    series: ['#5B5CF6', '#8B5CF6', '#EC4899', '#F59E0B', '#22C55E', '#3B82F6', '#EF4444'],
+  },
+  dark: {
+    energy: { tiny: '#4ADE80', low: '#60A5FA', medium: '#FBD061', high: '#F87171' },
+    budget: { NEED: '#8182FA', WANT: '#A78BFA', GOAL: '#4ADE80', DEBT: '#FBD061' },
+    series: ['#8182FA', '#A78BFA', '#F472B6', '#FBD061', '#4ADE80', '#60A5FA', '#F87171'],
+  },
+  highContrast: {
+    energy: { tiny: '#00ff88', low: '#00ffff', medium: '#ffaa00', high: '#ff4444' },
+    budget: { NEED: '#ffff00', WANT: '#ff00ff', GOAL: '#00ff88', DEBT: '#ffaa00' },
+    series: ['#ffff00', '#ff00ff', '#00ffff', '#ffaa00', '#00ff88', '#ffffff', '#ff4444'],
+  },
+};
+
 export const themes: Record<ThemeMode, ThemeTokens> = {
   light: {
     mode: 'light',
@@ -215,6 +244,7 @@ export const themes: Record<ThemeMode, ThemeTokens> = {
     shadow: shadows.light,
     animation,
     zIndex,
+    dataViz: dataViz.light,
   },
   dark: {
     mode: 'dark',
@@ -225,6 +255,7 @@ export const themes: Record<ThemeMode, ThemeTokens> = {
     shadow: shadows.dark,
     animation,
     zIndex,
+    dataViz: dataViz.dark,
   },
   highContrast: {
     mode: 'highContrast',
@@ -235,6 +266,7 @@ export const themes: Record<ThemeMode, ThemeTokens> = {
     shadow: shadows.highContrast,
     animation,
     zIndex,
+    dataViz: dataViz.highContrast,
   },
 };
 

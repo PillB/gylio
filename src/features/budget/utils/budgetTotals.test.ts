@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  latestTransactionDate,
   actualByCategory,
   actualByType,
   buildSpendingBars,
@@ -66,5 +67,16 @@ describe('categoryProgress', () => {
   it('treats any spending against a zero plan as over budget', () => {
     expect(categoryProgress(0, 0)).toEqual({ spent: 0, ratio: 0, status: 'ok' });
     expect(categoryProgress(0, 5).status).toBe('over');
+  });
+});
+
+describe('latestTransactionDate', () => {
+  it('picks the newest valid date and skips missing or invalid ones', () => {
+    const latest = latestTransactionDate([{ date: '2026-09-02' }, { date: null }, { date: 'soon' }, { date: '2026-09-20' }]);
+    expect(latest?.toISOString().slice(0, 10)).toBe('2026-09-20');
+  });
+
+  it('is null when nothing has a usable date', () => {
+    expect(latestTransactionDate([{ date: '' }, {}])).toBeNull();
   });
 });

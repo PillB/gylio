@@ -11,11 +11,14 @@ import CategorySection from '../features/budget/components/CategorySection';
 import TransactionSection from '../features/budget/components/TransactionSection';
 import PlannedActualSection from '../features/budget/components/PlannedActualSection';
 import DebtSection from '../features/budget/components/DebtSection';
+import DataFreshnessBanner from '../features/budget/components/DataFreshnessBanner';
+import ReconciliationChecklist from '../features/budget/components/ReconciliationChecklist';
 import { useBudgetData } from '../features/budget/hooks/useBudgetData';
 import {
   actualByCategory,
   actualByType,
   buildSpendingBars,
+  latestTransactionDate,
   plannedByType,
   sumIncome,
   sumPlanned,
@@ -32,6 +35,7 @@ const useBudgetSummary = (activeBudget, transactions) =>
     const remaining = sumIncome(activeBudget?.income ?? NO_ENTRIES) - sumPlanned(categories);
     return {
       monthTransactions,
+      lastTransactionDate: latestTransactionDate(monthTransactions),
       remaining,
       spentByCategory: actualByCategory(monthTransactions),
       plannedTotals: plannedByType(categories),
@@ -39,6 +43,25 @@ const useBudgetSummary = (activeBudget, transactions) =>
       spendingBars: buildSpendingBars(categories, monthTransactions),
     };
   }, [activeBudget, transactions]);
+
+/** Freshness, an empty-month nudge, and the month-end reconciliation checklist. */
+const MonthHealth = ({ budget, monthTransactions, lastTransactionDate }) => {
+  const { t } = useTranslation();
+  const { theme } = useTheme();
+  return (
+    <>
+      <DataFreshnessBanner lastTransactionDate={lastTransactionDate} budgetMonthKey={budget.month} />
+      {monthTransactions.length === 0 && (
+        <p role="status" style={{ margin: 0, color: theme.colors.muted, fontSize: '0.875rem' }}>
+          {t('budget.noTransactionsYet', 'No transactions recorded for {{month}} yet. Add your first expense below.', {
+            month: budget.month,
+          })}
+        </p>
+      )}
+      <ReconciliationChecklist budgetMonthKey={budget.month} />
+    </>
+  );
+};
 
 const BudgetView = () => {
   const { t } = useTranslation();
@@ -65,7 +88,14 @@ const BudgetView = () => {
       {data.loading ? (
         <p>{t('loading', 'Loading…')}</p>
       ) : (
-        <div style={{ display: 'grid', gap: `${theme.spacing.lg}px` }}>
+        <div style={{ display: 'grid', gap: `${theme.spacing.lg}px`, gridTemplateColumns: 'minmax(0, 1fr)' }}>
+          {activeBudget && (
+            <MonthHealth
+              budget={activeBudget}
+              monthTransactions={summary.monthTransactions}
+              lastTransactionDate={summary.lastTransactionDate}
+            />
+          )}
           <DiagnosticToggle onApply={applyDiagnostic} />
           <WeeklyReviewCard />
           <BudgetMonthSection
@@ -94,6 +124,7 @@ const BudgetView = () => {
             categories={activeBudget?.categories ?? NO_ENTRIES}
             spentByCategory={summary.spentByCategory}
             onAdd={data.addCategory}
+            onAddMany={data.addCategories}
             onRemove={data.removeCategory}
           />
           <TransactionSection

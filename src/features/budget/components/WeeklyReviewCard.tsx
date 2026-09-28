@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../../core/context/ThemeContext';
+import BudgetTooltip from '../../../components/atoms/BudgetTooltip';
 import useGamification from '../../../core/hooks/useGamification';
 import useRewards from '../../../core/hooks/useRewards';
 
@@ -41,7 +42,15 @@ const WeeklyReviewCard: React.FC = () => {
       }}
     >
       <div>
-        <p style={{ margin: 0, fontWeight: 600 }}>{t('budget.reviewHeading', 'Weekly review')}</p>
+        <p style={{ margin: 0, fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+          {t('budget.reviewHeading', 'Weekly review')}
+          <BudgetTooltip
+            content={t(
+              'tooltips.budget.review',
+              'A 5-minute weekly check-in is the single highest-leverage budget habit. Glancing at the numbers prevents small leaks from becoming big holes.'
+            )}
+          />
+        </p>
         <small style={{ color: theme.colors.muted }}>
           {gamificationEnabled
             ? t('budget.reviewHelper', 'Log a gentle check-in to keep your budget streak steady.')
@@ -59,6 +68,7 @@ const WeeklyReviewCard: React.FC = () => {
         disabled={!gamificationEnabled}
         style={{
           padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
+          minHeight: 44,
           borderRadius: theme.shape.radiusSm,
           border: `1px solid ${theme.colors.primary}`,
           backgroundColor: gamificationEnabled ? theme.colors.primary : theme.colors.border,

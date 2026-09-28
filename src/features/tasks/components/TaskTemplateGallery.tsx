@@ -13,13 +13,6 @@ type Props = {
   theme: ThemeTokens;
 };
 
-const ENERGY_COLOR: Record<TaskTemplate['energyRequired'], string> = {
-  tiny:   '#22C55E',
-  low:    '#3B82F6',
-  medium: '#F59E0B',
-  high:   '#EF4444',
-};
-
 const CATEGORY_FILTERS: (TaskCategory | 'all')[] = [
   'all',
   'environment',
@@ -32,6 +25,7 @@ const CATEGORY_FILTERS: (TaskCategory | 'all')[] = [
 ];
 
 export const TaskTemplateGallery: React.FC<Props> = ({ onSelect, theme }) => {
+  const ENERGY_COLOR = theme.dataViz.energy;
   const { t } = useTranslation();
   const [activeCategory, setActiveCategory] = useState<TaskCategory | 'all'>('all');
 
@@ -207,7 +201,7 @@ export const TaskTemplateGallery: React.FC<Props> = ({ onSelect, theme }) => {
               </div>
 
               {/* Subtasks preview */}
-              {tpl.subtasks.length > 0 && (
+              {tpl.subtaskKeys.length > 0 && (
                 <div
                   style={{
                     padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
@@ -235,7 +229,7 @@ export const TaskTemplateGallery: React.FC<Props> = ({ onSelect, theme }) => {
                       gap: 2,
                     }}
                   >
-                    {tpl.subtasks.map((step, i) => (
+                    {tpl.subtaskKeys.map((key, i) => (
                       <li
                         key={i}
                         style={{
@@ -244,7 +238,7 @@ export const TaskTemplateGallery: React.FC<Props> = ({ onSelect, theme }) => {
                           lineHeight: 1.45,
                         }}
                       >
-                        {t(`${tpl.titleKey.replace('.title', `.step${i + 1}`)}`, step)}
+                        {t(key)}
                       </li>
                     ))}
                   </ol>

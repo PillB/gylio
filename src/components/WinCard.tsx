@@ -28,16 +28,6 @@ type Props = {
   onClose: () => void;
 };
 
-const WIN_COLORS: Record<WinType, string> = {
-  streak:          '#F97316',
-  all_tasks_done:  '#22C55E',
-  routine_complete:'#8B5CF6',
-  budget_goal:     '#3B82F6',
-  first_task:      '#EC4899',
-  first_routine:   '#F59E0B',
-  level_up:        '#10B981',
-};
-
 const WIN_EMOJIS: Record<WinType, string> = {
   streak:          '🔥',
   all_tasks_done:  '✅',
@@ -62,6 +52,15 @@ const WIN_KEY: Record<WinType, string> = {
 export default function WinCard({ type, milestone, label, sublabel, onClose }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
+  const WIN_COLORS: Record<WinType, string> = {
+    streak:           theme.dataViz.series[3],
+    all_tasks_done:   theme.colors.success,
+    routine_complete: theme.dataViz.series[1],
+    budget_goal:      theme.dataViz.series[5],
+    first_task:       theme.colors.accent,
+    first_routine:    theme.colors.warning,
+    level_up:         theme.dataViz.energy.tiny,
+  };
   const color  = WIN_COLORS[type];
   const emoji  = WIN_EMOJIS[type];
   const keyRoot = WIN_KEY[type];

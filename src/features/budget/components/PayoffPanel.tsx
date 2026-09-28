@@ -67,20 +67,25 @@ const PayoffPanel: React.FC<Props> = ({ debts, extraPayment }) => {
       }}
     >
       <div style={{ display: 'flex', gap: `${theme.spacing.sm}px`, flexWrap: 'wrap', alignItems: 'center' }}>
-        <ToggleButton selected={strategy === 'SNOWBALL'} onClick={() => setStrategy('SNOWBALL')}>
-          {t('budget.snowballLabel', 'Snowball')}
-        </ToggleButton>
-        <BudgetTooltip
-          content={t('budget.snowballExplain', 'Pay minimums on everything, throw every extra dollar at the smallest balance. Each debt cleared is a concrete win — and wins keep you going.')}
-          position="top"
-        />
-        <ToggleButton selected={strategy === 'AVALANCHE'} onClick={() => setStrategy('AVALANCHE')}>
-          {t('budget.avalancheLabel', 'Avalanche')}
-        </ToggleButton>
-        <BudgetTooltip
-          content={t('budget.avalancheExplain', 'Pay minimums on everything, attack the highest interest rate first. Mathematically optimal — saves the most money over time.')}
-          position="top"
-        />
+        {/* Each toggle stays next to its explanation when the row wraps. */}
+        <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+          <ToggleButton selected={strategy === 'SNOWBALL'} onClick={() => setStrategy('SNOWBALL')}>
+            {t('budget.snowballLabel', 'Snowball')}
+          </ToggleButton>
+          <BudgetTooltip
+            content={t('budget.snowballExplain', 'Pay minimums on everything, throw every extra dollar at the smallest balance. Each debt cleared is a concrete win — and wins keep you going.')}
+            position="top"
+          />
+        </span>
+        <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+          <ToggleButton selected={strategy === 'AVALANCHE'} onClick={() => setStrategy('AVALANCHE')}>
+            {t('budget.avalancheLabel', 'Avalanche')}
+          </ToggleButton>
+          <BudgetTooltip
+            content={t('budget.avalancheExplain', 'Pay minimums on everything, attack the highest interest rate first. Mathematically optimal — saves the most money over time.')}
+            position="top"
+          />
+        </span>
       </div>
       <PayoffResult comparison={comparison} strategy={strategy} extraPayment={extraPayment} />
     </div>

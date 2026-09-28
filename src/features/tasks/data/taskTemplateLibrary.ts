@@ -12,7 +12,8 @@ export type TaskTemplate = {
   category: TaskCategory;
   titleKey: string;
   whyKey: string;
-  subtasks: string[];
+  /** i18n keys for each micro-step (e.g. 'tasks.tpl.cleanSpace.step1') */
+  subtaskKeys: string[];
   energyRequired: 'tiny' | 'low' | 'medium' | 'high';
   estimatedMinutes: number;
   sourceLabel: string;
@@ -38,10 +39,10 @@ export const TASK_TEMPLATE_LIBRARY: TaskTemplate[] = [
     category: 'environment',
     titleKey: 'tasks.tpl.cleanSpace.title',
     whyKey: 'tasks.tpl.cleanSpace.why',
-    subtasks: [
-      "Clear the surface you work at",
-      "Remove trash or clutter from the room",
-      "Put one thing away that's been out of place",
+    subtaskKeys: [
+      'tasks.tpl.cleanSpace.step1',
+      'tasks.tpl.cleanSpace.step2',
+      'tasks.tpl.cleanSpace.step3',
     ],
     energyRequired: 'tiny',
     estimatedMinutes: 15,
@@ -52,10 +53,10 @@ export const TASK_TEMPLATE_LIBRARY: TaskTemplate[] = [
     category: 'environment',
     titleKey: 'tasks.tpl.digitalDeclutter.title',
     whyKey: 'tasks.tpl.digitalDeclutter.why',
-    subtasks: [
-      "Delete apps you haven't opened in 30 days",
-      "Unsubscribe from 5 email lists",
-      "Clear your phone's home screen to only essentials",
+    subtaskKeys: [
+      'tasks.tpl.digitalDeclutter.step1',
+      'tasks.tpl.digitalDeclutter.step2',
+      'tasks.tpl.digitalDeclutter.step3',
     ],
     energyRequired: 'low',
     estimatedMinutes: 20,
@@ -66,10 +67,10 @@ export const TASK_TEMPLATE_LIBRARY: TaskTemplate[] = [
     category: 'environment',
     titleKey: 'tasks.tpl.designEnv.title',
     whyKey: 'tasks.tpl.designEnv.why',
-    subtasks: [
-      "Identify one bad habit and remove its cue from your space",
-      "Make one good habit easier (place the item in plain sight)",
-      "Set up your work area before you finish today",
+    subtaskKeys: [
+      'tasks.tpl.designEnv.step1',
+      'tasks.tpl.designEnv.step2',
+      'tasks.tpl.designEnv.step3',
     ],
     energyRequired: 'low',
     estimatedMinutes: 30,
@@ -82,11 +83,11 @@ export const TASK_TEMPLATE_LIBRARY: TaskTemplate[] = [
     category: 'deepwork',
     titleKey: 'tasks.tpl.deepWork.title',
     whyKey: 'tasks.tpl.deepWork.why',
-    subtasks: [
-      "Choose ONE important task — the one you've been avoiding",
-      "Set a 90-minute timer with all notifications off",
-      "Write down your goal for this block before starting",
-      "Review what you produced at the end",
+    subtaskKeys: [
+      'tasks.tpl.deepWork.step1',
+      'tasks.tpl.deepWork.step2',
+      'tasks.tpl.deepWork.step3',
+      'tasks.tpl.deepWork.step4',
     ],
     energyRequired: 'high',
     estimatedMinutes: 90,
@@ -97,10 +98,10 @@ export const TASK_TEMPLATE_LIBRARY: TaskTemplate[] = [
     category: 'deepwork',
     titleKey: 'tasks.tpl.shutdownRitual.title',
     whyKey: 'tasks.tpl.shutdownRitual.why',
-    subtasks: [
-      "Scan your task list — capture anything uncaptured",
-      "Write tomorrow's top 3 priorities",
-      "Say out loud: 'Shutdown complete'",
+    subtaskKeys: [
+      'tasks.tpl.shutdownRitual.step1',
+      'tasks.tpl.shutdownRitual.step2',
+      'tasks.tpl.shutdownRitual.step3',
     ],
     energyRequired: 'tiny',
     estimatedMinutes: 10,
@@ -111,11 +112,11 @@ export const TASK_TEMPLATE_LIBRARY: TaskTemplate[] = [
     category: 'deepwork',
     titleKey: 'tasks.tpl.brainDump.title',
     whyKey: 'tasks.tpl.brainDump.why',
-    subtasks: [
-      "Set a timer for 15 minutes",
-      "Write every open loop, worry, or to-do in your head — no filtering",
-      "Review the list and mark which items actually need action",
-      "Pick the single most important one and schedule it",
+    subtaskKeys: [
+      'tasks.tpl.brainDump.step1',
+      'tasks.tpl.brainDump.step2',
+      'tasks.tpl.brainDump.step3',
+      'tasks.tpl.brainDump.step4',
     ],
     energyRequired: 'low',
     estimatedMinutes: 20,
@@ -126,12 +127,12 @@ export const TASK_TEMPLATE_LIBRARY: TaskTemplate[] = [
     category: 'deepwork',
     titleKey: 'tasks.tpl.weeklyReview.title',
     whyKey: 'tasks.tpl.weeklyReview.why',
-    subtasks: [
-      "Clear your inbox and capture any new commitments",
-      "Review your projects list — is anything stuck?",
-      "Check what you accomplished this week",
-      "Set 3 intentions for next week",
-      "Schedule next week's review",
+    subtaskKeys: [
+      'tasks.tpl.weeklyReview.step1',
+      'tasks.tpl.weeklyReview.step2',
+      'tasks.tpl.weeklyReview.step3',
+      'tasks.tpl.weeklyReview.step4',
+      'tasks.tpl.weeklyReview.step5',
     ],
     energyRequired: 'medium',
     estimatedMinutes: 45,
@@ -142,10 +143,10 @@ export const TASK_TEMPLATE_LIBRARY: TaskTemplate[] = [
     category: 'deepwork',
     titleKey: 'tasks.tpl.nextAction.title',
     whyKey: 'tasks.tpl.nextAction.why',
-    subtasks: [
-      "Pick your most stuck or procrastinated project",
-      "Ask: what is the very next physical action required?",
-      "Add that specific action to your task list and schedule it",
+    subtaskKeys: [
+      'tasks.tpl.nextAction.step1',
+      'tasks.tpl.nextAction.step2',
+      'tasks.tpl.nextAction.step3',
     ],
     energyRequired: 'tiny',
     estimatedMinutes: 10,
@@ -158,10 +159,10 @@ export const TASK_TEMPLATE_LIBRARY: TaskTemplate[] = [
     category: 'health',
     titleKey: 'tasks.tpl.morningSunlight.title',
     whyKey: 'tasks.tpl.morningSunlight.why',
-    subtasks: [
-      "Go outside within 30–60 minutes of waking",
-      "Stay outside for 10–15 minutes without sunglasses",
-      "Walk or stand — movement helps absorption",
+    subtaskKeys: [
+      'tasks.tpl.morningSunlight.step1',
+      'tasks.tpl.morningSunlight.step2',
+      'tasks.tpl.morningSunlight.step3',
     ],
     energyRequired: 'tiny',
     estimatedMinutes: 15,
@@ -172,10 +173,10 @@ export const TASK_TEMPLATE_LIBRARY: TaskTemplate[] = [
     category: 'health',
     titleKey: 'tasks.tpl.moveBody.title',
     whyKey: 'tasks.tpl.moveBody.why',
-    subtasks: [
-      "Pick one form of movement (walk, run, lift, swim)",
-      "Set a minimum: 20–30 minutes",
-      "Do it before checking news or social media if possible",
+    subtaskKeys: [
+      'tasks.tpl.moveBody.step1',
+      'tasks.tpl.moveBody.step2',
+      'tasks.tpl.moveBody.step3',
     ],
     energyRequired: 'medium',
     estimatedMinutes: 30,
@@ -186,10 +187,10 @@ export const TASK_TEMPLATE_LIBRARY: TaskTemplate[] = [
     category: 'health',
     titleKey: 'tasks.tpl.fixSleep.title',
     whyKey: 'tasks.tpl.fixSleep.why',
-    subtasks: [
-      "Choose a consistent wake time and stick to it for 2 weeks",
-      "Set an alarm to start winding down 1 hour before bed",
-      "Remove your phone from the bedroom or put it across the room",
+    subtaskKeys: [
+      'tasks.tpl.fixSleep.step1',
+      'tasks.tpl.fixSleep.step2',
+      'tasks.tpl.fixSleep.step3',
     ],
     energyRequired: 'low',
     estimatedMinutes: 20,
@@ -200,10 +201,10 @@ export const TASK_TEMPLATE_LIBRARY: TaskTemplate[] = [
     category: 'health',
     titleKey: 'tasks.tpl.reduceAlcohol.title',
     whyKey: 'tasks.tpl.reduceAlcohol.why',
-    subtasks: [
-      "Identify which days/situations you drink most",
-      "Set a specific rule (e.g., only weekends, only 1 drink)",
-      "Replace the ritual with a non-alcoholic alternative for one week",
+    subtaskKeys: [
+      'tasks.tpl.reduceAlcohol.step1',
+      'tasks.tpl.reduceAlcohol.step2',
+      'tasks.tpl.reduceAlcohol.step3',
     ],
     energyRequired: 'medium',
     estimatedMinutes: 5,
@@ -216,9 +217,9 @@ export const TASK_TEMPLATE_LIBRARY: TaskTemplate[] = [
     category: 'mindset',
     titleKey: 'tasks.tpl.journal.title',
     whyKey: 'tasks.tpl.journal.why',
-    subtasks: [
-      "Write one page — stream of consciousness, no editing",
-      "End with: what is one thing I could do differently tomorrow?",
+    subtaskKeys: [
+      'tasks.tpl.journal.step1',
+      'tasks.tpl.journal.step2',
     ],
     energyRequired: 'tiny',
     estimatedMinutes: 10,
@@ -229,10 +230,10 @@ export const TASK_TEMPLATE_LIBRARY: TaskTemplate[] = [
     category: 'mindset',
     titleKey: 'tasks.tpl.gratitude.title',
     whyKey: 'tasks.tpl.gratitude.why',
-    subtasks: [
-      "Write 3 specific things you're grateful for (not generic)",
-      "For each one, write WHY you're grateful for it",
-      "Text one of them to the person involved if applicable",
+    subtaskKeys: [
+      'tasks.tpl.gratitude.step1',
+      'tasks.tpl.gratitude.step2',
+      'tasks.tpl.gratitude.step3',
     ],
     energyRequired: 'tiny',
     estimatedMinutes: 5,
@@ -243,10 +244,10 @@ export const TASK_TEMPLATE_LIBRARY: TaskTemplate[] = [
     category: 'mindset',
     titleKey: 'tasks.tpl.comparePastSelf.title',
     whyKey: 'tasks.tpl.comparePastSelf.why',
-    subtasks: [
-      "Write 3 ways you've improved in the past 6 months",
-      "Identify one area where you're still struggling",
-      "Set one small, specific improvement goal for this week only",
+    subtaskKeys: [
+      'tasks.tpl.comparePastSelf.step1',
+      'tasks.tpl.comparePastSelf.step2',
+      'tasks.tpl.comparePastSelf.step3',
     ],
     energyRequired: 'low',
     estimatedMinutes: 15,
@@ -257,10 +258,10 @@ export const TASK_TEMPLATE_LIBRARY: TaskTemplate[] = [
     category: 'mindset',
     titleKey: 'tasks.tpl.tellTruth.title',
     whyKey: 'tasks.tpl.tellTruth.why',
-    subtasks: [
-      "Identify one thing you've been avoiding saying or doing",
-      "Write what is actually true about your situation",
-      "Decide on one honest action you can take this week",
+    subtaskKeys: [
+      'tasks.tpl.tellTruth.step1',
+      'tasks.tpl.tellTruth.step2',
+      'tasks.tpl.tellTruth.step3',
     ],
     energyRequired: 'medium',
     estimatedMinutes: 20,
@@ -271,10 +272,10 @@ export const TASK_TEMPLATE_LIBRARY: TaskTemplate[] = [
     category: 'mindset',
     titleKey: 'tasks.tpl.takeResponsibility.title',
     whyKey: 'tasks.tpl.takeResponsibility.why',
-    subtasks: [
-      "Name one problem in your life you've been blaming on others or circumstances",
-      "Write what part of this is actually within your control",
-      "Choose one action to take that is fully in your power",
+    subtaskKeys: [
+      'tasks.tpl.takeResponsibility.step1',
+      'tasks.tpl.takeResponsibility.step2',
+      'tasks.tpl.takeResponsibility.step3',
     ],
     energyRequired: 'medium',
     estimatedMinutes: 15,
@@ -287,10 +288,10 @@ export const TASK_TEMPLATE_LIBRARY: TaskTemplate[] = [
     category: 'relationships',
     titleKey: 'tasks.tpl.reachOut.title',
     whyKey: 'tasks.tpl.reachOut.why',
-    subtasks: [
-      "Think of one person you haven't spoken to in over 2 weeks",
-      "Send a genuine, non-generic message (not just 'hey')",
-      "Ask one real question about their life",
+    subtaskKeys: [
+      'tasks.tpl.reachOut.step1',
+      'tasks.tpl.reachOut.step2',
+      'tasks.tpl.reachOut.step3',
     ],
     energyRequired: 'tiny',
     estimatedMinutes: 5,
@@ -301,10 +302,10 @@ export const TASK_TEMPLATE_LIBRARY: TaskTemplate[] = [
     category: 'relationships',
     titleKey: 'tasks.tpl.repairRelationship.title',
     whyKey: 'tasks.tpl.repairRelationship.why',
-    subtasks: [
-      "Identify the relationship you've been avoiding or neglecting",
-      "Write what you'd want to say — unsent letter first",
-      "Reach out and say one true thing without defensiveness",
+    subtaskKeys: [
+      'tasks.tpl.repairRelationship.step1',
+      'tasks.tpl.repairRelationship.step2',
+      'tasks.tpl.repairRelationship.step3',
     ],
     energyRequired: 'high',
     estimatedMinutes: 30,
@@ -315,10 +316,10 @@ export const TASK_TEMPLATE_LIBRARY: TaskTemplate[] = [
     category: 'relationships',
     titleKey: 'tasks.tpl.expressAppreciation.title',
     whyKey: 'tasks.tpl.expressAppreciation.why',
-    subtasks: [
-      "Name one person who deserves acknowledgment today",
-      "Tell them something specific (not general) that you appreciate",
-      "Do it in person or voice — not text if possible",
+    subtaskKeys: [
+      'tasks.tpl.expressAppreciation.step1',
+      'tasks.tpl.expressAppreciation.step2',
+      'tasks.tpl.expressAppreciation.step3',
     ],
     energyRequired: 'tiny',
     estimatedMinutes: 5,
@@ -331,11 +332,11 @@ export const TASK_TEMPLATE_LIBRARY: TaskTemplate[] = [
     category: 'career',
     titleKey: 'tasks.tpl.deliberatePractice.title',
     whyKey: 'tasks.tpl.deliberatePractice.why',
-    subtasks: [
-      "Identify the single most valuable skill in your field",
-      "Find the edge of your current ability in that skill",
-      "Practice just beyond your comfort zone for 45–60 minutes",
-      "Review what was hard and what improved",
+    subtaskKeys: [
+      'tasks.tpl.deliberatePractice.step1',
+      'tasks.tpl.deliberatePractice.step2',
+      'tasks.tpl.deliberatePractice.step3',
+      'tasks.tpl.deliberatePractice.step4',
     ],
     energyRequired: 'high',
     estimatedMinutes: 60,
@@ -346,11 +347,11 @@ export const TASK_TEMPLATE_LIBRARY: TaskTemplate[] = [
     category: 'career',
     titleKey: 'tasks.tpl.identifyMission.title',
     whyKey: 'tasks.tpl.identifyMission.why',
-    subtasks: [
-      "Write what you're genuinely good at (skills others pay for)",
-      "Write what problems in the world you care about",
-      "Find one intersection between those two lists",
-      "Research one person doing work at that intersection",
+    subtaskKeys: [
+      'tasks.tpl.identifyMission.step1',
+      'tasks.tpl.identifyMission.step2',
+      'tasks.tpl.identifyMission.step3',
+      'tasks.tpl.identifyMission.step4',
     ],
     energyRequired: 'medium',
     estimatedMinutes: 45,
@@ -361,10 +362,10 @@ export const TASK_TEMPLATE_LIBRARY: TaskTemplate[] = [
     category: 'career',
     titleKey: 'tasks.tpl.sayNo.title',
     whyKey: 'tasks.tpl.sayNo.why',
-    subtasks: [
-      "List your current commitments — every yes you've given",
-      "Identify one that is not aligned with your priorities",
-      "Decline or exit it with a clear, honest response",
+    subtaskKeys: [
+      'tasks.tpl.sayNo.step1',
+      'tasks.tpl.sayNo.step2',
+      'tasks.tpl.sayNo.step3',
     ],
     energyRequired: 'low',
     estimatedMinutes: 10,
@@ -377,11 +378,11 @@ export const TASK_TEMPLATE_LIBRARY: TaskTemplate[] = [
     category: 'finances',
     titleKey: 'tasks.tpl.listDebts.title',
     whyKey: 'tasks.tpl.listDebts.why',
-    subtasks: [
-      "Open every account statement you've been avoiding",
-      "Write each debt: creditor, balance, interest rate, minimum payment",
-      "Sort by interest rate (highest first = avalanche method)",
-      "Total the debt — write down the actual number",
+    subtaskKeys: [
+      'tasks.tpl.listDebts.step1',
+      'tasks.tpl.listDebts.step2',
+      'tasks.tpl.listDebts.step3',
+      'tasks.tpl.listDebts.step4',
     ],
     energyRequired: 'low',
     estimatedMinutes: 20,
@@ -392,11 +393,11 @@ export const TASK_TEMPLATE_LIBRARY: TaskTemplate[] = [
     category: 'finances',
     titleKey: 'tasks.tpl.emergencyFund.title',
     whyKey: 'tasks.tpl.emergencyFund.why',
-    subtasks: [
-      "Calculate your monthly essential expenses (rent + food + bills)",
-      "Identify how much you currently have in savings",
-      "Set up a separate high-yield savings account if you haven't",
-      "Automate a fixed amount to transfer on payday — even $50 counts",
+    subtaskKeys: [
+      'tasks.tpl.emergencyFund.step1',
+      'tasks.tpl.emergencyFund.step2',
+      'tasks.tpl.emergencyFund.step3',
+      'tasks.tpl.emergencyFund.step4',
     ],
     energyRequired: 'medium',
     estimatedMinutes: 20,
@@ -407,11 +408,11 @@ export const TASK_TEMPLATE_LIBRARY: TaskTemplate[] = [
     category: 'finances',
     titleKey: 'tasks.tpl.trackSpending.title',
     whyKey: 'tasks.tpl.trackSpending.why',
-    subtasks: [
-      "Open your bank/card statements for the last 7 days",
-      "Categorize every transaction: need, want, or save",
-      "Add up each category total",
-      "Find the one 'want' category that surprised you most",
+    subtaskKeys: [
+      'tasks.tpl.trackSpending.step1',
+      'tasks.tpl.trackSpending.step2',
+      'tasks.tpl.trackSpending.step3',
+      'tasks.tpl.trackSpending.step4',
     ],
     energyRequired: 'low',
     estimatedMinutes: 10,
@@ -422,11 +423,11 @@ export const TASK_TEMPLATE_LIBRARY: TaskTemplate[] = [
     category: 'finances',
     titleKey: 'tasks.tpl.cancelSubs.title',
     whyKey: 'tasks.tpl.cancelSubs.why',
-    subtasks: [
-      "Search your email for 'subscription', 'renewal', 'receipt'",
-      "List every recurring charge",
-      "Cancel any you haven't used in 30+ days",
-      "Calculate your monthly savings",
+    subtaskKeys: [
+      'tasks.tpl.cancelSubs.step1',
+      'tasks.tpl.cancelSubs.step2',
+      'tasks.tpl.cancelSubs.step3',
+      'tasks.tpl.cancelSubs.step4',
     ],
     energyRequired: 'tiny',
     estimatedMinutes: 15,
@@ -437,11 +438,11 @@ export const TASK_TEMPLATE_LIBRARY: TaskTemplate[] = [
     category: 'finances',
     titleKey: 'tasks.tpl.negotiateBill.title',
     whyKey: 'tasks.tpl.negotiateBill.why',
-    subtasks: [
-      "Choose one recurring bill (internet, phone, insurance)",
-      "Research what competitors charge for the same service",
-      "Call and say you're considering switching — ask for a better rate",
-      "Document the outcome and time saved vs money saved",
+    subtaskKeys: [
+      'tasks.tpl.negotiateBill.step1',
+      'tasks.tpl.negotiateBill.step2',
+      'tasks.tpl.negotiateBill.step3',
+      'tasks.tpl.negotiateBill.step4',
     ],
     energyRequired: 'medium',
     estimatedMinutes: 30,

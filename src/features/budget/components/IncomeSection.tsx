@@ -5,7 +5,7 @@ import type { BudgetIncome } from '../../../core/hooks/useDB';
 import BudgetTooltip from '../../../components/atoms/BudgetTooltip';
 import { useValidatedForm } from '../hooks/useValidatedForm';
 import { parseNumber, validateIncome, type IncomeFields } from '../utils/budgetValidation';
-import { BudgetInput, PrimaryButton, RemovableRowList, stackStyle } from './BudgetControls';
+import { BudgetInput, PrimaryButton, RemovableRowList, SectionHeading, stackStyle } from './BudgetControls';
 
 const EMPTY_INCOME: IncomeFields = { source: '', amount: '' };
 
@@ -52,15 +52,18 @@ const IncomeSection: React.FC<Props> = ({ income, remaining, onAdd, onRemove }) 
   };
 
   return (
-    <section style={stackStyle(theme)}>
-      <h3 style={{ margin: 0, display: 'flex', alignItems: 'center' }}>
+    <section data-tour="budget-income" style={stackStyle(theme)}>
+      <SectionHeading tooltip={t('budget.zeroBasedExplain', 'Zero-based budgeting: give every dollar a job. When Remaining hits zero, every cent is intentional — that\'s the whole point.')}>
         {t('budget.incomeHeading', 'Income')}
-        <BudgetTooltip content={t('budget.zeroBasedExplain', 'Zero-based budgeting: give every dollar a job. When Remaining hits zero, every cent is intentional — that\'s the whole point.')} />
-      </h3>
+      </SectionHeading>
       <RemainingPanel remaining={remaining} />
       <div style={stackStyle(theme)}>
         <BudgetInput
           label={t('budget.incomeSourceLabel', 'Income source')}
+          tooltip={t(
+            'tooltips.budget.incomeSource',
+            'Name this income stream: e.g. "Main job", "Freelance", "Side hustle", "Rental income". Separate sources help you see which income is reliable and which is variable.'
+          )}
           value={form.values.source}
           onChange={(value) => form.setField('source', value)}
           error={form.errorFor('source')}
@@ -68,6 +71,10 @@ const IncomeSection: React.FC<Props> = ({ income, remaining, onAdd, onRemove }) 
         <BudgetInput
           type="number"
           label={t('budget.incomeAmountLabel', 'Amount')}
+          tooltip={t(
+            'tooltips.budget.incomeAmount',
+            'Enter your monthly take-home amount — after taxes and deductions. Use the actual number that hits your bank account, not the gross salary on your contract.'
+          )}
           value={form.values.amount}
           onChange={(value) => form.setField('amount', value)}
           error={form.errorFor('amount')}
@@ -80,7 +87,14 @@ const IncomeSection: React.FC<Props> = ({ income, remaining, onAdd, onRemove }) 
         items={income}
         emptyText={t('budget.emptyIncome', 'No income added yet.')}
         getKey={(entry, index) => `${entry.source}-${index}`}
-        renderLabel={(entry) => `${entry.source}: ${entry.amount.toFixed(2)}`}
+        renderLabel={(entry) => (
+          <>
+            <div style={{ fontSize: '0.875rem', wordBreak: 'break-word', overflowWrap: 'anywhere', color: theme.colors.text }}>
+              {entry.source}
+            </div>
+            <div style={{ fontSize: '0.8rem', color: theme.colors.muted, marginTop: 2 }}>{entry.amount.toFixed(2)}</div>
+          </>
+        )}
         onRemove={(_, index) => onRemove(index)}
       />
     </section>

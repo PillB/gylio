@@ -311,7 +311,7 @@
         "step3": "Llama y di que estás considerando cambiar — pide una mejor tarifa",
         "step4": "Documenta el resultado y el tiempo ahorrado vs el dinero ahorrado"
       },
-      "showGallery": "⚡ Comenzar con tareas probadas",
+      "showGallery": "Comenzar con tareas probadas",
       "hideGallery": "Ocultar inicio rápido"
     }
   },
@@ -422,7 +422,32 @@
     "showDiagnostic": "🩺 Diagnóstico de salud financiera",
     "hideDiagnostic": "Ocultar diagnóstico",
     "currencySymbol": "S/.",
+    "noTransactionsYet": "No hay transacciones registradas para {{month}} aún. Agrega tu primer gasto abajo.",
     "monthlyTakeHome": "Sueldo mensual neto",
+    "freshness": {
+      "never": "Nunca",
+      "today": "Hoy",
+      "yesterday": "Ayer",
+      "upToDate": "Al día",
+      "reviewSuggested": "Se sugiere revisar",
+      "dataStale": "Los datos pueden estar desactualizados",
+      "pillFresh": "Actualizado",
+      "pillReview": "Revisar",
+      "pillStale": "Desactualizado",
+      "lastUpdated": "Última actualización",
+      "dataFreshnessLabel": "Actualidad de los datos",
+      "staleHelp": "Tus datos de transacciones no se han actualizados en más de una semana. Por favor revisa y agrega los registros que falten.",
+      "reconcile": {
+        "sectionLabel": "Lista de conciliación",
+        "title": "Lista de conciliación",
+        "description": "Confirma cada elemento para marcar el presupuesto de este mes como conciliado.",
+        "progressLabel": "{{completed}} de {{total}} completado",
+        "income": "Ingresos registrados",
+        "expenses": "Todos los gastos ingresados",
+        "balances": "Saldos coinciden",
+        "allDone": "Todos los elementos confirmados — tu presupuesto está conciliado para este mes."
+      }
+    },
     "diagnostic": {
       "title": "Diagnóstico Financiero",
       "subtitle": "Ingresa tus cifras mensuales para tener una imagen honesta de tus finanzas.",
@@ -484,6 +509,19 @@
       "prefillClothing": "Ropa",
       "prefillPersonalCare": "Cuidado personal",
       "prefillSavings": "Ahorros / Inversiones"
+    },
+    "quickStart": {
+      "btn": "⚡ Inicio rápido con 8 categorías sugeridas (método YNAB)"
+    },
+    "starter": {
+      "housing": "Vivienda",
+      "food": "Alimentación y Mercado",
+      "transport": "Transporte",
+      "health": "Salud",
+      "entertainment": "Entretenimiento",
+      "dining": "Salidas a comer",
+      "savings": "Ahorro",
+      "emergency": "Fondo de emergencia"
     }
   },
   "rewards": {
@@ -507,7 +545,16 @@
     "locked": "Bloqueado",
     "nearestHeading": "¡Casi lo logras!",
     "progressLabel": "{{current}} / {{target}} puntos ({{pct}}% conseguido)",
-    "progressBarAria": "Progreso hacia {{title}}: {{pct}} por ciento"
+    "progressBarAria": "Progreso hacia {{title}}: {{pct}} por ciento",
+    "starterHint": "¿No sabes qué agregar? Empieza con estas:",
+    "starter": {
+      "coffee": "Pausa para el café",
+      "episode": "Ver un episodio",
+      "walk": "Salir a caminar 15 min",
+      "snack": "Tu snack favorito",
+      "nap": "Siesta reparadora",
+      "game": "20 min de videojuegos"
+    }
   },
   "rewardsPlaceholder": "Aquí aparecerán puntos y rachas. La gamificación es opcional.",
   "social": {
@@ -1351,6 +1398,21 @@
       "daily": "Diaria",
       "weekly": "Semanal",
       "addAria": "Agregar rutina: {{title}}"
+    },
+    "anchor": {
+      "afterWaking": "Al despertar",
+      "afterCoffee": "Después del café",
+      "beforeEmail": "Antes de abrir el correo",
+      "afterSunset": "Después del atardecer",
+      "afterDinner": "Después de cenar",
+      "beforeBed": "Antes de acostarse",
+      "beforeShutdown": "Antes del ritual de cierre",
+      "sundayAfternoon": "Domingo por la tarde",
+      "sundayMorning": "Domingo por la mañana",
+      "beforeWork": "Antes de empezar a trabajar",
+      "immediatelyOnWaking": "Inmediatamente al despertar",
+      "afterWork": "Después del trabajo",
+      "afterMorningLight": "Después de la luz matutina"
     }
   },
   "win": {
@@ -1388,6 +1450,11 @@
       "sub": "El crecimiento no es lineal — pero estás avanzando."
     }
   },
+  "streakRecovery": {
+    "gapBadge": "{{days}} días desde la última actividad",
+    "bestStreak": "Mejor: {{count}} días",
+    "bestStreakAriaLabel": "Mejor racha: {{count}} días"
+  },
   "welcomeBack": {
     "title": "Bienvenido de vuelta — estuviste ausente {{days}}.",
     "daysSingular": "1 día",
@@ -1397,18 +1464,70 @@
     "message2": "Lo más difícil es regresar. Tú lo hiciste.",
     "message3": "Cada reinicio cuenta. Bienvenido de vuelta.",
     "continueCta": "Continuar donde lo dejé",
-    "freshStartCta": "Empezar de nuevo hoy"
+    "freshStartCta": "Empezar de nuevo hoy",
+    "bannerAriaLabel": "Mensaje de bienvenida",
+    "heading": "Cada reinicio cuenta.",
+    "gapAriaLabel": "Llevas {{days}} días sin actividad",
+    "gapNote": "{{days}} días desde tu última actividad — sin presión.",
+    "lastStreakRecovery": "Tenías una racha de {{count}} días — retoma donde lo dejaste.",
+    "tinyStepAriaLabel": "Empieza con un pequeño paso",
+    "tinyStep": "Empieza con un pequeño paso",
+    "continueAriaLabel": "Continuar donde lo dejé",
+    "continue": "Continuar donde lo dejé",
+    "freshStartAriaLabel": "Empezar de nuevo hoy",
+    "freshStart": "Empezar de nuevo hoy"
+  },
+  "recurring": {
+    "showPanel": "Estado de recurrencia",
+    "hidePanel": "Ocultar estado de recurrencia",
+    "panelTitle": "Fiabilidad de tareas recurrentes",
+    "noRecurringTasks": "No hay tareas recurrentes configuradas.",
+    "colTask": "Tarea",
+    "colLastGen": "Últ. gen.",
+    "colNextExp": "Próx. esp.",
+    "colFailures": "Fallos",
+    "lastGenerated": "Última generación",
+    "neverGenerated": "Nunca",
+    "nextExpected": "Próximo esperado",
+    "failureBadgeLabel": "{{count}} instancias perdidas",
+    "checkNow": "Verificar ahora",
+    "checking": "Verificando…",
+    "repair": "Reconstruir instancias recurrentes",
+    "repairing": "Reconstruyendo…",
+    "lastChecked": "Última verificación a las {{time}}"
   },
   "upgrade": {
     "premiumBadge": "✦ Premium",
-    "upgradeCta": "Mejorar plan",
-    "tryFree": "Probar gratis",
+    "premiumBadgeAria": "Función premium",
     "regionAria": "Mejora tu plan para acceder a esta función",
+    "iconAria": "Destellos",
     "title": "{{feature}} es una función premium",
-    "subtitle": "Empieza tu prueba gratis de 10 días — sin tarjeta de crédito.",
-    "startTrial": "Iniciar prueba gratis de 10 días",
+    "subtitle": "Esta función es parte de Gylio Premium. Comienza con 10 días gratis, sin compromiso y puedes cancelar cuando quieras.",
+    "startTrial": "Comenzar prueba de 10 días",
     "seePlans": "Ver planes",
-    "pricing": "$12/mes · o $10/mes facturado anualmente"
+    "tryFree": "Probar gratis",
+    "tryOnce": "Probar esto una vez, gratis",
+    "tryOnceAria": "Prueba esto una vez, gratis — {{featureName}}",
+    "outcomesHeading": "Lo que podrás hacer",
+    "outcomesListAria": "Qué ganas con Premium",
+    "freeAlternativePrefix": "Por ahora puedes",
+    "pricing": "$12/mes · o $10/mes con facturación anual",
+    "social": {
+      "outcome1": "Comparte tus rachas y logros con amigos",
+      "outcome2": "Únete a grupos de apoyo mutuo y retos en equipo",
+      "freeAlt": "registrar tu propio progreso de forma privada"
+    },
+    "routines": {
+      "outcome1": "Crea rutinas ilimitadas: mañana, noche o personalizadas",
+      "outcome2": "Recibe recordatorios suaves adaptados a tus niveles de energía",
+      "freeAlt": "agregar hasta 3 tareas a tu rutina diaria"
+    },
+    "rewards": {
+      "outcome1": "Diseña tus propias recompensas e hitos personales",
+      "outcome2": "Celebra tus grandes logros con animaciones especiales",
+      "freeAlt": "ganar las tres medallas de hitos prediseñadas"
+    },
+    "upgradeCta": "✦ Mejorar"
   },
   "pricing": {
     "heading": "Precios simples y transparentes",
@@ -1429,6 +1548,7 @@
     "activating": "Activando…",
     "activated": "✓ ¡Premium activado!",
     "trialError": "No se pudo activar la prueba",
+    "noAuthError": "Inicia sesión para activar tu prueba",
     "tryAgain": "Reintentar",
     "redirecting": "Desbloqueando funciones premium…",
     "currentPlan": "Plan actual",
@@ -1450,25 +1570,134 @@
     }
   },
   "calendarWeeklyGridAria": "Calendario semanal",
-  "settingsPanel": {
-    "shortcutsHeading": "Atajos de teclado",
-    "shortcutAddTask": "Enfocar campo \"Agregar tarea\"",
-    "shortcutDismiss": "Cerrar notificación / overlay",
-    "aboutHeading": "Acerca de",
-    "appVersion": "Versión",
-    "buildDate": "Compilación",
-    "stack": "Tecnología",
-    "aboutDescription": "GYLIO es una app de productividad diseñada para personas neurodivergentes, con accesibilidad, bajo esfuerzo cognitivo y UX amable en su núcleo.",
-    "tourDescription": "Realiza el tour interactivo de nuevo para redescubrir funciones o mostrar la app a alguien nuevo.",
-    "timerHeading": "Temporizador de enfoque",
-    "timerFocusLabel": "Duración de enfoque",
-    "timerShortBreakLabel": "Descanso corto",
-    "timerLongBreakLabel": "Descanso largo",
-    "timerSessionsLabel": "Sesiones antes del descanso largo",
-    "timerAutoBreak": "Iniciar descansos automáticamente al terminar el enfoque",
-    "timerInsight": "La investigación muestra que el cerebro trabaja en ciclos ultradianos de ~90 minutos. Los sprints cortos (25 min) funcionan para la mayoría de tareas; los sprints largos (45–90 min) requieren descansos proporcionalmente más largos para evitar la fatiga cognitiva. Encuentra tu ventana.",
-    "timerBreakInsight": "Los sprints de enfoque más largos necesitan descansos más largos: 45 min → 15 min de descanso; 90 min → 20 min de descanso. Saltarse los descansos acumula fatiga mental."
+  "calendarZoomHint": "Ctrl+scroll o pellizco para zoom",
+  "tooltips": {
+    "tasks": {
+      "section": "Tu centro de tareas: todo lo que necesitas hacer, dividido en pasos que puedes comenzar ahora mismo. Agrega lo que sea y márcalo al terminar.",
+      "energy": "Filtra tareas según la energía mental que necesitas ahora. Elige Mínima/Baja en días difíciles. Guarda las de Alta para cuando estés en tu mejor momento.",
+      "quickStart": "Plantillas de tareas respaldadas por investigación que puedes agregar con un toque. Personaliza el título a tu situación — la estructura ya está lista.",
+      "reliability": "Monitorea qué tan consistentemente se generan tus tareas recurrentes. Si se pierden instancias, puedes reconstruirlas aquí.",
+      "subtasks": "Divide una tarea grande en pasos pequeños. Las investigaciones muestran que el inicio — no la ejecución — es la parte más difícil. Comenzar el primer micro-paso es el 80% del trabajo.",
+      "plannedDate": "Programar una tarea hace que sea 2–3× más probable que la hagas. Incluso 'hoy' sirve — la especificidad es todo.",
+      "intention": "Una intención de implementación (cuándo + dónde) duplica el seguimiento — probado en 94 estudios. Tu cerebro lo trata como un precompromiso.",
+      "timer": "Sprints Pomodoro: trabajo enfocado + descansos cortos. La urgencia programada elimina el 'empiezo en un minuto' sin agregar presión.",
+      "templates": "Estructuras de tarea listas para situaciones comunes — sesión de estudio, bloque de trabajo, autocuidado. Elige una y personaliza el título según tu contexto.",
+      "title": "Dale a tu tarea un nombre claro y específico. Cuanto más concreto, más fácil es comenzar — 'Escribir correo a Dr. Santos' supera a 'Correos' cualquier día."
+    },
+    "calendar": {
+      "section": "Programa eventos y bloquea tiempo para tareas. Poner algo en el calendario hace que sea 2–3× más probable que realmente suceda.",
+      "suggestedFocus": "Basado en tus tareas abiertas y tiempo libre de hoy, estas ventanas son tus mejores oportunidades para trabajo enfocado. Prográmalas ahora mientras tienes la intención fresca.",
+      "tasksToConvert": "Tareas sin franja horaria aún. 'Convertir a evento' le da a cada tarea un horario específico — convirtiendo una intención en un compromiso.",
+      "events": "Todos tus eventos programados. Haz clic en cualquier evento para editarlo, agregar un recordatorio o vincularlo a una tarea. Eliminar un evento nunca elimina la tarea vinculada.",
+      "title": "Ponle un nombre claro a tu evento. Incluye quién o qué es: 'Reunión de equipo' o 'Dentista — Dr. García'. Esto aparece en tu vista de calendario.",
+      "startDate": "¿Cuándo comienza este evento? Establecer una hora exacta lo bloquea en tu calendario y previene conflictos de programación.",
+      "endDate": "¿Cuándo termina este evento? Las horas de fin precisas te ayudan a ver ventanas libres para tareas y evitar sobrecargar tu agenda.",
+      "location": "¿Dónde ocurre esto? Opcional, pero útil para recordatorios de tiempo de traslado y contexto.",
+      "description": "Detalles opcionales — puntos de agenda, notas de preparación, códigos de acceso. Los verás cuando hagas clic en el evento.",
+      "taskLink": "Conecta este evento a una tarea existente. Al completar el evento, puede marcar la tarea como hecha también — manteniendo ambas listas sincronizadas.",
+      "reminder": "Recibe una notificación antes de que comience el evento. Especialmente útil para citas que requieren tiempo de traslado o preparación.",
+      "addEvent": "Crea un nuevo evento en el calendario. Poner las tareas en el calendario las hace 3 veces más probables de realizarse — este es el paso entre planear y hacer."
+    },
+    "budget": {
+      "section": "Presupuesto base cero: cada sol tiene un destino antes de gastarlo. Ingresos menos todas las asignaciones debe ser cero — intencional, no accidental.",
+      "review": "Una revisión semanal de 5 minutos es el hábito de mayor impacto en el presupuesto. Revisar los números evita que las fugas pequeñas se vuelvan agujeros grandes.",
+      "month": "Cada presupuesto cubre un mes calendario (formato AAAA-MM). Crea uno nuevo al inicio de cada período — o cambia a meses anteriores para revisar el historial.",
+      "categories": "Categorías de gasto con nombre. Cada transacción debe pertenecer a una categoría — así ves a dónde va realmente tu dinero vs. dónde planificaste que fuera.",
+      "categoryType": "Necesidad: esenciales que no puedes omitir — alquiler, comida, servicios, transporte, medicamentos.\nDeseo: elecciones de estilo de vida — salidas, streaming, pasatiempos, extras.\nMeta: tu yo futuro — ahorros, inversiones, fondo de emergencia, compras grandes.\nDeuda: pagos — préstamos, tarjetas de crédito, cualquier cosa con intereses.",
+      "chart": "Barra pálida = planeado. Barra sólida = gasto real. Rojo significa que excediste el presupuesto. Coloca el cursor sobre cada barra para ver las cifras exactas.",
+      "chartBar": {
+        "NEED": "Gastos esenciales — alquiler, comida, servicios, transporte. El piso sin el cual la vida no funciona.",
+        "WANT": "Elecciones de estilo de vida — salidas, streaming, pasatiempos. No es dinero malo, solo hay que ser honesto sobre lo que es.",
+        "GOAL": "Construcción del futuro — ahorros, inversiones, fondo de emergencia. Págate primero.",
+        "DEBT": "Pagos — préstamos, tarjetas de crédito, cualquier cosa con intereses. Cada sol extra aquí acorta tu fecha libre de deudas."
+      },
+      "transactions": "Registra cada gasto o pago aquí. Cada entrada actualiza el total real de la categoría y mantiene el gráfico en tiempo real.",
+      "plannedActual": "¿Qué tan cerca estuvo la realidad de tu plan? Úsalo para calibrar el presupuesto del próximo mes — ¿te pasaste en Deseos? Ajústalo deliberadamente.",
+      "debts": "Registra cada préstamo y tarjeta de crédito. Conocer el saldo, la tasa de interés y el pago mínimo te permite construir un plan de salida real.",
+      "annualRate": "La tasa de interés anual (TEA) de esta deuda. Las tasas más altas cuestan más con el tiempo. Estas son las que debes atacar primero con la estrategia Alud.",
+      "minPayment": "El pago mensual mínimo para mantener esta cuenta al día. Siempre paga al menos esto. Tu estrategia de pago apila extra encima.",
+      "categoryName": "Una etiqueta corta y reconocible para esta categoría — ej. 'Alquiler', 'Mercado', 'Netflix'. Los nombres claros hacen más rápido registrar transacciones después.",
+      "incomeSource": "De dónde viene este dinero — sueldo, freelance, transferencia, etc. Etiquetar las fuentes de ingresos te ayuda a ver cuáles son confiables.",
+      "incomeAmount": "El monto que recibiste o esperas recibir de esta fuente. Cifras precisas aquí establecen el techo para todo el plan del mes.",
+      "plannedAmount": "Cuánto planeas gastar en esta categoría este mes. Define un número realista — siempre puedes ajustarlo durante el mes.",
+      "transactionDate": "Cuándo ocurrió el gasto o pago. Registrar la fecha real mantiene tu historial preciso para las revisiones de fin de mes.",
+      "transactionAmount": "El monto exacto gastado o pagado. Ingresa lo que realmente salió de tu cuenta — sin redondeos. Las diferencias pequeñas se acumulan rápido.",
+      "transactionCategory": "A qué categoría de presupuesto pertenece este gasto. Asignar cada transacción a una categoría es lo que hace que el gráfico refleje la realidad.",
+      "transactionNote": "Contexto opcional para esta entrada — ej. 'almuerzo con el equipo' o 'renovación anual'. Las notas te harán agradecer a tu yo futuro durante las revisiones.",
+      "period": "Ingresa el mes que deseas presupuestar en formato AAAA-MM (ej. 2026-04 para abril de 2026). Cada mes es un plan base cero — tus ingresos y categorías tienen sentido dentro de esa ventana.",
+      "debtName": "Nombra esta deuda claramente para identificarla de un vistazo — ej. 'Visa Chase', 'Préstamo estudiantil'. Usa el nombre del prestamista y tipo de cuenta para facilitar la conciliación.",
+      "debtBalance": "Tu saldo pendiente actual — no el monto original del préstamo. Consulta tu último estado de cuenta. Este es el número que usa la calculadora de liquidación, así que la precisión importa.",
+      "debtCategory": "Vincula esta deuda a una categoría tipo DEUDA de forma opcional. Esto permite que tu registro de transacciones fluya al rastreador de liquidación automáticamente. Déjalo en blanco si prefieres llevar la deuda por separado."
+    },
+    "rewards": {
+      "section": "Convierte los hábitos diarios en un juego de progreso. Gana XP completando tareas, mantén rachas de consistencia y define recompensas que realmente quieras ganar.",
+      "gamification": "Los esquemas de recompensa variable mantienen la motivación alta a lo largo del tiempo. Los XP y las rachas siguen ese modelo. Todos los datos son privados y locales.",
+      "streak": "Una racha cuenta los días consecutivos que has sido constante. Las rachas de tareas, enfoque y presupuesto se siguen por separado — romper una no rompe las demás.",
+      "skipTokens": "Usa un token de salto para tomarte un día de descanso sin culpa y sin romper tu racha. Los tokens se ganan siendo constante. Saltarse un día estratégicamente es planificación, no fracaso.",
+      "rewardsList": "Premios personales que te has comprometido a ganar. Define un objetivo de puntos, nombra tu recompensa y canjéala sin culpa al alcanzar la meta. ¿Qué te genera realmente entusiasmo?",
+      "level": "Tu nivel XP actual. Cada nivel representa esfuerzo constante a lo largo del tiempo — no perfección, solo perseverancia. Sube de nivel completando tareas y manteniendo rachas.",
+      "rewardTitle": "¿Qué recompensa quieres desbloquear? Elige algo que realmente esperes con entusiasmo — una comida especial, un libro nuevo, un día libre sin culpa.",
+      "pointsRequired": "¿Cuánto XP se necesita para desbloquear esta recompensa? Ganas XP completando tareas (10 pts cada una) y revisando tu presupuesto semanalmente. Establece umbrales que puedas alcanzar de forma realista.",
+      "rewardDescription": "Notas opcionales sobre la recompensa — dónde ir, qué pedir, cuánto cuesta."
+    },
+    "social": {
+      "section": "Las relaciones se deterioran sin esfuerzo intencional. Esta pestaña te ayuda a planificar encuentros regulares con las personas que importan — antes de que la distancia se instale.",
+      "relationshipType": "Elige para quién es este plan. Diferentes relaciones necesitan distintos tipos de atención — esto define la frecuencia y el tipo de actividades que planificas.",
+      "addPlan": "Crea una acción social: nombra una actividad (llamar, visitar, enviar una nota), vincúlala a una persona y define con qué frecuencia quieres hacerla.",
+      "plansList": "Tu calendario de relaciones. Cada entrada es un compromiso de invertir en alguien. Pequeñas acciones constantes previenen el alejamiento que erosiona los vínculos cercanos.",
+      "planTitle": "Dale un nombre a este plan de conexión. Mantenlo simple: 'Brunch con Sofía' o 'Llamar a mamá semanalmente'. Cuanto más claro sea el plan, más fácil será seguirlo.",
+      "planType": "¿Qué tipo de interacción es esta? Llamada = teléfono/video; Encuentro = en persona; Mensaje = texto/email; Evento = experiencia compartida. Cada tipo tiene diferente fricción — comienza con la opción de menor fricción.",
+      "energyLevel": "¿Cuánta energía social requiere esta interacción? Ajústala a tu energía disponible — los días de baja energía son perfectos para un mensaje rápido, los de alta energía para un encuentro real.",
+      "dateTime": "¿Cuándo quieres que ocurra esto? Programar una fecha específica lo hace 10 veces más probable que 'en algún momento'.",
+      "steps": "Divide el plan de conexión en pequeñas acciones: 'enviar mensaje para sugerir una fecha', 'reservar el restaurante', 'confirmar el día anterior'. Cada paso elimina una razón para posponerlo."
+    },
+    "routines": {
+      "section": "Las rutinas son secuencias de pasos vinculadas a un momento del día. En lugar de decidir qué hacer, simplemente sigues los pasos — eliminando la fatiga de decisión.",
+      "addRoutine": "Construye una nueva rutina: nómbrala, elige un ancla (mañana/trabajo/tarde), establece una hora de inicio y lista los pasos. Mantén cada paso pequeño — 5 minutos o menos.",
+      "steps": "Una acción específica y concreta por paso. 'Prepararme' es demasiado vago. 'Cepillarme, lavarme la cara, tomar medicamentos' es accionable. Los pasos pequeños eliminan la barrera para empezar.",
+      "anchor": "Apilamiento de hábitos: vincula un nuevo comportamiento a uno que ya haces automáticamente. La investigación de BJ Fogg muestra que esto duplica el éxito de implementación.",
+      "title": "Nombra tu rutina con claridad: 'Relajación matutina' o 'Ritual de concentración previo al trabajo'. Un buen nombre la hace sentir intencional y digna de proteger en tu agenda.",
+      "description": "Contexto opcional — para qué es esta rutina, cuándo la haces o cómo te hace sentir. Útil cuando la revisitas semanas después.",
+      "frequency": "¿Con qué frecuencia debe ejecutarse esta rutina? Las rutinas diarias construyen automaticidad más rápido; las semanales son mejores para hábitos que necesitan más tiempo de recuperación.",
+      "triggerTime": "Establece una hora que desencadene esta rutina de forma confiable. Vincularla a un ancla horaria existente (ej. 7:00 AM justo al despertar) fortalece el ciclo del hábito."
+    },
+    "settings": {
+      "section": "Personaliza la app para tu cerebro, preferencias sensoriales y flujo de trabajo. Todos los ajustes se aplican en todas partes y persisten entre sesiones.",
+      "theme": "Claro para espacios brillantes, Oscuro para entornos tenues, Alto contraste para sensibilidad visual o uso al aire libre. Elige lo que mantenga tus ojos cómodos por más tiempo.",
+      "screenTint": "Agrega una capa ámbar cálida para reducir la luz azul por la tarde. Ayuda a señalar el modo de relajación a tu cerebro sin cambiar la configuración de pantalla del sistema.",
+      "tts": "Lee los cambios y alertas de configuración en voz alta — útil para situaciones sin uso visual, gestionar distracciones o confirmar cambios sin mirar la pantalla.",
+      "announce": "Anuncia en voz alta cada cambio que realizas en Configuración — ideal para verificar tus elecciones sin releer la pantalla.",
+      "timer": "Pomodoro: sprints de trabajo cronometrados seguidos de descansos cortos. La urgencia programada reduce la evasión sin agregar estrés — especialmente efectivo para cerebros con TDAH.",
+      "shortcuts": "Los atajos de teclado te permiten navegar toda la app sin el mouse. Aprende 1–2 a la vez — la memoria muscular se acumula rápidamente.",
+      "restartGuide": "Repite el tour interactivo de la app desde el principio. Útil para re-explorar una función que omitiste, o al presentar la app a alguien nuevo.",
+      "dailyView": "Muestra un Centro de Comando Diario simplificado en la pestaña de Tareas: solo tus 3 tareas principales, el próximo evento y un recordatorio de presupuesto. Ideal para días en que la vista completa se siente abrumadora.",
+      "tint": "Aplica una capa de color cálido para reducir la luz azul y el contraste fuerte. Muchos usuarios neurodivergentes encuentran que esto reduce la fatiga visual y la sobrecarga sensorial en sesiones largas.",
+      "font": "El texto más grande reduce la carga cognitiva al revisar listas largas. El tamaño predeterminado está diseñado para ser legible; auméntalo si te encuentras entrecerra los ojos o perdiendo el lugar.",
+      "motion": "Desactivar las animaciones elimina todos los efectos de deslizamiento, desvanecimiento y rebote. Esencial si el movimiento causa distracción, mareos o sobrecarga sensorial.",
+      "gamification": "Activa o desactiva globalmente XP, niveles y rachas. Tus datos de progreso se conservan en cualquier caso — puedes volver a activarlo en cualquier momento.",
+      "announceSettings": "Lee en voz alta tu configuración actual para que puedas confirmar que todo está configurado como esperas sin tener que leer la lista."
+    }
   },
+  "shortcutsHeading": "Atajos de teclado",
+  "shortcutAddTask": "Enfocar campo \"Agregar tarea\"",
+  "shortcutDismiss": "Cerrar notificación / cerrar panel",
+  "aboutHeading": "Acerca de",
+  "appVersion": "Versión",
+  "buildDate": "Compilación",
+  "stack": "Tecnología",
+  "aboutDescription": "GYLIO es una app de productividad diseñada para personas neurodivergentes, con accesibilidad, bajo esfuerzo cognitivo y UX amable en su núcleo.",
+  "tourDescription": "Realiza el tour interactivo de nuevo para redescubrir funciones o mostrar la app a alguien nuevo.",
+  "timerHeading": "Temporizador de enfoque",
+  "timerFocusLabel": "Duración de enfoque",
+  "timerShortBreakLabel": "Descanso corto",
+  "timerLongBreakLabel": "Descanso largo",
+  "timerSessionsLabel": "Sesiones antes del descanso largo",
+  "timerAutoBreak": "Iniciar descansos automáticamente al terminar el enfoque",
+  "timerInsight": "La investigación muestra que el cerebro trabaja en ciclos ultradianos de ~90 minutos. Los sprints cortos (25 min) funcionan para la mayoría de tareas; los sprints largos (45–90 min) requieren descansos proporcionalmente más largos para evitar la fatiga cognitiva. Encuentra tu ventana.",
+  "timerBreakInsight": "Los sprints de enfoque más largos necesitan descansos más largos: 45 min → 15 min de descanso; 90 min → 20 min de descanso. Saltarse los descansos acumula fatiga mental.",
+  "dailyViewHeading": "Vista diaria",
+  "dailyViewToggle": "Activar vista diaria",
+  "dailyViewDescription": "Muestra un Centro de Comando Diario simplificado en la pestaña de Tareas — solo tus 3 tareas principales, el próximo evento y un recordatorio de presupuesto.",
   "clock": {
     "about": "cerca de {{time}}",
     "around": "alrededor de {{time}}",
@@ -1491,6 +1720,8 @@
     "next": "Siguiente",
     "finish": "¡Listo!",
     "keyboardHint": "← → navegar · Esc pausar",
+    "unlockCta": "Iniciar prueba gratuita de 10 días →",
+    "signInCta": "Inicia sesión para ver esta función en vivo →",
     "startButton": "Guía",
     "startAria": "Iniciar guía interactiva",
     "activeLabel": "Guía activa",
@@ -1529,9 +1760,248 @@
       "title": "Seguimiento de presupuesto",
       "content": "Registra ingresos y gastos por categoría. Las barras de progreso muestran exactamente cuánto has usado de cada presupuesto este mes — sin sorpresas."
     },
+    "social": {
+      "title": "Planes sociales",
+      "content": "Planifica llamadas, encuentros y mensajes con las personas que importan. Elige un tipo de relación, selecciona una plantilla y agrega tu plan."
+    },
+    "routines": {
+      "title": "Rutinas",
+      "content": "Construye hábitos diarios que se mantienen. Crea rutinas con horarios de activación y micro-pasos — la constancia supera a la intensidad."
+    },
+    "rewards": {
+      "title": "Recompensas y rachas",
+      "content": "Gana XP completando tareas, manteniendo rachas y revisando tu presupuesto. Crea recompensas personalizadas para mantenerte motivado."
+    },
     "done": {
       "title": "¡Todo listo!",
       "content": "Ya conoces lo esencial. Explora a tu propio ritmo — y reinicia esta guía en cualquier momento desde Configuración o el botón Guía del encabezado."
+    },
+    "interactive": "Inténtalo",
+    "selector": {
+      "title": "Elige tu guía",
+      "subtitle": "Haz el recorrido rápido o profundiza en cualquier sección",
+      "close": "Cerrar",
+      "start": "Empezar",
+      "hint": "Presiona Esc para cerrar · Puedes reiniciar cualquier guía desde Configuración"
+    },
+    "flows": {
+      "overview": {
+        "name": "Resumen rápido",
+        "desc": "Todas las funciones de un vistazo",
+        "duration": "~2 min"
+      },
+      "tasks": {
+        "name": "Tareas: recorrido",
+        "desc": "Crea, organiza y completa tareas paso a paso",
+        "duration": "~2 min"
+      },
+      "calendar": {
+        "name": "Calendario: recorrido",
+        "desc": "Programa eventos y planifica tu semana",
+        "duration": "~2 min"
+      },
+      "budget": {
+        "name": "Presupuesto: recorrido",
+        "desc": "Configura ingresos, categorías y transacciones",
+        "duration": "~4 min"
+      },
+      "social": {
+        "name": "Social: recorrido",
+        "desc": "Planifica interacciones y mantente conectado",
+        "duration": "~2 min"
+      },
+      "routines": {
+        "name": "Rutinas: recorrido",
+        "desc": "Construye hábitos diarios consistentes paso a paso",
+        "duration": "~2 min"
+      },
+      "rewards": {
+        "name": "Recompensas: recorrido",
+        "desc": "Rastrea XP, rachas y desbloquea recompensas",
+        "duration": "~2 min"
+      },
+      "settings": {
+        "name": "Configuración: recorrido",
+        "desc": "Personaliza tu experiencia",
+        "duration": "~1 min"
+      }
+    },
+    "premium": {
+      "title": "Funciones Premium",
+      "content": "Planes Sociales, Rutinas y Recompensas se desbloquean con el plan Premium. Cada pestaña marcada con ✦ te permite probar una vez gratis."
+    },
+    "tasksFlow": {
+      "welcome": {
+        "title": "Tareas — recorrido interactivo",
+        "content": "Vamos a crear una tarea real juntos. Sigue cada paso — los campos están activos para que los completes mientras avanzamos."
+      },
+      "title": {
+        "title": "Paso 1: Nombre tu tarea",
+        "content": "Escribe algo específico — 'Responder correo de María antes de las 3 pm' supera 'revisar correos'. Presiona N para ir aquí en cualquier momento."
+      },
+      "date": {
+        "title": "Paso 2: Prográmala",
+        "content": "Elige hoy u otra fecha. Programar una tarea te hace 2–3 veces más probable de realizarla."
+      },
+      "energy": {
+        "content": "Elige cuánta energía requiere. ¿Poca batería? Filtra por tareas Mínimas. ¿Energía alta? Afronta las difíciles.",
+        "title": "Paso 3: Ajusta tu energía"
+      },
+      "steps": {
+        "content": "Haz clic en 'Dividir en pasos' y agrega 2–3 micro-pasos. Empezar pequeño siempre supera esperar lo perfecto."
+      },
+      "submit": {
+        "title": "Paso 4: Agregar la tarea",
+        "content": "Presiona 'Agregar tarea'. Aparecerá en la pestaña Hoy — márcala cuando termines."
+      },
+      "tabs": {
+        "title": "Vistas de tus tareas",
+        "content": "Hoy muestra las tareas programadas para ahora. Semana muestra los 7 días. Pendientes guarda todo sin programar — sin prisa."
+      },
+      "done": {
+        "title": "¡Tareas dominadas!",
+        "content": "Ya sabes capturar, programar, dividir y completar tareas. Abre el timer Pomodoro cuando quieras una sesión de enfoque."
+      },
+      "templates": {
+        "title": "Empieza con una tarea probada",
+        "content": "Toca aquí para explorar 28 plantillas respaldadas por investigación en 7 áreas de vida. Selecciona una y el título, nivel de energía y micro-pasos se completan al instante."
+      }
+    },
+    "calendarFlow": {
+      "welcome": {
+        "title": "Calendario — recorrido interactivo",
+        "content": "Mira tu agenda completa y crea eventos. Navegaremos la vista semanal y agregaremos un evento juntos."
+      },
+      "grid": {
+        "title": "Tu vista semanal",
+        "content": "Cada columna es un día. Haz clic en un evento para editarlo. Puedes vincular eventos del calendario a tareas."
+      },
+      "add": {
+        "title": "Agrega un evento",
+        "content": "Haz clic en '+ Agregar evento' para abrir el formulario. Inténtalo ahora — el formulario aparecerá justo abajo del botón."
+      },
+      "form": {
+        "title": "Completa los detalles",
+        "content": "Ingresa un título, hora de inicio y hora de fin. También puedes vincular este evento a una tarea o agregar un recordatorio."
+      },
+      "done": {
+        "title": "¡Calendario listo!",
+        "content": "Los eventos se muestran junto a tus tareas para que siempre sepas qué está comprometido y qué tiene espacio."
+      }
+    },
+    "budgetFlow": {
+      "welcome": {
+        "title": "Presupuesto — recorrido interactivo",
+        "content": "Configura el presupuesto base cero en cuatro pasos: crea un mes, agrega ingresos, define categorías y registra transacciones."
+      },
+      "month": {
+        "title": "Paso 1: Elige tu mes",
+        "content": "Escribe un mes (ej. 2026-04) o usa el predeterminado. Haz clic en 'Abrir presupuesto' para crearlo. Cada mes comienza desde cero."
+      },
+      "income": {
+        "title": "Paso 2: Agrega tus ingresos",
+        "content": "Ingresa cada fuente de ingreso y su monto. El contador 'Restante' baja al asignar categorías — cero significa que cada sol tiene un destino."
+      },
+      "categories": {
+        "title": "Paso 3: Crea categorías",
+        "content": "Agrega categorías como 'Arriendo' (Necesidad), 'Restaurantes' (Deseo) o 'Fondo de emergencia' (Meta) con montos planificados."
+      },
+      "transactions": {
+        "title": "Paso 4: Registra un gasto",
+        "content": "Anota un gasto real: ingresa el monto, elige una categoría y establece la fecha. Las barras de progreso se actualizan en tiempo real."
+      },
+      "done": {
+        "title": "¡Presupuesto configurado!",
+        "content": "Revísalo semanalmente — incluso 5 minutos mirando tus números es lo que marca la diferencia."
+      }
+    },
+    "settingsFlow": {
+      "welcome": {
+        "title": "Configuración — recorrido interactivo",
+        "content": "GYLIO se adapta a cómo funciona tu cerebro. Configuremos el tema, accesibilidad y algunas funciones avanzadas."
+      },
+      "theme": {
+        "title": "Elige tu tema",
+        "content": "Claro, Oscuro o Alto contraste — elige lo que sea más cómodo para tus ojos. El cambio se aplica instantáneamente en toda la app."
+      },
+      "gamification": {
+        "title": "Gamificación",
+        "content": "Gana puntos completando tareas, revisando el presupuesto y manteniendo rachas. Desactívala en cualquier momento si prefieres menos distracciones."
+      },
+      "tour": {
+        "title": "Reiniciar esta guía",
+        "content": "Puedes relanzar cualquier guía desde aquí — útil cuando compartes la app con alguien o redescubres una función."
+      },
+      "done": {
+        "title": "¡Todo listo!",
+        "content": "Tu configuración se guarda al instante. Ve a Tareas para comenzar tu primera sesión productiva."
+      }
+    },
+    "socialFlow": {
+      "welcome": {
+        "title": "Social — recorrido interactivo",
+        "content": "Planifica interacciones sociales sin la ansiedad de improvisar. Crearemos un plan juntos usando un tipo de relación y plantilla."
+      },
+      "relationship": {
+        "title": "Paso 1: ¿Para quién es?",
+        "content": "Elige el tipo de relación — Familia, Amigo, Colega o Pareja. Esto filtra las plantillas a las que realmente encajan con el contexto."
+      },
+      "form": {
+        "title": "Paso 2: Completa los detalles",
+        "content": "Dale un título al plan, elige el tipo (llamada, encuentro, mensaje), nivel de energía y fecha. También puedes agregar micro-pasos para saber exactamente cómo irá."
+      },
+      "list": {
+        "title": "Tus planes sociales",
+        "content": "Aquí viven todas tus interacciones próximas. Marca los pasos como completados mientras avanzas y lee las reflexiones para reforzar el hábito de conectar."
+      },
+      "done": {
+        "title": "¡Social dominado!",
+        "content": "Ya sabes planificar, ejecutar y reflexionar sobre interacciones sociales. Incluso una conexión programada por semana se convierte en relaciones más fuertes."
+      }
+    },
+    "routinesFlow": {
+      "welcome": {
+        "title": "Rutinas — recorrido interactivo",
+        "content": "Una rutina es una secuencia que ejecutas en piloto automático. La construiremos juntos — dale un horario de activación, micro-pasos y una frecuencia."
+      },
+      "gallery": {
+        "title": "Protocolos respaldados por investigación",
+        "content": "Explora plantillas de rutinas basadas en ciencia — rutinas matutinas, secuencias de descanso, protocolos de enfoque y más. Haz clic en 'Ver protocolos' para explorar."
+      },
+      "form": {
+        "title": "Construye tu rutina",
+        "content": "Nómbrala, establece un horario de activación (como '07:30'), elige una frecuencia y agrega 2–3 pasos. Un desencadenante + pasos = una rutina que puedes seguir."
+      },
+      "list": {
+        "title": "Tus rutinas activas",
+        "content": "Las rutinas del día muestran un botón 'Completar'. Marca los pasos mientras avanzas — los puntos de racha registran cuán consistente has sido."
+      },
+      "done": {
+        "title": "¡Rutinas configuradas!",
+        "content": "La constancia supera a la intensidad. Incluso una rutina de 10 minutos hecha a diario supera una sesión de 2 horas hecha una vez. Vuelve mañana."
+      }
+    },
+    "rewardsFlow": {
+      "welcome": {
+        "title": "Recompensas — recorrido interactivo",
+        "content": "La gamificación hace visible el progreso. Gana XP con tareas y revisiones de presupuesto, mantén rachas y desbloquea recompensas que tú mismo defines."
+      },
+      "toggle": {
+        "title": "Activa la gamificación",
+        "content": "Activa o desactiva XP, rachas y recompensas. Tus datos se guardan localmente. Pruébalo — siempre puedes desactivarlo después."
+      },
+      "progress": {
+        "title": "Tu XP y rachas",
+        "content": "Sube de nivel completando tareas y revisando tu presupuesto. La racha de tareas es tu racha principal — incluso una tarea completada por día la mantiene viva."
+      },
+      "form": {
+        "title": "Crea una recompensa",
+        "content": "Agrega una recompensa que realmente quieras — una salida a comer, un libro nuevo, un día libre. Establece el umbral de XP y se desbloqueará automáticamente."
+      },
+      "done": {
+        "title": "¡Recompensas activadas!",
+        "content": "Tu progreso ahora se rastrea. Completa tareas, revisa tu presupuesto semanalmente y observa crecer tu racha. Te lo has ganado."
+      }
     }
   }
 }
