@@ -32,13 +32,6 @@ type ViewFilter = 'today' | 'week' | 'backlog' | 'upcoming';
 
 type EnergyLevel = 'tiny' | 'low' | 'medium' | 'high';
 
-const ENERGY_COLORS: Record<EnergyLevel, string> = {
-  tiny: '#22C55E',
-  low: '#3B82F6',
-  medium: '#F59E0B',
-  high: '#EF4444',
-};
-
 const ENERGY_LEVELS: EnergyLevel[] = ['tiny', 'low', 'medium', 'high'];
 
 type SubtaskEditorProps = {
@@ -166,6 +159,7 @@ const TaskList: React.FC = () => {
     refreshTasks,
   } = useTasks();
   const { theme } = useTheme();
+  const ENERGY_COLORS = theme.dataViz.energy;
   const { success: showSuccess } = useToast();
   const { activeTimer, pendingLogEntry, clearPendingEntry, startTask: startTaskTimer, settings: timerSettings } = useTaskTimer();
   const { appendTaskTimeLog } = useDB();
@@ -514,7 +508,7 @@ const TaskList: React.FC = () => {
       subtitle={t('tasks.description') || ''}
       badge={<BudgetTooltip content={t('tooltips.tasks.section', 'Your task hub — add, prioritize, and complete tasks broken into manageable steps. Match tasks to your current energy level so progress feels possible every day.')} />}
     >
-      <div style={{ marginBottom: `${theme.spacing.md}px`, display: 'inline-flex', alignItems: 'center' }}>
+      <div style={{ marginBottom: `${theme.spacing.md}px` }}>
         <button
           type="button"
           data-tour="task-template-btn"
@@ -539,7 +533,6 @@ const TaskList: React.FC = () => {
             ? t('tasks.tpl.hideGallery', 'Hide quick-start tasks')
             : t('tasks.tpl.showGallery', 'Browse quick-start tasks')}
         </button>
-        <BudgetTooltip content={t('tooltips.tasks.templates', 'Research-backed task templates for common neurodivergent challenges — save time and start with a proven structure.')} />
         {showTemplateGallery && (
           <div style={{ marginTop: `${theme.spacing.sm}px` }}>
             <TaskTemplateGallery theme={theme} onSelect={handleSelectTemplate} />
@@ -870,7 +863,7 @@ const TaskList: React.FC = () => {
         <p style={{ color: theme.colors.accent, marginTop: 0 }}>{formErrors}</p>
       ) : null}
       <div style={{ display: 'grid', gap: `${theme.spacing.lg}px` }}>
-        <div data-tour="task-tabs" role="tablist" aria-label={t('tasks.viewLabel')} style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+        <div data-tour="task-tabs" className="app-tabs" role="tablist" aria-label={t('tasks.viewLabel')} style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
           {viewOptions.map((option) => (
             <button
               key={option.id}
@@ -878,6 +871,7 @@ const TaskList: React.FC = () => {
               type="button"
               aria-selected={viewFilter === option.id}
               onClick={() => setViewFilter(option.id)}
+              className="app-tabs__item"
               style={{
                 minHeight: '44px',
                 padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
@@ -894,7 +888,7 @@ const TaskList: React.FC = () => {
             </button>
           ))}
         </div>
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+        <div className="app-tabs" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
           <span style={{ fontSize: '0.8125rem', color: theme.colors.muted, fontWeight: 600 }}>
             {t('tasks.filterByEnergy', 'Energy:')}
           </span>
@@ -902,6 +896,7 @@ const TaskList: React.FC = () => {
             type="button"
             aria-pressed={energyFilter === 'all'}
             onClick={() => setEnergyFilter('all')}
+            className="app-tabs__item"
             style={{
               padding: '8px 10px',
               minHeight: 44,
@@ -924,6 +919,7 @@ const TaskList: React.FC = () => {
               type="button"
               aria-pressed={energyFilter === level}
               onClick={() => setEnergyFilter(level)}
+              className="app-tabs__item"
               style={{
                 padding: '8px 10px',
                 minHeight: 44,

@@ -7,7 +7,8 @@
  */
 import { test, expect, type Page } from '@playwright/test';
 
-const BASE = 'http://localhost:5174/gylio'; // alternate port when running without Clerk
+// Navigate relative to the Playwright baseURL (playwright.config.ts) so this
+// spec runs against the same server as the rest of the suite.
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -28,12 +29,11 @@ async function bypassOnboarding(page: Page) {
 }
 
 async function gotoPage(page: Page, route: string) {
-  const base = 'http://localhost:5174/gylio';
-  await page.goto(`${base}${route}`);
+  await page.goto(`.${route}`);
   await bypassOnboarding(page);
   if (page.url().includes('/onboarding') || page.url().includes('/sign-in')) {
     await bypassOnboarding(page);
-    await page.goto(`${base}${route}`);
+    await page.goto(`.${route}`);
   }
   await page.waitForLoadState('networkidle');
   await page.waitForTimeout(600);
@@ -43,7 +43,12 @@ async function gotoPage(page: Page, route: string) {
 
 async function runFlowA(page: Page, iteration: number) {
   const title = `QA task ${iteration} ${Date.now()}`;
-  const today = new Date().toISOString().slice(0, 10);
+  // toISOString() yields the UTC calendar date, which diverges from the app's
+  // local date key after ~19:00 in GMT-5. That silently filed the task under
+  // tomorrow, landing it in "This week" instead of "Today", so this flow passed
+  // all morning and failed every evening.
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
   await gotoPage(page, '/tasks');
 
@@ -52,6 +57,11 @@ async function runFlowA(page: Page, iteration: number) {
   await expect(titleInput).toBeVisible({ timeout: 8000 });
   await titleInput.fill(title);
   await expect(titleInput).toHaveValue(title);
+
+  // ── 1b. Open the details disclosure ──────────────────────────────────────
+  // Task capture defers scheduling and subtasks behind "Add details" (see
+  // tasks-best-in-class.spec.ts); they are not rendered until it is opened.
+  await page.getByRole('button', { name: /add details|agregar detalles/i }).click();
 
   // ── 2. Set planned date = today ─────────────────────────────────────────
   const dateInput = page.locator('input[type="date"]').first();

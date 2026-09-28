@@ -121,10 +121,18 @@ export default function DataFreshnessBanner({ lastTransactionDate, budgetMonthKe
     }
   }, [freshness, budgetMonthKey]);
 
-  const borderColor = colors[config.borderKey] ?? config.defaultColor;
-  const bgColor = colors[config.bgKey] ?? config.defaultBg;
-  const textColor = colors[config.textKey] ?? config.defaultText;
-  const accentColor = colors[config.colorKey] ?? config.defaultColor;
+  // The theme exposes semantic colours but no `successBg`/`warningBg`/`dangerBg`
+  // variants, so those lookups always missed and the hardcoded pastel defaults
+  // always won — freezing this banner to the light palette. Derive the surface
+  // and text from the themed semantic colour instead.
+  const semantic =
+    colors[config.borderKey] ??
+    (config.colorKey === 'danger' ? colors.error : colors[config.colorKey]) ??
+    config.defaultColor;
+  const borderColor = semantic;
+  const accentColor = semantic;
+  const bgColor = `color-mix(in srgb, ${semantic} 12%, ${colors.surface})`;
+  const textColor = colors.text;
 
   return (
     <div

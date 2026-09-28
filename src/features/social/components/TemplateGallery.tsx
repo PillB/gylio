@@ -136,7 +136,7 @@ export const TemplateGallery: React.FC<Props> = ({ relationshipType, onSelect, t
                             padding: '2px 8px',
                             borderRadius: theme.shape.radiusSm,
                             border: `1px solid ${theme.colors.border}`,
-                            background: copiedStarter === translatedStarter ? '#22C55E' : theme.colors.background,
+                            background: copiedStarter === translatedStarter ? theme.colors.success : theme.colors.background,
                             color: copiedStarter === translatedStarter ? '#fff' : theme.colors.text,
                             cursor: 'pointer',
                             fontSize: '0.7rem',

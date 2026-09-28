@@ -56,7 +56,7 @@ export const PostReflectionPrompt: React.FC<Props> = ({ plan, theme, onSubmit })
 
   if (submitted) {
     return (
-      <p style={{ margin: '0.5rem 0 0', fontSize: '0.875rem', color: theme.colors.success ?? '#22C55E' }}>
+      <p style={{ margin: '0.5rem 0 0', fontSize: '0.875rem', color: theme.colors.success }}>
         {t('social.reflectionSaved', 'Reflection saved!')}
       </p>
     );

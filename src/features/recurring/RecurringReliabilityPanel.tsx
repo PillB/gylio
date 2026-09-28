@@ -129,7 +129,7 @@ function TaskRow({ row, theme }: RowProps) {
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: '#EF4444',
+            background: theme.colors.error,
             color: '#fff',
             borderRadius: '999px',
             padding: '1px 8px',
@@ -148,7 +148,7 @@ function TaskRow({ row, theme }: RowProps) {
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: '#22C55E',
+            color: theme.colors.success,
             fontSize: '1rem',
             minWidth: '28px',
           }}
@@ -246,7 +246,7 @@ export default function RecurringReliabilityPanel({
                 width: '8px',
                 height: '8px',
                 borderRadius: '50%',
-                background: '#EF4444',
+                background: theme.colors.error,
                 verticalAlign: 'middle',
               }}
             />

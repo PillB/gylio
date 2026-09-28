@@ -152,7 +152,7 @@ export const UpgradePrompt: React.FC<Props> = ({
       <button
         type="button"
         onClick={handleTryOnce}
-        aria-label={t('upgrade.tryOnceAria', 'Try {{featureName}} once for free', { featureName })}
+        aria-label={t('upgrade.tryOnceAria', 'Try this once, free — {{featureName}}', { featureName })}
         style={{
           padding: `${theme.spacing.sm}px ${theme.spacing.lg}px`,
           borderRadius: theme.shape.radiusFull,
@@ -207,7 +207,7 @@ export const UpgradePrompt: React.FC<Props> = ({
           <button
             type="button"
             onClick={handleTryOnce}
-            aria-label={t('upgrade.tryOnceAria', 'Try {{featureName}} once for free', { featureName })}
+            aria-label={t('upgrade.tryOnceAria', 'Try this once, free — {{featureName}}', { featureName })}
             style={{
               fontSize: '0.75rem',
               padding: `2px ${theme.spacing.xs}px`,
@@ -296,7 +296,7 @@ export const UpgradePrompt: React.FC<Props> = ({
             fontSize: '1.125rem',
           }}
         >
-          {t('upgrade.title', 'Unlock full access')}
+          {t('upgrade.title', '{{feature}} is a premium feature', { feature: featureName })}
         </h3>
         <p style={{ margin: 0, color: theme.colors.muted, fontSize: '0.9375rem', lineHeight: 1.5 }}>
           {t(
@@ -344,7 +344,6 @@ export const UpgradePrompt: React.FC<Props> = ({
         <button
           type="button"
           onClick={handleUpgradeClick}
-          aria-label={t('upgrade.startTrialAria', 'Start your 10-day free trial')}
           style={{
             padding: `${theme.spacing.sm}px ${theme.spacing.xl}px`,
             minHeight: '44px',
@@ -365,7 +364,6 @@ export const UpgradePrompt: React.FC<Props> = ({
         <button
           type="button"
           onClick={handleUpgradeClick}
-          aria-label={t('upgrade.seePlansAria', 'View all plan options')}
           style={{
             padding: `${theme.spacing.sm}px ${theme.spacing.lg}px`,
             minHeight: '44px',

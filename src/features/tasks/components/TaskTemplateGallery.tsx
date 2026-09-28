@@ -13,13 +13,6 @@ type Props = {
   theme: ThemeTokens;
 };
 
-const ENERGY_COLOR: Record<TaskTemplate['energyRequired'], string> = {
-  tiny:   '#22C55E',
-  low:    '#3B82F6',
-  medium: '#F59E0B',
-  high:   '#EF4444',
-};
-
 const CATEGORY_FILTERS: (TaskCategory | 'all')[] = [
   'all',
   'environment',
@@ -32,6 +25,7 @@ const CATEGORY_FILTERS: (TaskCategory | 'all')[] = [
 ];
 
 export const TaskTemplateGallery: React.FC<Props> = ({ onSelect, theme }) => {
+  const ENERGY_COLOR = theme.dataViz.energy;
   const { t } = useTranslation();
   const [activeCategory, setActiveCategory] = useState<TaskCategory | 'all'>('all');
 

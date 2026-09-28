@@ -14,9 +14,12 @@ import { useAppAuth } from '../../core/context/AuthContext';
 import { authHeaders } from '../../core/utils/authToken';
 import { apiUrl } from '../../core/utils/apiUrl';
 
-const CheckIcon = () => (
-  <span aria-hidden="true" style={{ color: '#22C55E', fontWeight: 700, marginRight: 8 }}>✓</span>
-);
+const CheckIcon = () => {
+  const { theme } = useTheme();
+  return (
+    <span aria-hidden="true" style={{ color: theme.colors.success, fontWeight: 700, marginRight: 8 }}>✓</span>
+  );
+};
 
 type ActivationState = 'idle' | 'loading' | 'success' | 'error';
 
@@ -352,7 +355,7 @@ export const PricingPage: React.FC = () => {
               minHeight: '44px',
               borderRadius: theme.shape.radiusFull,
               border: 'none',
-              background: activation === 'success' ? '#22C55E' : '#fff',
+              background: activation === 'success' ? theme.colors.success : theme.colors.surface,
               color: activation === 'success' ? '#fff' : theme.colors.primary,
               fontWeight: 700,
               cursor: !billingEnabled || activation === 'loading' || plan === 'user_subscription' ? 'default' : 'pointer',

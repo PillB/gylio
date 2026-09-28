@@ -18,16 +18,6 @@ const TIME_COL_W = 44; // px
 const ZOOM_MIN = 28;
 const ZOOM_MAX = 120;
 
-const EVENT_COLORS = [
-  '#5B5CF6',
-  '#8B5CF6',
-  '#EC4899',
-  '#F59E0B',
-  '#22C55E',
-  '#3B82F6',
-  '#EF4444',
-];
-
 export const WeeklyGrid: React.FC<Props> = ({
   events,
   weekStartDate,
@@ -35,6 +25,7 @@ export const WeeklyGrid: React.FC<Props> = ({
   onEventClick,
 }) => {
   const { t, i18n } = useTranslation();
+  const EVENT_COLORS = theme.dataViz.series;
 
   const [hourHeight, setHourHeight] = useState(HOUR_HEIGHT_BASE);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -288,7 +279,7 @@ export const WeeklyGrid: React.FC<Props> = ({
                       left: 0,
                       right: 0,
                       height: 2,
-                      backgroundColor: '#EF4444',
+                      backgroundColor: theme.colors.error,
                       zIndex: 5,
                     }}
                   />

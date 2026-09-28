@@ -14,13 +14,6 @@ type Props = {
   theme: ThemeTokens;
 };
 
-const CATEGORY_COLORS: Record<string, string> = {
-  NEED: '#5B5CF6',
-  WANT: '#8B5CF6',
-  GOAL: '#22C55E',
-  DEBT: '#F59E0B',
-};
-
 const visuallyHidden: React.CSSProperties = {
   position: 'absolute',
   width: 1,
@@ -37,6 +30,7 @@ const compactLabel = (label: string, max = 12) =>
   label.length <= max ? label : `${label.slice(0, Math.max(1, max - 1))}…`;
 
 export const SpendingChart: React.FC<Props> = ({ bars, theme }) => {
+  const CATEGORY_COLORS: Record<string, string> = theme.dataViz.budget;
   const { t } = useTranslation();
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -99,14 +93,14 @@ export const SpendingChart: React.FC<Props> = ({ bars, theme }) => {
               width: 12,
               height: 12,
               background: 'rgba(91,92,246,0.35)',
-              border: '1px solid #5B5CF6',
+              border: `1px solid ${theme.colors.primary}`,
               borderRadius: 2,
             }}
           />
           {t('budget.chartPlanned', 'Planned')}
         </span>
         <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-          <span style={{ display: 'inline-block', width: 14, height: 14, background: '#5B5CF6', borderRadius: 3 }} />
+          <span style={{ display: 'inline-block', width: 14, height: 14, background: theme.colors.primary, borderRadius: 3 }} />
           {t('budget.chartActual', 'Actual')}
         </span>
         <span style={{ color: theme.colors.muted, fontSize: '0.72rem', fontStyle: 'italic' }}>

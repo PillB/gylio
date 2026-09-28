@@ -51,6 +51,29 @@
       /* Minimum 16px on all inputs to prevent iOS Safari auto-zoom on focus.
          !important needed to override Clerk's component stylesheet. */
       input, textarea, select { font-family: inherit; font-size: max(16px, 1rem) !important; }
+      /* Primary navigation must wrap (WCAG 2.2 SC 1.4.10 Reflow: no horizontal
+         scrolling to reach a destination), but seven wrapped destinations cost
+         ~198px at 320px — 35% of the viewport before any content. Tighten the
+         items on narrow screens so they occupy fewer rows while keeping the
+         44px touch target. !important is required because the component styles
+         these elements inline. */
+      @media (max-width: 430px) {
+        .app-nav { gap: 3px !important; padding: 3px !important; }
+        .app-nav__item {
+          padding-left: 7px !important;
+          padding-right: 7px !important;
+          font-size: 0.75rem !important;
+          gap: 3px !important;
+        }
+        /* Same treatment for the in-page view tabs, which stack a second
+           multi-row control strip directly beneath the primary navigation. */
+        .app-tabs { gap: 4px !important; }
+        .app-tabs__item {
+          padding-left: 9px !important;
+          padding-right: 9px !important;
+          font-size: 0.8125rem !important;
+        }
+      }
       .site-utility-footer {
         width: min(1100px, calc(100% - 32px));
         margin: 0 auto;
