@@ -342,7 +342,7 @@ export default function GuidedTourOverlay() {
           aria-label={t('tour.progressAria', 'Tour progress')}
           style={{ display: 'flex', gap: 4, marginBottom: theme.spacing.md }}
         >
-          {currentSteps.map((_, i) => (
+          {currentSteps.map((_, index) => (
             <div
               key={index}
               aria-hidden="true"
