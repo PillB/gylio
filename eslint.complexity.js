@@ -30,7 +30,6 @@ export const COMPLEXITY_BASELINE = {
   'src/features/social/components/TemplateGallery.tsx': 12,
   'src/features/subscription/PricingPage.tsx': 22,
   'src/features/tasks/components/PomodoroTimer.tsx': 15,
-  'src/features/tasks/components/TaskList.tsx': 44,
   'src/features/tasks/components/TaskTimerInline.tsx': 13,
   'src/hooks/useOnboardingFlow.jsx': 11,
   'src/onboarding/steps/AccessibilityPrefs.jsx': 11,
