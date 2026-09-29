@@ -155,7 +155,9 @@ const TaskComposer: React.FC<Props> = ({ draft, todayKey, tomorrowKey, titleRef,
           event.preventDefault();
           onSubmit();
         }}
-        style={{ marginBottom: '1rem', display: 'grid', gap: `${theme.spacing.sm}px` }}
+        // minmax(0, 1fr): the column follows the card width instead of the input's intrinsic width,
+        // which overflowed 320px screens.
+        style={{ marginBottom: '1rem', display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: `${theme.spacing.sm}px` }}
       >
         <label htmlFor="new-task" style={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
           {t('addTask')}
@@ -169,7 +171,7 @@ const TaskComposer: React.FC<Props> = ({ draft, todayKey, tomorrowKey, titleRef,
           value={draft.title}
           onChange={(event) => draft.changeTitle(event.target.value)}
           placeholder={t('taskPlaceholder')}
-          style={textInputStyle(theme)}
+          style={textInputStyle(theme, { minWidth: 0 })}
         />
         {draft.titleError ? <span style={{ color: theme.colors.primary, alignSelf: 'center' }}>{draft.titleError}</span> : null}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(132px, 1fr))', gap: `${theme.spacing.sm}px` }}>
