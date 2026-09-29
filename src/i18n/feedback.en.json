@@ -80,5 +80,6 @@
     "qaLink": "Report a bug or idea",
     "planLink": "Your plan",
     "adminLink": "Admin console"
-  }
+  },
+  "errorRateLimited": "You've sent several reports in a short time. Please wait a few minutes and try again."
 }

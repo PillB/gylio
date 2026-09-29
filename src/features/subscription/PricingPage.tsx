@@ -133,8 +133,9 @@ export const PricingPage: React.FC = () => {
 
       <IntervalToggle value={interval} onChange={setInterval} savings={savings} />
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: theme.spacing.lg, justifyContent: 'center' }}>
-        <FreeCard />
+      {/* wrap-reverse: side by side on wide screens; stacked, Pro comes first on phones. */}
+      <div style={{ display: 'flex', flexWrap: 'wrap-reverse', gap: theme.spacing.lg, justifyContent: 'center' }}>
+        <FreeCard currency={currency} />
         <ProCard
           plan={interval === 'yearly' ? yearly : monthly}
           monthly={monthly}
@@ -192,6 +193,7 @@ function IntervalToggle({ value, onChange, savings }: { value: Interval; onChang
         padding: `0 ${theme.spacing.md}px`,
         borderRadius: theme.shape.radiusFull,
         cursor: 'pointer',
+        whiteSpace: 'nowrap',
         background: value === interval ? theme.colors.primary : 'transparent',
         color: value === interval ? theme.colors.primaryForeground : theme.colors.text,
         fontWeight: 600,
@@ -212,6 +214,7 @@ function IntervalToggle({ value, onChange, savings }: { value: Interval; onChang
     <fieldset
       style={{
         display: 'flex',
+        flexWrap: 'wrap',
         justifyContent: 'center',
         gap: theme.spacing.xs,
         border: 'none',
@@ -263,14 +266,14 @@ function FeatureList({ keys }: { keys: string[] }) {
 const FREE_FEATURE_KEYS = ['billing.free.tasks', 'billing.free.calendar', 'billing.free.budget', 'billing.free.rewards', 'billing.free.ads'];
 const PRO_FEATURE_KEYS = ['billing.pro.everything', 'billing.pro.routines', 'billing.pro.social', 'billing.pro.ai', 'billing.pro.sync', 'billing.pro.noAds'];
 
-function FreeCard() {
-  const { t } = useTranslation();
+function FreeCard({ currency }: { currency: Currency }) {
+  const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   const style = useCardStyle(false);
   return (
     <section aria-labelledby="plan-free" style={style}>
       <h2 id="plan-free" style={{ margin: 0, fontSize: '1.25rem' }}>{t('billing.free.name')}</h2>
-      <p style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700 }}>{t('billing.free.price')}</p>
+      <p style={{ margin: 0, fontSize: '1.75rem', fontWeight: 700 }}>{formatMoney(0, currency, i18n.language)}</p>
       <p style={{ margin: 0, color: theme.colors.muted }}>{t('billing.free.tagline')}</p>
       <FeatureList keys={FREE_FEATURE_KEYS} />
     </section>

@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 import { useTheme } from '../../core/context/ThemeContext';
 import { track } from '../../core/analytics';
-import { feedbackApi, type FeedbackKind, type FeedbackReport, type Severity } from '../billing/billingApi';
+import { ApiRequestError, feedbackApi, type FeedbackKind, type FeedbackReport, type Severity } from '../billing/billingApi';
 import { collectDiagnostics } from './diagnostics';
 
 const KINDS: FeedbackKind[] = ['bug', 'idea', 'question', 'praise'];
@@ -62,7 +62,7 @@ function KindPicker({ value, onChange }: { value: FeedbackKind; onChange: (k: Fe
           border: `1.5px solid ${value === kind ? theme.colors.primary : theme.colors.border}`,
           fontWeight: value === kind ? 700 : 500,
         }}>
-          <input type="radio" name="feedback-kind" checked={value === kind} onChange={() => onChange(kind)} />
+          <input type="radio" name="feedback-kind" value={kind} checked={value === kind} onChange={() => onChange(kind)} />
           {t(`feedback.kind.${kind}`)}
         </label>
       ))}
@@ -122,6 +122,13 @@ function buildPayload(draft: Draft, route: string, diagnostics: Record<string, u
   };
 }
 
+/** Server messages are English-only; show the reporter a translated reason instead. */
+function describeError(error: unknown, t: (key: string) => string): string {
+  if (error instanceof ApiRequestError && error.status === 401) return t('feedback.qa.signInToReport');
+  if (error instanceof ApiRequestError && error.status === 429) return t('feedback.errorRateLimited');
+  return t('feedback.error');
+}
+
 export function FeedbackForm({ onSubmitted, initialKind = 'bug' }: { onSubmitted: (report: FeedbackReport) => void; initialKind?: FeedbackKind }) {
   const { t, i18n } = useTranslation();
   const { theme, mode } = useTheme();
@@ -142,7 +149,7 @@ export function FeedbackForm({ onSubmitted, initialKind = 'bug' }: { onSubmitted
       setState({ busy: false, error: null });
       onSubmitted(report);
     } catch (error) {
-      setState({ busy: false, error: error instanceof Error ? error.message : t('feedback.error') });
+      setState({ busy: false, error: describeError(error, t) });
     }
   };
 

@@ -80,5 +80,6 @@
     "qaLink": "Reportar un error o idea",
     "planLink": "Tu plan",
     "adminLink": "Consola de administración"
-  }
+  },
+  "errorRateLimited": "Enviaste varios reportes en poco tiempo. Espera unos minutos e inténtalo de nuevo."
 }

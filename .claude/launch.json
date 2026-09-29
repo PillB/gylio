@@ -1,0 +1,22 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "gylio-api-sqlite",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "server/server.js"
+      ],
+      "port": 3001
+    },
+    {
+      "name": "gylio-web-noauth",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev:noauth"
+      ],
+      "port": 5174
+    }
+  ]
+}
