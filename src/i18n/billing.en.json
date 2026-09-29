@@ -1,0 +1,86 @@
+{
+  "heading": "Gylio Pro",
+  "subheading": "Free keeps your daily plan working. Pro adds routines, social support, AI help, sync and no ads.",
+  "fineprint": "Cancel anytime in one step. If you cancel, Pro stays on until the end of the period you paid for, and your data stays yours on the free plan.",
+  "error": {
+    "generic": "Something went wrong. Please try again.",
+    "checkoutNotConfigured": "Checkout isn't available yet. Try again soon."
+  },
+  "trial": {
+    "started": "Your Pro trial has started. It ends on {{date}}, and nothing is charged."
+  },
+  "checkout": {
+    "completed": "Payment received. Pro will switch on in a few seconds."
+  },
+  "status": {
+    "trial": "Your Pro trial is on until {{date}} ({{days}} days left).",
+    "trialIndefinite": "Your Pro trial is on.",
+    "gift": "You have Pro as a gift until {{date}}.",
+    "giftIndefinite": "You have Pro as a gift, with no end date.",
+    "subscription": "Pro is active until {{date}}.",
+    "subscriptionIndefinite": "Pro is active."
+  },
+  "interval": {
+    "legend": "Billing period",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "yearlySave": "Yearly · save {{percent}}%"
+  },
+  "free": {
+    "name": "Free",
+    "price": "Free",
+    "tagline": "Everything you need for today.",
+    "tasks": "Tasks with micro-steps and focus timer",
+    "calendar": "Calendar and time blocking",
+    "budget": "Zero-based budget",
+    "rewards": "Rewards, streaks and badges",
+    "ads": "A small ad on the Settings and QA pages"
+  },
+  "pro": {
+    "name": "Pro",
+    "perYear": "per year",
+    "perMonth": "per month",
+    "perMonthEquivalent": "That's {{price}} a month, instead of {{monthly}}.",
+    "billedMonthly": "Billed every month.",
+    "everything": "Everything in Free",
+    "routines": "Routine builder",
+    "social": "Social plans and gentle reminders",
+    "ai": "AI suggestions",
+    "sync": "Sync across your devices",
+    "noAds": "No ads"
+  },
+  "cta": {
+    "signUpForTrial": "Create an account to try Pro free for {{days}} days",
+    "manage": "Manage or cancel subscription",
+    "subscribeYearly": "Subscribe yearly",
+    "subscribeMonthly": "Subscribe monthly",
+    "trial": {
+      "start_trial": "Start your {{days}}-day free trial",
+      "try_free_no_card": "Try Pro free for {{days}} days, no card"
+    },
+    "trialNoCard": "No card needed for the trial. It ends by itself and never charges you."
+  },
+  "passes": {
+    "heading": "Pay with Yape or a card in soles",
+    "body": "A one-time pass. It doesn't renew by itself; we remind you before it ends.",
+    "buy": "{{days}} days · {{price}}"
+  },
+  "ads": {
+    "houseLabel": "From Gylio",
+    "sponsoredLabel": "Advertisement",
+    "removeAds": "Remove ads with Pro",
+    "house": {
+      "noAds": "Pro removes ads and keeps the app quiet.",
+      "routines": "Pro includes the routine builder for mornings and evenings.",
+      "ai": "Pro adds AI help to break big tasks into small steps."
+    }
+  },
+  "banner": {
+    "ending_zero": "Your Pro access ends today.",
+    "ending_one": "Your Pro access ends in {{count}} day.",
+    "ending_other": "Your Pro access ends in {{count}} days.",
+    "ended": "Your Pro trial has ended. Everything you made is still here.",
+    "seePlans": "See plans",
+    "dismiss": "Dismiss"
+  }
+}

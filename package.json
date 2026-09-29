@@ -16,7 +16,8 @@
     "test:all": "vitest run && vitest run --config vitest.server.config.ts",
     "check:i18n": "node scripts/check-i18n.mjs",
     "install:api": "npm ci --ignore-scripts --prefix server",
-    "lint:complexity": "eslint --no-config-lookup --max-warnings 0 --rule '{\"complexity\":[\"error\",10]}' server/billing server/feedback server/routes/admin.js server/routes/feedback.js server/routes/webhooks.js server/routes/billing.js"
+    "lint:complexity": "eslint --no-config-lookup --max-warnings 0 --rule '{\"complexity\":[\"error\",10]}' server/billing server/feedback server/routes/admin.js server/routes/feedback.js server/routes/webhooks.js server/routes/billing.js && eslint --max-warnings 0 --rule '{\"complexity\":[\"error\",10]}' src/features/billing src/features/ads src/features/experiments src/features/feedback src/features/admin src/features/subscription/PricingPage.tsx src/features/subscription/useSubscription.ts",
+    "typecheck:billing": "tsc -p tsconfig.billing.json"
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.61.6",
@@ -41,6 +42,8 @@
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.3",
+    "@types/react": "^18.3.31",
+    "@types/react-dom": "^18.3.7",
     "@typescript-eslint/eslint-plugin": "^8.70.0",
     "@typescript-eslint/parser": "^8.70.0",
     "@vitejs/plugin-react": "^4.2.1",

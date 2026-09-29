@@ -1,0 +1,19 @@
+{
+  "extends": "./tsconfig.tasks.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["vitest/globals", "vite/client"],
+    "noEmit": true
+  },
+  "include": [
+    "src/features/billing/**/*",
+    "src/features/ads/**/*",
+    "src/features/experiments/**/*",
+    "src/features/feedback/**/*",
+    "src/features/admin/**/*",
+    "src/features/subscription/PricingPage.tsx",
+    "src/features/subscription/useSubscription.ts",
+    "src/features/subscription/useSubscription.test.ts"
+  ]
+}

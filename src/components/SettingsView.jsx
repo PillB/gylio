@@ -11,6 +11,9 @@ import { requestBackgroundSync } from '../core/utils/backgroundSync';
 import { enqueueSyncAction, listSyncConflicts, removeSyncConflict } from '../core/utils/offlineSync';
 import { useGuidedTour } from '../core/context/GuidedTourContext';
 import { useTaskTimer } from '../core/context/TaskTimerContext';
+import { Link } from 'react-router-dom';
+import AdSlot from '../features/ads/AdSlot';
+import { useEntitlement } from '../features/billing/EntitlementContext';
 
 /**
  * SettingsView component
@@ -21,6 +24,7 @@ import { useTaskTimer } from '../core/context/TaskTimerContext';
  */
 const SettingsView = () => {
   const { t } = useTranslation();
+  const { entitlement } = useEntitlement();
   const { theme, mode, setTheme } = useTheme();
   const { resetTour } = useGuidedTour();
   const {
@@ -697,6 +701,18 @@ const SettingsView = () => {
         </p>
       </div>
     </SectionCard>
+
+    {/* Testers and account shortcuts */}
+    <SectionCard ariaLabel={t('feedback.settings.heading')} title={t('feedback.settings.heading')}>
+      <nav style={{ display: 'flex', flexWrap: 'wrap', gap: theme.spacing.md }}>
+        <Link to="/qa" style={{ color: theme.colors.primary, fontWeight: 600, minHeight: 44, lineHeight: '44px' }}>{t('feedback.settings.qaLink')}</Link>
+        <Link to="/pricing" style={{ color: theme.colors.primary, fontWeight: 600, minHeight: 44, lineHeight: '44px' }}>{t('feedback.settings.planLink')}</Link>
+        {entitlement?.isAdmin && (
+          <Link to="/admin" style={{ color: theme.colors.primary, fontWeight: 600, minHeight: 44, lineHeight: '44px' }}>{t('feedback.settings.adminLink')}</Link>
+        )}
+      </nav>
+    </SectionCard>
+    <AdSlot placement="settings" />
     </>
   );
 };

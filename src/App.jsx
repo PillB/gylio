@@ -42,6 +42,12 @@ import TourFlowSelector from './components/TourFlowSelector';
 import { useGuidedTour } from './core/context/GuidedTourContext';
 import { useDailyMode } from './features/dashboard/useDailyMode';
 import DailyCommandCenter from './features/dashboard/DailyCommandCenter';
+import { EntitlementProvider } from './features/billing/EntitlementContext';
+import TrialBanner from './features/billing/TrialBanner';
+import FeedbackButton from './features/feedback/FeedbackButton';
+import QaPage from './features/feedback/QaPage';
+import AdminPage from './features/admin/AdminPage';
+import { installErrorCapture } from './features/feedback/diagnostics';
 
 function AppHeader({ clerkEnabled }) {
   const { t } = useTranslation();
@@ -129,6 +135,7 @@ function AppHeader({ clerkEnabled }) {
           </button>
         )}
         <LanguageToggle placement="header" />
+        {!isOnboarding && <FeedbackButton />}
         {/* Hidden on mobile — accessible from Settings */}
         {!isOnboarding && (
           <button
@@ -367,6 +374,7 @@ function TabsLayout() {
       />
       <main>
         <WelcomeBackBanner />
+        <TrialBanner />
         <Outlet />
       </main>
     </div>
@@ -485,6 +493,8 @@ function buildAuthRouter(clerkEnabled) {
             element: clerkEnabled ? <ProtectedLayoutAuthed /> : <ProtectedLayoutNoAuth />,
             children: [
               { path: 'onboarding', element: <OnboardingRoute /> },
+              { path: 'qa', element: <QaPage /> },
+              { path: 'admin', element: <AdminPage /> },
               {
                 element: <TabsLayout />,
                 children: [
@@ -510,7 +520,9 @@ function AppRouterAuthed() {
   if (!hydrated) return null;
   return (
     <AuthProvider clerkEnabled={true}>
-      <RouterProvider router={router} future={{ v7_startTransition: true }} />
+      <EntitlementProvider>
+        <RouterProvider router={router} future={{ v7_startTransition: true }} />
+      </EntitlementProvider>
     </AuthProvider>
   );
 }
@@ -521,7 +533,9 @@ function AppRouterNoAuth() {
   if (!hydrated) return null;
   return (
     <AuthProvider clerkEnabled={false}>
-      <RouterProvider router={router} future={{ v7_startTransition: true }} />
+      <EntitlementProvider>
+        <RouterProvider router={router} future={{ v7_startTransition: true }} />
+      </EntitlementProvider>
     </AuthProvider>
   );
 }
@@ -531,6 +545,7 @@ export default function App({ clerkEnabled = false }) {
   useBackgroundSync();
 
   React.useEffect(() => {
+    installErrorCapture();
     track(Events.APP_OPEN, { clerkEnabled });
   }, []);
 

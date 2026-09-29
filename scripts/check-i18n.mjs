@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SOURCE_LOCALE = 'en';
 const SHIPPING_LOCALES = ['es-PE'];
-const FEATURE_CATALOGS = ['tasks', 'pricing', 'shell', 'onboarding'];
+const FEATURE_CATALOGS = ['tasks', 'pricing', 'shell', 'onboarding', 'billing', 'feedback', 'admin'];
 const I18N_DIR = path.join(ROOT, 'src', 'i18n');
 
 const readJson = (filename) =>
