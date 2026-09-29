@@ -120,13 +120,13 @@ export default function DataFreshnessBanner({ lastTransactionDate, budgetMonthKe
       style={{
         display: 'flex',
         flexDirection: 'column',
-        gap: spacing[1] ?? 4,
-        padding: `${spacing[3] ?? 12}px ${spacing[4] ?? 16}px`,
-        borderRadius: theme.shape?.borderRadius ?? 8,
+        gap: spacing.xs,
+        padding: `${spacing.md}px ${spacing.md}px`,
+        borderRadius: theme.shape.radiusSm,
         background: bgColor,
         border: `1px solid ${borderColor}`,
         color: textColor,
-        marginBottom: spacing[3] ?? 12,
+        marginBottom: spacing.md,
         boxShadow:
           freshness === 'stale'
             ? (theme.shadow?.sm ?? '0 1px 3px rgba(0,0,0,0.1)')
@@ -138,7 +138,7 @@ export default function DataFreshnessBanner({ lastTransactionDate, budgetMonthKe
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: spacing[2] ?? 8,
+          gap: spacing.sm,
         }}
       >
         <span aria-hidden="true" style={{ fontSize: 16, lineHeight: 1 }}>
@@ -149,7 +149,8 @@ export default function DataFreshnessBanner({ lastTransactionDate, budgetMonthKe
           style={{
             fontWeight: 600,
             fontSize: 14,
-            color: accentColor,
+            // Status hues are tuned for fills; *Strong variants are the AA text colours.
+            color: colors[`${config.colorKey}Strong`],
             minWidth: 0,
             flex: 1,
             wordBreak: 'break-word',
@@ -189,11 +190,11 @@ export default function DataFreshnessBanner({ lastTransactionDate, budgetMonthKe
       {freshness === 'stale' && (
         <div
           style={{
-            marginTop: spacing[1] ?? 4,
+            marginTop: spacing.xs,
             fontSize: 13,
-            padding: `${spacing[2] ?? 8}px`,
-            borderRadius: theme.shape?.borderRadius ?? 8,
-            background: 'rgba(255,255,255,0.5)',
+            padding: `${spacing.sm}px`,
+            borderRadius: theme.shape.radiusSm,
+            background: colors.surface,
           }}
         >
           {t(
