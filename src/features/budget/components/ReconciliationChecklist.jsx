@@ -89,16 +89,16 @@ export default function ReconciliationChecklist({ budgetMonthKey }) {
   );
 
   const completedCount = CHECKLIST_ITEMS.filter((item) => checked[item.id]).length;
-  const colors = theme.colors ?? {};
+  const colors = theme.colors;
   const spacing = theme.spacing ?? {};
 
-  const borderColor = allChecked
-    ? (colors.success ?? '#16a34a')
-    : (colors.border ?? '#e2e8f0');
-
-  const headerBg = allChecked
-    ? (colors.successBg ?? '#f0fdf4')
-    : (colors.surface ?? '#f8fafc');
+  // The theme has no successBg/successText/textSecondary/surfaceAlt keys, so
+  // the old lookups always fell back to light-palette hex. Derive tints from
+  // real theme colours so dark and high-contrast modes follow along.
+  const successTint = `color-mix(in srgb, ${colors.success} 12%, ${colors.surface})`;
+  const borderColor = allChecked ? colors.success : colors.border;
+  const headerBg = allChecked ? successTint : colors.surface;
+  const statusText = allChecked ? colors.successStrong : colors.text;
 
   return (
     <section
@@ -143,9 +143,7 @@ export default function ReconciliationChecklist({ budgetMonthKey }) {
             style={{
               fontWeight: 600,
               fontSize: 14,
-              color: allChecked
-                ? (colors.success ?? '#16a34a')
-                : (colors.text ?? '#1e293b'),
+              color: statusText,
             }}
           >
             {t(
@@ -171,12 +169,8 @@ export default function ReconciliationChecklist({ budgetMonthKey }) {
             style={{
               fontSize: 12,
               fontWeight: 600,
-              color: allChecked
-                ? (colors.success ?? '#16a34a')
-                : (colors.textSecondary ?? '#64748b'),
-              background: allChecked
-                ? (colors.successBg ?? '#f0fdf4')
-                : (colors.surfaceAlt ?? '#f1f5f9'),
+              color: allChecked ? colors.successStrong : colors.muted,
+              background: allChecked ? successTint : colors.background,
               padding: '2px 8px',
               borderRadius: 99,
               minWidth: 36,
@@ -191,7 +185,7 @@ export default function ReconciliationChecklist({ budgetMonthKey }) {
             aria-hidden="true"
             style={{
               fontSize: 12,
-              color: colors.textSecondary ?? '#64748b',
+              color: colors.muted,
               transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
               transition: 'transform 0.2s ease',
               display: 'inline-block',
@@ -215,7 +209,7 @@ export default function ReconciliationChecklist({ budgetMonthKey }) {
           padding: isOpen
             ? `${spacing[3] ?? 12}px ${spacing[4] ?? 16}px`
             : 0,
-          background: colors.background ?? '#ffffff',
+          background: colors.background,
           display: isOpen ? 'block' : 'none',
         }}
       >
@@ -223,7 +217,7 @@ export default function ReconciliationChecklist({ budgetMonthKey }) {
           style={{
             margin: `0 0 ${spacing[3] ?? 12}px`,
             fontSize: 13,
-            color: colors.textSecondary ?? '#64748b',
+            color: colors.muted,
           }}
         >
           {t(
@@ -258,9 +252,7 @@ export default function ReconciliationChecklist({ budgetMonthKey }) {
                     cursor: 'pointer',
                     padding: `${spacing[2] ?? 8}px`,
                     borderRadius: theme.shape?.borderRadius ?? 8,
-                    background: isChecked
-                      ? (colors.successBg ?? '#f0fdf4')
-                      : 'transparent',
+                    background: isChecked ? successTint : 'transparent',
                     transition: 'background 0.15s ease',
                   }}
                 >
@@ -274,7 +266,7 @@ export default function ReconciliationChecklist({ budgetMonthKey }) {
                     style={{
                       width: 18,
                       height: 18,
-                      accentColor: colors.success ?? '#16a34a',
+                      accentColor: colors.success,
                       cursor: 'pointer',
                       flexShrink: 0,
                     }}
@@ -282,9 +274,7 @@ export default function ReconciliationChecklist({ budgetMonthKey }) {
                   <span
                     style={{
                       fontSize: 14,
-                      color: isChecked
-                        ? (colors.success ?? '#16a34a')
-                        : (colors.text ?? '#1e293b'),
+                      color: isChecked ? colors.successStrong : colors.text,
                       textDecoration: isChecked ? 'line-through' : 'none',
                       fontWeight: isChecked ? 400 : 500,
                       transition:
@@ -308,8 +298,8 @@ export default function ReconciliationChecklist({ budgetMonthKey }) {
               marginTop: spacing[3] ?? 12,
               padding: `${spacing[2] ?? 8}px ${spacing[3] ?? 12}px`,
               borderRadius: theme.shape?.borderRadius ?? 8,
-              background: colors.successBg ?? '#f0fdf4',
-              color: colors.successText ?? '#14532d',
+              background: successTint,
+              color: colors.successStrong,
               fontSize: 13,
               fontWeight: 600,
               display: 'flex',

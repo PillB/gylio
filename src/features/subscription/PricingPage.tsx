@@ -9,6 +9,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../core/context/ThemeContext';
+import { readableTextOn } from '../../core/contrast';
 import { useSubscription } from './useSubscription';
 import { useAppAuth } from '../../core/context/AuthContext';
 import { authHeaders } from '../../core/utils/authToken';
@@ -176,7 +177,7 @@ export const PricingPage: React.FC = () => {
                 border: 'none',
                 borderRadius: 0,
                 background: billing === b ? theme.colors.primary : 'transparent',
-                color: billing === b ? '#fff' : theme.colors.muted,
+                color: billing === b ? theme.colors.primaryForeground : theme.colors.muted,
                 fontWeight: billing === b ? 600 : 400,
                 fontSize: '0.875rem',
                 cursor: 'pointer',
@@ -197,7 +198,7 @@ export const PricingPage: React.FC = () => {
                       style={{
                         fontSize: '0.7rem',
                         background: theme.colors.success,
-                        color: '#fff',
+                        color: readableTextOn(theme.colors.success),
                         borderRadius: theme.shape.radiusFull,
                         padding: '1px 6px',
                         fontWeight: 700,
@@ -283,7 +284,7 @@ export const PricingPage: React.FC = () => {
         <div
           style={{
             ...cardBase,
-            background: `linear-gradient(145deg, ${theme.colors.primary} 0%, #8B5CF6 100%)`,
+            background: `linear-gradient(145deg, ${theme.colors.primary} 0%, ${theme.colors.primaryGradientEnd} 100%)`,
             border: 'none',
             boxShadow: theme.shadow.xl,
             position: 'relative',
@@ -320,7 +321,7 @@ export const PricingPage: React.FC = () => {
               <span>✦</span>
               {t('pricing.premiumPlanLabel', 'Premium')}
             </div>
-            <div style={{ fontSize: '2.25rem', fontWeight: 700, color: '#fff' }}>
+            <div style={{ fontSize: '2.25rem', fontWeight: 700, color: theme.colors.primaryForeground }}>
               ${price}
               <span style={{ fontSize: '1rem', fontWeight: 400, opacity: 0.8 }}>
                 {t('pricing.perMonth', '/mo')}
@@ -339,7 +340,7 @@ export const PricingPage: React.FC = () => {
             {premiumFeatures.map((feature) => (
               <li
                 key={feature}
-                style={{ display: 'flex', alignItems: 'flex-start', fontSize: '0.9375rem', color: '#fff' }}
+                style={{ display: 'flex', alignItems: 'flex-start', fontSize: '0.9375rem', color: theme.colors.primaryForeground }}
               >
                 <CheckIcon />{feature}
               </li>
@@ -356,7 +357,7 @@ export const PricingPage: React.FC = () => {
               borderRadius: theme.shape.radiusFull,
               border: 'none',
               background: activation === 'success' ? theme.colors.success : theme.colors.surface,
-              color: activation === 'success' ? '#fff' : theme.colors.primary,
+              color: activation === 'success' ? readableTextOn(theme.colors.success) : theme.colors.primary,
               fontWeight: 700,
               cursor: !billingEnabled || activation === 'loading' || plan === 'user_subscription' ? 'default' : 'pointer',
               textAlign: 'center',
@@ -380,7 +381,7 @@ export const PricingPage: React.FC = () => {
                 textAlign: 'center',
               }}
             >
-              <p style={{ margin: 0, fontSize: '0.8125rem', color: '#fff', fontWeight: 600 }}>
+              <p style={{ margin: 0, fontSize: '0.8125rem', color: theme.colors.primaryForeground, fontWeight: 600 }}>
                 {t('pricing.trialError', 'Could not activate trial')}
               </p>
               <p style={{ margin: `${theme.spacing.xs}px 0 0`, fontSize: '0.75rem', color: 'rgba(255,255,255,0.8)' }}>
@@ -394,7 +395,7 @@ export const PricingPage: React.FC = () => {
                   background: 'rgba(255,255,255,0.2)',
                   border: '1px solid rgba(255,255,255,0.4)',
                   borderRadius: theme.shape.radiusFull,
-                  color: '#fff',
+                  color: theme.colors.primaryForeground,
                   fontSize: '0.75rem',
                   padding: `2px ${theme.spacing.sm}px`,
                   cursor: 'pointer',

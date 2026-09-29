@@ -176,7 +176,7 @@ export const SpendingChart: React.FC<Props> = ({ bars, theme }) => {
                 y={LABEL_H + BAR_AREA_H - actualH}
                 width={BAR_W}
                 height={Math.max(actualH, 2)}
-                fill={isOver ? '#B42318' : color}
+                fill={isOver ? theme.colors.errorStrong : color}
                 opacity={0.9}
                 rx={3}
               />
@@ -196,7 +196,7 @@ export const SpendingChart: React.FC<Props> = ({ bars, theme }) => {
                   textAnchor="middle"
                   fontSize={10}
                   fontWeight={700}
-                  fill="#B42318"
+                  fill={theme.colors.errorStrong}
                 >
                   !
                 </text>
@@ -236,11 +236,11 @@ export const SpendingChart: React.FC<Props> = ({ bars, theme }) => {
               {hovered.label}
             </strong>
             {hovered.actual > hovered.planned ? (
-              <span style={{ color: '#B42318', fontWeight: 700, fontSize: '0.8rem' }}>
+              <span style={{ color: theme.colors.errorStrong, fontWeight: 700, fontSize: '0.8rem' }}>
                 {t('budget.chartOverBudget', 'Over budget')} +{(hovered.actual - hovered.planned).toFixed(2)}
               </span>
             ) : hovered.planned > 0 ? (
-              <span style={{ color: '#15803D', fontSize: '0.8rem' }}>
+              <span style={{ color: theme.colors.successStrong, fontSize: '0.8rem' }}>
                 {t('budget.chartUnderBudget', 'Within budget')} −{(hovered.planned - hovered.actual).toFixed(2)}
               </span>
             ) : null}
@@ -252,7 +252,7 @@ export const SpendingChart: React.FC<Props> = ({ bars, theme }) => {
             </span>
             <span>
               <span style={{ opacity: 0.65 }}>{t('budget.chartActual', 'Actual')}: </span>
-              <strong style={{ color: hovered.actual > hovered.planned ? '#B42318' : 'inherit' }}>
+              <strong style={{ color: hovered.actual > hovered.planned ? theme.colors.errorStrong : 'inherit' }}>
                 {hovered.actual.toFixed(2)}
               </strong>
             </span>

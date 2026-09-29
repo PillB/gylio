@@ -779,3 +779,20 @@ es-PE.json: full Spanish translations for all step and starter keys.
 - Bugs found by the wider checks: duplicate social reminders (web notification shim had no cancel/id), null rows resolved from inserts in `useDB`, undefined offline response in the service worker, spending chart summing every month.
 
 **Verified:** lint, typecheck, 100 unit tests, check:i18n, build. Playwright before/after budget flow screenshots match.
+
+---
+
+### CHG-044 – 2026-09-29 (#82 rebuilt on the WIP theme branch; TaskList and CalendarView split; raw hex banned)
+
+**Why:** Pablo chose the `wip/batch-agent-work` theme scheme (dataViz tokens, `readableTextOn`) and retired the earlier theme-tokens branch, so #82 was rebuilt on WIP (861a0d1) instead of that branch.
+
+**Files changed:**
+- WIP's Budget additions (tooltips, quick-start categories, freshness banner, reconciliation checklist, 44px targets) ported into the split `src/features/budget` components.
+- `src/features/tasks/**` — TaskList split into hooks, utils and one component per section; energy chips use `theme.dataViz.energy` with `readableTextOn` label text.
+- `src/features/calendar/**`, `src/components/CalendarView.jsx` — CalendarView split; event tints from `theme.dataViz.eventTints`; week start parsed as a local date (was UTC, one day off west of Greenwich).
+- `App.jsx`, `PricingPage.tsx`, `SpendingChart.tsx`, `ReconciliationChecklist.jsx` — remaining hex replaced by `primaryGradientEnd`, `primaryForeground`, `successStrong`, `errorStrong` and `readableTextOn`; the checklist's lookups of theme keys that don't exist (which pinned it to the light palette) now derive from real theme colours.
+- `eslint.config.js` — `no-restricted-syntax` bans raw hex colours in `src` outside `themes.ts`, `contrast.ts` and tests; `src/test/rawHexColors.test.ts`.
+- WIP bugs the wider lint/typecheck caught: guided tour crashed on open, dashboard "all done" used a status that never exists and shifted dates by UTC, recurring-reliability toast was empty.
+- `eslint.complexity.js` — caps for WIP files added at their current scores; TaskList, CalendarView and TemplateGallery removed; ReconciliationChecklist 46 → 30, DataFreshnessBanner 23 → 20.
+
+**Verified:** lint, typecheck, 212 unit tests, check:i18n, build.
