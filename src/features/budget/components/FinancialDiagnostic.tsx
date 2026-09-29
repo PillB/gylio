@@ -342,7 +342,7 @@ export default function FinancialDiagnostic({ theme, onApply }: Props) {
             alignSelf: 'flex-end',
             padding: `${spacing.sm}px ${spacing.lg}px`,
             background: input.takeHome ? colors.primary : colors.border,
-            color: input.takeHome ? '#fff' : colors.muted,
+            color: input.takeHome ? colors.primaryForeground : colors.muted,
             border: 'none',
             borderRadius: shape.radiusMd,
             fontSize: 15,
@@ -517,7 +517,7 @@ export default function FinancialDiagnostic({ theme, onApply }: Props) {
           style={{
             padding: `${spacing.sm}px ${spacing.lg}px`,
             background: colors.primary,
-            color: '#fff',
+            color: colors.primaryForeground,
             border: 'none',
             borderRadius: shape.radiusMd,
             fontSize: 15,

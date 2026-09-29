@@ -216,7 +216,7 @@ export default function WelcomeBackBanner({ onFreshStart, onTinyStep }: Props) {
               padding: `${spacing.xs}px ${spacing.md}px`,
               borderRadius: shape.radiusMd,
               background: colors.primary,
-              color: '#fff',
+              color: colors.primaryForeground,
               border: 'none',
               fontWeight: 600,
               fontSize: 13,

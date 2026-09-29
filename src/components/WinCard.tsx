@@ -9,6 +9,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../core/context/ThemeContext';
+import { readableTextOn } from '../core/contrast';
 import { track, Events } from '../core/analytics';
 
 export type WinType =
@@ -232,7 +233,7 @@ export default function WinCard({ type, milestone, label, sublabel, onClose }: P
               padding: `${theme.spacing.sm}px ${theme.spacing.lg}px`,
               borderRadius: theme.shape.radiusMd,
               background: color,
-              color: '#fff',
+              color: readableTextOn(color),
               border: 'none',
               fontWeight: 700,
               fontSize: 15,

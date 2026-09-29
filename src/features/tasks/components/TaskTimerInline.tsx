@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../../core/context/ThemeContext';
 import { useTaskTimer } from '../../../core/context/TaskTimerContext';
 import type { ThemeTokens } from '../../../core/themes';
+import { readableTextOn } from '../../../core/contrast';
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
@@ -148,7 +149,7 @@ function btnStyle(theme: ThemeTokens, borderColor: string, filled: boolean): Rea
     borderRadius: theme.shape.radiusMd,
     border: `1px solid ${borderColor}`,
     backgroundColor: filled ? borderColor : 'transparent',
-    color: filled ? (theme.colors.primaryForeground ?? '#fff') : theme.colors.text,
+    color: filled ? readableTextOn(borderColor) : theme.colors.text,
     cursor: 'pointer',
     fontSize: '0.8125rem',
     fontFamily: theme.typography.body.family,

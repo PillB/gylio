@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../../core/context/ThemeContext';
+import { readableTextOn } from '../../../core/contrast';
 import { track, Events } from '../../../core/analytics';
 
 const toIsoOrNull = (date) => (date ? date.toISOString() : null);
@@ -60,12 +61,6 @@ const FRESHNESS_CONFIG = {
     pillKey: 'budget.freshness.pillFresh',
     pillFallback: 'Fresh',
     colorKey: 'success',
-    bgKey: 'successBg',
-    textKey: 'successText',
-    borderKey: 'success',
-    defaultColor: '#16a34a',
-    defaultBg: '#f0fdf4',
-    defaultText: '#14532d',
   },
   review: {
     labelKey: 'budget.freshness.reviewSuggested',
@@ -74,12 +69,6 @@ const FRESHNESS_CONFIG = {
     pillKey: 'budget.freshness.pillReview',
     pillFallback: 'Review',
     colorKey: 'warning',
-    bgKey: 'warningBg',
-    textKey: 'warningText',
-    borderKey: 'warning',
-    defaultColor: '#f59e0b',
-    defaultBg: '#fff8e1',
-    defaultText: '#92400e',
   },
   stale: {
     labelKey: 'budget.freshness.dataStale',
@@ -87,13 +76,7 @@ const FRESHNESS_CONFIG = {
     icon: '🔴',
     pillKey: 'budget.freshness.pillStale',
     pillFallback: 'Stale',
-    colorKey: 'danger',
-    bgKey: 'dangerBg',
-    textKey: 'dangerText',
-    borderKey: 'danger',
-    defaultColor: '#dc2626',
-    defaultBg: '#fef2f2',
-    defaultText: '#7f1d1d',
+    colorKey: 'error',
   },
 };
 
@@ -121,14 +104,9 @@ export default function DataFreshnessBanner({ lastTransactionDate, budgetMonthKe
     }
   }, [freshness, budgetMonthKey, lastTransactionIso]);
 
-  // The theme exposes semantic colours but no `successBg`/`warningBg`/`dangerBg`
-  // variants, so those lookups always missed and the hardcoded pastel defaults
-  // always won — freezing this banner to the light palette. Derive the surface
-  // and text from the themed semantic colour instead.
-  const semantic =
-    colors[config.borderKey] ??
-    (config.colorKey === 'danger' ? colors.error : colors[config.colorKey]) ??
-    config.defaultColor;
+  // Derive the tinted surface from the themed semantic colour so the banner
+  // follows light, dark and high-contrast modes.
+  const semantic = colors[config.colorKey];
   const borderColor = semantic;
   const accentColor = semantic;
   const bgColor = `color-mix(in srgb, ${semantic} 12%, ${colors.surface})`;
@@ -191,7 +169,7 @@ export default function DataFreshnessBanner({ lastTransactionDate, budgetMonthKe
             padding: '2px 8px',
             borderRadius: 99,
             background: accentColor,
-            color: '#fff',
+            color: readableTextOn(accentColor),
             textTransform: 'uppercase',
             letterSpacing: '0.04em',
             flexShrink: 0,

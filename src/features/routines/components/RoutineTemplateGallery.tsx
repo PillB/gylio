@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { ThemeTokens } from '../../../core/themes';
+import { readableTextOn } from '../../../core/contrast';
 import {
   ROUTINE_CATEGORY_META,
   ROUTINE_TEMPLATE_LIBRARY,
@@ -105,6 +106,7 @@ export default function RoutineTemplateGallery({ onSelect, theme }: Props) {
 
   function TemplateCard({ tpl }: { tpl: RoutineTemplate }) {
     const meta = ROUTINE_CATEGORY_META[tpl.category];
+    const metaColor = theme.dataViz.series[meta.hue];
     const title = t(tpl.titleKey, TITLE_FALLBACK[tpl.titleKey] ?? tpl.titleKey);
     const why   = t(tpl.whyKey,   WHY_FALLBACK[tpl.whyKey]     ?? '');
     const time  = formatTime(tpl.triggerTime);
@@ -142,7 +144,7 @@ export default function RoutineTemplateGallery({ onSelect, theme }: Props) {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                background: `${meta.color}18`,
+                background: `${metaColor}18`,
                 borderRadius: shape.radiusMd,
                 flexShrink: 0,
               }}
@@ -172,9 +174,9 @@ export default function RoutineTemplateGallery({ onSelect, theme }: Props) {
             style={{
               fontSize: 11,
               fontWeight: 600,
-              color: meta.color,
-              background: `${meta.color}18`,
-              border: `1px solid ${meta.color}40`,
+              color: metaColor,
+              background: `${metaColor}18`,
+              border: `1px solid ${metaColor}40`,
               borderRadius: shape.radiusFull,
               padding: '2px 8px',
               whiteSpace: 'nowrap',
@@ -317,7 +319,7 @@ export default function RoutineTemplateGallery({ onSelect, theme }: Props) {
             marginTop: spacing.xs,
             padding: `${spacing.xs}px ${spacing.md}px`,
             background: colors.primary,
-            color: '#fff',
+            color: colors.primaryForeground,
             border: 'none',
             borderRadius: shape.radiusMd,
             fontSize: 13,
@@ -390,7 +392,7 @@ export default function RoutineTemplateGallery({ onSelect, theme }: Props) {
           <span
             style={{
               background: activeCategory === null ? colors.primary : colors.surfaceElevated,
-              color: activeCategory === null ? '#fff' : colors.muted,
+              color: activeCategory === null ? colors.primaryForeground : colors.muted,
               borderRadius: shape.radiusFull,
               fontSize: 11,
               fontWeight: 700,
@@ -405,20 +407,21 @@ export default function RoutineTemplateGallery({ onSelect, theme }: Props) {
         {/* Category pills */}
         {ALL_CATEGORIES.map((cat) => {
           const meta = ROUTINE_CATEGORY_META[cat];
+          const metaColor = theme.dataViz.series[meta.hue];
           const count = ROUTINE_TEMPLATE_LIBRARY.filter((tpl) => tpl.category === cat).length;
           const isActive = activeCategory === cat;
           return (
             <button
               key={cat}
-              style={pillStyle(isActive, meta.color)}
+              style={pillStyle(isActive, metaColor)}
               onClick={() => setActiveCategory(isActive ? null : cat)}
               aria-pressed={isActive}
             >
               {meta.emoji} {t(meta.labelKey, cat)}
               <span
                 style={{
-                  background: isActive ? meta.color : colors.surfaceElevated,
-                  color: isActive ? '#fff' : colors.muted,
+                  background: isActive ? metaColor : colors.surfaceElevated,
+                  color: isActive ? readableTextOn(metaColor) : colors.muted,
                   borderRadius: shape.radiusFull,
                   fontSize: 11,
                   fontWeight: 700,
