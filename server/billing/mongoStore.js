@@ -80,6 +80,13 @@ const FeedbackSchema = new Schema({
 }, opts);
 FeedbackSchema.index({ status: 1, createdAt: -1 });
 
+const UserStateSchema = new Schema({
+  userId: { type: String, required: true, unique: true },
+  data: { type: String, required: true },
+  version: { type: Number, required: true },
+  updatedAt: { type: String, required: true },
+}, opts);
+
 const model = (connection, name, schema, collection) =>
   connection.models[name] || connection.model(name, schema, collection);
 
@@ -104,12 +111,13 @@ function createMongoStore(connection = mongoose.connection) {
   const Gift = model(connection, 'BillingGift', GiftSchema, 'billing_gifts');
   const WebhookEvent = model(connection, 'BillingWebhookEvent', WebhookEventSchema, 'billing_webhook_events');
   const Feedback = model(connection, 'FeedbackReport', FeedbackSchema, 'feedback_reports');
+  const UserState = model(connection, 'UserState', UserStateSchema, 'user_state');
 
   const store = {
     kind: 'mongodb',
 
     async init() {
-      await Promise.all([Account, Subscription, Gift, WebhookEvent, Feedback].map((m) => m.init()));
+      await Promise.all([Account, Subscription, Gift, WebhookEvent, Feedback, UserState].map((m) => m.init()));
     },
 
     getAccount: async (userId) => cleanAccount(await Account.findOne({ userId }).lean()),
@@ -256,6 +264,27 @@ function createMongoStore(connection = mongoose.connection) {
         .limit(Math.min(Math.max(1, limit), 500))
         .lean();
       return docs.map(clean);
+    },
+
+    async getUserState(userId) {
+      const doc = await UserState.findOne({ userId }, { _id: 0, data: 1, version: 1, updatedAt: 1 }).lean();
+      return doc || null;
+    },
+
+    async putUserState(userId, { data, baseVersion, now }) {
+      try {
+        const written = baseVersion === 0
+          ? await UserState.create({ userId, data, version: 1, updatedAt: now })
+          : await UserState.findOneAndUpdate(
+            { userId, version: baseVersion },
+            { $set: { data, updatedAt: now }, $inc: { version: 1 } },
+            { new: true }
+          );
+        return { ok: Boolean(written), state: await store.getUserState(userId) };
+      } catch (error) {
+        if (error?.code === DUPLICATE_KEY) return { ok: false, state: await store.getUserState(userId) };
+        throw error;
+      }
     },
 
     async updateFeedback(id, patch, { now }) {

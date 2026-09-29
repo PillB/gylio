@@ -16,6 +16,7 @@ const { createBillingRouter, publicBillingRouter } = require('./routes/billing')
 const { createWebhookRouter } = require('./routes/webhooks');
 const { createAdminRouter } = require('./routes/admin');
 const { createFeedbackRouter } = require('./routes/feedback');
+const { createStateRouter } = require('./routes/state');
 const { initBilling, getBillingService } = require('./billing');
 
 const { sqlite } = require('./db/sqliteClient');
@@ -89,6 +90,8 @@ app.use(
 // Webhooks verify an HMAC over the exact bytes received, so they are mounted
 // before the JSON parser and read the body raw.
 app.use('/api/webhooks', createWebhookRouter());
+// Saved app snapshots can exceed the default limit, so this route parses its own body.
+app.use('/api/state', requireAuth, mutationRateLimit, createStateRouter());
 app.use(express.json({ limit: '256kb' }));
 
 const mongoUri = (process.env.MONGODB_URI || '').trim();

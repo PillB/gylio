@@ -263,8 +263,8 @@ function FeatureList({ keys }: { keys: string[] }) {
   );
 }
 
-const FREE_FEATURE_KEYS = ['billing.free.tasks', 'billing.free.calendar', 'billing.free.budget', 'billing.free.rewards', 'billing.free.ads'];
-const PRO_FEATURE_KEYS = ['billing.pro.everything', 'billing.pro.routines', 'billing.pro.social', 'billing.pro.ai', 'billing.pro.sync', 'billing.pro.noAds'];
+const FREE_FEATURE_KEYS = ['billing.free.tasks', 'billing.free.calendar', 'billing.free.budget', 'billing.free.rewards', 'billing.free.sync', 'billing.free.ads'];
+const PRO_FEATURE_KEYS = ['billing.pro.everything', 'billing.pro.routines', 'billing.pro.social', 'billing.pro.ai', 'billing.pro.support', 'billing.pro.noAds'];
 
 function FreeCard({ currency }: { currency: Currency }) {
   const { t, i18n } = useTranslation();

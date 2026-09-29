@@ -1,6 +1,6 @@
 {
   "heading": "Gylio Pro",
-  "subheading": "Con el plan gratis tu día sigue funcionando. Pro suma rutinas, apoyo social, ayuda con IA, sincronización y cero anuncios.",
+  "subheading": "Con el plan gratis tu día sigue funcionando y guardado en tu cuenta. Pro suma rutinas, apoyo social, ayuda con IA y cero anuncios.",
   "fineprint": "Cancela cuando quieras en un paso. Si cancelas, Pro sigue activo hasta el final del periodo que pagaste, y tus datos se quedan contigo en el plan gratis.",
   "error": {
     "generic": "Algo salió mal. Inténtalo de nuevo.",
@@ -34,7 +34,8 @@
     "calendar": "Calendario y bloques de tiempo",
     "budget": "Presupuesto base cero",
     "rewards": "Recompensas, rachas e insignias",
-    "ads": "Un anuncio pequeño en Ajustes y en la página de pruebas"
+    "ads": "Un anuncio pequeño en Ajustes y en la página de pruebas",
+    "sync": "Guardado en tu cuenta, en todos tus dispositivos"
   },
   "pro": {
     "name": "Pro",
@@ -46,8 +47,8 @@
     "routines": "Creador de rutinas",
     "social": "Planes sociales y recordatorios amables",
     "ai": "Sugerencias con IA",
-    "sync": "Sincronización entre tus dispositivos",
-    "noAds": "Sin anuncios"
+    "noAds": "Sin anuncios",
+    "support": "Soporte prioritario"
   },
   "cta": {
     "signUpForTrial": "Crea tu cuenta para probar Pro gratis {{days}} días",

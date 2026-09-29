@@ -1,0 +1,32 @@
+{
+  "heading": "Your data",
+  "status": {
+    "off": "Saving to your account is off.",
+    "signedOut": "Your data is saved on this device only. Sign in to keep it in your account and use it on other devices.",
+    "checking": "Checking your account…",
+    "saved": "Saved to your account {{when}}.",
+    "saving": "Saving…",
+    "offline": "Couldn't reach your account. Your changes are safe on this device and will be saved when you're back online.",
+    "conflict": "This device and your account have different data. Choose which to keep above."
+  },
+  "saveNow": "Save now",
+  "download": "Download my data",
+  "undoRestore": "Undo restore (back to {{date}})",
+  "restore": {
+    "label": "Restore from a downloaded file",
+    "confirm": "Replace the data on this device with the file from {{date}} ({{count}} items)? You can undo this afterwards.",
+    "replace": "Replace my data",
+    "cancel": "Cancel",
+    "error": {
+      "not_json": "That file can't be read. Choose a file downloaded from Gylio.",
+      "not_gylio": "That file isn't Gylio data. Choose a file downloaded from Gylio."
+    }
+  },
+  "conflict": {
+    "title": "Which data should Gylio keep?",
+    "body": "Your account has data saved on {{date}}, and this device has different data.",
+    "useAccount": "Use my account's data",
+    "keepDevice": "Keep this device's data",
+    "undoHint": "Using your account's data keeps this device's data as a backup you can restore from Settings."
+  }
+}

@@ -116,4 +116,22 @@ describe.each(backends)('billing store contract: %s', (_name, make) => {
     expect(triaged).toMatchObject({ status: 'triaged', adminNote: 'Repro on iOS', title: 'Timer resets', updatedAt: T2 });
     expect(await store.listFeedback({ userId: 'user_tester', status: 'new' })).toEqual([]);
   });
+
+  it("saves a user's app state with a version and refuses a write based on a stale version", async () => {
+    expect(await store.getUserState('user_sync')).toBeNull();
+    const first = await store.putUserState('user_sync', { data: '{"a":1}', baseVersion: 0, now: T0 });
+    expect(first).toMatchObject({ ok: true, state: { version: 1, data: '{"a":1}', updatedAt: T0 } });
+
+    const second = await store.putUserState('user_sync', { data: '{"a":2}', baseVersion: 1, now: T1 });
+    expect(second.state.version).toBe(2);
+
+    // A device that last saw version 1 must not overwrite version 2.
+    const stale = await store.putUserState('user_sync', { data: '{"a":"old"}', baseVersion: 1, now: T2 });
+    expect(stale).toMatchObject({ ok: false, state: { version: 2, data: '{"a":2}' } });
+
+    // Creating again from scratch is also a conflict once a copy exists.
+    expect((await store.putUserState('user_sync', { data: '{}', baseVersion: 0, now: T2 })).ok).toBe(false);
+    expect(await store.getUserState('someone_else')).toBeNull();
+  });
 });
+

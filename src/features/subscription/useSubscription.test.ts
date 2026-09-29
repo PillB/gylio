@@ -15,9 +15,9 @@ describe('resolvePlan', () => {
 });
 
 describe('Free vs Pro split', () => {
-  it('keeps the daily loop free and puts ads-free, AI and sync in Pro', () => {
-    for (const f of ['tasks', 'calendar', 'budget', 'rewards'] as const) expect(FREE_FEATURES.has(f)).toBe(true);
-    for (const f of ['ad_free', 'ai_suggestions', 'sync', 'routines', 'social'] as const) {
+  it('keeps the daily loop and account saving free, and puts ads-free, AI and routines in Pro', () => {
+    for (const f of ['tasks', 'calendar', 'budget', 'rewards', 'sync'] as const) expect(FREE_FEATURES.has(f)).toBe(true);
+    for (const f of ['ad_free', 'ai_suggestions', 'routines', 'social'] as const) {
       expect(FREE_FEATURES.has(f)).toBe(false);
       expect(PRO_FEATURES.has(f)).toBe(true);
     }

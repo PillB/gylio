@@ -1,0 +1,32 @@
+{
+  "heading": "Tus datos",
+  "status": {
+    "off": "El guardado en tu cuenta está apagado.",
+    "signedOut": "Tus datos se guardan solo en este dispositivo. Inicia sesión para guardarlos en tu cuenta y usarlos en otros dispositivos.",
+    "checking": "Revisando tu cuenta…",
+    "saved": "Guardado en tu cuenta {{when}}.",
+    "saving": "Guardando…",
+    "offline": "No pudimos conectar con tu cuenta. Tus cambios están seguros en este dispositivo y se guardarán cuando vuelvas a tener conexión.",
+    "conflict": "Este dispositivo y tu cuenta tienen datos distintos. Elige cuáles conservar arriba."
+  },
+  "saveNow": "Guardar ahora",
+  "download": "Descargar mis datos",
+  "undoRestore": "Deshacer restauración (volver al {{date}})",
+  "restore": {
+    "label": "Restaurar desde un archivo descargado",
+    "confirm": "¿Reemplazar los datos de este dispositivo con el archivo del {{date}} ({{count}} elementos)? Luego puedes deshacerlo.",
+    "replace": "Reemplazar mis datos",
+    "cancel": "Cancelar",
+    "error": {
+      "not_json": "No se puede leer ese archivo. Elige un archivo descargado de Gylio.",
+      "not_gylio": "Ese archivo no es de Gylio. Elige un archivo descargado de Gylio."
+    }
+  },
+  "conflict": {
+    "title": "¿Qué datos debe conservar Gylio?",
+    "body": "Tu cuenta tiene datos guardados el {{date}}, y este dispositivo tiene datos distintos.",
+    "useAccount": "Usar los datos de mi cuenta",
+    "keepDevice": "Conservar los de este dispositivo",
+    "undoHint": "Si usas los datos de tu cuenta, los de este dispositivo quedan como copia que puedes restaurar desde Ajustes."
+  }
+}

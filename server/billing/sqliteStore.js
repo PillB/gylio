@@ -77,6 +77,12 @@ const SCHEMA = [
     updatedAt TEXT NOT NULL
   );`,
   'CREATE INDEX IF NOT EXISTS idx_feedback_status ON feedback_reports(status, createdAt);',
+  `CREATE TABLE IF NOT EXISTS user_state (
+    userId TEXT PRIMARY KEY,
+    data TEXT NOT NULL,
+    version INTEGER NOT NULL,
+    updatedAt TEXT NOT NULL
+  );`,
 ];
 
 const SUBSCRIPTION_FIELDS = [
@@ -288,6 +294,23 @@ function createSqliteStore(db) {
         [...params, Math.min(Math.max(1, limit), 500)]
       );
       return rows.map(parseFeedback);
+    },
+
+    getUserState: (userId) => get(db, 'SELECT data, version, updatedAt FROM user_state WHERE userId = ?', [userId]),
+
+    /**
+     * Optimistic concurrency: the write lands only if the caller saw the current
+     * version (0 = no copy yet). Otherwise it returns the copy that won.
+     */
+    async putUserState(userId, { data, baseVersion, now }) {
+      const result = baseVersion === 0
+        ? await run(db, 'INSERT OR IGNORE INTO user_state (userId, data, version, updatedAt) VALUES (?, ?, 1, ?)', [userId, data, now])
+        : await run(
+          db,
+          'UPDATE user_state SET data = ?, version = version + 1, updatedAt = ? WHERE userId = ? AND version = ?',
+          [data, now, userId, baseVersion]
+        );
+      return { ok: result.changes === 1, state: await store.getUserState(userId) };
     },
 
     async updateFeedback(id, patch, { now }) {

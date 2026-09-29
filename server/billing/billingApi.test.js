@@ -329,3 +329,37 @@ describe('public plans', () => {
     expect(res.body.plans.map((p) => p.id)).toEqual(['pro_monthly', 'pro_yearly']);
   });
 });
+
+describe('saved app state', () => {
+  it('saves per user, returns it on another device, and refuses a stale overwrite', async () => {
+    const put = (user, body) => request(app).put('/api/state').set(as(user)).send(body);
+    expect((await request(app).get('/api/state').set(as('user_s'))).body.state).toBeNull();
+
+    const first = await put('user_s', { baseVersion: 0, data: { gylio_sqlite: '{"tasks":[1]}' } });
+    expect(first.status).toBe(200);
+    expect(first.body.state).toMatchObject({ version: 1, data: { gylio_sqlite: '{"tasks":[1]}' } });
+
+    // "Another device" reads it back.
+    expect((await request(app).get('/api/state').set(as('user_s'))).body.state.version).toBe(1);
+    // Someone else sees nothing of it.
+    expect((await request(app).get('/api/state').set(as('user_other'))).body.state).toBeNull();
+
+    await put('user_s', { baseVersion: 1, data: { gylio_sqlite: '{"tasks":[1,2]}' } });
+    const stale = await put('user_s', { baseVersion: 1, data: { gylio_sqlite: '{"tasks":[]}' } });
+    expect(stale.status).toBe(409);
+    expect(stale.body.state).toMatchObject({ version: 2, data: { gylio_sqlite: '{"tasks":[1,2]}' } });
+  });
+
+  it('accepts a snapshot larger than the global 256 kB limit but refuses one over 2 MB', async () => {
+    const big = 'x'.repeat(600 * 1024);
+    expect((await request(app).put('/api/state').set(as('user_big')).send({ baseVersion: 0, data: { k: big } })).status).toBe(200);
+    const huge = 'x'.repeat(2.2 * 1024 * 1024);
+    expect((await request(app).put('/api/state').set(as('user_big')).send({ baseVersion: 1, data: { k: huge } })).status).toBe(413);
+  });
+
+  it('requires sign-in and a well-formed body', async () => {
+    expect((await request(app).get('/api/state')).status).toBe(401);
+    expect((await request(app).put('/api/state').set(as('u')).send({ baseVersion: -1, data: {} })).status).toBe(400);
+    expect((await request(app).put('/api/state').set(as('u')).send({ baseVersion: 0, data: [] })).status).toBe(400);
+  });
+});

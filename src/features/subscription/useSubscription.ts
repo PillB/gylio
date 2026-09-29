@@ -8,7 +8,7 @@
  *
  * Free vs Pro follows the competitor/benchmark research in
  * docs/billing/PRO_VS_FREE.md: the daily loop (tasks, calendar, budget,
- * rewards) stays free; depth, AI, sync and an ad-free app are Pro.
+ * rewards, and saving to your account) stays free; depth, AI and an ad-free app are Pro.
  */
 import { useAppAuth } from '../../core/context/AuthContext';
 import { useEntitlement } from '../billing/EntitlementContext';
@@ -27,7 +27,8 @@ export type FeatureKey =
   | 'sync'
   | 'ad_free';
 
-export const FREE_FEATURES: ReadonlySet<FeatureKey> = new Set(['tasks', 'calendar', 'budget', 'rewards']);
+// Saving to your account and using it on other devices is free: losing data is never a paywall.
+export const FREE_FEATURES: ReadonlySet<FeatureKey> = new Set(['tasks', 'calendar', 'budget', 'rewards', 'sync']);
 
 export const PRO_FEATURES: ReadonlySet<FeatureKey> = new Set([
   ...FREE_FEATURES,

@@ -48,6 +48,8 @@ import FeedbackButton from './features/feedback/FeedbackButton';
 import QaPage from './features/feedback/QaPage';
 import AdminPage from './features/admin/AdminPage';
 import { installErrorCapture } from './features/feedback/diagnostics';
+import { AccountSyncProvider } from './features/account/AccountSyncContext';
+import SyncConflictBanner from './features/account/SyncConflictBanner';
 
 function AppHeader({ clerkEnabled }) {
   const { t } = useTranslation();
@@ -374,6 +376,7 @@ function TabsLayout() {
       />
       <main>
         <WelcomeBackBanner />
+        <SyncConflictBanner />
         <TrialBanner />
         <Outlet />
       </main>
@@ -521,7 +524,9 @@ function AppRouterAuthed() {
   return (
     <AuthProvider clerkEnabled={true}>
       <EntitlementProvider>
-        <RouterProvider router={router} future={{ v7_startTransition: true }} />
+        <AccountSyncProvider>
+          <RouterProvider router={router} future={{ v7_startTransition: true }} />
+        </AccountSyncProvider>
       </EntitlementProvider>
     </AuthProvider>
   );
@@ -534,7 +539,9 @@ function AppRouterNoAuth() {
   return (
     <AuthProvider clerkEnabled={false}>
       <EntitlementProvider>
-        <RouterProvider router={router} future={{ v7_startTransition: true }} />
+        <AccountSyncProvider>
+          <RouterProvider router={router} future={{ v7_startTransition: true }} />
+        </AccountSyncProvider>
       </EntitlementProvider>
     </AuthProvider>
   );

@@ -17,6 +17,8 @@ import feedbackEn from './feedback.en.json';
 import feedbackEsPE from './feedback.es-PE.json';
 import adminEn from './admin.en.json';
 import adminEsPE from './admin.es-PE.json';
+import accountEn from './account.en.json';
+import accountEsPE from './account.es-PE.json';
 
 /**
  * Production localization configuration.
@@ -56,6 +58,7 @@ const enCatalog = {
   billing: billingEn,
   feedback: feedbackEn,
   admin: adminEn,
+  account: accountEn,
 };
 
 const esPECatalog = {
@@ -79,6 +82,7 @@ const esPECatalog = {
   billing: billingEsPE,
   feedback: feedbackEsPE,
   admin: adminEsPE,
+  account: accountEsPE,
 };
 
 const resources = {

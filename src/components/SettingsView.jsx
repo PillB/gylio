@@ -13,6 +13,7 @@ import { useGuidedTour } from '../core/context/GuidedTourContext';
 import { useTaskTimer } from '../core/context/TaskTimerContext';
 import { Link } from 'react-router-dom';
 import AdSlot from '../features/ads/AdSlot';
+import YourDataSection from '../features/account/YourDataSection';
 import { useEntitlement } from '../features/billing/EntitlementContext';
 
 /**
@@ -700,6 +701,11 @@ const SettingsView = () => {
           {t('aboutDescription', 'GYLIO is a neurodivergent-friendly productivity app built with accessibility, low cognitive load, and gentle UX at its core.')}
         </p>
       </div>
+    </SectionCard>
+
+    {/* Saved to the account, download, restore */}
+    <SectionCard ariaLabel={t('account.heading')} title={t('account.heading')}>
+      <YourDataSection />
     </SectionCard>
 
     {/* Testers and account shortcuts */}
