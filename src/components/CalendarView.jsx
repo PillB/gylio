@@ -850,6 +850,8 @@ const CalendarView = () => {
                           height: 6,
                           borderRadius: '50%',
                           backgroundColor: color,
+                          // Tints are tuned as tile backgrounds; the ring keeps 6px markers at >= 3:1 on the day cell.
+                          boxShadow: `inset 0 0 0 1px ${theme.colors.muted}`,
                           display: 'inline-block',
                         }}
                       />

@@ -68,6 +68,10 @@ describe.each(MODES)('%s theme tokens', (mode) => {
     }
   });
 
+  it('muted outlines stay visible on the surface (calendar event markers rely on it)', () => {
+    expect(contrastRatio(colors.muted, colors.surface)).toBeGreaterThanOrEqual(AA_NON_TEXT);
+  });
+
   it('readableTextOn gives AA text on every data-viz hue', () => {
     for (const value of Object.values(dataViz)) {
       expect(contrastRatio(readableTextOn(value), value)).toBeGreaterThanOrEqual(AA_TEXT);
