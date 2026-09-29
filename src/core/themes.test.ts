@@ -39,6 +39,8 @@ describe.each(MODES)('%s theme tokens', (mode) => {
 
   it.each([
     ['primary', 'primaryForeground'],
+    // App.jsx draws primaryForeground text across a primary -> secondary gradient.
+    ['secondary', 'primaryForeground'],
     ['secondary', 'onSecondary'],
     ['info', 'onInfo'],
     ['success', 'onSuccess'],

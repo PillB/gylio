@@ -145,10 +145,10 @@ const EMPTY_INPUT: DiagnosticInput = {
   personalCare: '', transport: '', otherFixed: '', otherVariable: '',
 };
 
-function scoreColor(score: number, theme: ThemeTokens): string {
-  if (score >= 70) return theme.colors.success;
-  if (score >= 40) return theme.colors.warning;
-  return theme.colors.error;
+export function scoreColor(score: number, theme: ThemeTokens): string {
+  if (score >= 70) return theme.colors.successStrong;
+  if (score >= 40) return theme.colors.warningStrong;
+  return theme.colors.errorStrong;
 }
 
 function severityColor(
@@ -428,7 +428,7 @@ export default function FinancialDiagnostic({ theme, onApply }: Props) {
                 label: result.remainder >= 0 ? t('budget.diagnostic.remainingRow') : t('budget.diagnostic.deficitRow'),
                 value: `${currencySymbol}${formatAmount(Math.abs(result.remainder))}`,
                 emphasis: true,
-                color: result.remainder >= 0 ? theme.colors.success : theme.colors.error,
+                color: result.remainder >= 0 ? theme.colors.successStrong : theme.colors.errorStrong,
               },
             ].map((row) => (
               <React.Fragment key={row.label}>

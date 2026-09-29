@@ -181,8 +181,7 @@ export const SpendingChart: React.FC<Props> = ({ bars, theme }) => {
                 y={LABEL_H + BAR_AREA_H - actualH}
                 width={BAR_W}
                 height={Math.max(actualH, 2)}
-                fill={isOver ? '#B42318' : color}
-                opacity={0.9}
+                fill={isOver ? theme.colors.errorStrong : color}
                 rx={3}
               />
               <text
@@ -201,7 +200,7 @@ export const SpendingChart: React.FC<Props> = ({ bars, theme }) => {
                   textAnchor="middle"
                   fontSize={10}
                   fontWeight={700}
-                  fill="#B42318"
+                  fill={theme.colors.errorStrong}
                 >
                   !
                 </text>
@@ -237,15 +236,15 @@ export const SpendingChart: React.FC<Props> = ({ bars, theme }) => {
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, marginBottom: 6 }}>
-            <strong style={{ color: CATEGORY_COLORS[hovered.colorKey ?? hovered.label] ?? theme.colors.text, fontSize: '0.875rem' }}>
+            <strong style={{ color: theme.colors.text, fontSize: '0.875rem' }}>
               {hovered.label}
             </strong>
             {hovered.actual > hovered.planned ? (
-              <span style={{ color: '#B42318', fontWeight: 700, fontSize: '0.8rem' }}>
+              <span style={{ color: theme.colors.errorStrong, fontWeight: 700, fontSize: '0.8rem' }}>
                 {t('budget.chartOverBudget', 'Over budget')} +{(hovered.actual - hovered.planned).toFixed(2)}
               </span>
             ) : hovered.planned > 0 ? (
-              <span style={{ color: '#15803D', fontSize: '0.8rem' }}>
+              <span style={{ color: theme.colors.successStrong, fontSize: '0.8rem' }}>
                 {t('budget.chartUnderBudget', 'Within budget')} −{(hovered.planned - hovered.actual).toFixed(2)}
               </span>
             ) : null}
@@ -257,7 +256,7 @@ export const SpendingChart: React.FC<Props> = ({ bars, theme }) => {
             </span>
             <span>
               <span style={{ opacity: 0.65 }}>{t('budget.chartActual', 'Actual')}: </span>
-              <strong style={{ color: hovered.actual > hovered.planned ? '#B42318' : 'inherit' }}>
+              <strong style={{ color: hovered.actual > hovered.planned ? theme.colors.errorStrong : 'inherit' }}>
                 {hovered.actual.toFixed(2)}
               </strong>
             </span>
