@@ -78,22 +78,48 @@ function createPaddleProvider({ env = process.env, fetchImpl } = {}) {
 }
 
 function intervalOf(data) {
-  const interval = data?.billing_cycle?.interval;
+  const interval = data.billing_cycle && data.billing_cycle.interval;
   return interval === 'month' || interval === 'year' ? interval : null;
 }
 
 function firstPrice(data) {
-  const unit = data?.items?.[0]?.price?.unit_price;
-  const amount = Number(unit?.amount);
+  const price = ((data.items || [])[0] || {}).price || {};
+  const unit = price.unit_price || {};
+  const amount = Number(unit.amount);
   return {
-    currency: unit?.currency_code || data?.currency_code || null,
+    currency: unit.currency_code || data.currency_code || null,
     amountMinor: Number.isFinite(amount) ? amount : null,
   };
 }
 
 function periodEnd(data) {
-  if (data?.status === 'canceled') return data.canceled_at || data?.current_billing_period?.ends_at || null;
-  return data?.current_billing_period?.ends_at || data?.next_billed_at || null;
+  const period = data.current_billing_period || {};
+  if (data.status === 'canceled') return data.canceled_at || period.ends_at || null;
+  return period.ends_at || data.next_billed_at || null;
+}
+
+/** Why an event cannot become a subscription record, or null when it can. */
+function rejectReason(event, data) {
+  if (!SUBSCRIPTION_EVENTS.has(event.event_type)) return `unhandled ${event.event_type}`;
+  if (!(data.custom_data && data.custom_data.userId)) return 'subscription has no app user id';
+  if (!STATUS[data.status]) return `unknown status ${data.status}`;
+  return null;
+}
+
+function toRecord(event, data) {
+  return {
+    provider: 'paddle',
+    providerRef: data.id,
+    userId: String(data.custom_data.userId),
+    status: STATUS[data.status],
+    interval: intervalOf(data),
+    ...firstPrice(data),
+    currentPeriodEnd: periodEnd(data),
+    cancelAtPeriodEnd: (data.scheduled_change || {}).action === 'cancel',
+    customerRef: data.customer_id || null,
+    manageUrl: (data.management_urls || {}).cancel || null,
+    providerUpdatedAt: data.updated_at || event.occurred_at || null,
+  };
 }
 
 /**
@@ -101,32 +127,11 @@ function periodEnd(data) {
  * Returns { eventId, record } or { eventId, ignored: reason }.
  */
 function normalizePaddleEvent(event) {
-  const eventId = event?.event_id;
+  const eventId = event && event.event_id;
   if (!eventId) return { eventId: null, ignored: 'missing event id' };
-  if (!SUBSCRIPTION_EVENTS.has(event.event_type)) return { eventId, ignored: `unhandled ${event.event_type}` };
-
   const data = event.data || {};
-  const userId = data.custom_data?.userId;
-  if (!userId) return { eventId, ignored: 'subscription has no app user id' };
-  const status = STATUS[data.status];
-  if (!status) return { eventId, ignored: `unknown status ${data.status}` };
-
-  return {
-    eventId,
-    record: {
-      provider: 'paddle',
-      providerRef: data.id,
-      userId: String(userId),
-      status,
-      interval: intervalOf(data),
-      ...firstPrice(data),
-      currentPeriodEnd: periodEnd(data),
-      cancelAtPeriodEnd: data.scheduled_change?.action === 'cancel',
-      customerRef: data.customer_id || null,
-      manageUrl: data.management_urls?.cancel || null,
-      providerUpdatedAt: data.updated_at || event.occurred_at || null,
-    },
-  };
+  const ignored = rejectReason(event, data);
+  return ignored ? { eventId, ignored } : { eventId, record: toRecord(event, data) };
 }
 
 module.exports = { createPaddleProvider, normalizePaddleEvent };

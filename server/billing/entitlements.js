@@ -126,15 +126,13 @@ function computeEntitlement({ account = null, subscriptions = [], gifts = [], no
   const sources = collectSources({ subscription, activeGifts, trialActive, account });
 
   const activeKeys = SOURCE_PRIORITY.filter((key) => key in sources);
-  const ends = activeKeys.map((key) => sources[key]);
-  const expiresAt = ends.includes(null) ? null : ends.reduce((a, b) => (a > b ? a : b), null);
 
   return {
     plan: activeKeys.length ? 'pro' : 'free',
     source: activeKeys[0] || null,
     sources,
-    expiresAt,
-    renews: Boolean(subscription) && subscription.status === 'active' && !subscription.cancelAtPeriodEnd,
+    expiresAt: latestEnd(activeKeys.map((key) => sources[key])),
+    renews: isRenewing(subscription),
     trial: {
       eligible: isTrialEligible(account, subscriptions),
       endsAt: toIso(toMs(account?.trialEndsAt)),
@@ -142,6 +140,15 @@ function computeEntitlement({ account = null, subscriptions = [], gifts = [], no
     subscription: describeSubscription(subscription),
   };
 }
+
+/** Latest ISO end; null when any end is null (indefinite) or there are none. */
+function latestEnd(ends) {
+  if (ends.includes(null)) return null;
+  return ends.reduce((a, b) => (a > b ? a : b), null);
+}
+
+const isRenewing = (subscription) =>
+  Boolean(subscription) && subscription.status === 'active' && !subscription.cancelAtPeriodEnd;
 
 /** One trial per account, and never after the account has ever paid. */
 function isTrialEligible(account, subscriptions = []) {

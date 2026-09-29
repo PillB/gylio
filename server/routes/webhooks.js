@@ -22,6 +22,16 @@ const parseJson = (buffer) => {
   }
 };
 
+/** Mercado Pago puts the payment id and topic in the query string, the body, or both. */
+function readMercadoPagoNotification(req) {
+  const body = Buffer.isBuffer(req.body) && req.body.length ? parseJson(req.body) : {};
+  const data = body.data || {};
+  return {
+    dataId: String(req.query['data.id'] || data.id || ''),
+    topic: req.query.type || req.query.topic || body.type,
+  };
+}
+
 function createWebhookRouter({ service = getBillingService, env = process.env, clock = () => Date.now() } = {}) {
   const router = express.Router();
   router.use(express.raw({ type: '*/*', limit: '512kb' }));
@@ -39,23 +49,21 @@ function createWebhookRouter({ service = getBillingService, env = process.env, c
   }));
 
   router.post('/mercadopago', asyncHandler(async (req, res) => {
-    const body = Buffer.isBuffer(req.body) && req.body.length ? parseJson(req.body) : {};
-    const dataId = String(req.query['data.id'] || body?.data?.id || '');
+    const notification = readMercadoPagoNotification(req);
     const verified = verifyMercadoPagoSignature({
       header: req.get('x-signature'),
       requestId: req.get('x-request-id'),
-      dataId,
+      dataId: notification.dataId,
       secret: env.MERCADOPAGO_WEBHOOK_SECRET,
       nowMs: clock(),
     });
     if (!verified) throw new ApiError(401, 'INVALID_SIGNATURE', 'Signature verification failed');
 
-    const topic = req.query.type || req.query.topic || body.type;
-    if (topic !== 'payment' || !dataId) {
-      res.json({ received: true, outcome: 'ignored', reason: `topic ${topic || 'none'}` });
+    if (notification.topic !== 'payment' || !notification.dataId) {
+      res.json({ received: true, outcome: 'ignored', reason: `topic ${notification.topic || 'none'}` });
       return;
     }
-    res.json({ received: true, ...(await service().handleMercadoPagoPayment(dataId)) });
+    res.json({ received: true, ...(await service().handleMercadoPagoPayment(notification.dataId)) });
   }));
 
   return router;

@@ -13,22 +13,32 @@ const { validateTriage, KINDS, STATUSES } = require('../feedback/validateFeedbac
 const GIFT_REASONS = ['friend', 'family', 'tester', 'support', 'promo', 'other'];
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-function parseGiftRequest(body = {}) {
-  const errors = [];
-  const userId = typeof body.userId === 'string' && body.userId.trim() ? body.userId.trim() : null;
-  const email = typeof body.email === 'string' && body.email.trim() ? body.email.trim().toLowerCase() : null;
+const trimmed = (value) => (typeof value === 'string' && value.trim() ? value.trim() : null);
+
+function parseTarget(body, errors) {
+  const userId = trimmed(body.userId);
+  const email = trimmed(body.email) && body.email.trim().toLowerCase();
   if (!userId && !email) errors.push({ field: 'target', message: 'Provide a user id or an email' });
   if (email && !EMAIL.test(email)) errors.push({ field: 'email', message: 'Not an email address' });
+  return { userId, email: email || null };
+}
 
-  const days = body.days === null || body.days === 'indefinite' ? null : Number(body.days);
-  if (days !== null && !Number.isInteger(days)) errors.push({ field: 'days', message: 'Whole days, or null for indefinite' });
+function parseDays(value, errors) {
+  if (value === null || value === 'indefinite') return null;
+  const days = Number(value);
+  if (!Number.isInteger(days)) errors.push({ field: 'days', message: 'Whole days, or null for indefinite' });
+  return days;
+}
 
+function parseGiftRequest(body = {}) {
+  const errors = [];
+  const target = parseTarget(body, errors);
+  const days = parseDays(body.days, errors);
   const reason = GIFT_REASONS.includes(body.reason) ? body.reason : null;
   if (!reason) errors.push({ field: 'reason', message: `One of ${GIFT_REASONS.join(', ')}` });
-
-  const note = typeof body.note === 'string' ? body.note.trim().slice(0, 500) || null : null;
+  const note = trimmed(body.note);
   if (errors.length) throw new ApiError(400, 'VALIDATION_ERROR', 'Invalid gift', errors);
-  return { userId, email, days, reason, note };
+  return { ...target, days, reason, note: note ? note.slice(0, 500) : null };
 }
 
 function createAdminRouter({ service = getBillingService, store = getBillingStore, clock = () => new Date() } = {}) {

@@ -36,7 +36,6 @@ const MAX_CONSOLE_ERRORS = 10;
 const MAX_CONSOLE_ERROR_LENGTH = 300;
 
 // Control characters other than tab/newline have no place in a report.
-// eslint-disable-next-line no-control-regex
 const CONTROL_CHARS = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g;
 
 const clean = (value, max) => {
@@ -62,6 +61,18 @@ function sanitizeContext(raw) {
   return context;
 }
 
+const oneOf = (field, allowed) => ({ field, message: `Must be one of ${allowed.join(', ')}` });
+
+function fieldErrors(input, title, description) {
+  const errors = [];
+  if (!KINDS.includes(input.kind)) errors.push(oneOf('kind', KINDS));
+  if (!title || title.length < 3) errors.push({ field: 'title', message: 'At least 3 characters' });
+  if (!description || description.length < 10) errors.push({ field: 'description', message: 'At least 10 characters' });
+  const severity = input.severity ?? null;
+  if (severity !== null && !SEVERITIES.includes(severity)) errors.push(oneOf('severity', SEVERITIES));
+  return errors;
+}
+
 /**
  * Returns { value } with a normalised report, or { errors } listing each field
  * problem. Unknown kinds/severities are errors rather than silently defaulted,
@@ -69,29 +80,16 @@ function sanitizeContext(raw) {
  */
 function validateFeedback(body) {
   const input = body && typeof body === 'object' ? body : {};
-  const errors = [];
-
-  const kind = input.kind;
-  if (!KINDS.includes(kind)) errors.push({ field: 'kind', message: `Must be one of ${KINDS.join(', ')}` });
-
   const title = clean(input.title, LIMITS.title);
-  if (!title || title.length < 3) errors.push({ field: 'title', message: 'At least 3 characters' });
-
   const description = clean(input.description, LIMITS.description);
-  if (!description || description.length < 10) errors.push({ field: 'description', message: 'At least 10 characters' });
-
-  const severity = input.severity ?? null;
-  if (severity !== null && !SEVERITIES.includes(severity)) {
-    errors.push({ field: 'severity', message: `Must be one of ${SEVERITIES.join(', ')}` });
-  }
-
+  const errors = fieldErrors(input, title, description);
   if (errors.length) return { errors };
   return {
     value: {
-      kind,
+      kind: input.kind,
       title,
       description,
-      severity: kind === 'bug' ? severity : null,
+      severity: input.kind === 'bug' ? input.severity ?? null : null,
       stepsToReproduce: clean(input.stepsToReproduce, LIMITS.stepsToReproduce),
       expected: clean(input.expected, LIMITS.expected),
       actual: clean(input.actual, LIMITS.actual),
@@ -101,19 +99,23 @@ function validateFeedback(body) {
   };
 }
 
+// Each triage field: how to accept a value, or null when it is invalid.
+const TRIAGE_FIELDS = {
+  status: (v) => (STATUSES.includes(v) ? { ok: v } : oneOf('status', STATUSES)),
+  severity: (v) => (v === null || SEVERITIES.includes(v) ? { ok: v } : oneOf('severity', SEVERITIES)),
+  adminNote: (v) => ({ ok: clean(v, LIMITS.adminNote) }),
+};
+
 function validateTriage(body) {
   const input = body && typeof body === 'object' ? body : {};
   const patch = {};
   const errors = [];
-  if (input.status !== undefined) {
-    if (STATUSES.includes(input.status)) patch.status = input.status;
-    else errors.push({ field: 'status', message: `Must be one of ${STATUSES.join(', ')}` });
+  for (const [field, accept] of Object.entries(TRIAGE_FIELDS)) {
+    if (input[field] === undefined) continue;
+    const result = accept(input[field]);
+    if ('ok' in result) patch[field] = result.ok;
+    else errors.push(result);
   }
-  if (input.severity !== undefined) {
-    if (input.severity === null || SEVERITIES.includes(input.severity)) patch.severity = input.severity;
-    else errors.push({ field: 'severity', message: `Must be one of ${SEVERITIES.join(', ')}` });
-  }
-  if (input.adminNote !== undefined) patch.adminNote = clean(input.adminNote, LIMITS.adminNote);
   if (!errors.length && !Object.keys(patch).length) errors.push({ field: 'body', message: 'Nothing to update' });
   return errors.length ? { errors } : { value: patch };
 }

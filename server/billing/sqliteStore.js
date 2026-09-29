@@ -109,7 +109,6 @@ function createSqliteStore(db) {
 
     async init() {
       for (const statement of SCHEMA) {
-        // eslint-disable-next-line no-await-in-loop
         await run(db, statement);
       }
     },
