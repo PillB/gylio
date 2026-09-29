@@ -12,8 +12,17 @@ import { test, expect, type Page } from '@playwright/test';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
+// Seed a completed onboarding state before any app script runs. Writing it
+// with page.evaluate() after load raced the onboarding provider's own
+// persistence effect, which could overwrite the fixture and leave the test on
+// /onboarding (intermittent under parallel workers).
+const seededPages = new WeakSet<Page>();
 async function bypassOnboarding(page: Page) {
-  await page.evaluate(() => {
+  if (seededPages.has(page)) return;
+  seededPages.add(page);
+  await page.addInitScript(() => {
+    const now = new Date();
+    const localDateKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     localStorage.setItem('onboardingFlowState', JSON.stringify({
       isOnboardingComplete: true,
       currentStep: 4,
@@ -24,17 +33,13 @@ async function bypassOnboarding(page: Page) {
         tour: { acknowledged: true, reminders: false },
       },
     }));
-    localStorage.setItem('gylio:lastActiveDate', new Date().toISOString().slice(0, 10));
+    localStorage.setItem('gylio:lastActiveDate', localDateKey);
   });
 }
 
 async function gotoPage(page: Page, route: string) {
-  await page.goto(`.${route}`);
   await bypassOnboarding(page);
-  if (page.url().includes('/onboarding') || page.url().includes('/sign-in')) {
-    await bypassOnboarding(page);
-    await page.goto(`.${route}`);
-  }
+  await page.goto(`.${route}`);
   await page.waitForLoadState('networkidle');
   await page.waitForTimeout(600);
 }

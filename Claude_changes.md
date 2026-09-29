@@ -796,3 +796,23 @@ es-PE.json: full Spanish translations for all step and starter keys.
 - `eslint.complexity.js` — caps for WIP files added at their current scores; TaskList, CalendarView and TemplateGallery removed; ReconciliationChecklist 46 → 30, DataFreshnessBanner 23 → 20.
 
 **Verified:** lint, typecheck, 212 unit tests, check:i18n, build.
+
+---
+
+### CHG-045 – 2026-09-29 (WIP batch branch: dataViz theme tokens, WCAG contrast tests, nav reflow, e2e stabilization)
+
+Numbered after #82's CHG-043/044 to keep IDs unique; #82 stacks on this branch.
+
+**Why:** Batch-agent work (dashboard, recurring, budget features, server tests) lived only on one device. Components hardcoded light-palette hex, which defeated dark and high-contrast modes. White text on primary fills measured about 1.07:1 in high contrast (white on yellow). The primary nav hid 4 of 7 destinations off-screen at 320px.
+
+**Files changed:**
+- `src/core/contrast.ts` (new): WCAG 2.x relative luminance, contrast ratio, `readableTextOn`.
+- `src/core/themes.ts`: `dataViz` (energy, budget, series, eventTints) per mode; `primaryGradientEnd`, `successStrong`, `errorStrong`. Light chart hues moved to 600-level green, amber and violet.
+- `src/core/themes.test.ts` (new, 41 tests): asserts real ratios. Covers text and muted text at AA, 3:1 non-text for every chart hue (WCAG 1.4.11), the on-colors, the whole primary gradient, strong status text and calendar tints. Two of these failed on the previous light palette (2.15–2.28:1).
+- Components: `#fff` on filled controls replaced by `primaryForeground`, `onSuccess`/`onError` or `readableTextOn(bg)`. Template libraries reference `dataViz.series` by index. `DataFreshnessBanner` no longer looks up nonexistent `*Bg` keys.
+- `src/components/NavBar.jsx`, `index.html`: the nav wraps (WCAG 2.2 SC 1.4.10) and is compacted at ≤430px.
+- `e2e/happy-paths.spec.ts`, `e2e/app-audit.spec.ts`: onboarding fixture seeded with `page.addInitScript`. Seeding with `page.evaluate` after load raced the provider's persistence effect, so tests intermittently stayed on /onboarding under parallel workers. happy-paths also uses the baseURL and local-date keys.
+- `package.json`/`package-lock.json`: merged main's dependency bumps and kept the branch's added dev dependencies.
+- Left for #82: hex in TaskList, CalendarView, BudgetView, App.jsx, PricingPage, SpendingChart and ReconciliationChecklist.
+
+**Verified:** lint, typecheck, check:i18n and build pass. Unit tests 112/112, server tests 102/102. Playwright (system Chrome, no Clerk key, as in CI): 114/114 on the second run. The first run had 1 failure in `onboarding-migration.spec.ts:80`, a spec this change did not touch.
