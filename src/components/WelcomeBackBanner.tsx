@@ -119,7 +119,7 @@ export default function WelcomeBackBanner({ onFreshStart }: Props) {
                 padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
                 borderRadius: theme.shape.radiusMd,
                 background: theme.colors.primary,
-                color: '#fff',
+                color: theme.colors.primaryForeground,
                 border: 'none',
                 fontWeight: 600,
                 fontSize: 13,

@@ -1,3 +1,4 @@
+import type { DataVizHue } from '../../../core/themes';
 export type TaskCategory =
   | 'environment'
   | 'deepwork'
@@ -20,15 +21,15 @@ export type TaskTemplate = {
 
 export const CATEGORY_META: Record<
   TaskCategory,
-  { emoji: string; labelKey: string; color: string }
+  { emoji: string; labelKey: string; hue: DataVizHue }
 > = {
-  environment:   { emoji: '🏠', labelKey: 'tasks.tpl.cat.environment',   color: '#22C55E' },
-  deepwork:      { emoji: '🧠', labelKey: 'tasks.tpl.cat.deepwork',      color: '#5B5CF6' },
-  health:        { emoji: '💪', labelKey: 'tasks.tpl.cat.health',        color: '#F59E0B' },
-  relationships: { emoji: '🤝', labelKey: 'tasks.tpl.cat.relationships', color: '#EC4899' },
-  mindset:       { emoji: '🌱', labelKey: 'tasks.tpl.cat.mindset',       color: '#14B8A6' },
-  career:        { emoji: '🚀', labelKey: 'tasks.tpl.cat.career',        color: '#3B82F6' },
-  finances:      { emoji: '💰', labelKey: 'tasks.tpl.cat.finances',      color: '#F97316' },
+  environment:   { emoji: '🏠', labelKey: 'tasks.tpl.cat.environment',   hue: 'green' },
+  deepwork:      { emoji: '🧠', labelKey: 'tasks.tpl.cat.deepwork',      hue: 'indigo' },
+  health:        { emoji: '💪', labelKey: 'tasks.tpl.cat.health',        hue: 'amber' },
+  relationships: { emoji: '🤝', labelKey: 'tasks.tpl.cat.relationships', hue: 'pink' },
+  mindset:       { emoji: '🌱', labelKey: 'tasks.tpl.cat.mindset',       hue: 'teal' },
+  career:        { emoji: '🚀', labelKey: 'tasks.tpl.cat.career',        hue: 'blue' },
+  finances:      { emoji: '💰', labelKey: 'tasks.tpl.cat.finances',      hue: 'orange' },
 };
 
 export const TASK_TEMPLATE_LIBRARY: TaskTemplate[] = [

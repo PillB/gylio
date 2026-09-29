@@ -9,6 +9,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../core/context/ThemeContext';
+import { readableTextOn, type DataVizHue } from '../core/themes';
 import { track, Events } from '../core/analytics';
 
 export type WinType =
@@ -28,14 +29,14 @@ type Props = {
   onClose: () => void;
 };
 
-const WIN_COLORS: Record<WinType, string> = {
-  streak:          '#F97316',
-  all_tasks_done:  '#22C55E',
-  routine_complete:'#8B5CF6',
-  budget_goal:     '#3B82F6',
-  first_task:      '#EC4899',
-  first_routine:   '#F59E0B',
-  level_up:        '#10B981',
+const WIN_HUES: Record<WinType, DataVizHue> = {
+  streak:          'orange',
+  all_tasks_done:  'green',
+  routine_complete:'violet',
+  budget_goal:     'blue',
+  first_task:      'pink',
+  first_routine:   'amber',
+  level_up:        'teal',
 };
 
 const WIN_EMOJIS: Record<WinType, string> = {
@@ -62,7 +63,7 @@ const WIN_KEY: Record<WinType, string> = {
 export default function WinCard({ type, milestone, label, sublabel, onClose }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const color  = WIN_COLORS[type];
+  const color  = theme.dataViz[WIN_HUES[type]];
   const emoji  = WIN_EMOJIS[type];
   const keyRoot = WIN_KEY[type];
 
@@ -233,7 +234,7 @@ export default function WinCard({ type, milestone, label, sublabel, onClose }: P
               padding: `${theme.spacing.sm}px ${theme.spacing.lg}px`,
               borderRadius: theme.shape.radiusMd,
               background: color,
-              color: '#fff',
+              color: readableTextOn(color),
               border: 'none',
               fontWeight: 700,
               fontSize: 15,
