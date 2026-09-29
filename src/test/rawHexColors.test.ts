@@ -34,7 +34,6 @@ describe('raw hex colour ban', () => {
   it('allows hex where colours are defined and in tests', async () => {
     const code = "export const c = '#fff';\n";
     expect(await hexErrors(code, 'src/core/themes.ts')).toBe(0);
-    expect(await hexErrors(code, 'src/core/contrast.ts')).toBe(0);
     expect(await hexErrors(code, 'src/features/example/Example.test.tsx')).toBe(0);
   });
 });

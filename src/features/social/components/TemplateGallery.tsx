@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { ThemeTokens } from '../../../core/themes';
-import { readableTextOn } from '../../../core/contrast';
+import { readableTextOn, type ThemeTokens } from '../../../core/themes';
 import {
   type RelationshipType,
   type DepthLevel,
@@ -48,7 +47,8 @@ export const TemplateGallery: React.FC<Props> = ({ relationshipType, onSelect, t
         {DEPTH_FILTERS.map((d) => {
           const isActive = depthFilter === d;
           const meta = d !== 'all' ? DEPTH_META[d] : null;
-          const activeColor = meta ? theme.dataViz.series[meta.hue] : theme.colors.primary;
+          const activeFill = meta ? theme.dataViz[meta.hue] : theme.colors.primary;
+          const activeText = meta ? readableTextOn(activeFill) : theme.colors.primaryForeground;
           return (
             <button
               key={d}
@@ -58,9 +58,9 @@ export const TemplateGallery: React.FC<Props> = ({ relationshipType, onSelect, t
               style={{
                 padding: '4px 12px',
                 borderRadius: theme.shape.radiusFull,
-                border: `1.5px solid ${isActive ? activeColor : theme.colors.border}`,
-                background: isActive ? activeColor : 'transparent',
-                color: isActive ? readableTextOn(activeColor) : theme.colors.text,
+                border: `1.5px solid ${isActive ? activeFill : theme.colors.border}`,
+                background: isActive ? activeFill : 'transparent',
+                color: isActive ? activeText : theme.colors.text,
                 cursor: 'pointer',
                 fontSize: '0.8125rem',
                 fontWeight: isActive ? 700 : 400,
@@ -82,7 +82,7 @@ export const TemplateGallery: React.FC<Props> = ({ relationshipType, onSelect, t
       <div style={{ display: 'grid', gap: `${theme.spacing.md}px` }}>
         {templates.map((tpl) => {
           const depthMeta = DEPTH_META[tpl.depthLevel];
-          const depthColor = theme.dataViz.series[depthMeta.hue];
+          const depthFill = theme.dataViz[depthMeta.hue];
           return (
             <div
               key={tpl.id}
@@ -103,7 +103,7 @@ export const TemplateGallery: React.FC<Props> = ({ relationshipType, onSelect, t
                   <span style={{
                     fontSize: '0.7rem', fontWeight: 700, padding: '2px 8px',
                     borderRadius: theme.shape.radiusFull,
-                    background: depthColor, color: readableTextOn(depthColor),
+                    background: depthFill, color: readableTextOn(depthFill),
                   }}>
                     {depthMeta.emoji} {t(depthMeta.labelKey, tpl.depthLevel)}
                   </span>

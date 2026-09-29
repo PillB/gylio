@@ -36,7 +36,7 @@ const CalendarView = () => {
   const [selectedDate, setSelectedDate] = useState(() => toDateKey(new Date()));
   const [editingId, setEditingId] = useState(null);
 
-  const palette = theme.dataViz.eventTints;
+  const palette = theme.eventTints;
   const sortedEvents = useMemo(() => sortByStart(data.events), [data.events]);
   const eventsByDay = useMemo(() => groupByDay(sortedEvents, palette), [palette, sortedEvents]);
   const availableTasks = useMemo(() => data.tasks.filter((task) => !task.calendarEventId), [data.tasks]);

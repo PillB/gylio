@@ -59,7 +59,7 @@ export default [
   },
   {
     files: ['src/**/*.{js,jsx,ts,tsx}'],
-    ignores: ['src/core/themes.ts', 'src/core/contrast.ts', 'src/**/*.test.{js,jsx,ts,tsx}', 'src/test/**'],
+    ignores: ['src/core/themes.ts', 'src/**/*.test.{js,jsx,ts,tsx}', 'src/test/**'],
     rules: {
       'no-restricted-syntax': [
         'error',

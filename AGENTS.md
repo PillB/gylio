@@ -166,7 +166,7 @@ SocialPlan {
 - `t('key') || 'Fallback'` counts as a branch; use `t('key', 'Fallback')` instead.
 
 ## Colours (enforced by `npm run lint`)
-- No raw hex colours in `src` outside `src/core/themes.ts`, `src/core/contrast.ts` and tests. Use `theme.colors.*` / `theme.dataViz.*`, and `readableTextOn(bg)` for text on a coloured fill. `src/test/rawHexColors.test.ts` pins what the rule flags.
+- No raw hex colours in `src` outside `src/core/themes.ts` and tests. Use `theme.colors.*` / `theme.dataViz.*` / `theme.eventTints`, and the `on*` colours or `readableTextOn(bg)` (both in `themes.ts`) for text on a coloured fill. `src/test/rawHexColors.test.ts` pins what the rule flags.
 
 ## Do / Don’t
 **Do**

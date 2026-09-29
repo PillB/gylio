@@ -2,8 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../../core/context/ThemeContext';
 import { useTaskTimer } from '../../../core/context/TaskTimerContext';
-import type { ThemeTokens } from '../../../core/themes';
-import { readableTextOn } from '../../../core/contrast';
+import { readableTextOn, type ThemeTokens } from '../../../core/themes';
 
 const pad = (n: number) => String(n).padStart(2, '0');
 

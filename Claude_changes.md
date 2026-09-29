@@ -816,3 +816,17 @@ Numbered after #82's CHG-043/044 to keep IDs unique; #82 stacks on this branch.
 - Left for #82: hex in TaskList, CalendarView, BudgetView, App.jsx, PricingPage, SpendingChart and ReconciliationChecklist.
 
 **Verified:** lint, typecheck, check:i18n and build pass. Unit tests 112/112, server tests 102/102. Playwright (system Chrome, no Clerk key, as in CI): 114/114 on the second run. The first run had 1 failure in `onboarding-migration.spec.ts:80`, a spec this change did not touch.
+
+---
+
+### CHG-046 – 2026-09-29 (#82 follows #88 onto main's colour scheme)
+
+**Why:** Pablo kept main's colour scheme (#87), and #88 was rebuilt on it. #82 merges #88 and moves its own split views and hex cleanup onto the same tokens.
+
+**Files changed:**
+- `src/components/CalendarView.jsx` — event colours from `theme.eventTints`.
+- `src/features/subscription/PricingPage.tsx` — gradient end `colors.secondary`, success text `colors.onSuccess`.
+- `src/features/tasks/utils/energyTone.ts` (+test) — main's status-colour version.
+- `eslint.config.js`, `src/test/rawHexColors.test.ts`, `AGENTS.md` — `src/core/contrast.ts` no longer exists; `readableTextOn` lives in `themes.ts`.
+
+**Verified:** lint, typecheck, 234 unit tests, check:i18n, build.
