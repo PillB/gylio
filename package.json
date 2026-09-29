@@ -16,8 +16,9 @@
     "test:all": "vitest run && vitest run --config vitest.server.config.ts",
     "check:i18n": "node scripts/check-i18n.mjs",
     "install:api": "npm ci --ignore-scripts --prefix server",
-    "lint:complexity": "eslint --no-config-lookup --max-warnings 0 --rule '{\"complexity\":[\"error\",10]}' server/billing server/feedback server/routes/admin.js server/routes/feedback.js server/routes/webhooks.js server/routes/billing.js && eslint --max-warnings 0 --rule '{\"complexity\":[\"error\",10]}' src/features/billing src/features/ads src/features/experiments src/features/feedback src/features/admin src/features/subscription/PricingPage.tsx src/features/subscription/useSubscription.ts",
-    "typecheck:billing": "tsc -p tsconfig.billing.json"
+    "lint:complexity": "eslint --no-config-lookup --max-warnings 0 --rule '{\"complexity\":[\"error\",10]}' server/billing server/feedback server/routes/admin.js server/routes/feedback.js server/routes/webhooks.js server/routes/billing.js server/billing/financeModel.js && eslint --max-warnings 0 --rule '{\"complexity\":[\"error\",10]}' src/features/billing src/features/ads src/features/experiments src/features/feedback src/features/admin src/features/subscription/PricingPage.tsx src/features/subscription/useSubscription.ts",
+    "typecheck:billing": "tsc -p tsconfig.billing.json",
+    "finance:report": "node scripts/finance-report.cjs"
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.61.6",
