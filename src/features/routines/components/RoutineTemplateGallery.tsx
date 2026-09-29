@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { ThemeTokens } from '../../../core/themes';
-import { readableTextOn } from '../../../core/contrast';
+import { readableTextOn, type ThemeTokens } from '../../../core/themes';
 import {
   ROUTINE_CATEGORY_META,
   ROUTINE_TEMPLATE_LIBRARY,
@@ -92,7 +91,7 @@ export default function RoutineTemplateGallery({ onSelect, theme }: Props) {
       borderRadius: shape.radiusFull,
       border: `1.5px solid ${active ? (accentColor ?? colors.primary) : colors.border}`,
       background: active ? (accentColor ? `${accentColor}18` : colors.primary) : colors.surface,
-      color: active ? (accentColor ?? colors.primary) : colors.muted,
+      color: active ? (accentColor ? colors.text : colors.primary) : colors.muted,
       fontSize: 13,
       fontWeight: active ? 600 : 400,
       cursor: 'pointer',
@@ -106,7 +105,7 @@ export default function RoutineTemplateGallery({ onSelect, theme }: Props) {
 
   function TemplateCard({ tpl }: { tpl: RoutineTemplate }) {
     const meta = ROUTINE_CATEGORY_META[tpl.category];
-    const metaColor = theme.dataViz.series[meta.hue];
+    const hueColor = theme.dataViz[meta.hue];
     const title = t(tpl.titleKey, TITLE_FALLBACK[tpl.titleKey] ?? tpl.titleKey);
     const why   = t(tpl.whyKey,   WHY_FALLBACK[tpl.whyKey]     ?? '');
     const time  = formatTime(tpl.triggerTime);
@@ -144,7 +143,7 @@ export default function RoutineTemplateGallery({ onSelect, theme }: Props) {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                background: `${metaColor}18`,
+                background: `${hueColor}18`,
                 borderRadius: shape.radiusMd,
                 flexShrink: 0,
               }}
@@ -174,9 +173,9 @@ export default function RoutineTemplateGallery({ onSelect, theme }: Props) {
             style={{
               fontSize: 11,
               fontWeight: 600,
-              color: metaColor,
-              background: `${metaColor}18`,
-              border: `1px solid ${metaColor}40`,
+              color: colors.text,
+              background: `${hueColor}18`,
+              border: `1px solid ${hueColor}`,
               borderRadius: shape.radiusFull,
               padding: '2px 8px',
               whiteSpace: 'nowrap',
@@ -407,21 +406,21 @@ export default function RoutineTemplateGallery({ onSelect, theme }: Props) {
         {/* Category pills */}
         {ALL_CATEGORIES.map((cat) => {
           const meta = ROUTINE_CATEGORY_META[cat];
-          const metaColor = theme.dataViz.series[meta.hue];
+          const hueColor = theme.dataViz[meta.hue];
           const count = ROUTINE_TEMPLATE_LIBRARY.filter((tpl) => tpl.category === cat).length;
           const isActive = activeCategory === cat;
           return (
             <button
               key={cat}
-              style={pillStyle(isActive, metaColor)}
+              style={pillStyle(isActive, hueColor)}
               onClick={() => setActiveCategory(isActive ? null : cat)}
               aria-pressed={isActive}
             >
               {meta.emoji} {t(meta.labelKey, cat)}
               <span
                 style={{
-                  background: isActive ? metaColor : colors.surfaceElevated,
-                  color: isActive ? readableTextOn(metaColor) : colors.muted,
+                  background: isActive ? hueColor : colors.surfaceElevated,
+                  color: isActive ? readableTextOn(hueColor) : colors.muted,
                   borderRadius: shape.radiusFull,
                   fontSize: 11,
                   fontWeight: 700,

@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../../core/context/ThemeContext';
-import { readableTextOn } from '../../../core/contrast';
+import { readableTextOn } from '../../../core/themes';
 import { track, Events } from '../../../core/analytics';
 
 /**

@@ -8,7 +8,7 @@
 
 import React from 'react';
 import { useTheme } from '../core/context/ThemeContext';
-import { readableTextOn } from '../core/contrast';
+import { readableTextOn } from '../core/themes';
 
 type Props = {
   emoji: string;

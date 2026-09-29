@@ -30,7 +30,12 @@ const compactLabel = (label: string, max = 12) =>
   label.length <= max ? label : `${label.slice(0, Math.max(1, max - 1))}…`;
 
 export const SpendingChart: React.FC<Props> = ({ bars, theme }) => {
-  const CATEGORY_COLORS: Record<string, string> = theme.dataViz.budget;
+  const CATEGORY_COLORS: Record<string, string> = {
+    NEED: theme.dataViz.indigo,
+    WANT: theme.dataViz.violet,
+    GOAL: theme.dataViz.green,
+    DEBT: theme.dataViz.amber,
+  };
   const { t } = useTranslation();
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);

@@ -25,7 +25,9 @@ export const WeeklyGrid: React.FC<Props> = ({
   onEventClick,
 }) => {
   const { t, i18n } = useTranslation();
-  const EVENT_COLORS = theme.dataViz.series;
+  const EVENT_COLORS = (['indigo', 'violet', 'pink', 'amber', 'green', 'blue', 'red'] as const).map(
+    (hue) => theme.dataViz[hue],
+  );
 
   const [hourHeight, setHourHeight] = useState(HOUR_HEIGHT_BASE);
   const containerRef = useRef<HTMLDivElement>(null);
