@@ -18,6 +18,15 @@ describe('energyTone', () => {
     }
   });
 
+  it.each(MODES)('every energy fill is distinguishable from the surface in %s mode (WCAG 1.4.11)', (mode) => {
+    const theme = themes[mode];
+    const failing = LEVELS.map((level) => ({
+      level,
+      ratio: Number(contrastRatio(energyTone(theme, level).fill, theme.colors.surface).toFixed(2)),
+    })).filter(({ ratio }) => ratio < 3);
+    expect(failing).toEqual([]);
+  });
+
   it('falls back to the medium tone for missing or unknown levels', () => {
     const medium = energyTone(themes.light, 'medium');
     expect(energyTone(themes.light, undefined)).toEqual(medium);
