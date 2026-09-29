@@ -21,11 +21,11 @@ self.addEventListener('activate', (e) => {
 
 self.addEventListener('fetch', (e) => {
   const { request } = e;
-  // Cache-first for same-origin navigations (app shell)
+  // Network-first for navigations, cached shell only when offline. Cache-first here
+  // served a stale index.html (old CSP, old bundles) in dev until the cache was cleared.
+  // Production builds replace this file with src/service-worker.ts, which does the same.
   if (request.mode === 'navigate') {
-    e.respondWith(
-      caches.match('/gylio/index.html').then((cached) => cached || fetch(request))
-    );
+    e.respondWith(fetch(request).catch(() => caches.match('/gylio/index.html')));
     return;
   }
   // Network-first for everything else
