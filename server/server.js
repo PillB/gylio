@@ -1,4 +1,5 @@
-try { require('dotenv').config({ path: require('path').join(__dirname, '.env') }); } catch (_) {}
+// Local configuration: `npm start` loads server/.env with Node's built-in --env-file-if-exists.
+// (dotenv was never installed, so the old require silently loaded nothing.)
 
 const express = require('express');
 const cors = require('cors');

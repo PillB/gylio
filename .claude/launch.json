@@ -2,10 +2,10 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "gylio-api-sqlite",
-      "runtimeExecutable": "node",
+      "name": "gylio-api",
+      "runtimeExecutable": "npm",
       "runtimeArgs": [
-        "server/server.js"
+        "start"
       ],
       "port": 3001
     },
@@ -17,6 +17,17 @@
         "dev:noauth"
       ],
       "port": 5174
+    },
+    {
+      "name": "gylio-web",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vite",
+        "--port",
+        "5173",
+        "--strictPort"
+      ],
+      "port": 5173
     }
   ]
 }
