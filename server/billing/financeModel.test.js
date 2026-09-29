@@ -47,15 +47,15 @@ describe('simulate', () => {
   });
 
   it('collects a yearly plan up front, so cash in month 1 exceeds 1/12 of the year', () => {
-    const yearlyOnly = m.simulate({ ...base, annualShare: 1, months: 2 });
-    const monthlyOnly = m.simulate({ ...base, annualShare: 0, months: 2 });
+    const yearlyOnly = m.simulate({ ...base, betaMonths: 0, annualShare: 1, months: 2 });
+    const monthlyOnly = m.simulate({ ...base, betaMonths: 0, annualShare: 0, months: 2 });
     expect(yearlyOnly.rows[0].revenue).toBeGreaterThan(monthlyOnly.rows[0].revenue);
   });
 });
 
 describe('breakEvenPayers', () => {
   it('matches a hand calculation for a single-market case', () => {
-    const p = { ...base, peruShare: 0, taxIntl: 0, annualShare: 0, prices: { monthly: { USD: 1000, PEN: 0 }, yearly: { USD: 0, PEN: 0 } } };
+    const p = { ...base, fixedMonthly: 40, peruShare: 0, taxIntl: 0, annualShare: 0, prices: { monthly: { USD: 1000, PEN: 0 }, yearly: { USD: 0, PEN: 0 } } };
     // net per month = 10 − 0.5 − 0.5 = 9; costs at 1k MAU = 1 + 40 + 15 = 56 → ceil(56/9) = 7
     expect(m.breakEvenPayers(p, 1000)).toBe(7);
   });
@@ -68,3 +68,35 @@ describe('priceSensitivity', () => {
     expect(inelastic.bestFactor).toBeGreaterThan(elastic.bestFactor);
   });
 });
+
+describe('vocal-studio lessons', () => {
+  it('fades growth instead of compounding it', () => {
+    // month 3 = 300 × 1.08 × (1 + 0.08 × 0.95) = 348.624
+    expect(m.signupsAt(2, { signups0: 300, signupGrowth: 0.08, growthFade: 0.95 })).toBeCloseTo(348.624, 3);
+    // 36 months of fading 8% stays far below the 15× of pure compounding
+    const month36 = m.signupsAt(35, { signups0: 300, signupGrowth: 0.08, growthFade: 0.95 });
+    expect(month36 / 300).toBeLessThan(5);
+  });
+
+  it('charges nobody during the gifted beta and pays only infrastructure then', () => {
+    const r = m.simulate({ ...base, months: 5 });
+    for (const row of r.rows.slice(0, 3)) {
+      expect(row.revenue).toBe(0);
+      expect(row.costs).toBeLessThan(5);
+    }
+    expect(r.rows[3].costs).toBeGreaterThan(base.fixedMonthly);
+  });
+
+  it('states return on hours as cash made over the value of the time', () => {
+    const r = m.simulate({ ...base, hoursInvested: 10, hourlyRateUsd: 10 });
+    expect(r.returnOnHours).toBeCloseTo(r.cumulative / 100, 2);
+  });
+
+  it('indexes linear demand to 100 buyers at the reference price', () => {
+    const band = m.linearDemandBand([1000, 1490, 2000], { referenceMinor: 1490, beta: 1.2, keptPerCharge: (p) => p / 100 });
+    expect(band[1].index).toBe(1490); // 100 buyers × 14.90 kept
+    // 1000: 100 × (1 − 1.2 × (1000/1490 − 1)) = 139.46 buyers × 10.00
+    expect(band[0].index).toBe(1395);
+  });
+});
+

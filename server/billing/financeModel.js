@@ -70,31 +70,53 @@ function planNets(p) {
   return { monthly: blend(p.prices.monthly), yearly: blend(p.prices.yearly) };
 }
 
+/**
+ * Sign-ups in month t. Growth fades each month (g, g·fade, g·fade², …) instead of
+ * compounding forever: 8% compounded for 36 months is 15× and almost nobody gets that.
+ */
+function signupsAt(t, p) {
+  let signups = p.signups0;
+  for (let k = 0; k < t; k += 1) signups *= 1 + p.signupGrowth * (p.growthFade ?? 1) ** k;
+  return signups;
+}
+
+const inBeta = (t, p) => t < (p.betaMonths || 0);
+
 function newPayers(state, t, p) {
-  const signups = p.signups0 * (1 + p.signupGrowth) ** t;
-  const fromTrial = signups * p.trialStartRate * p.trialToPaid;
+  const signups = signupsAt(t, p);
+  // During the gifted beta nobody is charged; beta users stay in the free pool.
+  if (inBeta(t, p)) return { signups, payers: 0, fromFree: 0, trialConverted: 0 };
+  const trialConverted = signups * p.trialStartRate * p.trialToPaid;
   const fromFree = state.free * p.freemiumMonthly;
-  return { signups, payers: (fromTrial + fromFree) * p.conversionMultiplier, fromFree };
+  return { signups, payers: (trialConverted + fromFree) * p.conversionMultiplier, fromFree, trialConverted };
+}
+
+/** Before the RUC (beta) only infrastructure costs money; the compliance floor starts after. */
+function monthCosts(t, p, mau, revenue) {
+  const infra = infraCost(mau, p.infraAnchors);
+  if (inBeta(t, p)) return infra;
+  return infra + p.fixedMonthly + (revenue > 100 ? p.payoutFeeMonthly : 0);
 }
 
 function stepMonth(state, t, p, nets) {
-  const { signups, payers, fromFree } = newPayers(state, t, p);
+  const { signups, payers, fromFree, trialConverted } = newPayers(state, t, p);
   const newYearly = payers * p.annualShare;
   const newMonthly = payers - newYearly;
   const renewingYearly = t >= 12 ? state.yearlyCohorts[t - 12] * p.annualRenewal : 0;
   state.yearlyCohorts[t] = newYearly + renewingYearly;
   state.monthly = state.monthly * (1 - p.monthlyChurn) + newMonthly;
-  state.free = state.free * p.freeRetention + signups * (1 - p.trialStartRate * p.trialToPaid) - fromFree;
+  state.free = state.free * p.freeRetention + signups - trialConverted - fromFree;
 
   const activeYearly = state.yearlyCohorts.slice(Math.max(0, t - 11), t + 1).reduce((a, b) => a + b, 0);
   const revenue = state.monthly * nets.monthly + state.yearlyCohorts[t] * nets.yearly;
   const mau = state.free + state.monthly + activeYearly;
   const adsRevenue = t >= p.adsStartMonth ? state.free * p.adPageviewsPerFreeUser * p.adRpmUsd / 1000 : 0;
-  const costs = infraCost(mau, p.infraAnchors) + p.fixedMonthly + (revenue > 100 ? p.payoutFeeMonthly : 0);
+  const costs = monthCosts(t, p, mau, revenue);
   const preTax = revenue + adsRevenue - costs;
   const cashflow = preTax > 0 ? preTax * (1 - p.incomeTaxRate) : preTax;
   return {
     month: t + 1, mau: Math.round(mau), payers: Math.round(state.monthly + activeYearly),
+    signups: Math.round(signups),
     mrr: round2(state.monthly * nets.monthly + activeYearly * nets.yearly / 12),
     revenue: round2(revenue), ads: round2(adsRevenue), costs: round2(costs), cashflow: round2(cashflow),
   };
@@ -113,9 +135,30 @@ function simulate(params) {
     rows,
     npv: round2(npv(cashflows, p.discountRateAnnual)),
     roi: p.initialInvestment > 0 ? round2(cumulative / p.initialInvestment) : null,
+    cumulative: round2(cumulative),
+    // The honest return: cash made over the value of the founder's hours.
+    returnOnHours: p.hoursInvested && p.hourlyRateUsd ? round2(cumulative / (p.hoursInvested * p.hourlyRateUsd)) : null,
+    maxDrawdown: round2(Math.min(0, ...runningTotals(cashflows))),
     paybackMonth: paybackMonth(cashflows),
     firstProfitableMonth: (rows.find((r) => r.cashflow > 0) || {}).month ?? null,
   };
+}
+
+function runningTotals(cashflows) {
+  let total = 0;
+  return cashflows.map((cf) => (total += cf));
+}
+
+/**
+ * Revenue index across prices under linear demand: a 1% price rise loses beta%
+ * of buyers, indexed to 100 buyers at the reference price. Only the shape of
+ * each column means anything (same method as the vocal-studio model).
+ */
+function linearDemandBand(pricesMinor, { referenceMinor, beta, keptPerCharge }) {
+  return pricesMinor.map((price) => {
+    const buyers = Math.max(0, 100 * (1 - beta * (price / referenceMinor - 1)));
+    return { price, kept: round2(keptPerCharge(price)), index: Math.round(buyers * keptPerCharge(price)) };
+  });
 }
 
 /** Break-even paying users per month: fixed + infra costs / blended net per payer-month. */
@@ -148,6 +191,8 @@ function priceSensitivity(base, factors, elasticities) {
 module.exports = {
   breakEvenPayers,
   infraCost,
+  linearDemandBand,
+  signupsAt,
   monthlyRate,
   netPerCharge,
   npv,
