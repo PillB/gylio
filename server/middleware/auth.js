@@ -125,6 +125,50 @@ const requireAuth = async (req, _res, next) => {
   }
 };
 
+/**
+ * Attach req.user when a valid bearer token is present; continue anonymously
+ * when there is none. A token that is present but invalid is still rejected,
+ * so a broken session is reported instead of silently treated as anonymous.
+ */
+const optionalAuth = (req, res, next) => {
+  if (!req.headers.authorization) {
+    req.user = null;
+    return next();
+  }
+  return requireAuth(req, res, next);
+};
+
+const parseAdminIds = (value) =>
+  new Set(String(value || '').split(',').map((entry) => entry.trim()).filter(Boolean));
+
+/** Admins are Clerk user ids listed in the ADMIN_USER_IDS secret. */
+const isAdminUser = (userId, env = process.env) =>
+  Boolean(userId) && parseAdminIds(env.ADMIN_USER_IDS).has(userId);
+
+const requireAdmin = (req, _res, next) => {
+  if (!isAdminUser(req.user?.id)) {
+    return next(new ApiError(403, 'FORBIDDEN', 'Admin access required'));
+  }
+  return next();
+};
+
+/**
+ * Pro gate backed by the billing store, not by the JWT: a token's metadata can
+ * be minutes stale and is not where trials, gifts or subscriptions live.
+ */
+const requirePro = (getBillingService) => async (req, _res, next) => {
+  try {
+    const entitlement = await getBillingService().getEntitlement(req.user.id);
+    if (entitlement.plan !== 'pro') {
+      return next(new ApiError(403, 'PRO_REQUIRED', 'This feature is part of Gylio Pro'));
+    }
+    req.entitlement = entitlement;
+    return next();
+  } catch (error) {
+    return next(error);
+  }
+};
+
 const requirePlan = (plan) => (req, _res, next) => {
   if (req.user?.plan !== plan) {
     return next(new ApiError(403, 'FORBIDDEN', 'This feature requires an active subscription'));
@@ -136,6 +180,10 @@ module.exports = {
   requireAuth,
   parseAuthHeader,
   requirePlan,
+  optionalAuth,
+  requireAdmin,
+  requirePro,
+  isAdminUser,
   verifyClerkToken,
   getAuthConfig,
 };
