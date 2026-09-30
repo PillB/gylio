@@ -68,12 +68,26 @@
 - **Verification:** complexity gate ✓, 205+186 tests ✓, live Chrome regression pass (points 10→20 on second completion, no award on un-complete) ✓
 - **Status:** done
 
+### STEP-009 · 2026-09-30 · Round 1
+- **Action:** **WI-001 resolved** — the analytics pipeline was never a stub: client `upload.ts` → `POST /api/analytics/events` → validation → SQLite works end-to-end (670 events on the server, `ad_impression`/`task_completed`/`experiment_exposure` all flowing). My R0-1 finding was wrong, misled by a stale TODO comment; corrected the comment and the wiki. All three local dev servers had died mid-round (502) — restarted, no data loss (server SQLite persisted; browser profile storage was wiped, state rebuilt).
+- **Artifacts:** src/core/analytics/index.ts (comment only), docs/wiki/INDEX.md
+- **Verification:** server DB queried directly; live Chrome reload drains queue
+- **Status:** done
+
+### STEP-010 · 2026-09-30 · Round 1
+- **Action:** **Ads round (user request: non-intrusive but lucrative).** Added `rewards` placement (natural pause point, content-rich, outside work flows); house-ads session frequency cap (3 per placement, `sessionStorage`); StrictMode-safe impression counting (ref guard — dev CTR no longer inflated); AdSense 100px min-height (CLS guard); no-phantom-impression-when-capped fix (caught live in Chrome: capped mount was counting + tracking an unseen ad); wrote missing `docs/billing/ADS.md` (referenced by config, never existed). Test-first: 8 new tests including a red→green-verified regression test (also fixed a test-order bug: `mockClear` doesn't reset implementations, Pro gate leaked across tests).
+- **Artifacts:** src/features/ads/adConfig.ts, adConfig.test.ts, AdSlot.tsx, AdSlot.test.tsx (new), src/components/RewardsView.jsx, docs/billing/ADS.md (new)
+- **Verification:** 213 client + 186 server tests ✓, lint/typecheck/i18n/complexity ✓, live Chrome: visits 1-3 show ad (counter 1→3), visit 4 blocked with counter frozen ✓
+- **Status:** done
+
+---
+
 ## Backlog (queued, priority order)
 
 | ID | Item | Priority | Blocking on |
 |---|---|---|---|
-| WI-001 | Wire analytics flush() to a real sink so A/B reads are trustworthy (confirmed live: events stuck in localStorage queue) | P1 | none |
-| WI-006 | Audit task-template "why" copy for unsourced physiological claims (Huberman/BDNF/dopamine lines) — rewrite neutral or cite per research-manual §11 | P2 | none |
+| WI-001 | ~~Wire analytics flush() to a real sink~~ **RESOLVED R1** — pipeline existed; stale TODO removed; data-quality fixes shipped | — | — |
+| WI-009 | Budget deep-flow walkthrough (income setup → allocation → zero-based gate → transactions → debt simulator) | P1 | none |
 | WI-007 | Onboarding copy de-duplication (R0-7) + drop "Chunk 1" noise for single-task lists | P3 | none |
 | WI-008 | Route-level code splitting to kill the 1.11 MB main-bundle warning | P2 | none |
 | WI-009 | Budget deep-flow walkthrough (income setup → allocation → zero-based gate → transactions → debt simulator) | P1 | none |

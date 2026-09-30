@@ -36,11 +36,18 @@
 - **Fix:** Rewrote both strings in en.json + es-PE.json with neutral, autonomy-framed copy (SDT-aligned). Verified live in Chrome: both old strings gone, parity gate green.
 - **Follow-up logged:** Task-template "why" copy (e.g. "Huberman: 20–30 minutes of cardio raises BDNF, dopamine…") makes physiological claims with personality-attribution instead of citations — needs the full §11 checklist or neutral rewrite (see backlog WI-006).
 
-### R0-1 · Analytics decision pipeline is a stub
-- **Date:** 2026-09-30 · **Round:** 0 · **Severity:** P1 · **Status:** confirmed live
-- **Finding:** `src/core/analytics/index.ts:99` — flush() is a stub; events queue locally (`analytics:queue` in localStorage) but never leave the device. Live Chrome run confirmed: `task_completed` event queued, never uploaded. A/B readouts (funnel, paywall experiment) cannot be trusted for decisions until a sink is wired.
-- **Decision needed:** PostHog (free tier, A/B-native) vs self-hosted vs custom event table on existing Express+Mongo API.
-- **Next step:** Tracked as **WI-001** in the ledger.
+### R0-1 · RESOLVED — analytics pipeline was never a stub (wrong finding, corrected)
+- **Date:** 2026-09-30 · **Round:** 1 correction · **Severity:** — · **Status:** resolved-as-wrong
+- **Original claim:** `src/core/analytics/index.ts:99` TODO meant no data left the app.
+- **What was actually true:** The TODO was stale. `src/core/analytics/upload.ts` drains the queue to `POST /api/analytics/events` every 20s + on page hide when `VITE_BILLING_ENABLED=true`; the server validates (`server/analytics/validateEvents.js`) and persists to `analytics_events` (SQLite/Mongo). Verified live: 670 events on the server including `task_completed`, `ad_impression`, `experiment_exposure`, with dedup via the `eventId` unique index.
+- **Lesson (meta-finding):** A TODO comment described an aspiration (third-party provider) and read like a missing implementation. Comments that describe "what is missing" must name the actual mechanism or be removed — stale TODOs cost a full investigation here.
+- **Remaining data-quality caveat:** React StrictMode double-fired ad impression effects in dev, inflating `ad_impression` counts (fixed in R1-1 below); historical rows are inflated — treat pre-fix dev CTR as unreliable.
+
+### R1-1 · Ads: non-intrusive monetization package (user request)
+- **Date:** 2026-09-30 · **Round:** 1 · **Severity:** feature · **Status:** fix-committed, verified in Chrome
+- **What was added:** `rewards` placement (content-rich pause point, outside all work flows); per-session frequency cap (3 per placement, `sessionStorage`); StrictMode-safe impression counting; AdSense CLS guard (100px reserve); phantom-impression fix; `docs/billing/ADS.md` policy doc (was referenced, never written).
+- **Bug caught live:** capped mounts were still counting + tracking impressions for ads never rendered (measurement integrity). Test-first regression: red→green verified by temporarily reverting the fix.
+- **Trade-off disclosed:** "Lucrative" honesty — display RPMs ($1–5) are a trickle at this scale; the real revenue lever is house cards driving Pro conversion, which this package strengthens (better viewability, clean CTR, no CLS). Aggressive monetization (interstitials, more placements, autoplay) was explicitly rejected: it would break the accessibility contract and the trust of the exact audience the product serves (per research-manual §8 and ADS.md policy).
 
 ### R0-2 · Premium flows are untestable locally
 - **Date:** 2026-09-30 · **Round:** 0 · **Severity:** P1 · **Status:** open (accepted risk)
