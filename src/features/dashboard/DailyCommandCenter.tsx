@@ -49,11 +49,16 @@ function priorityScore(task: Task): number {
   return p * 1e15 + (due === Infinity ? 1e14 : due);
 }
 
+// A bare YYYY-MM-DD is a local day; new Date() alone would read it as UTC midnight,
+// which is the previous day west of Greenwich (e.g. Lima, UTC-5).
+function parseScheduled(value: string): Date {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value) ? new Date(`${value}T00:00`) : new Date(value);
+}
+
 function isTaskToday(task: Task, todayKey: string): boolean {
   const scheduled = task.plannedDate ?? task.dueDate;
   if (!scheduled) return false;
-  // A bare YYYY-MM-DD is already a local day; new Date() would read it as UTC midnight
-  // and shift it to the previous day west of Greenwich (e.g. Lima, UTC-5).
+  // A bare YYYY-MM-DD is already a local day key (see parseScheduled).
   if (/^\d{4}-\d{2}-\d{2}$/.test(scheduled)) return scheduled === todayKey;
   try {
     return getLocalDateKey(new Date(scheduled)) === todayKey;
@@ -187,7 +192,7 @@ const TaskRow: React.FC<TaskRowProps> = ({ task, onComplete, theme }) => {
             fontFamily: theme.typography?.body?.family,
           }}
         >
-          {new Date((task.dueDate ?? task.plannedDate) as string).toLocaleDateString(undefined, {
+          {parseScheduled((task.dueDate ?? task.plannedDate) as string).toLocaleDateString(undefined, {
             month: 'short',
             day: 'numeric',
           })}

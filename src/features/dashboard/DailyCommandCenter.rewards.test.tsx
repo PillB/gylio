@@ -69,7 +69,10 @@ describe('DailyCommandCenter today filter', () => {
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
       db.state.tasks[0].plannedDate = key;
       render(<DailyCommandCenter onExitSimplified={() => undefined} />);
-      expect(await screen.findByText('Pay rent')).toBeTruthy();
+      const title = await screen.findByText('Pay rent');
+      // The row's date label names the same local day, not the previous one.
+      const today = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      expect(title.closest('li')?.textContent).toContain(today);
     } finally {
       // Assigning undefined would store the string "undefined" (UTC), not the host's zone.
       if (previousTz === undefined) delete process.env.TZ;
