@@ -50,7 +50,7 @@ const base = {
   // Compliance floor once the RUC exists: contador S/250 (RMT entry price, get 3 quotes) = $66.67.
   // No per-charge boletas with Paddle as merchant of record (one monthly export factura via free SEE-SOL);
   // add S/70 (NubeFact) = $18.67 if Mercado Pago passes are switched on.
-  fixedMonthly: 66.67,
+  fixedMonthly: 250 / 3.75,
   // Paddle payout wire up to $15 when a payout is made.
   payoutFeeMonthly: 15,
   // AdSense only after approval (~month 4); ~4 ad pageviews per free user per month; blended RPM $2.5 (Peru $0.8–1.8, US $5–15).
