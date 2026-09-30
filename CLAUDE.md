@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+> **Before any work:** read and follow [`AGENTS.md`](AGENTS.md) (repo root, path: `/AGENTS.md`). It contains the binding agent operating rules: expert-standard decision test, trade-off disclosure, test-per-task discipline (tautological tests are harmful), cyclomatic complexity ceiling via `chore(lint)`, Chrome browsing verification per round, error-hypothesis research rule, analytics discipline, blocked-resource surfacing, and scope guards. The operational wiki and ledger live at `docs/wiki/INDEX.md` and `docs/wiki/LEDGER.md`.
+
 ## Tech Stack (file-grounded)
 - Frontend: React 18 + Vite (`src/App.jsx`, `vite.config.ts`).
 - Language mix: JavaScript + TypeScript (`.jsx/.js` and `.tsx/.ts`).
