@@ -58,7 +58,8 @@ function parseScheduled(value: string): Date {
 function isTaskToday(task: Task, todayKey: string): boolean {
   const scheduled = task.plannedDate ?? task.dueDate;
   if (!scheduled) return false;
-  // A bare YYYY-MM-DD is already a local day key (see parseScheduled).
+  // A bare YYYY-MM-DD is already a local day; new Date() would read it as UTC midnight
+  // and shift it to the previous day west of Greenwich (e.g. Lima, UTC-5).
   if (/^\d{4}-\d{2}-\d{2}$/.test(scheduled)) return scheduled === todayKey;
   try {
     return getLocalDateKey(new Date(scheduled)) === todayKey;
