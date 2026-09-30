@@ -182,7 +182,6 @@ export const SpendingChart: React.FC<Props> = ({ bars, theme }) => {
                 width={BAR_W}
                 height={Math.max(actualH, 2)}
                 fill={isOver ? theme.colors.errorStrong : color}
-                opacity={0.9}
                 rx={3}
               />
               <text
@@ -237,7 +236,7 @@ export const SpendingChart: React.FC<Props> = ({ bars, theme }) => {
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, marginBottom: 6 }}>
-            <strong style={{ color: CATEGORY_COLORS[hovered.colorKey ?? hovered.label] ?? theme.colors.text, fontSize: '0.875rem' }}>
+            <strong style={{ color: theme.colors.text, fontSize: '0.875rem' }}>
               {hovered.label}
             </strong>
             {hovered.actual > hovered.planned ? (

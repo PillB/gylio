@@ -23,6 +23,7 @@ const ScheduleChoices: React.FC<Props> = ({ draft, todayKey, tomorrowKey }) => {
       aria-label={t('tasks.scheduleTask', 'Schedule task')}
       style={{
         margin: 0,
+        minWidth: 0,
         padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
         borderRadius: theme.shape.radiusMd,
         border: `1px solid ${theme.colors.border}`,

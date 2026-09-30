@@ -89,16 +89,16 @@ export default function ReconciliationChecklist({ budgetMonthKey }) {
   );
 
   const completedCount = CHECKLIST_ITEMS.filter((item) => checked[item.id]).length;
-  const colors = theme.colors;
+  const colors = theme.colors ?? {};
   const spacing = theme.spacing ?? {};
 
-  // The theme has no successBg/successText/textSecondary/surfaceAlt keys, so
-  // the old lookups always fell back to light-palette hex. Derive tints from
-  // real theme colours so dark and high-contrast modes follow along.
-  const successTint = `color-mix(in srgb, ${colors.success} 12%, ${colors.surface})`;
-  const borderColor = allChecked ? colors.success : colors.border;
-  const headerBg = allChecked ? successTint : colors.surface;
-  const statusText = allChecked ? colors.successStrong : colors.text;
+  const borderColor = allChecked
+    ? colors.successStrong
+    : colors.border;
+
+  const headerBg = allChecked
+    ? colors.successSoft
+    : colors.surface;
 
   return (
     <section
@@ -108,8 +108,8 @@ export default function ReconciliationChecklist({ budgetMonthKey }) {
       )}
       style={{
         border: `1px solid ${borderColor}`,
-        borderRadius: theme.shape?.borderRadius ?? 8,
-        marginBottom: spacing[3] ?? 12,
+        borderRadius: theme.shape.radiusSm,
+        marginBottom: spacing.md,
         overflow: 'hidden',
         transition: 'border-color 0.2s ease',
       }}
@@ -125,16 +125,16 @@ export default function ReconciliationChecklist({ budgetMonthKey }) {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: `${spacing[3] ?? 12}px ${spacing[4] ?? 16}px`,
+          padding: `${spacing.md}px ${spacing.md}px`,
           background: headerBg,
           border: 'none',
           cursor: 'pointer',
           textAlign: 'left',
-          gap: spacing[2] ?? 8,
+          gap: spacing.sm,
         }}
       >
         <div
-          style={{ display: 'flex', alignItems: 'center', gap: spacing[2] ?? 8 }}
+          style={{ display: 'flex', alignItems: 'center', gap: spacing.sm }}
         >
           <span aria-hidden="true" style={{ fontSize: 16 }}>
             {allChecked ? '✅' : '📋'}
@@ -143,7 +143,9 @@ export default function ReconciliationChecklist({ budgetMonthKey }) {
             style={{
               fontWeight: 600,
               fontSize: 14,
-              color: statusText,
+              color: allChecked
+                ? colors.successStrong
+                : colors.text,
             }}
           >
             {t(
@@ -154,7 +156,7 @@ export default function ReconciliationChecklist({ budgetMonthKey }) {
         </div>
 
         <div
-          style={{ display: 'flex', alignItems: 'center', gap: spacing[2] ?? 8 }}
+          style={{ display: 'flex', alignItems: 'center', gap: spacing.sm }}
         >
           {/* Progress badge */}
           <span
@@ -169,8 +171,12 @@ export default function ReconciliationChecklist({ budgetMonthKey }) {
             style={{
               fontSize: 12,
               fontWeight: 600,
-              color: allChecked ? colors.successStrong : colors.muted,
-              background: allChecked ? successTint : colors.background,
+              color: allChecked
+                ? colors.successStrong
+                : colors.muted,
+              background: allChecked
+                ? colors.successSoft
+                : colors.surfaceElevated,
               padding: '2px 8px',
               borderRadius: 99,
               minWidth: 36,
@@ -207,7 +213,7 @@ export default function ReconciliationChecklist({ budgetMonthKey }) {
         hidden={!isOpen}
         style={{
           padding: isOpen
-            ? `${spacing[3] ?? 12}px ${spacing[4] ?? 16}px`
+            ? `${spacing.md}px ${spacing.md}px`
             : 0,
           background: colors.background,
           display: isOpen ? 'block' : 'none',
@@ -215,7 +221,7 @@ export default function ReconciliationChecklist({ budgetMonthKey }) {
       >
         <p
           style={{
-            margin: `0 0 ${spacing[3] ?? 12}px`,
+            margin: `0 0 ${spacing.md}px`,
             fontSize: 13,
             color: colors.muted,
           }}
@@ -234,7 +240,7 @@ export default function ReconciliationChecklist({ budgetMonthKey }) {
             margin: 0,
             display: 'flex',
             flexDirection: 'column',
-            gap: spacing[2] ?? 8,
+            gap: spacing.sm,
           }}
         >
           {CHECKLIST_ITEMS.map((item) => {
@@ -248,11 +254,13 @@ export default function ReconciliationChecklist({ budgetMonthKey }) {
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: spacing[3] ?? 12,
+                    gap: spacing.md,
                     cursor: 'pointer',
-                    padding: `${spacing[2] ?? 8}px`,
-                    borderRadius: theme.shape?.borderRadius ?? 8,
-                    background: isChecked ? successTint : 'transparent',
+                    padding: `${spacing.sm}px`,
+                    borderRadius: theme.shape.radiusSm,
+                    background: isChecked
+                      ? colors.successSoft
+                      : 'transparent',
                     transition: 'background 0.15s ease',
                   }}
                 >
@@ -274,7 +282,9 @@ export default function ReconciliationChecklist({ budgetMonthKey }) {
                   <span
                     style={{
                       fontSize: 14,
-                      color: isChecked ? colors.successStrong : colors.text,
+                      color: isChecked
+                        ? colors.successStrong
+                        : colors.text,
                       textDecoration: isChecked ? 'line-through' : 'none',
                       fontWeight: isChecked ? 400 : 500,
                       transition:
@@ -295,16 +305,16 @@ export default function ReconciliationChecklist({ budgetMonthKey }) {
             role="status"
             aria-live="polite"
             style={{
-              marginTop: spacing[3] ?? 12,
-              padding: `${spacing[2] ?? 8}px ${spacing[3] ?? 12}px`,
-              borderRadius: theme.shape?.borderRadius ?? 8,
-              background: successTint,
+              marginTop: spacing.md,
+              padding: `${spacing.sm}px ${spacing.md}px`,
+              borderRadius: theme.shape.radiusSm,
+              background: colors.successSoft,
               color: colors.successStrong,
               fontSize: 13,
               fontWeight: 600,
               display: 'flex',
               alignItems: 'center',
-              gap: spacing[2] ?? 8,
+              gap: spacing.sm,
             }}
           >
             <span aria-hidden="true">🎉</span>

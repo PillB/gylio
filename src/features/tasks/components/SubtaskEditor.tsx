@@ -46,6 +46,8 @@ const SubtaskEditor: React.FC<SubtaskEditorProps> = ({
         borderRadius: theme.shape.radiusMd,
         padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
         margin: 0,
+        // Fieldsets default to min-inline-size: min-content, which overflows 320px screens.
+        minWidth: 0,
       }}
     >
       <legend style={{ padding: `0 ${theme.spacing.xs}px`, fontWeight: 600, display: 'flex', alignItems: 'center' }}>
@@ -53,7 +55,7 @@ const SubtaskEditor: React.FC<SubtaskEditorProps> = ({
         {tooltip}
       </legend>
       <p style={{ margin: '0 0 0.5rem', color: theme.colors.muted }}>{helper}</p>
-      <div style={{ display: 'grid', gap: '0.5rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: '0.5rem' }}>
         {subtasks.map((subtask, index) => (
           <div key={`${idPrefix}-subtask-${index.toString()}`} style={{ display: 'flex', gap: '0.5rem' }}>
             <input
@@ -64,7 +66,7 @@ const SubtaskEditor: React.FC<SubtaskEditorProps> = ({
               onChange={(event) =>
                 update(subtasks.map((entry, entryIndex) => (entryIndex === index ? { ...entry, label: event.target.value } : entry)))
               }
-              style={controlStyle(theme, { flex: 1, padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`, backgroundColor: theme.colors.background })}
+              style={controlStyle(theme, { flex: 1, minWidth: 0, padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`, backgroundColor: theme.colors.background })}
             />
             <button
               type="button"

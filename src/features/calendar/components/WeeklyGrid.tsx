@@ -331,7 +331,7 @@ export const WeeklyGrid: React.FC<Props> = ({
                         {ev.title}
                       </span>
                       {isSpacious && (
-                        <span style={{ display: 'block', fontSize: '0.65rem', color: theme.colors.muted, marginTop: 1 }}>
+                        <span style={{ display: 'block', fontSize: '0.65rem', color: theme.colors.text, marginTop: 1 }}>
                           {formatEventTime(ev)}
                         </span>
                       )}

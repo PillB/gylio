@@ -65,7 +65,7 @@ const TaskChunk: React.FC<ChunkProps> = ({ tasks, index, editingTaskId, actions 
       }}
     >
       <p style={{ margin: '0 0 0.5rem', color: theme.colors.muted, fontWeight: 600 }}>{label}</p>
-      <div style={{ display: 'grid', gap: '0.75rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: '0.75rem' }}>
         {tasks.map((task) => (
           <div key={task.id} role="listitem">
             {editingTaskId === task.id ? <TaskEditForm task={task} actions={actions} /> : <TaskCard task={task} actions={actions} />}
@@ -256,7 +256,7 @@ const TaskList: React.FC = () => {
       <TaskComposer draft={draft} todayKey={todayKey} tomorrowKey={addDaysToKey(todayKey, 1)} titleRef={titleRef} onSubmit={submitDraft}>
         <RecurringStatusToggle />
       </TaskComposer>
-      <div style={{ display: 'grid', gap: `${theme.spacing.lg}px` }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: `${theme.spacing.lg}px` }}>
         <TaskViewControls view={viewFilter} onViewChange={setViewFilter} energy={energyFilter} onEnergyChange={setEnergyFilter} />
         {isFocusMode && (
           <FocusModeBanner
@@ -266,7 +266,7 @@ const TaskList: React.FC = () => {
             onToggle={() => setFocusModeExpanded((prev) => !prev)}
           />
         )}
-        <div role="list" aria-label={t('tasks.chunkedListAria')} style={{ display: 'grid', gap: '1rem' }}>
+        <div role="list" aria-label={t('tasks.chunkedListAria')} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: '1rem' }}>
           <TaskListBody
             loading={loading}
             view={viewFilter}

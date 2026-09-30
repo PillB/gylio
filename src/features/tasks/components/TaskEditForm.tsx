@@ -46,7 +46,7 @@ const TaskEditForm: React.FC<Props> = ({ task, actions }) => {
   };
 
   return (
-    <div style={{ display: 'grid', gap: '0.75rem' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: '0.75rem' }}>
       <label htmlFor={`edit-title-${task.id}`} style={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
         {t('titleLabel')}
         <TaskHelp topic="title" />

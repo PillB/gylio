@@ -93,7 +93,7 @@ function TaskRow({ row, theme }: RowProps) {
             fontSize: '0.68rem',
             fontWeight: 600,
             background: `${theme.colors.primary}22`,
-            color: theme.colors.primary,
+            color: theme.colors.text,
             borderRadius: theme.shape.radiusSm,
             padding: '1px 6px',
             textTransform: 'capitalize',
@@ -148,7 +148,7 @@ function TaskRow({ row, theme }: RowProps) {
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: theme.colors.success,
+            color: theme.colors.successStrong,
             fontSize: '1rem',
             minWidth: '28px',
           }}
