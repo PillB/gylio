@@ -254,30 +254,30 @@ const DailyCommandCenter: React.FC<DailyCommandCenterProps> = ({ onExitSimplifie
       );
       setNextEvent(todayEvents[0] ?? null);
 
-      // ── Budget nudge: category with highest (plannedAmount - spent)
+      // ── Budget nudge: this month's category with highest (plannedAmount - spent)
       const budgets = await getBudgets();
       const transactions = await getTransactions();
 
-      // Build spent map: budgetMonth → categoryName → total spent
-      const spentMap: Record<string, Record<string, number>> = {};
+      // Budgets and transactions are keyed by local "YYYY-MM" (see getDefaultBudgetMonth).
+      const monthKey = todayKey.slice(0, 7);
+      const currentBudget = budgets.find((budget) => budget.month === monthKey);
+
+      // Build spent map for this month: categoryName → total spent
+      const monthSpent: Record<string, number> = {};
       for (const tx of transactions) {
-        if (!spentMap[tx.budgetMonth]) spentMap[tx.budgetMonth] = {};
-        spentMap[tx.budgetMonth][tx.categoryName] =
-          (spentMap[tx.budgetMonth][tx.categoryName] ?? 0) + tx.amount;
+        if (tx.budgetMonth !== monthKey) continue;
+        monthSpent[tx.categoryName] = (monthSpent[tx.categoryName] ?? 0) + tx.amount;
       }
 
       let bestCategory: string | null = null;
       let bestRemaining = -Infinity;
 
-      for (const budget of budgets) {
-        const monthSpent = spentMap[budget.month] ?? {};
-        for (const cat of budget.categories ?? []) {
-          const spent = monthSpent[cat.name] ?? 0;
-          const remaining = (cat.plannedAmount ?? 0) - spent;
-          if (remaining > bestRemaining) {
-            bestRemaining = remaining;
-            bestCategory = cat.name;
-          }
+      for (const cat of currentBudget?.categories ?? []) {
+        const spent = monthSpent[cat.name] ?? 0;
+        const remaining = (cat.plannedAmount ?? 0) - spent;
+        if (remaining > bestRemaining) {
+          bestRemaining = remaining;
+          bestCategory = cat.name;
         }
       }
 
