@@ -818,31 +818,32 @@ Numbered after #82's CHG-046 to keep IDs unique; #82 stacks on this branch.
   - What was wrong: ticking a task wrote `status: 'done'` through useDB, so no XP or task streak was awarded, and the rest of the app did not treat the task as finished.
   - Fix: `handleComplete` now calls `useTasks().toggleTaskStatus`, which writes `'completed'`, awards 10 points and advances the streak. It only completes (a ticked box is ignored) and ticks optimistically.
   - Every hunk of #82's 6bd18cf in this file is ported verbatim: numeric ids, `'completed'`, bare `YYYY-MM-DD` compared as a local day in `isTaskToday` (Lima showed tomorrow's tasks as today's), the dropped `useDB()` cast and local Budget/Transaction interfaces, `nowMs`, full `loadData` deps, and `dateLabel` built from `todayKey`.
+  - Today's Focus rows are dated through `parseScheduled()`, which also reads a bare `YYYY-MM-DD` as a local day. Before, west of UTC every row showed yesterday's date under a header showing today.
   - `vitest.config.ts` aliases `expo-notifications` to the same shim `vite.config.ts` uses.
-  - Test: `DailyCommandCenter.rewards.test.tsx`, 3 tests that fail before the fix.
+  - Test: `DailyCommandCenter.rewards.test.tsx`, 3 tests that fail before the fix. The Lima case also checks the row's date label, and restores the host time zone by deleting `TZ` when it was unset (assigning `undefined` stores the string "undefined", which Node reads as UTC and which made the other two cases fail on non-UTC hosts in the evening).
 - **#3, budget snapshot** (same file): the nudge took the category with the most money left across every stored month, so an old month could win (for example "$1,200 remaining in Rent" from August). It now reads only the budget and transactions for today's local `YYYY-MM`. Test: `DailyCommandCenter.budget.test.tsx`, which uses a stable useDB mock. Both cases fail before the fix.
 - **#5, recurrence is never persisted** (`TaskList.tsx`, `useRecurringReliability.ts`):
   - What was wrong: tasks have no recurrence column, `mapTask` field or form control, so the reliability panel could only say "No recurring tasks configured".
   - Fix: the "Reliability status" entry point renders only when `reliability.rows.length > 0`.
   - Two 6bd18cf hunks are ported: the `showToast` options object and `getLocalDateKey()`. The react-hooks eslint-disable hunk is not ported, because #88 has no react-hooks plugin.
   - The `e2e/happy-paths.spec.ts` smoke test now asserts that the button is absent.
-  - Tests: `TaskList.recurring.test.tsx` and `useRecurringReliability.test.tsx`.
+  - Tests: `TaskList.recurring.test.tsx` (both cases fail before the fix; the recurring case also asserts the button is absent until the stored tasks are read) and `useRecurringReliability.test.tsx`.
 - **#6, tour dialog focus** (`src/core/hooks/useDialogFocus.ts`, new; `TourFlowSelector.tsx`, `GuidedTourOverlay.tsx`):
   - Opening a tour dialog moves focus into it. Next/Finish is marked `data-autofocus`.
   - Tab and Shift+Tab stay inside while the dialog is `aria-modal="true"`. Spotlight steps are not trapped.
   - Focus returns to the opener when the dialog closes.
   - Tab is left alone when focus is in another modal layered on top (a native `<dialog open>` or WinCard).
-  - Test: `src/components/tourDialogFocus.test.tsx`. The 4 behaviour cases fail before the fix.
+  - Test: `src/components/tourDialogFocus.test.tsx`. All 7 cases fail before the fix: each guard case first checks that focus moved into the tour. Making the trap unconditional fails the spotlight case, and removing the other-modal guard fails both layered cases.
 - **#7, manifest base path** (`public/manifest.json`, `index.html`):
   - What was wrong: the manifest hard-coded `/gylio/`, so a root-hosted install launched at an unmatched route.
   - Fix: every manifest URL member is now relative to the manifest. The link href is `/manifest.json`, which Vite rewrites to `${base}manifest.json`. The old relative href resolved to `/sign-in/manifest.json` on nested routes.
-  - Test: `src/pwaManifest.test.ts` builds the app for `/` and `/gylio/`. 4 of 5 cases fail before the fix.
+  - Test: `src/pwaManifest.test.ts` builds the app for `/` and `/gylio/`. All 4 cases fail before the fix; the launch/scope case checks both bases in one test.
 
 **Verified:**
 - `npm run lint`, `npm run typecheck` and `npm run check:i18n` pass.
-- Unit tests: `npx vitest run`, 25 files / 174 tests. Server tests: `npm run test:server`, 102/102.
+- Unit tests: `npx vitest run`, 25 files / 173 tests (also with the host zone set to America/Los_Angeles and `TZ` unset). Server tests: `npm run test:server`, 102/102.
 - `npm run build` passes.
-- Playwright (bundled Chromium, no Clerk key): 115/116. The failure is `app-audit` 15 (console errors), caused by external fonts blocked by the sandbox proxy certificate (ERR_CERT_AUTHORITY_INVALID). The same test fails the same way on 510af40. With `--ignore-certificate-errors`, 116/116 pass, including every layout-integrity case.
+- Playwright (bundled Chromium, no Clerk key): 115/116. The failure is `app-audit` 15 (console errors), caused by external fonts blocked by the sandbox proxy certificate (ERR_CERT_AUTHORITY_INVALID). The same test fails the same way on 510af40. With `--ignore-certificate-errors`, 116/116 pass, including every layout-integrity case (re-run after the date-label fix: 116/116).
 
 **Not in this entry:** Codex findings 1 (paid-plan JWT claim) and 2 (CSP connect-src for the API origin) are fixed on #89, not here.
 
