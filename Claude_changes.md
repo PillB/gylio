@@ -817,7 +817,7 @@ Numbered after #82's CHG-046 to keep IDs unique; #82 stacks on this branch.
 - **#4, Daily Mode completion** (`src/features/dashboard/DailyCommandCenter.tsx`):
   - What was wrong: ticking a task wrote `status: 'done'` through useDB, so no XP or task streak was awarded, and the rest of the app did not treat the task as finished.
   - Fix: `handleComplete` now calls `useTasks().toggleTaskStatus`, which writes `'completed'`, awards 10 points and advances the streak. It only completes (a ticked box is ignored) and ticks optimistically.
-  - Every hunk of #82's 6bd18cf in this file is ported verbatim: numeric ids, `'completed'`, bare `YYYY-MM-DD` compared as a local day in `isTaskToday` (Lima showed tomorrow's tasks as today's), the dropped `useDB()` cast and local Budget/Transaction interfaces, `nowMs`, full `loadData` deps, and `dateLabel` built from `todayKey`.
+  - #82's 6bd18cf hunks in this file are ported verbatim, except the `useDB()` destructure (no `updateTask`) and `handleComplete` (body and deps), which now go through `useTasks`; both conflict with #82 (see follow-ups). The verbatim hunks: numeric ids, `'completed'`, bare `YYYY-MM-DD` compared as a local day in `isTaskToday` (Lima showed tomorrow's tasks as today's), the dropped `useDB()` cast and local Budget/Transaction interfaces, `nowMs`, full `loadData` deps, and `dateLabel` built from `todayKey`.
   - Today's Focus rows are dated through `parseScheduled()`, which also reads a bare `YYYY-MM-DD` as a local day. Before, west of UTC every row showed yesterday's date under a header showing today.
   - `vitest.config.ts` aliases `expo-notifications` to the same shim `vite.config.ts` uses.
   - Test: `DailyCommandCenter.rewards.test.tsx`, 3 tests that fail before the fix. The Lima case also checks the row's date label, and restores the host time zone by deleting `TZ` when it was unset (assigning `undefined` stores the string "undefined", which Node reads as UTC and which made the other two cases fail on non-UTC hosts in the evening).
@@ -852,6 +852,6 @@ Numbered after #82's CHG-046 to keep IDs unique; #82 stacks on this branch.
 - Persisting recurrence end to end is a main follow-up. It also needs the dormant reliability defects fixed first: the double check on mount, the stale `writeMeta` resetting `failureCount`, and `repair` calling `insertTask` with an object.
 - WinCard (main) should reuse `useDialogFocus`.
 - When #82 next merges #88:
-  - resolve `DailyCommandCenter.tsx` with the uncast `useDB()` without `updateTask`, plus `useTasks`;
+  - resolve `DailyCommandCenter.tsx` by taking #88's side of its two conflict hunks: the uncast `useDB()` without `updateTask` plus `useTasks`, and `handleComplete` through `toggleTaskStatus`. The `parseScheduled` hunk merges cleanly;
   - add a `useAccessibility` mock to #82's `DailyCommandCenter.test.tsx`. It fails to load once DCC imports useTasks ("Failed to resolve import expo-av"; aliasing expo-av only moves the failure to "must be used within an AccessibilityProvider"). With that one mock its 2 tests pass against this branch;
   - move the reliability gate into `RecurringStatusToggle.tsx`.
