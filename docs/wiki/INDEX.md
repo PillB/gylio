@@ -62,7 +62,9 @@
 
 | Issue pattern | First seen | Recurred in | Preemption note |
 |---|---|---|---|
-| (empty) | — | — | (populate when a pattern repeats) |
+| Silent success on unsupported SQL in compat layers | R0-5 (shim) | — | Any new shim/parser code must warn-or-throw on unrecognized input; complexity gate now covers src/shims. Grep `_emptyResult()` when extending the SQL subset. |
+| Stale hard-coded product constants in copy (trial length) | R0-6 (10-day vs 7) | — | When a billing constant changes, grep i18n for the old number; consider interpolating `trialDays` from the catalog into copy (backlog follow-up). |
+| Unsourced "research shows" claims in user copy | R0-6 | — | Every research-flavored claim must pass research-manual §11 (exact source, population match, no mechanism claims); template copy audit pending (WI-006). |
 
 ---
 
