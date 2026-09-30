@@ -71,7 +71,9 @@ describe('DailyCommandCenter today filter', () => {
       render(<DailyCommandCenter onExitSimplified={() => undefined} />);
       expect(await screen.findByText('Pay rent')).toBeTruthy();
     } finally {
-      process.env.TZ = previousTz;
+      // Assigning undefined would store the string "undefined" (UTC), not the host's zone.
+      if (previousTz === undefined) delete process.env.TZ;
+      else process.env.TZ = previousTz;
     }
   });
 });
