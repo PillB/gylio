@@ -82,18 +82,44 @@
 
 ---
 
+### STEP-011 · 2026-09-30 · Round 1
+- **Action:** **WI-009 Budget deep flow verified with real input events.** After browser-tool synthetic clicks could not fire React's delegated onClick (harness artifact — native listener fired, React handler didn't), wrote `e2e/budget-deep-flow.spec.ts` using genuine Playwright input: (1) income → quick-start 8 categories → Remaining = 1150.00 exact (3000 − 1850 planned) → transaction 85.50 → Food & Groceries actual updates to 85.50/300.00, Remaining unchanged (planning number by design); (2) debt simulator: two debts → snowball vs avalanche comparison renders. Both green.
+- **Artifacts:** e2e/budget-deep-flow.spec.ts (new, 2 tests)
+- **Verification:** 2/2 e2e green; full gate green (213 client, 186 server, lint, typecheck, i18n, complexity, build)
+- **Status:** done
+
+### STEP-012 · 2026-09-30 · Round 1
+- **Action:** Round 1 close: ledger + wiki retrospective updated, committed in focused commits.
+- **Artifacts:** docs/wiki/*
+- **Verification:** n/a
+- **Status:** done
+
+---
+
 ## Backlog (queued, priority order)
 
 | ID | Item | Priority | Blocking on |
 |---|---|---|---|
 | WI-001 | ~~Wire analytics flush() to a real sink~~ **RESOLVED R1** — pipeline existed; stale TODO removed; data-quality fixes shipped | — | — |
-| WI-009 | Budget deep-flow walkthrough (income setup → allocation → zero-based gate → transactions → debt simulator) | P1 | none |
+| WI-009 | ~~Budget deep-flow walkthrough~~ **DONE R1** — e2e coverage added (income → categories → transactions → debt simulator), all green | — | — |
+| WI-006 | Audit task-template "why" copy for unsourced physiological claims (Huberman/BDNF/dopamine lines) — rewrite neutral or cite per research-manual §11 | P2 | none |
 | WI-007 | Onboarding copy de-duplication (R0-7) + drop "Chunk 1" noise for single-task lists | P3 | none |
 | WI-008 | Route-level code splitting to kill the 1.11 MB main-bundle warning | P2 | none |
-| WI-009 | Budget deep-flow walkthrough (income setup → allocation → zero-based gate → transactions → debt simulator) | P1 | none |
 | WI-010 | Tooltip "i" glyph pollutes accessible names inside labels ("Titlei") — move tooltip trigger outside label or aria-hide the glyph | P3 | none |
+| WI-011 | A/B test the rewards ad placement (with-retention-guardrail) once analytics volume is meaningful | P3 | post-launch data |
 | WI-004 | Competitor sweep (Goblin.tools, Tiimo, Structured, Focusmate, Todoist, TickTick, Habitica, YNAB) | P2 | QA baseline green |
-| WI-005 | Round 1 retrospective after WI-001/WI-009 | P2 | — |
+| WI-005 | Round 2 planning: auth-flow pass (Clerk OTP), onboarding analytics events audit | P2 | — |
+
+---
+
+## Retrospective — Round 1 (2026-09-30)
+
+| Question | Answer |
+|---|---|
+| What worked? | Verifying against ground truth (server DB had 670 events) before "fixing" — prevented rebuilding a working pipeline. Writing the budget e2e with real Playwright input settled the app-vs-harness question in minutes after an hour of browser forensics; the spec stays as permanent regression coverage. |
+| What didn't? | Trusted my own wiki entry (R0-1) off a TODO comment without checking upload.ts first — a wrong finding survived into the backlog. Synthetic el.click() forensics burned ~30 minutes: recognize when the harness is the problem and switch to real input events sooner. |
+| What to change next round? | (1) Verify wiki claims against code before acting on them — findings are hypotheses until reproduced. (2) When automation can't trigger a flow, jump straight to Playwright. (3) Audit onboarding analytics events (queue was empty after onboarding — no funnel events fired at that stage). |
+| Preemptions? | New preemption: "TODO comments describing missing implementations must name the actual mechanism or be deleted" (cost a full investigation). Ads: "impressions only counted when rendered" is now enforced in code + regression test. |
 
 ---
 
