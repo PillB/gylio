@@ -784,3 +784,73 @@ Numbered after #82's CHG-043/044 to keep IDs unique; #82 stacks on this branch.
 - Left for #82: hex in TaskList, CalendarView, BudgetView, App.jsx, PricingPage, SpendingChart and ReconciliationChecklist.
 
 **Verified:** lint, typecheck, check:i18n and build pass. Unit tests 112/112, server tests 102/102. Playwright (system Chrome, no Clerk key, as in CI): 114/114 on the second run. The first run had 1 failure in `onboarding-migration.spec.ts:80`, a spec this change did not touch.
+
+---
+
+### CHG-047 – 2026-09-30 (#88 after the merge with main: 320px forms, deterministic e2e, tour crash, theme and AA fixes, Codex findings 3-7)
+
+Numbered after #82's CHG-046 to keep IDs unique; #82 stacks on this branch.
+
+**Why:** #88 was rebuilt on main's colour scheme (#87), and the follow-up review plus Codex found layout, e2e, crash, contrast and behaviour bugs in the WIP code.
+
+**Merge with main (3e1ab41):**
+- Adopted #87's named-hue scheme: `dataViz` is `Record<DataVizHue, string>`, with top-level `eventTints`, `energyTone`, and `contrastRatio`/`readableTextOn` exported from `src/core/themes.ts`. WIP-only consumers were mapped to named hues with their previous colours kept (SpendingChart NEED/WANT/GOAL/DEBT → indigo/violet/green/amber, WeeklyGrid series order, RoutinesView → violet).
+- `src/core/contrast.ts` (added in CHG-045) is dropped because main's themes exports cover it. `themes.test.ts` is main's file plus the WIP assertions (59 tests).
+
+**Fixes on top of the merge:**
+- a0969dd, `TaskList.tsx`: the new-task and edit forms stay inside 320px screens. The form and list grids use `minmax(0, 1fr)`, the schedule and subtask fieldsets get `minWidth: 0`, and subtask inputs can shrink so Remove stays on screen. Before, #new-task overflowed (body 333 > 320) and the edit form reached 392px. It is covered by a new 320px edit-form case in `e2e/layout-integrity.spec.ts` (en, es-PE).
+- 2ccaac5, e2e determinism:
+  - layout-integrity waits for `document.fonts.ready` before measuring.
+  - `public/service-worker.js` is deleted. It only ran in dev, since the build uses `src/service-worker.ts`, and it answered navigations cache-first with index.html, which booted the app on the seeding page and overwrote fixtures.
+  - `playwright.config.ts` sets `use.serviceWorkers: 'block'`.
+  - localization-shell seeds from deployment-guide.html like the other specs.
+- 68f966b, `GuidedTourOverlay.tsx`: the progress segments read an undefined `index`, so opening the tour threw a ReferenceError and unmounted the app. A jsdom render test was added.
+- b7a56c8, `energyTone.ts`: energy chips use dataViz green/blue/amber/red with `readableTextOn` text. The old success/warning fills measured 2.28:1 and 2.15:1 on the light surface. A test now requires every fill to be ≥ 3:1 against `colors.surface` in all modes.
+- 39d63b3, `ReconciliationChecklist`, `DataFreshnessBanner`:
+  - They read theme keys that do not exist, so the light-palette hex fallbacks always won, even in dark mode. They now use `successSoft`, `successStrong`, `muted`, `surfaceElevated` and named spacing tokens.
+  - The stale label (3.76:1) uses the *Strong token.
+  - The stale help box uses `colors.surface`.
+  - vitest now uses the automatic JSX runtime.
+- 510af40, AA status text: SpendingChart, FinancialDiagnostic, WeeklyGrid and RecurringReliabilityPanel use `errorStrong`/`successStrong`/`colors.text`. The missing `budget.chartTapHint`, `chartUnderBudget` and `chartEmpty` keys were added in en and es-PE.
+
+**Codex review findings 3-7:**
+- **#4, Daily Mode completion** (`src/features/dashboard/DailyCommandCenter.tsx`):
+  - What was wrong: ticking a task wrote `status: 'done'` through useDB, so no XP or task streak was awarded, and the rest of the app did not treat the task as finished.
+  - Fix: `handleComplete` now calls `useTasks().toggleTaskStatus`, which writes `'completed'`, awards 10 points and advances the streak. It only completes (a ticked box is ignored) and ticks optimistically.
+  - Every hunk of #82's 6bd18cf in this file is ported verbatim: numeric ids, `'completed'`, bare `YYYY-MM-DD` compared as a local day in `isTaskToday` (Lima showed tomorrow's tasks as today's), the dropped `useDB()` cast and local Budget/Transaction interfaces, `nowMs`, full `loadData` deps, and `dateLabel` built from `todayKey`.
+  - `vitest.config.ts` aliases `expo-notifications` to the same shim `vite.config.ts` uses.
+  - Test: `DailyCommandCenter.rewards.test.tsx`, 3 tests that fail before the fix.
+- **#3, budget snapshot** (same file): the nudge took the category with the most money left across every stored month, so an old month could win (for example "$1,200 remaining in Rent" from August). It now reads only the budget and transactions for today's local `YYYY-MM`. Test: `DailyCommandCenter.budget.test.tsx`, which uses a stable useDB mock. Both cases fail before the fix.
+- **#5, recurrence is never persisted** (`TaskList.tsx`, `useRecurringReliability.ts`):
+  - What was wrong: tasks have no recurrence column, `mapTask` field or form control, so the reliability panel could only say "No recurring tasks configured".
+  - Fix: the "Reliability status" entry point renders only when `reliability.rows.length > 0`.
+  - Two 6bd18cf hunks are ported: the `showToast` options object and `getLocalDateKey()`. The react-hooks eslint-disable hunk is not ported, because #88 has no react-hooks plugin.
+  - The `e2e/happy-paths.spec.ts` smoke test now asserts that the button is absent.
+  - Tests: `TaskList.recurring.test.tsx` and `useRecurringReliability.test.tsx`.
+- **#6, tour dialog focus** (`src/core/hooks/useDialogFocus.ts`, new; `TourFlowSelector.tsx`, `GuidedTourOverlay.tsx`):
+  - Opening a tour dialog moves focus into it. Next/Finish is marked `data-autofocus`.
+  - Tab and Shift+Tab stay inside while the dialog is `aria-modal="true"`. Spotlight steps are not trapped.
+  - Focus returns to the opener when the dialog closes.
+  - Tab is left alone when focus is in another modal layered on top (a native `<dialog open>` or WinCard).
+  - Test: `src/components/tourDialogFocus.test.tsx`. The 4 behaviour cases fail before the fix.
+- **#7, manifest base path** (`public/manifest.json`, `index.html`):
+  - What was wrong: the manifest hard-coded `/gylio/`, so a root-hosted install launched at an unmatched route.
+  - Fix: every manifest URL member is now relative to the manifest. The link href is `/manifest.json`, which Vite rewrites to `${base}manifest.json`. The old relative href resolved to `/sign-in/manifest.json` on nested routes.
+  - Test: `src/pwaManifest.test.ts` builds the app for `/` and `/gylio/`. 4 of 5 cases fail before the fix.
+
+**Verified:**
+- `npm run lint`, `npm run typecheck` and `npm run check:i18n` pass.
+- Unit tests: `npx vitest run`, 25 files / 174 tests. Server tests: `npm run test:server`, 102/102.
+- `npm run build` passes.
+- Playwright (bundled Chromium, no Clerk key): 115/116. The failure is `app-audit` 15 (console errors), caused by external fonts blocked by the sandbox proxy certificate (ERR_CERT_AUTHORITY_INVALID). The same test fails the same way on 510af40. With `--ignore-certificate-errors`, 116/116 pass, including every layout-integrity case.
+
+**Not in this entry:** Codex findings 1 (paid-plan JWT claim) and 2 (CSP connect-src for the API origin) are fixed on #89, not here.
+
+**Follow-ups:**
+- `public/icons/icon-192.png` and `icon-512.png` do not exist on any branch. The manifest icons and index.html's `favicon.svg` and `icons/icon-192.png` hrefs are left as they are until the icons exist.
+- Persisting recurrence end to end is a main follow-up. It also needs the dormant reliability defects fixed first: the double check on mount, the stale `writeMeta` resetting `failureCount`, and `repair` calling `insertTask` with an object.
+- WinCard (main) should reuse `useDialogFocus`.
+- When #82 next merges #88:
+  - resolve `DailyCommandCenter.tsx` with the uncast `useDB()` without `updateTask`, plus `useTasks`;
+  - add a `useAccessibility` mock to #82's `DailyCommandCenter.test.tsx`. It fails to load once DCC imports useTasks ("Failed to resolve import expo-av"; aliasing expo-av only moves the failure to "must be used within an AccessibilityProvider"). With that one mock its 2 tests pass against this branch;
+  - move the reliability gate into `RecurringStatusToggle.tsx`.
