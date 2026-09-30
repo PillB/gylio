@@ -30,9 +30,14 @@ import { useExperiment } from '../experiments/useExperiment';
 type Interval = 'monthly' | 'yearly';
 type Busy = null | 'trial' | 'checkout' | 'pass' | 'portal';
 
+// Static previews (GitHub Pages, CI) have no billing API; they show the catalogue
+// bundled with the app instead of calling a backend that isn't there.
+const billingApiEnabled = import.meta.env.VITE_BILLING_ENABLED === 'true';
+
 function useCatalog() {
   const [catalog, setCatalog] = useState<Catalog>(FALLBACK_CATALOG);
   useEffect(() => {
+    if (!billingApiEnabled) return undefined;
     let cancelled = false;
     billingApi.plans().then((next) => { if (!cancelled) setCatalog(next); }).catch(() => undefined);
     return () => { cancelled = true; };

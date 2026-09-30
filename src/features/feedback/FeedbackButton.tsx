@@ -13,9 +13,13 @@ export function FeedbackButton() {
   const { theme } = useTheme();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [sentId, setSentId] = useState<string | null>(null);
+  // The form is only mounted while the dialog is open: a fresh form each time,
+  // and no hidden second submit button on the page behind it.
+  const [isOpen, setIsOpen] = useState(false);
 
   const open = () => {
     setSentId(null);
+    setIsOpen(true);
     dialogRef.current?.showModal();
   };
   const close = () => dialogRef.current?.close();
@@ -28,7 +32,7 @@ export function FeedbackButton() {
       }}>
         {t('feedback.button')}
       </button>
-      <dialog ref={dialogRef} aria-labelledby="feedback-dialog-title" style={{
+      <dialog ref={dialogRef} aria-labelledby="feedback-dialog-title" onClose={() => setIsOpen(false)} style={{
         width: 'min(560px, calc(100vw - 32px))', maxHeight: 'calc(100dvh - 32px)', boxSizing: 'border-box',
         padding: theme.spacing.lg, borderRadius: theme.shape.radiusLg, border: `1px solid ${theme.colors.border}`,
         background: theme.colors.surface, color: theme.colors.text,
@@ -39,7 +43,7 @@ export function FeedbackButton() {
             minWidth: 44, minHeight: 44, border: 'none', background: 'transparent', color: theme.colors.text, fontSize: '1.25rem', cursor: 'pointer',
           }}>×</button>
         </div>
-        {sentId ? (
+        {isOpen && (sentId ? (
           <div role="status" style={{ display: 'grid', gap: theme.spacing.sm, marginTop: theme.spacing.md }}>
             <p style={{ margin: 0 }}>{t('feedback.thanks')}</p>
             <Link to="/qa" onClick={close} style={{ color: theme.colors.primary, fontWeight: 600, minHeight: 44, lineHeight: '44px' }}>
@@ -50,7 +54,7 @@ export function FeedbackButton() {
           <div style={{ marginTop: theme.spacing.md }}>
             <FeedbackForm onSubmitted={(report) => setSentId(report.id)} />
           </div>
-        )}
+        ))}
       </dialog>
     </>
   );

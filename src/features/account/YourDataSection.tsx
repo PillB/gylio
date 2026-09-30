@@ -70,10 +70,10 @@ function RestoreFromFile() {
   };
 
   return (
-    <div style={{ display: 'grid', gap: theme.spacing.xs }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: theme.spacing.xs }}>
       <label htmlFor="gylio-restore-file" style={{ fontWeight: 600 }}>{t('account.restore.label')}</label>
       <input id="gylio-restore-file" ref={inputRef} type="file" accept="application/json,.json"
-        onChange={(e) => void onFile(e.target.files?.[0])} style={{ minHeight: 44 }} />
+        onChange={(e) => void onFile(e.target.files?.[0])} style={{ minHeight: 44, width: '100%', maxWidth: '100%', minWidth: 0 }} />
       {error && <p role="alert" style={{ margin: 0, color: theme.colors.errorStrong }}>{error}</p>}
       {pending && (
         <div role="alertdialog" aria-labelledby="restore-confirm" style={{ display: 'grid', gap: theme.spacing.xs }}>
@@ -111,7 +111,7 @@ export function YourDataSection() {
   };
 
   return (
-    <div style={{ display: 'grid', gap: theme.spacing.md }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: theme.spacing.md }}>
       <StatusLine />
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: theme.spacing.sm }}>
         {userId && <button type="button" style={button} onClick={() => void saveNow()} disabled={status === 'saving'}>{t('account.saveNow')}</button>}
