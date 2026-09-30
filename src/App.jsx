@@ -48,6 +48,7 @@ import FeedbackButton from './features/feedback/FeedbackButton';
 import QaPage from './features/feedback/QaPage';
 import AdminPage from './features/admin/AdminPage';
 import { installErrorCapture } from './features/feedback/diagnostics';
+import { startAnalyticsUpload } from './core/analytics/upload';
 import { AccountSyncProvider } from './features/account/AccountSyncContext';
 import SyncConflictBanner from './features/account/SyncConflictBanner';
 
@@ -554,6 +555,7 @@ export default function App({ clerkEnabled = false }) {
   React.useEffect(() => {
     installErrorCapture();
     track(Events.APP_OPEN, { clerkEnabled });
+    return startAnalyticsUpload();
   }, []);
 
   if (!clerkEnabled) {

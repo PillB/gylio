@@ -133,5 +133,18 @@ describe.each(backends)('billing store contract: %s', (_name, make) => {
     expect((await store.putUserState('user_sync', { data: '{}', baseVersion: 0, now: T2 })).ok).toBe(false);
     expect(await store.getUserState('someone_else')).toBeNull();
   });
+
+  it('stores analytics events and returns only those inside the requested window', async () => {
+    await store.insertAnalyticsEvents([
+      { name: 'paywall_viewed', sessionId: 's1', signedIn: true, props: { interval: 'yearly' }, receivedAt: T0 },
+      { name: 'trial_started', sessionId: 's1', signedIn: true, props: {}, receivedAt: T1 },
+      { name: 'paywall_viewed', sessionId: 's2', signedIn: false, props: {}, receivedAt: T2 },
+    ]);
+    const window = await store.listAnalyticsEvents({ from: T0, to: T2 });
+    expect(window).toEqual([
+      { name: 'paywall_viewed', sessionId: 's1', signedIn: true, props: { interval: 'yearly' }, receivedAt: T0 },
+      { name: 'trial_started', sessionId: 's1', signedIn: true, props: {}, receivedAt: T1 },
+    ]);
+  });
 });
 

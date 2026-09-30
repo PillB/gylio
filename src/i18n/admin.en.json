@@ -5,7 +5,8 @@
   "error": "That didn't work. Please try again.",
   "tab": {
     "pro": "Pro access",
-    "qa": "QA inbox"
+    "qa": "QA inbox",
+    "analytics": "Analytics"
   },
   "gift": {
     "heading": "Give Pro",
@@ -76,5 +77,46 @@
     "all": "All",
     "kind": "Type",
     "export": "Download JSON"
+  },
+  "analytics": {
+    "heading": "Analytics",
+    "range": "Period",
+    "days": {
+      "1": "Last 24 hours",
+      "7": "Last 7 days",
+      "30": "Last 30 days",
+      "90": "Last 90 days"
+    },
+    "refresh": "Refresh",
+    "truncated": "Showing the first 50,000 events of this period.",
+    "summary": "{{events}} events from {{sessions}} sessions ({{signedIn}} signed in).",
+    "funnelHeading": "Paywall funnel (sessions that did each step and every step before it)",
+    "step": {
+      "paywall_viewed": "Saw the pricing page",
+      "trial_started": "Started the trial",
+      "checkout_opened": "Opened checkout",
+      "checkout_completed": "Paid"
+    },
+    "abHeading": "A/B tests",
+    "experiment": "Experiment",
+    "variant": "Variant",
+    "exposed": "Sessions shown",
+    "trials": "Trials started",
+    "trialRate": "Trial rate",
+    "abNote": "Decide only at the sample size set in advance (about 7,600 sessions per variant); early differences are usually noise.",
+    "adsHeading": "Ads",
+    "provider": "Source",
+    "placement": "Page",
+    "impressions": "Shown",
+    "clicks": "Clicks",
+    "ctr": "Click rate",
+    "eventsHeading": "All events",
+    "event": "Event",
+    "count": "Events",
+    "sessions": "Sessions",
+    "dailyHeading": "By day",
+    "day": "Day",
+    "empty": "No events in this period yet.",
+    "error": "Analytics couldn't be loaded."
   }
 }

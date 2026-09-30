@@ -124,7 +124,21 @@ export type ProUser = Entitlement & { userId: string; email: string | null };
 
 export type GiftRequest = { email?: string; userId?: string; days: number | null; reason: string; note?: string };
 
+export type AnalyticsSummary = {
+  days: number;
+  truncated: boolean;
+  events: number;
+  sessions: number;
+  signedInSessions: number;
+  totals: { name: string; events: number; sessions: number }[];
+  funnel: { step: string; sessions: number }[];
+  experiments: { experiment: string; variant: string; exposed: number; trials: number; checkouts: number; trialRate: number }[];
+  ads: { provider: string; placement: string; impressions: number; clicks: number; ctr: number }[];
+  daily: { day: string; events: number; sessions: number }[];
+};
+
 export const adminApi = {
+  analytics: (days: number) => request<AnalyticsSummary>(`/api/admin/analytics?days=${days}`),
   proAccess: () => request<{ users: ProUser[]; gifts: Gift[] }>('/api/admin/pro-access'),
   grantGift: (gift: GiftRequest) => request<Gift>('/api/admin/gifts', { method: 'POST', body: gift }),
   revokeGift: (id: string) => request<Gift>(`/api/admin/gifts/${encodeURIComponent(id)}/revoke`, { method: 'POST', body: {} }),

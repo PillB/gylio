@@ -7,6 +7,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../core/context/ThemeContext';
 import { useEntitlement } from '../billing/EntitlementContext';
+import AnalyticsTab from './AnalyticsTab';
 import { adminApi, type FeedbackReport, type FeedbackStatus, type Gift, type ProUser } from '../billing/billingApi';
 
 const DURATIONS = ['7', '30', '90', '365', 'indefinite'] as const;
@@ -238,19 +239,19 @@ export function AdminPage() {
   const { theme } = useTheme();
   const styles = useStyles();
   const { entitlement, loading } = useEntitlement();
-  const [tab, setTab] = useState<'pro' | 'qa'>('pro');
+  const [tab, setTab] = useState<'pro' | 'qa' | 'analytics'>('pro');
   if (!entitlement?.isAdmin) {
     return <p role="status">{loading ? t('admin.loading') : t('admin.notAllowed')}</p>;
   }
-  const tabButton = (key: 'pro' | 'qa') => (
+  const tabButton = (key: 'pro' | 'qa' | 'analytics') => (
     <button type="button" role="tab" aria-selected={tab === key} onClick={() => setTab(key)}
       style={tab === key ? styles.button : styles.quiet}>{t(`admin.tab.${key}`)}</button>
   );
   return (
     <main aria-labelledby="admin-heading" style={{ display: 'grid', gap: theme.spacing.lg, maxWidth: 900, margin: '0 auto' }}>
       <h1 id="admin-heading" style={{ margin: 0 }}>{t('admin.heading')}</h1>
-      <div role="tablist" aria-label={t('admin.heading')} style={{ display: 'flex', gap: 8 }}>{tabButton('pro')}{tabButton('qa')}</div>
-      <div role="tabpanel">{tab === 'pro' ? <ProAccessTab /> : <QaInboxTab />}</div>
+      <div role="tablist" aria-label={t('admin.heading')} style={{ display: 'flex', gap: 8 }}>{tabButton('pro')}{tabButton('qa')}{tabButton('analytics')}</div>
+      <div role="tabpanel">{tab === 'pro' ? <ProAccessTab /> : tab === 'qa' ? <QaInboxTab /> : <AnalyticsTab />}</div>
     </main>
   );
 }

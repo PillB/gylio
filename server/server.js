@@ -18,13 +18,14 @@ const { createWebhookRouter } = require('./routes/webhooks');
 const { createAdminRouter } = require('./routes/admin');
 const { createFeedbackRouter } = require('./routes/feedback');
 const { createStateRouter } = require('./routes/state');
+const { createAnalyticsRouter } = require('./routes/analytics');
 const { initBilling, getBillingService } = require('./billing');
 
 const { sqlite } = require('./db/sqliteClient');
 const { ensureSqliteSchema } = require('./lib/sqlite');
 const { notFoundHandler, errorHandler } = require('./middleware/errorHandler');
 const { requireAuth, optionalAuth, requireAdmin, requirePro } = require('./middleware/auth');
-const { authRateLimit, mutationRateLimit, feedbackRateLimit } = require('./middleware/rateLimit');
+const { authRateLimit, mutationRateLimit, feedbackRateLimit, analyticsRateLimit } = require('./middleware/rateLimit');
 
 // Startup env-var checks
 const requiredEnvVars = [
@@ -161,6 +162,7 @@ app.use('/api/ai',           requireAuth, requirePro(getBillingService), mutatio
 app.use('/api/billing',      publicBillingRouter);
 app.use('/api/billing',      requireAuth, mutationRateLimit, createBillingRouter());
 app.use('/api/feedback',     optionalAuth, createFeedbackRouter({ rateLimit: feedbackRateLimit }));
+app.use('/api/analytics',    optionalAuth, createAnalyticsRouter({ rateLimit: analyticsRateLimit }));
 app.use('/api/admin',        requireAuth, requireAdmin, createAdminRouter());
 
 app.use(notFoundHandler);

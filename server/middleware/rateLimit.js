@@ -40,7 +40,16 @@ const feedbackRateLimit = buildRateLimit({
   message: 'Too many reports in a short time, please try again later'
 });
 
+// The app batches events every 20 seconds; 60 batches a minute per client is far above that.
+const analyticsRateLimit = buildRateLimit({
+  windowMs: 60 * 1000,
+  max: Number(process.env.ANALYTICS_RATE_LIMIT_MAX || 60),
+  code: 'RATE_LIMITED',
+  message: 'Too many analytics requests'
+});
+
 module.exports = {
+  analyticsRateLimit,
   feedbackRateLimit,
   authRateLimit,
   mutationRateLimit

@@ -363,3 +363,26 @@ describe('saved app state', () => {
     expect((await request(app).put('/api/state').set(as('u')).send({ baseVersion: 0, data: [] })).status).toBe(400);
   });
 });
+
+describe('analytics', () => {
+  it('accepts events from visitors and signed-in users, and the admin dashboard counts them', async () => {
+    const batch = (events) => ({ events: events.map(([name, sessionId, props]) => ({ name, sessionId, props })) });
+    expect((await request(app).post('/api/analytics/events').send(batch([
+      ['paywall_viewed', 'visitor1', { interval: 'yearly' }],
+      ['experiment_exposure', 'visitor1', { experiment: 'trial_cta_copy', variant: 'start_trial' }],
+    ]))).status).toBe(202);
+    await request(app).post('/api/analytics/events').set(as('user_a')).send(batch([
+      ['paywall_viewed', 'sessA'], ['trial_started', 'sessA'],
+      ['experiment_exposure', 'sessA', { experiment: 'trial_cta_copy', variant: 'start_trial' }],
+    ]));
+
+    expect((await request(app).get('/api/admin/analytics').set(as('user_a'))).status).toBe(403);
+    const res = await request(app).get('/api/admin/analytics?days=7').set(as('user_admin'));
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({ days: 7, events: 5, sessions: 2, signedInSessions: 1 });
+    expect(res.body.funnel.slice(0, 2)).toEqual([{ step: 'paywall_viewed', sessions: 2 }, { step: 'trial_started', sessions: 1 }]);
+    expect(res.body.experiments).toEqual([
+      { experiment: 'trial_cta_copy', variant: 'start_trial', exposed: 2, trials: 1, checkouts: 0, trialRate: 0.5 },
+    ]);
+  });
+});

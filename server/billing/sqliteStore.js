@@ -77,6 +77,15 @@ const SCHEMA = [
     updatedAt TEXT NOT NULL
   );`,
   'CREATE INDEX IF NOT EXISTS idx_feedback_status ON feedback_reports(status, createdAt);',
+  `CREATE TABLE IF NOT EXISTS analytics_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    sessionId TEXT NOT NULL,
+    signedIn INTEGER NOT NULL DEFAULT 0,
+    props TEXT NOT NULL DEFAULT '{}',
+    receivedAt TEXT NOT NULL
+  );`,
+  'CREATE INDEX IF NOT EXISTS idx_analytics_received ON analytics_events(receivedAt);',
   `CREATE TABLE IF NOT EXISTS user_state (
     userId TEXT PRIMARY KEY,
     data TEXT NOT NULL,
@@ -294,6 +303,23 @@ function createSqliteStore(db) {
         [...params, Math.min(Math.max(1, limit), 500)]
       );
       return rows.map(parseFeedback);
+    },
+
+    async insertAnalyticsEvents(events) {
+      for (const e of events) {
+        await run(db, 'INSERT INTO analytics_events (name, sessionId, signedIn, props, receivedAt) VALUES (?, ?, ?, ?, ?)',
+          [e.name, e.sessionId, e.signedIn ? 1 : 0, JSON.stringify(e.props || {}), e.receivedAt]);
+      }
+      return events.length;
+    },
+
+    async listAnalyticsEvents({ from, to, limit = 50000 }) {
+      const rows = await all(
+        db,
+        'SELECT name, sessionId, signedIn, props, receivedAt FROM analytics_events WHERE receivedAt >= ? AND receivedAt < ? ORDER BY receivedAt LIMIT ?',
+        [from, to, limit]
+      );
+      return rows.map((r) => ({ ...r, signedIn: Boolean(r.signedIn), props: JSON.parse(r.props || '{}') }));
     },
 
     getUserState: (userId) => get(db, 'SELECT data, version, updatedAt FROM user_state WHERE userId = ?', [userId]),

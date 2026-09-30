@@ -9,6 +9,10 @@ const { asyncHandler } = require('../middleware/errorHandler');
 const { ApiError } = require('../lib/errors');
 const { getBillingService, getBillingStore } = require('../billing');
 const { validateTriage, KINDS, STATUSES } = require('../feedback/validateFeedback');
+const { summarize } = require('../analytics/summarize');
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+const ANALYTICS_DAYS = [1, 7, 30, 90];
 
 const GIFT_REASONS = ['friend', 'family', 'tester', 'support', 'promo', 'other'];
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -55,6 +59,15 @@ function createAdminRouter({ service = getBillingService, store = getBillingStor
 
   router.post('/gifts/:id/revoke', asyncHandler(async (req, res) => {
     res.json(await service().revokeGift(req.params.id, req.user.id));
+  }));
+
+  // Reads at most 50,000 events per window; beyond that volume, move to aggregated counters.
+  router.get('/analytics', asyncHandler(async (req, res) => {
+    const days = ANALYTICS_DAYS.includes(Number(req.query.days)) ? Number(req.query.days) : 30;
+    const to = clock();
+    const from = new Date(to.getTime() - days * DAY_MS);
+    const events = await store().listAnalyticsEvents({ from: from.toISOString(), to: new Date(to.getTime() + 1).toISOString() });
+    res.json({ days, truncated: events.length >= 50000, ...summarize(events, { from: from.toISOString(), to: to.toISOString() }) });
   }));
 
   router.get('/feedback', asyncHandler(async (req, res) => {

@@ -87,6 +87,14 @@ const UserStateSchema = new Schema({
   updatedAt: { type: String, required: true },
 }, opts);
 
+const AnalyticsEventSchema = new Schema({
+  name: { type: String, required: true },
+  sessionId: { type: String, required: true },
+  signedIn: { type: Boolean, default: false },
+  props: { type: Schema.Types.Mixed, default: {} },
+  receivedAt: { type: String, required: true, index: true },
+}, opts);
+
 const model = (connection, name, schema, collection) =>
   connection.models[name] || connection.model(name, schema, collection);
 
@@ -112,12 +120,13 @@ function createMongoStore(connection = mongoose.connection) {
   const WebhookEvent = model(connection, 'BillingWebhookEvent', WebhookEventSchema, 'billing_webhook_events');
   const Feedback = model(connection, 'FeedbackReport', FeedbackSchema, 'feedback_reports');
   const UserState = model(connection, 'UserState', UserStateSchema, 'user_state');
+  const AnalyticsEvent = model(connection, 'AnalyticsEvent', AnalyticsEventSchema, 'analytics_events');
 
   const store = {
     kind: 'mongodb',
 
     async init() {
-      await Promise.all([Account, Subscription, Gift, WebhookEvent, Feedback, UserState].map((m) => m.init()));
+      await Promise.all([Account, Subscription, Gift, WebhookEvent, Feedback, UserState, AnalyticsEvent].map((m) => m.init()));
     },
 
     getAccount: async (userId) => cleanAccount(await Account.findOne({ userId }).lean()),
@@ -264,6 +273,17 @@ function createMongoStore(connection = mongoose.connection) {
         .limit(Math.min(Math.max(1, limit), 500))
         .lean();
       return docs.map(clean);
+    },
+
+    async insertAnalyticsEvents(events) {
+      if (events.length) await AnalyticsEvent.insertMany(events, { ordered: false });
+      return events.length;
+    },
+
+    async listAnalyticsEvents({ from, to, limit = 50000 }) {
+      const docs = await AnalyticsEvent.find({ receivedAt: { $gte: from, $lt: to } }, { _id: 0 })
+        .sort({ receivedAt: 1 }).limit(limit).lean();
+      return docs.map((d) => ({ name: d.name, sessionId: d.sessionId, signedIn: Boolean(d.signedIn), props: d.props || {}, receivedAt: d.receivedAt }));
     },
 
     async getUserState(userId) {
