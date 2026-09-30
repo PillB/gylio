@@ -6,6 +6,7 @@ import { themes } from '../core/themes';
 import { GuidedTourProvider, useGuidedTour } from '../core/context/GuidedTourContext';
 import GuidedTourOverlay from './GuidedTourOverlay';
 import TourFlowSelector from './TourFlowSelector';
+import { TASKS_FLOW } from '../features/tour/tourSteps';
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string, fallback?: unknown) => (typeof fallback === 'string' ? fallback : key) }),
@@ -142,5 +143,29 @@ describe('tour dialogs manage keyboard focus', () => {
     } finally {
       other.remove();
     }
+  });
+
+  // A targeted "Try it" step whose element is not rendered yet (Tasks step 2: the date
+  // field sits behind the collapsed "Add details") is centred as a fallback. It must not
+  // trap Tab, or a keyboard user cannot reach "Add details" to do what the step asks.
+  it('does not trap Tab on a targeted step whose element is not on the page yet', async () => {
+    Element.prototype.scrollIntoView = vi.fn();
+    const stepIndex = TASKS_FLOW.steps.findIndex((s) => s.id === 'tasks-date');
+    localStorage.setItem('gylio_tour', JSON.stringify({ active: true, stepIndex, completed: false, flowId: 'tasks' }));
+    render(
+      <MemoryRouter initialEntries={['/tasks']}>
+        <GuidedTourProvider>
+          <button type="button" aria-expanded="false">Add details</button>
+          <GuidedTourOverlay />
+        </GuidedTourProvider>
+      </MemoryRouter>,
+    );
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    const addDetails = screen.getByRole('button', { name: 'Add details' });
+    addDetails.focus();
+    expect(fireEvent.keyDown(addDetails, { key: 'Tab' })).toBe(true);
+    expect(focused()).toBe(addDetails);
   });
 });

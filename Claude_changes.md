@@ -831,9 +831,10 @@ Numbered after #82's CHG-046 to keep IDs unique; #82 stacks on this branch.
 - **#6, tour dialog focus** (`src/core/hooks/useDialogFocus.ts`, new; `TourFlowSelector.tsx`, `GuidedTourOverlay.tsx`):
   - Opening a tour dialog moves focus into it. Next/Finish is marked `data-autofocus`.
   - Tab and Shift+Tab stay inside while the dialog is `aria-modal="true"`. Spotlight steps are not trapped.
+  - Only steps designed as centred cards (`placement: 'center'` or no target) are modal. A targeted step whose element is not on screen yet (Tasks step 2, the date field behind the collapsed "Add details") is still drawn centred but is not modal and does not trap Tab, so a keyboard user can reach the page to do what the step asks.
   - Focus returns to the opener when the dialog closes.
   - Tab is left alone when focus is in another modal layered on top (a native `<dialog open>` or WinCard).
-  - Test: `src/components/tourDialogFocus.test.tsx`. All 7 cases fail before the fix: each guard case first checks that focus moved into the tour. Making the trap unconditional fails the spotlight case, and removing the other-modal guard fails both layered cases.
+  - Test: `src/components/tourDialogFocus.test.tsx`. The first 7 cases fail before the fix: each guard case first checks that focus moved into the tour. Making the trap unconditional fails the spotlight case, and removing the other-modal guard fails both layered cases. An 8th case, a targeted step with its element missing, fails when `aria-modal` follows the centred layout instead of the step definition.
 - **#7, manifest base path** (`public/manifest.json`, `index.html`):
   - What was wrong: the manifest hard-coded `/gylio/`, so a root-hosted install launched at an unmatched route.
   - Fix: every manifest URL member is now relative to the manifest. The link href is `/manifest.json`, which Vite rewrites to `${base}manifest.json`. The old relative href resolved to `/sign-in/manifest.json` on nested routes.
