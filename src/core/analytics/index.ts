@@ -96,10 +96,9 @@ export function track(name: string, props?: Record<string, unknown>): void {
   queue.push(event);
   writeQueue(queue);
 
-  // TODO: swap flush() below for your real provider, e.g.:
-  //   posthog.capture(name, props);
-  //   amplitude.track(name, props);
-  //   mixpanel.track(name, props);
+  // Delivery: upload.ts drains this queue to the Gylio API (POST
+  // /api/analytics/events) every 20s and on page hide when the build has a
+  // backend (VITE_BILLING_ENABLED=true). Static previews keep events local.
 }
 
 // ── Flush (call periodically or on page hide) ─────────────────────────────

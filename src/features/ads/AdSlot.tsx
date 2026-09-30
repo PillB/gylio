@@ -7,11 +7,20 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../../core/context/ThemeContext';
 import { useSubscription } from '../subscription/useSubscription';
-import { houseAdIndex, isAdTestMode, resolveAdProvider, type AdPlacement } from './adConfig';
+import {
+  countHouseAdImpression,
+  houseAdCapReached,
+  houseAdIndex,
+  isAdTestMode,
+  resolveAdProvider,
+  type AdPlacement,
+} from './adConfig';
 import { track } from '../../core/analytics';
 
 const ADSENSE_SRC = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js';
 const HOUSE_ADS = ['billing.ads.house.noAds', 'billing.ads.house.routines', 'billing.ads.house.ai'];
+/** Reserved height so filling an AdSense unit never shifts the layout (CLS). */
+const ADSENSE_MIN_HEIGHT = 100;
 
 let adsenseLoading: Promise<void> | null = null;
 
@@ -54,7 +63,22 @@ function HouseAd({ placement }: { placement: AdPlacement }) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const key = HOUSE_ADS[houseAdIndex(new Date().toISOString().slice(0, 10), HOUSE_ADS.length)];
-  useEffect(() => { track('ad_impression', { provider: 'house', placement, creative: key }); }, [placement, key]);
+  // Cap read once at mount; the ad stays visible for this mount even if the
+  // counter now sits at the cap (one exposure, never a mid-view vanish).
+  const [capReached] = useState(() => houseAdCapReached(sessionStorage, placement));
+  // Ref guard: React StrictMode runs effects twice in development; the
+  // impression must count once. (Production renders effects once, but the
+  // guard also protects future remount-with-same-key cases.)
+  const countedRef = useRef(false);
+  useEffect(() => {
+    // A capped-out mount renders nothing — never count or track a phantom
+    // impression for an ad the person did not see.
+    if (countedRef.current || capReached) return;
+    countedRef.current = true;
+    countHouseAdImpression(sessionStorage, placement);
+    track('ad_impression', { provider: 'house', placement, creative: key });
+  }, [placement, key, capReached]);
+  if (capReached) return null;
   return (
     <AdFrame label={t('billing.ads.houseLabel')}>
       <p style={{ margin: 0 }}>{t(key)}</p>
@@ -70,12 +94,16 @@ function AdSenseAd({ placement, onFail }: { placement: AdPlacement; onFail: () =
   const { t } = useTranslation();
   const ref = useRef<HTMLModElement>(null);
   const env = import.meta.env;
+  const countedRef = useRef(false);
   useEffect(() => {
     loadAdSense(env.VITE_ADSENSE_CLIENT)
       .then(() => {
         const queue = ((window as unknown as { adsbygoogle?: unknown[] }).adsbygoogle ||= []);
         queue.push({});
-        track('ad_impression', { provider: 'adsense', placement, test: isAdTestMode(env) });
+        if (!countedRef.current) {
+          countedRef.current = true;
+          track('ad_impression', { provider: 'adsense', placement, test: isAdTestMode(env) });
+        }
       })
       .catch(onFail);
   }, [env, placement, onFail]);
@@ -84,7 +112,7 @@ function AdSenseAd({ placement, onFail }: { placement: AdPlacement; onFail: () =
       <ins
         ref={ref}
         className="adsbygoogle"
-        style={{ display: 'block' }}
+        style={{ display: 'block', minHeight: ADSENSE_MIN_HEIGHT }}
         data-ad-client={env.VITE_ADSENSE_CLIENT}
         data-ad-slot={env.VITE_ADSENSE_SLOT}
         data-ad-format="auto"
