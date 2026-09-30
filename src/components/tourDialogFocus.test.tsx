@@ -111,6 +111,8 @@ describe('tour dialogs manage keyboard focus', () => {
 
     const tour = screen.getByRole('dialog', { name: 'Feature tour' });
     expect(tour.hasAttribute('aria-modal')).toBe(false);
+    // Focus followed the tour into the spotlight tooltip...
+    expect(tour.contains(focused())).toBe(true);
     const next = within(tour).getByRole('button', { name: 'Next step' });
     next.focus();
     expect(fireEvent.keyDown(next, { key: 'Tab' })).toBe(true);
@@ -125,14 +127,20 @@ describe('tour dialogs manage keyboard focus', () => {
   ])('leaves Tab alone inside %s opened over a centred step', (_label, make) => {
     renderTour();
     fireEvent.click(within(screen.getByRole('dialog')).getAllByRole('button')[1]);
-    expect(screen.getByRole('dialog', { name: 'Feature tour' }).getAttribute('aria-modal')).toBe('true');
+    const tour = screen.getByRole('dialog', { name: 'Feature tour' });
+    expect(tour.getAttribute('aria-modal')).toBe('true');
+    // The centred step owns focus (and traps Tab) until the other modal opens.
+    expect(tour.contains(focused())).toBe(true);
     const other = make();
     other.innerHTML = '<button type="button">First field</button><button type="button">Second field</button>';
     document.body.appendChild(other);
-    const field = other.querySelector('button') as HTMLButtonElement;
-    field.focus();
-    expect(fireEvent.keyDown(field, { key: 'Tab' })).toBe(true);
-    expect(focused()).toBe(field);
-    other.remove();
+    try {
+      const field = other.querySelector('button') as HTMLButtonElement;
+      field.focus();
+      expect(fireEvent.keyDown(field, { key: 'Tab' })).toBe(true);
+      expect(focused()).toBe(field);
+    } finally {
+      other.remove();
+    }
   });
 });
