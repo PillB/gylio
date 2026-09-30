@@ -97,6 +97,8 @@ describe('TaskList recurring reliability entry point', () => {
   it('offers "Reliability status" once a stored task carries a recurrence', async () => {
     dbTasks = [{ ...storedTask, recurrence: 'daily' }];
     render(<TaskList />);
+    // Not offered before the stored tasks are read, then offered once the recurring one is.
+    expect(reliabilityButton()).toBeNull();
     expect(await screen.findByRole('button', { name: /reliability status/i })).toBeTruthy();
   });
 });
