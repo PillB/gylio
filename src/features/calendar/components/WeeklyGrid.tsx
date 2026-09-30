@@ -25,7 +25,9 @@ export const WeeklyGrid: React.FC<Props> = ({
   onEventClick,
 }) => {
   const { t, i18n } = useTranslation();
-  const EVENT_COLORS = theme.dataViz.series;
+  const EVENT_COLORS = (['indigo', 'violet', 'pink', 'amber', 'green', 'blue', 'red'] as const).map(
+    (hue) => theme.dataViz[hue],
+  );
 
   const [hourHeight, setHourHeight] = useState(HOUR_HEIGHT_BASE);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -329,7 +331,7 @@ export const WeeklyGrid: React.FC<Props> = ({
                         {ev.title}
                       </span>
                       {isSpacious && (
-                        <span style={{ display: 'block', fontSize: '0.65rem', color: theme.colors.muted, marginTop: 1 }}>
+                        <span style={{ display: 'block', fontSize: '0.65rem', color: theme.colors.text, marginTop: 1 }}>
                           {formatEventTime(ev)}
                         </span>
                       )}

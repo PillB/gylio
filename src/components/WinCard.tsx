@@ -9,7 +9,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../core/context/ThemeContext';
-import { readableTextOn } from '../core/contrast';
+import { readableTextOn, type DataVizHue } from '../core/themes';
 import { track, Events } from '../core/analytics';
 
 export type WinType =
@@ -27,6 +27,16 @@ type Props = {
   label: string;
   sublabel?: string;
   onClose: () => void;
+};
+
+const WIN_HUES: Record<WinType, DataVizHue> = {
+  streak:          'orange',
+  all_tasks_done:  'green',
+  routine_complete:'violet',
+  budget_goal:     'blue',
+  first_task:      'pink',
+  first_routine:   'amber',
+  level_up:        'teal',
 };
 
 const WIN_EMOJIS: Record<WinType, string> = {
@@ -53,16 +63,7 @@ const WIN_KEY: Record<WinType, string> = {
 export default function WinCard({ type, milestone, label, sublabel, onClose }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const WIN_COLORS: Record<WinType, string> = {
-    streak:           theme.dataViz.series[3],
-    all_tasks_done:   theme.colors.success,
-    routine_complete: theme.dataViz.series[1],
-    budget_goal:      theme.dataViz.series[5],
-    first_task:       theme.colors.accent,
-    first_routine:    theme.colors.warning,
-    level_up:         theme.dataViz.energy.tiny,
-  };
-  const color  = WIN_COLORS[type];
+  const color  = theme.dataViz[WIN_HUES[type]];
   const emoji  = WIN_EMOJIS[type];
   const keyRoot = WIN_KEY[type];
 

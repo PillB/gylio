@@ -14,6 +14,9 @@ export default defineConfig({
     : 'list',
   use: {
     baseURL,
+    // A registered service worker can answer navigations from cache, which
+    // turned the static seeding page into an app boot and raced the fixtures.
+    serviceWorkers: 'block',
     screenshot: 'only-on-failure',
     trace: 'on-first-retry',
   },

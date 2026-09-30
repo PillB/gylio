@@ -93,12 +93,12 @@ export default function ReconciliationChecklist({ budgetMonthKey }) {
   const spacing = theme.spacing ?? {};
 
   const borderColor = allChecked
-    ? (colors.success ?? '#16a34a')
-    : (colors.border ?? '#e2e8f0');
+    ? colors.successStrong
+    : colors.border;
 
   const headerBg = allChecked
-    ? (colors.successBg ?? '#f0fdf4')
-    : (colors.surface ?? '#f8fafc');
+    ? colors.successSoft
+    : colors.surface;
 
   return (
     <section
@@ -108,8 +108,8 @@ export default function ReconciliationChecklist({ budgetMonthKey }) {
       )}
       style={{
         border: `1px solid ${borderColor}`,
-        borderRadius: theme.shape?.borderRadius ?? 8,
-        marginBottom: spacing[3] ?? 12,
+        borderRadius: theme.shape.radiusSm,
+        marginBottom: spacing.md,
         overflow: 'hidden',
         transition: 'border-color 0.2s ease',
       }}
@@ -125,16 +125,16 @@ export default function ReconciliationChecklist({ budgetMonthKey }) {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: `${spacing[3] ?? 12}px ${spacing[4] ?? 16}px`,
+          padding: `${spacing.md}px ${spacing.md}px`,
           background: headerBg,
           border: 'none',
           cursor: 'pointer',
           textAlign: 'left',
-          gap: spacing[2] ?? 8,
+          gap: spacing.sm,
         }}
       >
         <div
-          style={{ display: 'flex', alignItems: 'center', gap: spacing[2] ?? 8 }}
+          style={{ display: 'flex', alignItems: 'center', gap: spacing.sm }}
         >
           <span aria-hidden="true" style={{ fontSize: 16 }}>
             {allChecked ? '✅' : '📋'}
@@ -144,8 +144,8 @@ export default function ReconciliationChecklist({ budgetMonthKey }) {
               fontWeight: 600,
               fontSize: 14,
               color: allChecked
-                ? (colors.success ?? '#16a34a')
-                : (colors.text ?? '#1e293b'),
+                ? colors.successStrong
+                : colors.text,
             }}
           >
             {t(
@@ -156,7 +156,7 @@ export default function ReconciliationChecklist({ budgetMonthKey }) {
         </div>
 
         <div
-          style={{ display: 'flex', alignItems: 'center', gap: spacing[2] ?? 8 }}
+          style={{ display: 'flex', alignItems: 'center', gap: spacing.sm }}
         >
           {/* Progress badge */}
           <span
@@ -172,11 +172,11 @@ export default function ReconciliationChecklist({ budgetMonthKey }) {
               fontSize: 12,
               fontWeight: 600,
               color: allChecked
-                ? (colors.success ?? '#16a34a')
-                : (colors.textSecondary ?? '#64748b'),
+                ? colors.successStrong
+                : colors.muted,
               background: allChecked
-                ? (colors.successBg ?? '#f0fdf4')
-                : (colors.surfaceAlt ?? '#f1f5f9'),
+                ? colors.successSoft
+                : colors.surfaceElevated,
               padding: '2px 8px',
               borderRadius: 99,
               minWidth: 36,
@@ -191,7 +191,7 @@ export default function ReconciliationChecklist({ budgetMonthKey }) {
             aria-hidden="true"
             style={{
               fontSize: 12,
-              color: colors.textSecondary ?? '#64748b',
+              color: colors.muted,
               transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
               transition: 'transform 0.2s ease',
               display: 'inline-block',
@@ -213,17 +213,17 @@ export default function ReconciliationChecklist({ budgetMonthKey }) {
         hidden={!isOpen}
         style={{
           padding: isOpen
-            ? `${spacing[3] ?? 12}px ${spacing[4] ?? 16}px`
+            ? `${spacing.md}px ${spacing.md}px`
             : 0,
-          background: colors.background ?? '#ffffff',
+          background: colors.background,
           display: isOpen ? 'block' : 'none',
         }}
       >
         <p
           style={{
-            margin: `0 0 ${spacing[3] ?? 12}px`,
+            margin: `0 0 ${spacing.md}px`,
             fontSize: 13,
-            color: colors.textSecondary ?? '#64748b',
+            color: colors.muted,
           }}
         >
           {t(
@@ -240,7 +240,7 @@ export default function ReconciliationChecklist({ budgetMonthKey }) {
             margin: 0,
             display: 'flex',
             flexDirection: 'column',
-            gap: spacing[2] ?? 8,
+            gap: spacing.sm,
           }}
         >
           {CHECKLIST_ITEMS.map((item) => {
@@ -254,12 +254,12 @@ export default function ReconciliationChecklist({ budgetMonthKey }) {
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: spacing[3] ?? 12,
+                    gap: spacing.md,
                     cursor: 'pointer',
-                    padding: `${spacing[2] ?? 8}px`,
-                    borderRadius: theme.shape?.borderRadius ?? 8,
+                    padding: `${spacing.sm}px`,
+                    borderRadius: theme.shape.radiusSm,
                     background: isChecked
-                      ? (colors.successBg ?? '#f0fdf4')
+                      ? colors.successSoft
                       : 'transparent',
                     transition: 'background 0.15s ease',
                   }}
@@ -274,7 +274,7 @@ export default function ReconciliationChecklist({ budgetMonthKey }) {
                     style={{
                       width: 18,
                       height: 18,
-                      accentColor: colors.success ?? '#16a34a',
+                      accentColor: colors.success,
                       cursor: 'pointer',
                       flexShrink: 0,
                     }}
@@ -283,8 +283,8 @@ export default function ReconciliationChecklist({ budgetMonthKey }) {
                     style={{
                       fontSize: 14,
                       color: isChecked
-                        ? (colors.success ?? '#16a34a')
-                        : (colors.text ?? '#1e293b'),
+                        ? colors.successStrong
+                        : colors.text,
                       textDecoration: isChecked ? 'line-through' : 'none',
                       fontWeight: isChecked ? 400 : 500,
                       transition:
@@ -305,16 +305,16 @@ export default function ReconciliationChecklist({ budgetMonthKey }) {
             role="status"
             aria-live="polite"
             style={{
-              marginTop: spacing[3] ?? 12,
-              padding: `${spacing[2] ?? 8}px ${spacing[3] ?? 12}px`,
-              borderRadius: theme.shape?.borderRadius ?? 8,
-              background: colors.successBg ?? '#f0fdf4',
-              color: colors.successText ?? '#14532d',
+              marginTop: spacing.md,
+              padding: `${spacing.sm}px ${spacing.md}px`,
+              borderRadius: theme.shape.radiusSm,
+              background: colors.successSoft,
+              color: colors.successStrong,
               fontSize: 13,
               fontWeight: 600,
               display: 'flex',
               alignItems: 'center',
-              gap: spacing[2] ?? 8,
+              gap: spacing.sm,
             }}
           >
             <span aria-hidden="true">🎉</span>

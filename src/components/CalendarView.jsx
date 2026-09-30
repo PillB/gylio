@@ -84,13 +84,7 @@ const CalendarView = () => {
     reminderMinutesBefore: false
   });
 
-  const softPalette = useMemo(
-    () =>
-      theme.mode === 'dark'
-        ? ['#1f2a44', '#24324d', '#2b3c57', '#2e4360', '#304a69', '#314f72']
-        : ['#e8f1ff', '#eaf7f1', '#fdf1e7', '#f3e8ff', '#eaf3fb', '#f2f7e9'],
-    [theme.mode]
-  );
+  const softPalette = theme.eventTints;
 
   const validateFields = useCallback(
     (fields) => {
@@ -890,6 +884,8 @@ const CalendarView = () => {
                           height: 6,
                           borderRadius: '50%',
                           backgroundColor: color,
+                          // Tints are tuned as tile backgrounds; the ring keeps 6px markers at >= 3:1 on the day cell.
+                          boxShadow: `inset 0 0 0 1px ${theme.colors.muted}`,
                           display: 'inline-block',
                         }}
                       />

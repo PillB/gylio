@@ -27,10 +27,10 @@ import {
 } from '../utils/taskForm';
 import { useClock, getLocalDateKey } from '../../../core/hooks/useClock';
 import { useToast } from '../../../core/context/ToastContext';
+import { energyTone, type EnergyLevel } from '../utils/energyTone';
 
 type ViewFilter = 'today' | 'week' | 'backlog' | 'upcoming';
 
-type EnergyLevel = 'tiny' | 'low' | 'medium' | 'high';
 
 const ENERGY_LEVELS: EnergyLevel[] = ['tiny', 'low', 'medium', 'high'];
 
@@ -69,11 +69,13 @@ const SubtaskEditor: React.FC<SubtaskEditorProps> = ({
       borderRadius: theme.shape.radiusMd,
       padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
       margin: 0,
+      // Fieldsets default to min-inline-size: min-content, which overflows 320px screens.
+      minWidth: 0,
     }}
   >
     <legend style={{ padding: `0 ${theme.spacing.xs}px`, fontWeight: 600, display: 'flex', alignItems: 'center' }}>{label}{tooltip}</legend>
     <p style={{ margin: '0 0 0.5rem', color: theme.colors.muted }}>{helper}</p>
-    <div style={{ display: 'grid', gap: '0.5rem' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: '0.5rem' }}>
       {subtasks.map((subtask, index) => (
         <div key={`${idPrefix}-subtask-${index.toString()}`} style={{ display: 'flex', gap: '0.5rem' }}>
           <input
@@ -90,6 +92,9 @@ const SubtaskEditor: React.FC<SubtaskEditorProps> = ({
             }}
             style={{
               flex: 1,
+              // Flex items default to min-width: auto (the input's intrinsic width),
+              // which pushed the Remove button off 320px screens.
+              minWidth: 0,
               minHeight: '44px',
               padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
               borderRadius: theme.shape.radiusMd,
@@ -159,7 +164,6 @@ const TaskList: React.FC = () => {
     refreshTasks,
   } = useTasks();
   const { theme } = useTheme();
-  const ENERGY_COLORS = theme.dataViz.energy;
   const { success: showSuccess } = useToast();
   const { activeTimer, pendingLogEntry, clearPendingEntry, startTask: startTaskTimer, settings: timerSettings } = useTaskTimer();
   const { appendTaskTimeLog } = useDB();
@@ -595,9 +599,12 @@ const TaskList: React.FC = () => {
         )}
       </div>
 
+      {/* An implicit `auto` grid column cannot shrink below a child's intrinsic
+          width. #new-task (size=20 at the 16px iOS no-zoom font size) is ~268px,
+          wider than the card at 320px, so the column is pinned to minmax(0, 1fr). */}
       <form
         onSubmit={handleAddTask}
-        style={{ marginBottom: '1rem', display: 'grid', gap: `${theme.spacing.sm}px` }}
+        style={{ marginBottom: '1rem', display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: `${theme.spacing.sm}px` }}
       >
         <label htmlFor="new-task" style={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
           {t('addTask')}
@@ -679,6 +686,7 @@ const TaskList: React.FC = () => {
               aria-label={t('tasks.scheduleTask', 'Schedule task')}
               style={{
                 margin: 0,
+                minWidth: 0,
                 padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
                 borderRadius: theme.shape.radiusMd,
                 border: `1px solid ${theme.colors.border}`,
@@ -777,9 +785,9 @@ const TaskList: React.FC = () => {
                     style={{
                       padding: '4px 12px',
                       borderRadius: theme.shape.radiusFull,
-                      border: `2px solid ${newTaskEnergy === level ? ENERGY_COLORS[level] : theme.colors.border}`,
-                      backgroundColor: newTaskEnergy === level ? ENERGY_COLORS[level] : 'transparent',
-                      color: newTaskEnergy === level ? '#fff' : theme.colors.text,
+                      border: `2px solid ${newTaskEnergy === level ? energyTone(theme, level).fill : theme.colors.border}`,
+                      backgroundColor: newTaskEnergy === level ? energyTone(theme, level).fill : 'transparent',
+                      color: newTaskEnergy === level ? energyTone(theme, level).onFill : theme.colors.text,
                       cursor: 'pointer',
                       fontSize: '0.8125rem',
                       fontWeight: newTaskEnergy === level ? 700 : 400,
@@ -862,7 +870,7 @@ const TaskList: React.FC = () => {
       {formErrors ? (
         <p style={{ color: theme.colors.accent, marginTop: 0 }}>{formErrors}</p>
       ) : null}
-      <div style={{ display: 'grid', gap: `${theme.spacing.lg}px` }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: `${theme.spacing.lg}px` }}>
         <div data-tour="task-tabs" className="app-tabs" role="tablist" aria-label={t('tasks.viewLabel')} style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
           {viewOptions.map((option) => (
             <button
@@ -903,7 +911,7 @@ const TaskList: React.FC = () => {
               borderRadius: theme.shape.radiusFull,
               border: `1.5px solid ${energyFilter === 'all' ? theme.colors.primary : theme.colors.border}`,
               background: energyFilter === 'all' ? theme.colors.primary : 'transparent',
-              color: energyFilter === 'all' ? '#fff' : theme.colors.text,
+              color: energyFilter === 'all' ? theme.colors.primaryForeground : theme.colors.text,
               cursor: 'pointer',
               fontSize: '0.75rem',
               fontFamily: theme.typography.body.family,
@@ -924,9 +932,9 @@ const TaskList: React.FC = () => {
                 padding: '8px 10px',
                 minHeight: 44,
                 borderRadius: theme.shape.radiusFull,
-                border: `1.5px solid ${energyFilter === level ? ENERGY_COLORS[level] : theme.colors.border}`,
-                background: energyFilter === level ? ENERGY_COLORS[level] : 'transparent',
-                color: energyFilter === level ? '#fff' : theme.colors.text,
+                border: `1.5px solid ${energyFilter === level ? energyTone(theme, level).fill : theme.colors.border}`,
+                background: energyFilter === level ? energyTone(theme, level).fill : 'transparent',
+                color: energyFilter === level ? energyTone(theme, level).onFill : theme.colors.text,
                 cursor: 'pointer',
                 fontSize: '0.75rem',
                 fontFamily: theme.typography.body.family,
@@ -979,7 +987,7 @@ const TaskList: React.FC = () => {
             </button>
           </div>
         )}
-        <div role="list" aria-label={t('tasks.chunkedListAria')} style={{ display: 'grid', gap: '1rem' }}>
+        <div role="list" aria-label={t('tasks.chunkedListAria')} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: '1rem' }}>
           {loading ? (
             <p>{t('loading')}</p>
           ) : filteredTasks.length === 0 ? (
@@ -1099,7 +1107,7 @@ const TaskList: React.FC = () => {
                                   width: 8,
                                   height: 8,
                                   borderRadius: '50%',
-                                  backgroundColor: ENERGY_COLORS[(task.energyRequired as EnergyLevel) ?? 'medium'] ?? ENERGY_COLORS.medium,
+                                  backgroundColor: energyTone(theme, task.energyRequired).fill,
                                   flexShrink: 0,
                                 }} />
                                 <button
@@ -1169,7 +1177,7 @@ const TaskList: React.FC = () => {
                 <p style={{ margin: '0 0 0.5rem', color: theme.colors.muted, fontWeight: 600 }}>
                   {t('tasks.chunkLabel', { index: index + 1 })}
                 </p>
-                <div style={{ display: 'grid', gap: '0.75rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: '0.75rem' }}>
                   {group.map((task) => {
                     const isCompleted = task.status === 'completed';
                     const actionLabel = isCompleted
@@ -1182,7 +1190,7 @@ const TaskList: React.FC = () => {
                     return (
                       <div key={task.id} role="listitem">
                         {editingTaskId === task.id ? (
-                          <div style={{ display: 'grid', gap: '0.75rem' }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: '0.75rem' }}>
                             <label htmlFor={`edit-title-${task.id}`} style={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
                               {t('titleLabel')}
                               <BudgetTooltip content={t('tooltips.tasks.title', "Name your task concisely but specifically. 'Reply to Maria's project email' beats 'emails'. Specific tasks are easier to start.")} />
@@ -1246,9 +1254,9 @@ const TaskList: React.FC = () => {
                                     style={{
                                       padding: '4px 12px',
                                       borderRadius: theme.shape.radiusFull,
-                                      border: `2px solid ${editEnergy === level ? ENERGY_COLORS[level] : theme.colors.border}`,
-                                      backgroundColor: editEnergy === level ? ENERGY_COLORS[level] : 'transparent',
-                                      color: editEnergy === level ? '#fff' : theme.colors.text,
+                                      border: `2px solid ${editEnergy === level ? energyTone(theme, level).fill : theme.colors.border}`,
+                                      backgroundColor: editEnergy === level ? energyTone(theme, level).fill : 'transparent',
+                                      color: editEnergy === level ? energyTone(theme, level).onFill : theme.colors.text,
                                       cursor: 'pointer',
                                       fontSize: '0.8125rem',
                                       fontWeight: editEnergy === level ? 700 : 400,
@@ -1327,8 +1335,8 @@ const TaskList: React.FC = () => {
                                 justifySelf: 'start',
                                 padding: '2px 8px',
                                 borderRadius: theme.shape.radiusFull,
-                                backgroundColor: ENERGY_COLORS[task.energyRequired as EnergyLevel] ?? ENERGY_COLORS.medium,
-                                color: '#fff',
+                                backgroundColor: energyTone(theme, task.energyRequired).fill,
+                                color: energyTone(theme, task.energyRequired).onFill,
                                 fontSize: '0.7rem',
                                 fontWeight: 600,
                                 letterSpacing: '0.03em',
