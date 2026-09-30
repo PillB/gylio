@@ -5,6 +5,7 @@ import { useTheme } from '../core/context/ThemeContext';
 import useAccessibility from '../core/hooks/useAccessibility';
 import { useGuidedTour } from '../core/context/GuidedTourContext';
 import { useAppAuth } from '../core/context/AuthContext';
+import useDialogFocus from '../core/hooks/useDialogFocus';
 
 const TOOLTIP_WIDTH = 320;
 const TOOLTIP_GAP = 14;
@@ -31,6 +32,7 @@ export default function GuidedTourOverlay() {
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
   const [isPremiumGated, setIsPremiumGated] = useState(false);
   const pendingNav = useRef(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   const stepIndex = tourState.stepIndex;
   const isActive = tourState.active;
@@ -144,6 +146,10 @@ export default function GuidedTourOverlay() {
     window.addEventListener('keydown', handler, { capture: true });
     return () => window.removeEventListener('keydown', handler, { capture: true });
   }, [isActive, isLast, isFirst, pauseTour, nextStep, prevStep]);
+
+  // Tab is trapped only on centred steps (aria-modal); spotlight steps keep the
+  // highlighted element reachable for "Try it".
+  useDialogFocus(dialogRef, currentStep !== null);
 
   if (!isActive || !currentStep) return null;
 
@@ -268,6 +274,7 @@ export default function GuidedTourOverlay() {
       )}
 
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal={isCenter ? 'true' : undefined}
         aria-label={t('tour.dialogAria', 'Feature tour')}
@@ -472,6 +479,7 @@ export default function GuidedTourOverlay() {
           <button
             type="button"
             onClick={isLast ? completeTour : nextStep}
+            data-autofocus
             aria-label={isLast ? t('tour.finishAria', 'Finish tour') : t('tour.nextAria', 'Next step')}
             style={{
               minHeight: 44,
