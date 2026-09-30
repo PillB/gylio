@@ -83,11 +83,16 @@ describe.each(BASES)('PWA manifest built with VITE_BASE_PATH=%s', (base) => {
     // Clerk's second-factor step is a nested route the host answers with index.html.
     expect(discoveredManifestUrl(base, 'sign-in/factor-one')).toBe(`${ORIGIN}${base}manifest.json`);
   });
+});
 
-  it('launches and scopes the installed app at the base the router uses', () => {
-    const { appRoot, manifestUrl, json } = loadManifest(base);
-    expect(new URL(json.scope, manifestUrl).href).toBe(appRoot);
-    expect(new URL(json.start_url, manifestUrl).href).toBe(appRoot);
+describe('PWA manifest launch', () => {
+  // One case for both bases: each must launch and stay at the base the router uses.
+  it('launches and scopes the installed app at the base the router uses, for every base', () => {
+    for (const base of BASES) {
+      const { appRoot, manifestUrl, json } = loadManifest(base);
+      expect(new URL(json.scope, manifestUrl).href, `scope for ${base}`).toBe(appRoot);
+      expect(new URL(json.start_url, manifestUrl).href, `start_url for ${base}`).toBe(appRoot);
+    }
   });
 });
 
