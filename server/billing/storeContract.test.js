@@ -146,5 +146,13 @@ describe.each(backends)('billing store contract: %s', (_name, make) => {
       { name: 'trial_started', sessionId: 's1', signedIn: true, props: {}, receivedAt: T1 },
     ]);
   });
+
+  it('keeps an analytics event only once when the app re-sends it with the same id', async () => {
+    const e = { eventId: 'evt-retry-0001', name: 'paywall_viewed', sessionId: 's9', signedIn: true, props: {}, receivedAt: T0 };
+    await store.insertAnalyticsEvents([e]);
+    await store.insertAnalyticsEvents([e, { ...e, eventId: 'evt-retry-0002' }]);
+    const rows = await store.listAnalyticsEvents({ from: T0, to: T1 });
+    expect(rows.filter((r) => r.sessionId === 's9')).toHaveLength(2);
+  });
 });
 

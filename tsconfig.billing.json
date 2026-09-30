@@ -22,6 +22,7 @@
     "src/features/subscription/PricingPage.tsx",
     "src/features/subscription/useSubscription.ts",
     "src/features/subscription/useSubscription.test.ts",
+    "src/features/experiments/useExperiment.test.tsx",
     "src/features/account/**/*"
   ]
 }

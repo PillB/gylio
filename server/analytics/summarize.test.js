@@ -50,6 +50,17 @@ describe('summarize', () => {
 
 describe('validateEvents', () => {
   const now = new Date('2026-10-01T10:00:00.000Z');
+  it('keeps the client event id and the signed-in flag captured when the event happened', () => {
+    const { events } = validateEvents({ events: [
+      { id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', name: 'trial_started', sessionId: 's1', signedIn: true },
+      { name: 'app_open', sessionId: 's1' },
+    ] }, { now, signedIn: false });
+    expect(events[0]).toMatchObject({ eventId: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', signedIn: true });
+    // No id from an older client: the server makes one, so it is still stored once.
+    expect(events[1].eventId).toMatch(/^srv-/);
+    expect(events[1].signedIn).toBe(false);
+  });
+
   it('keeps only identifier names, drops nested or long values and unknown fields', () => {
     const { events } = validateEvents({ events: [
       { name: 'paywall_viewed', sessionId: 's1', props: { interval: 'yearly', nested: { a: 1 }, email: 'x'.repeat(500), 'bad key': 1, n: Infinity } },
@@ -57,6 +68,7 @@ describe('validateEvents', () => {
       { name: 'ok_event', sessionId: 'not a session!' },
     ] }, { now, signedIn: false });
     expect(events).toEqual([{
+      eventId: expect.stringMatching(/^srv-/),
       name: 'paywall_viewed', sessionId: 's1', signedIn: false, receivedAt: now.toISOString(),
       props: { interval: 'yearly', email: 'x'.repeat(100) },
     }]);

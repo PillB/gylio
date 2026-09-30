@@ -138,7 +138,8 @@ function AppHeader({ clerkEnabled }) {
           </button>
         )}
         <LanguageToggle placement="header" />
-        {!isOnboarding && <FeedbackButton />}
+        {/* Phones reach feedback from Settings → Report a bug or idea; the header stays one line. */}
+        {!isOnboarding && !isMobile && <FeedbackButton />}
         {/* Hidden on mobile — accessible from Settings */}
         {!isOnboarding && (
           <button
@@ -548,13 +549,20 @@ function AppRouterNoAuth() {
   );
 }
 
+let appOpenTracked = false;
+
 export default function App({ clerkEnabled = false }) {
   const { paperTheme } = useTheme();
   useBackgroundSync();
 
   React.useEffect(() => {
     installErrorCapture();
-    track(Events.APP_OPEN, { clerkEnabled });
+    // Once per page load. StrictMode runs effects twice in development, which
+    // double-counted app_open on the analytics dashboard.
+    if (!appOpenTracked) {
+      appOpenTracked = true;
+      track(Events.APP_OPEN, { clerkEnabled });
+    }
     return startAnalyticsUpload();
   }, []);
 

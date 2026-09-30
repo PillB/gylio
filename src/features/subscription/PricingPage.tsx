@@ -7,7 +7,7 @@
  * subscription. Renders without Clerk or the API (public static preview), in
  * which case checkout buttons explain why they are unavailable.
  */
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../core/context/ThemeContext';
@@ -103,13 +103,21 @@ export const PricingPage: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   const catalog = useCatalog();
-  const defaultInterval = useExperiment('paywall_default_interval');
-  const [interval, setInterval] = useState<Interval>(defaultInterval);
+  const { variant: defaultInterval, ready } = useExperiment('paywall_default_interval');
+  // null until the person picks: follows the (final) experiment variant instead of freezing an early guess.
+  const [chosenInterval, setInterval] = useState<Interval | null>(null);
+  const interval = chosenInterval ?? defaultInterval;
+  const viewLogged = useRef(false);
   const currency = currencyForLocale(i18n.language);
   const { entitlement } = useEntitlement();
   const actions = useCheckoutActions();
 
-  useEffect(() => { track('paywall_viewed', { interval: defaultInterval, currency }); }, [defaultInterval, currency]);
+  // One view per visit, logged once the variant is final.
+  useEffect(() => {
+    if (!ready || viewLogged.current) return;
+    viewLogged.current = true;
+    track('paywall_viewed', { interval: defaultInterval, currency });
+  }, [ready, defaultInterval, currency]);
 
   const monthly = planFor(catalog, 'monthly');
   const yearly = planFor(catalog, 'yearly');
@@ -353,10 +361,12 @@ type ProActionsProps = { plan: CatalogPlan; trialDays: number; entitlement: Enti
 function ProActions({ plan, trialDays, entitlement, actions }: ProActionsProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { userId } = useAppAuth();
+  const { userId, authLoaded } = useAppAuth();
   const primary = usePrimaryButtonStyle();
   const secondary = useSecondaryButtonStyle();
 
+  // Nothing until sign-in state is known, so a signed-in person never sees "Create an account" flash.
+  if (!authLoaded) return <div style={{ minHeight: 48 }} aria-busy="true" />;
   if (!userId) {
     return (
       <button type="button" style={primary} onClick={() => navigate('/sign-up')}>
@@ -378,7 +388,7 @@ function TrialAndSubscribe({ plan, trialDays, trialEligible, actions }: { plan: 
   const { t } = useTranslation();
   const primary = usePrimaryButtonStyle();
   const secondary = useSecondaryButtonStyle();
-  const ctaVariant = useExperiment('trial_cta_copy');
+  const { variant: ctaVariant } = useExperiment('trial_cta_copy', { shown: trialEligible });
   const subscribeLabel = t(plan.interval === 'year' ? 'billing.cta.subscribeYearly' : 'billing.cta.subscribeMonthly');
   return (
     <div style={{ display: 'grid', gap: 8 }}>

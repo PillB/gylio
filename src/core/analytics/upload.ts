@@ -12,7 +12,7 @@ const QUEUE_KEY = 'analytics:queue';
 const BATCH = 50;
 const INTERVAL_MS = 20_000;
 
-type Queued = { name: string; props?: Record<string, unknown>; sessionId: string };
+type Queued = { id?: string; signedIn?: boolean; name: string; props?: Record<string, unknown>; sessionId: string };
 
 function readQueue(): Queued[] {
   try {
@@ -39,7 +39,7 @@ export async function uploadOnce(fetchImpl: typeof fetch = fetch): Promise<numbe
   if (!batch.length) return 0;
   sending = true;
   try {
-    const body = JSON.stringify({ events: batch.map(({ name, props, sessionId }) => ({ name, props, sessionId })) });
+    const body = JSON.stringify({ events: batch.map(({ id, signedIn, name, props, sessionId }) => ({ id, signedIn, name, props, sessionId })) });
     const response = await fetchImpl(apiUrl('/api/analytics/events'), {
       method: 'POST',
       headers: await authHeaders({ 'Content-Type': 'application/json' }),

@@ -9,12 +9,15 @@
 
 'use strict';
 
+const crypto = require('node:crypto');
+
 const MAX_EVENTS = 50;
 const MAX_PROPS = 20;
 const MAX_STRING = 100;
 const NAME = /^[a-z][a-z0-9_]{1,63}$/;
 const PROP_KEY = /^[a-zA-Z][a-zA-Z0-9_]{0,39}$/;
 const SESSION = /^[A-Za-z0-9_-]{1,64}$/;
+const EVENT_ID = /^[A-Za-z0-9_-]{8,64}$/;
 
 function cleanValue(value) {
   if (typeof value === 'boolean') return value;
@@ -43,9 +46,12 @@ function validateEvents(body, { now, signedIn }) {
   const events = raw
     .filter((e) => e && NAME.test(e.name) && SESSION.test(String(e.sessionId || '')))
     .map((e) => ({
+      // The app's own id makes a re-sent event (page closed mid-upload) count once.
+      eventId: EVENT_ID.test(String(e.id || '')) ? String(e.id) : `srv-${crypto.randomUUID()}`,
       name: e.name,
       sessionId: String(e.sessionId),
-      signedIn: Boolean(signedIn),
+      // Captured when the event happened; the upload itself may run before sign-in has loaded.
+      signedIn: typeof e.signedIn === 'boolean' ? e.signedIn : Boolean(signedIn),
       props: cleanProps(e.props),
       // The server's clock decides the day an event counts for; a client clock can be wrong.
       receivedAt,

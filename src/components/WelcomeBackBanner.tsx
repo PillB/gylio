@@ -15,6 +15,8 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '../core/context/ThemeContext';
 import { track, Events } from '../core/analytics';
 
+let welcomeBackTracked = false;
+
 const LAST_ACTIVE_KEY        = 'gylio:lastActiveDate';
 const DISMISSED_KEY          = 'gylio:welcomeBackDismissed';
 const LAST_STREAK_BEFORE_KEY = 'gylio:lastStreakBeforeBreak';
@@ -65,10 +67,14 @@ export default function WelcomeBackBanner({ onFreshStart, onTinyStep }: Props) {
       setMsgIndex(Math.floor(Math.random() * MESSAGE_COUNT));
       if (parsed !== null && parsed > 0) setLastStreak(parsed);
       setShow(true);
-      track(Events.WELCOME_BACK_SHOWN, {
-        gapDays: gap,
-        lastStreak: parsed ?? null,
-      });
+      // Once per page load: StrictMode runs this effect twice in development.
+      if (!welcomeBackTracked) {
+        welcomeBackTracked = true;
+        track(Events.WELCOME_BACK_SHOWN, {
+          gapDays: gap,
+          lastStreak: parsed ?? null,
+        });
+      }
     } else {
       // Within normal range — just refresh the last-active stamp.
       localStorage.setItem(LAST_ACTIVE_KEY, today);

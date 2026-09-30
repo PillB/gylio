@@ -7,6 +7,7 @@
 
 'use strict';
 
+const crypto = require('node:crypto');
 const { run, get, all } = require('../lib/sqlite');
 
 const SCHEMA = [
@@ -79,6 +80,7 @@ const SCHEMA = [
   'CREATE INDEX IF NOT EXISTS idx_feedback_status ON feedback_reports(status, createdAt);',
   `CREATE TABLE IF NOT EXISTS analytics_events (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    eventId TEXT,
     name TEXT NOT NULL,
     sessionId TEXT NOT NULL,
     signedIn INTEGER NOT NULL DEFAULT 0,
@@ -126,6 +128,10 @@ function createSqliteStore(db) {
       for (const statement of SCHEMA) {
         await run(db, statement);
       }
+      // Databases created before event ids existed get the column; old rows keep NULL.
+      const columns = await all(db, 'PRAGMA table_info(analytics_events)');
+      if (!columns.some((c) => c.name === 'eventId')) await run(db, 'ALTER TABLE analytics_events ADD COLUMN eventId TEXT');
+      await run(db, 'CREATE UNIQUE INDEX IF NOT EXISTS idx_analytics_event_id ON analytics_events(eventId)');
     },
 
     getAccount: (userId) => get(db, 'SELECT * FROM billing_accounts WHERE userId = ?', [userId]),
@@ -307,8 +313,8 @@ function createSqliteStore(db) {
 
     async insertAnalyticsEvents(events) {
       for (const e of events) {
-        await run(db, 'INSERT INTO analytics_events (name, sessionId, signedIn, props, receivedAt) VALUES (?, ?, ?, ?, ?)',
-          [e.name, e.sessionId, e.signedIn ? 1 : 0, JSON.stringify(e.props || {}), e.receivedAt]);
+        await run(db, 'INSERT OR IGNORE INTO analytics_events (eventId, name, sessionId, signedIn, props, receivedAt) VALUES (?, ?, ?, ?, ?, ?)',
+          [e.eventId || `srv-${crypto.randomUUID()}`, e.name, e.sessionId, e.signedIn ? 1 : 0, JSON.stringify(e.props || {}), e.receivedAt]);
       }
       return events.length;
     },

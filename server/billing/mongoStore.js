@@ -8,6 +8,7 @@
 
 'use strict';
 
+const crypto = require('node:crypto');
 const mongoose = require('mongoose');
 const { isStale } = require('./sqliteStore');
 
@@ -88,12 +89,14 @@ const UserStateSchema = new Schema({
 }, opts);
 
 const AnalyticsEventSchema = new Schema({
+  eventId: { type: String, required: true },
   name: { type: String, required: true },
   sessionId: { type: String, required: true },
   signedIn: { type: Boolean, default: false },
   props: { type: Schema.Types.Mixed, default: {} },
   receivedAt: { type: String, required: true, index: true },
 }, opts);
+AnalyticsEventSchema.index({ eventId: 1 }, { unique: true });
 
 const model = (connection, name, schema, collection) =>
   connection.models[name] || connection.model(name, schema, collection);
@@ -112,6 +115,13 @@ const cleanAccount = (doc) => {
 
 const isObjectId = (id) => mongoose.isValidObjectId(id) && String(id).length === 24;
 const DUPLICATE_KEY = 11000;
+
+/** True when a bulk insert failed only because some documents already existed. */
+function isOnlyDuplicateKeys(error) {
+  if (error && error.code === DUPLICATE_KEY) return true;
+  const writeErrors = (error && (error.writeErrors || (error.result && error.result.writeErrors))) || [];
+  return writeErrors.length > 0 && writeErrors.every((w) => (w.code || (w.err && w.err.code)) === DUPLICATE_KEY);
+}
 
 function createMongoStore(connection = mongoose.connection) {
   const Account = model(connection, 'BillingAccount', AccountSchema, 'billing_accounts');
@@ -276,7 +286,14 @@ function createMongoStore(connection = mongoose.connection) {
     },
 
     async insertAnalyticsEvents(events) {
-      if (events.length) await AnalyticsEvent.insertMany(events, { ordered: false });
+      if (!events.length) return 0;
+      const docs = events.map((e) => ({ ...e, eventId: e.eventId || `srv-${crypto.randomUUID()}` }));
+      try {
+        await AnalyticsEvent.insertMany(docs, { ordered: false });
+      } catch (error) {
+        // Re-sent events hit the unique eventId index; everything else still went in.
+        if (!isOnlyDuplicateKeys(error)) throw error;
+      }
       return events.length;
     },
 
