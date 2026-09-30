@@ -101,11 +101,9 @@ export function useRecurringReliability(todayKey?: string) {
     addTask?: (task: Record<string, unknown>) => Promise<unknown>;
   };
 
-  const { showToast } = useToast() as {
-    showToast: (msg: string, type?: string) => void;
-  };
+  const { showToast } = useToast();
 
-  const today = todayKey ?? getLocalDateKey(new Date());
+  const today = todayKey ?? getLocalDateKey();
 
   const [state, setState] = useState<ReliabilityState>({
     rows: [],
@@ -252,13 +250,14 @@ export function useRecurringReliability(todayKey?: string) {
         writeMeta(store);
 
         if (missingIds.length > 0 && !silent) {
-          showToast(
-            t(
+          showToast({
+            message: t(
               'recurring.missingWarning',
               '{{count}} recurring task(s) expected today are missing. Use "Rebuild" to fix.',
             ).replace('{{count}}', String(missingIds.length)),
-            'warning',
-          );
+            type: 'warning',
+            duration: 6000,
+          });
         }
 
         stampAllChecked(rows.map((r) => r.id));
