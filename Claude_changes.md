@@ -812,6 +812,7 @@ Numbered after #82's CHG-046 to keep IDs unique; #82 stacks on this branch.
   - The stale help box uses `colors.surface`.
   - vitest now uses the automatic JSX runtime.
 - 510af40, AA status text: SpendingChart, FinancialDiagnostic, WeeklyGrid and RecurringReliabilityPanel use `errorStrong`/`successStrong`/`colors.text`. The missing `budget.chartTapHint`, `chartUnderBudget` and `chartEmpty` keys were added in en and es-PE.
+- 3eeaa14, e2e tooling: `app-audit.spec.ts` hard-coded `http://localhost:5173/gylio`, so a `PLAYWRIGHT_BASE_URL` run still audited localhost and a run from a second checkout (a git worktree) tested whichever dev server held port 5173. It now navigates relative to the Playwright `baseURL` like the other specs. `playwright.config.ts` reads `PLAYWRIGHT_PORT` (default 5173) and starts the dev server with `--strictPort`, so it cannot drift to another port while the config waits on the busy one. With a decoy server on 5173 and `PLAYWRIGHT_PORT=5199`, app-audit failed before (it audited the decoy) and passes after (15/15); a default CI-style run of app-audit and happy-paths passes 24/24.
 
 **Codex review findings 3-7:**
 - **#4, Daily Mode completion** (`src/features/dashboard/DailyCommandCenter.tsx`):
