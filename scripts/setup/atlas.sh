@@ -21,10 +21,24 @@ if [[ "${DRY_RUN:-0}" == "1" ]] || ! atlas clusters describe "$CLUSTER" --projec
   run atlas clusters watch "$CLUSTER" --projectId "$ATLAS_PROJECT_ID"
 fi
 
-# A fresh random password per run; the old user is replaced so the secret and the user always match.
+# The API's database user. Re-running must not change its password: running Cloud
+# Run instances keep the old connection string until they restart, so a silent
+# rotation would break the live API. Rotate only when asked (ROTATE_DB_PASSWORD=1).
+USER_EXISTS=0
+if [[ "${DRY_RUN:-0}" != "1" ]] && atlas dbusers describe "$DB_USER" --projectId "$ATLAS_PROJECT_ID" >/dev/null 2>&1; then
+  USER_EXISTS=1
+fi
+if [[ "$USER_EXISTS" == "1" && "${ROTATE_DB_PASSWORD:-0}" != "1" ]]; then
+  echo "Database user $DB_USER exists; keeping its password and the stored MONGODB_URI. Set ROTATE_DB_PASSWORD=1 to rotate."
+  echo "Atlas ready: cluster $CLUSTER ($REGION, M0)."
+  exit 0
+fi
 if [[ "${DRY_RUN:-0}" == "1" ]]; then DB_PASS="dry-run"; else DB_PASS="$(openssl rand -base64 24 | tr -d '/+=')"; fi
-run atlas dbusers delete "$DB_USER" --force --projectId "$ATLAS_PROJECT_ID" || true
-run atlas dbusers create --username "$DB_USER" --password "$DB_PASS" --role "readWrite@gylio" --projectId "$ATLAS_PROJECT_ID"
+if [[ "$USER_EXISTS" == "1" || "${DRY_RUN:-0}" == "1" && "${ROTATE_DB_PASSWORD:-0}" == "1" ]]; then
+  run atlas dbusers update "$DB_USER" --password "$DB_PASS" --projectId "$ATLAS_PROJECT_ID"
+else
+  run atlas dbusers create --username "$DB_USER" --password "$DB_PASS" --role "readWrite@gylio" --projectId "$ATLAS_PROJECT_ID"
+fi
 
 # Cloud Run has no fixed outbound IP without a paid NAT, so the access list is open
 # and the strong generated password is the protection. Stated in the report.
@@ -46,4 +60,5 @@ else
   printf '%s' "$URI" | gcloud secrets create MONGODB_URI --data-file=- --project "$GCP_PROJECT" >/dev/null
 fi
 echo "Atlas ready: cluster $CLUSTER ($REGION, M0). MONGODB_URI stored in Secret Manager; it was not printed."
+[[ "${ROTATE_DB_PASSWORD:-0}" == "1" ]] && echo "Password rotated: run scripts/setup/cloudrun.sh again so the API restarts with the new connection string."
 echo "Atlas M0 has no backups: schedule 'mongodump' weekly (see the report)."

@@ -24,6 +24,17 @@ else
 fi
 
 echo "Client ID (paste into Clerk → Microsoft → Client ID): $APP_ID"
-echo "Creating a client secret valid for 2 years. It is shown once: paste it into Clerk, then clear the terminal."
-run az ad app credential reset --id "$APP_ID" --display-name clerk --years 2 --query password -o tsv
+# `credential reset` without --append replaces every existing secret, which would
+# break the live Microsoft sign-in until the new one is pasted into Clerk. Add a
+# secret only when asked (NEW_SECRET=1) or when the app has none yet.
+SECRETS=0
+if [[ "${DRY_RUN:-0}" != "1" ]]; then
+  SECRETS="$(az ad app credential list --id "$APP_ID" --query 'length(@)' -o tsv)"
+fi
+if [[ "$SECRETS" != "0" && "${NEW_SECRET:-0}" != "1" ]]; then
+  echo "The app already has a client secret; keeping it. Set NEW_SECRET=1 to add another (the current one keeps working)."
+else
+  echo "Adding a client secret valid for 2 years. It is shown once: paste it into Clerk, then clear the terminal."
+  run az ad app credential reset --id "$APP_ID" --append --display-name clerk --years 2 --query password -o tsv
+fi
 echo "Then tick 'Enable for sign-up and sign-in' in Clerk and run: node scripts/setup/check-auth.mjs --require google,microsoft"

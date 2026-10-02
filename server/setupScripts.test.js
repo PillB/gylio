@@ -71,3 +71,24 @@ describe('check-auth.mjs', () => {
     } } })).toEqual(['google', 'microsoft']);
   });
 });
+
+describe('re-running the scripts is safe', () => {
+  it('atlas.sh keeps the database password unless rotation is asked for', () => {
+    const plain = runScript('atlas.sh', { ATLAS_PROJECT_ID: 'p1', GCP_PROJECT: 'g1' });
+    expect(plain.stdout).not.toMatch(/dbusers delete/);
+    const rotate = runScript('atlas.sh', { ATLAS_PROJECT_ID: 'p1', GCP_PROJECT: 'g1', ROTATE_DB_PASSWORD: '1' });
+    expect(rotate.stdout).toMatch(/dbusers update gylio_api/);
+    expect(rotate.stdout).toMatch(/run scripts\/setup\/cloudrun.sh again/);
+  });
+
+  it('entra-app.sh adds a secret with --append instead of replacing the one Clerk uses', () => {
+    const { stdout } = runScript('entra-app.sh', { CLERK_MICROSOFT_REDIRECT_URI: 'https://clerk.gylio.app/v1/oauth_callback' });
+    expect(stdout).toMatch(/credential reset .*--append/);
+  });
+
+  it('keeps server/.env and the local database out of the Cloud Run source upload', () => {
+    const ignore = require('node:fs').readFileSync(path.join(root, 'server/.gcloudignore'), 'utf8').split('\n');
+    for (const pattern of ['.env', '*.db', 'node_modules/']) expect(ignore).toContain(pattern);
+  });
+});
+
