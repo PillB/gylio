@@ -7,7 +7,8 @@
     "saved": "Saved to your account {{when}}.",
     "saving": "Saving…",
     "offline": "Couldn't reach your account. Your changes are safe on this device and will be saved when you're back online.",
-    "conflict": "This device and your account have different data. Choose which to keep above."
+    "conflict": "This device and your account have different data. Choose which to keep above.",
+    "tooLarge": "Your data is over the 2 MB that an account can hold, so it is saved on this device only. Download it from below to keep a copy."
   },
   "saveNow": "Save now",
   "download": "Download my data",

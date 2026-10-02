@@ -42,12 +42,13 @@ describe('applySnapshot', () => {
     expect(after.onboardingFlowState).toBe('{}');
     expect(after['theme-mode']).toBeUndefined();
     expect(after['__clerk_x']).toBe('keep');
-    expect(JSON.parse(after[BACKUP_KEY]).data).toEqual({ gylio_sqlite: 'local', 'theme-mode': 'dark' });
+    expect(JSON.parse(after[BACKUP_KEY])[0].data).toEqual({ gylio_sqlite: 'local', 'theme-mode': 'dark' });
   });
 });
 
 describe('decideFirstSync', () => {
-  const local = { gylio_sqlite: 'L', onboardingFlowState: '{}' };
+  // Real shim format with one row, i.e. something the person made.
+  const local = { gylio_sqlite: '{"tasks":{"rows":[{"id":1}],"nextId":2}}', onboardingFlowState: '{}' };
   const server = { version: 3, updatedAt: 't', data: { gylio_sqlite: 'S' } };
 
   it('uploads when the account has no copy yet', () => {
@@ -75,5 +76,62 @@ describe('decideFirstSync', () => {
     const synced = { userId: 'u', version: 3, hash: snapshotHash(local), savedAt: null };
     expect(decideFirstSync({ userId: 'u', server, meta: synced, local })).toBe('in_sync');
     expect(decideFirstSync({ userId: 'u', server, meta: synced, local: { ...local, gylio_sqlite: 'edited' } })).toBe('push');
+  });
+});
+
+describe('review fixes: new devices, false conflicts, backups', () => {
+  const sqlite = (rows: number) => JSON.stringify({ tasks: { rows: Array.from({ length: rows }, (_, i) => ({ id: i + 1 })), nextId: rows + 1 } });
+
+  it('treats a fresh install (empty tables, onboarding not finished) as having no data', async () => {
+    const { hasAppData } = await import('./accountSync');
+    expect(hasAppData({ gylio_sqlite: sqlite(0), onboardingFlowState: '{"isOnboardingComplete":false}', 'theme-mode': 'dark' })).toBe(false);
+    expect(hasAppData({ gylio_sqlite: sqlite(2) })).toBe(true);
+    expect(hasAppData({ onboardingFlowState: '{"isOnboardingComplete":true}' })).toBe(true);
+  });
+
+  it('restores the account onto a new device that only has start-up defaults', () => {
+    const server = { version: 4, updatedAt: 't', data: { gylio_sqlite: sqlite(5) } };
+    const freshInstall = { gylio_sqlite: sqlite(0), onboardingFlowState: '{"isOnboardingComplete":false}' };
+    expect(decideFirstSync({ userId: 'u', server, meta: null, local: freshInstall })).toBe('restore');
+  });
+
+  it('sees identical data as in sync even when the last save was never confirmed', () => {
+    const data = { gylio_sqlite: sqlite(3) };
+    const server = { version: 7, updatedAt: 't', data };
+    const staleMeta = { userId: 'u', version: 6, hash: 'old', savedAt: null };
+    expect(decideFirstSync({ userId: 'u', server, meta: staleMeta, local: { ...data } })).toBe('in_sync');
+  });
+
+  it('does not count the per-device "last active" and welcome-back keys as edits', () => {
+    const storage = memoryStorage({ gylio_sqlite: sqlite(1), 'gylio:lastActiveDate': '2026-10-01', 'gylio:welcomeBackDismissed': '2026-10-01' });
+    expect(Object.keys(collectSnapshot(storage))).toEqual(['gylio_sqlite']);
+  });
+
+  it('keeps the last three backups, newest first, each tagged with whose data it was', async () => {
+    const { backupsFor } = await import('./accountSync');
+    const storage = memoryStorage({ gylio_sqlite: 'v1' });
+    applySnapshot(storage, { gylio_sqlite: 'v2' }, '2026-10-01T00:00:00Z', 'user_a');
+    applySnapshot(storage, { gylio_sqlite: 'v3' }, '2026-10-02T00:00:00Z', 'user_a');
+    applySnapshot(storage, { gylio_sqlite: 'v4' }, '2026-10-03T00:00:00Z', 'user_a');
+    applySnapshot(storage, { gylio_sqlite: 'v5' }, '2026-10-04T00:00:00Z', 'user_a');
+    expect(backupsFor(storage, 'user_a').map((b) => b.data.gylio_sqlite)).toEqual(['v4', 'v3', 'v2']);
+  });
+
+  it("never offers one person's set-aside data to the next person on the same browser", async () => {
+    const { backupsFor } = await import('./accountSync');
+    const storage = memoryStorage({ gylio_sqlite: 'alice-tasks' });
+    applySnapshot(storage, {}, '2026-10-01T00:00:00Z', 'user_alice');
+    expect(backupsFor(storage, 'user_bob')).toEqual([]);
+    expect(backupsFor(storage, 'user_alice')[0].data.gylio_sqlite).toBe('alice-tasks');
+    // Data made before anyone signed in belongs to whoever signs in first.
+    const anonymous = memoryStorage({ gylio_sqlite: 'local-only' });
+    applySnapshot(anonymous, {}, '2026-10-01T00:00:00Z', null);
+    expect(backupsFor(anonymous, 'user_bob')).toHaveLength(1);
+  });
+
+  it('still reads a backup saved in the old single-object format', async () => {
+    const { backupsFor } = await import('./accountSync');
+    const storage = memoryStorage({ [BACKUP_KEY]: JSON.stringify({ savedAt: 't', data: { gylio_sqlite: 'old' } }) });
+    expect(backupsFor(storage, 'anyone')[0].data.gylio_sqlite).toBe('old');
   });
 });

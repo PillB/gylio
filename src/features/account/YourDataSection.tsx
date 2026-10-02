@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../core/context/ThemeContext';
 import { useAppAuth } from '../../core/context/AuthContext';
 import { useAccountSync } from './AccountSyncContext';
-import { BACKUP_KEY, applySnapshot, collectSnapshot, type Snapshot } from './accountSync';
+import { applySnapshot, backupsFor, collectSnapshot, dropBackup, type Snapshot } from './accountSync';
 import { buildDataFile, parseDataFile } from './dataFile';
 
 function downloadText(filename: string, text: string) {
@@ -19,11 +19,12 @@ function downloadText(filename: string, text: string) {
   URL.revokeObjectURL(url);
 }
 
-function readBackup(): { savedAt: string; data: Snapshot } | null {
+/** Tells other open tabs to reload so they don't write their stale copy back. */
+function markReplaced() {
   try {
-    return JSON.parse(localStorage.getItem(BACKUP_KEY) || 'null');
+    localStorage.setItem('gylio:sync:replacedAt', new Date().toISOString());
   } catch {
-    return null;
+    // storage full: this tab reloads anyway
   }
 }
 
@@ -49,6 +50,7 @@ function StatusLine() {
 function RestoreFromFile() {
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
+  const { userId } = useAppAuth();
   const button = useButtonStyle();
   const inputRef = useRef<HTMLInputElement>(null);
   const [pending, setPending] = useState<{ exportedAt: string; data: Snapshot } | null>(null);
@@ -65,7 +67,8 @@ function RestoreFromFile() {
   };
   const confirm = () => {
     if (!pending) return;
-    applySnapshot(localStorage, pending.data, new Date().toISOString());
+    applySnapshot(localStorage, pending.data, new Date().toISOString(), userId);
+    markReplaced();
     window.location.reload();
   };
 
@@ -98,7 +101,8 @@ export function YourDataSection() {
   const { userId } = useAppAuth();
   const { saveNow, status } = useAccountSync();
   const button = useButtonStyle();
-  const backup = readBackup();
+  // Only this person's own backups (or data made before anyone signed in), newest first.
+  const backup = backupsFor(localStorage, userId)[0] ?? null;
 
   const download = () => {
     const stamp = new Date().toISOString();
@@ -106,7 +110,9 @@ export function YourDataSection() {
   };
   const undo = () => {
     if (!backup) return;
-    applySnapshot(localStorage, backup.data, new Date().toISOString());
+    applySnapshot(localStorage, backup.data, new Date().toISOString(), userId);
+    dropBackup(localStorage, backup.savedAt);
+    markReplaced();
     window.location.reload();
   };
 

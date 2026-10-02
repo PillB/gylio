@@ -7,7 +7,8 @@
     "saved": "Guardado en tu cuenta {{when}}.",
     "saving": "Guardando…",
     "offline": "No pudimos conectar con tu cuenta. Tus cambios están seguros en este dispositivo y se guardarán cuando vuelvas a tener conexión.",
-    "conflict": "Este dispositivo y tu cuenta tienen datos distintos. Elige cuáles conservar arriba."
+    "conflict": "Este dispositivo y tu cuenta tienen datos distintos. Elige cuáles conservar arriba.",
+    "tooLarge": "Tus datos superan los 2 MB que puede guardar una cuenta, así que solo se guardan en este dispositivo. Descárgalos abajo para tener una copia."
   },
   "saveNow": "Guardar ahora",
   "download": "Descargar mis datos",

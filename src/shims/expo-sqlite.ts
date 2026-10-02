@@ -274,6 +274,14 @@ if (typeof localStorage !== 'undefined') {
   _loadStore();
 }
 
+// Another tab wrote the store: re-read it, so this tab's next write doesn't put
+// its stale in-memory copy back over the newer data (and from there into the account).
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (event) => {
+    if (event.key === STORAGE_KEY) _loadStore();
+  });
+}
+
 const _createTransaction = (): SQLTransaction => ({
   executeSql(statement, args = [], success, error) {
     try {

@@ -183,3 +183,24 @@ describe('expo-sqlite web shim', () => {
     warnSpy.mockRestore();
   });
 });
+
+describe('two open tabs', () => {
+  it("re-reads the store when another tab changes it, so this tab's next write keeps that change", async () => {
+    const { openDatabase } = await import('./expo-sqlite');
+    const db = openDatabase('gylio.db');
+    const exec = (sql: string, args: unknown[] = []) => new Promise<void>((resolve, reject) =>
+      db.transaction((tx) => tx.executeSql(sql, args, () => { resolve(); return true; }, (_t, e) => { reject(e); return true; })));
+    await exec('CREATE TABLE IF NOT EXISTS tabs_test (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT)');
+    await exec('INSERT INTO tabs_test (title) VALUES (?)', ['from this tab']);
+
+    // The other tab adds a row and saves the whole store.
+    const other = JSON.parse(localStorage.getItem('gylio_sqlite') as string);
+    other.tabs_test.rows.push({ id: 99, title: 'from the other tab' });
+    localStorage.setItem('gylio_sqlite', JSON.stringify(other));
+    window.dispatchEvent(new StorageEvent('storage', { key: 'gylio_sqlite' }));
+
+    await exec('INSERT INTO tabs_test (title) VALUES (?)', ['second from this tab']);
+    const titles = JSON.parse(localStorage.getItem('gylio_sqlite') as string).tabs_test.rows.map((r: { title: string }) => r.title);
+    expect(titles).toContain('from the other tab');
+  });
+});

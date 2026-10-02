@@ -21,7 +21,13 @@ const DEVICE_ONLY: readonly RegExp[] = [
   /^gylio:entitlement:/,
   /^gylio:anonId$/,
   /^analytics:/,
+  // Written automatically on every app start; per device, and never a user edit.
+  /^gylio:lastActiveDate$/,
+  /^gylio:welcomeBackDismissed$/,
+  /^gylio:lastStreakBeforeBreak$/,
 ];
+
+const MAX_BACKUPS = 3;
 
 export type Snapshot = Record<string, string>;
 export type SyncMeta = { userId: string; version: number; hash: string; savedAt: string | null };
@@ -47,18 +53,68 @@ export function snapshotHash(snapshot: Snapshot): string {
   return fnv1a(canonical).toString(16);
 }
 
-/** True when this device holds real app data rather than a fresh install. */
-export function hasAppData(snapshot: Snapshot): boolean {
-  return Object.keys(snapshot).some((key) => key === 'gylio_sqlite' || key === 'onboardingFlowState');
+function parseJson(value: string | undefined): unknown {
+  try {
+    return value ? JSON.parse(value) : null;
+  } catch {
+    return null;
+  }
 }
 
 /**
- * Replace this device's app data with `data`. The previous data is kept in
- * BACKUP_KEY first, so a restore can always be undone.
+ * True when this device holds something the person made, not just the
+ * defaults every fresh install writes on start-up (empty tables, an
+ * unfinished onboarding, a theme choice).
  */
-export function applySnapshot(storage: StorageLike, data: Snapshot, now: string): void {
+export function hasAppData(snapshot: Snapshot): boolean {
+  const tables = parseJson(snapshot.gylio_sqlite) as Record<string, { rows?: unknown[] }> | null;
+  const hasRows = Boolean(tables) && Object.values(tables as object).some((t) => Array.isArray(t?.rows) && t.rows.length > 0);
+  const onboarding = parseJson(snapshot.onboardingFlowState) as { isOnboardingComplete?: boolean } | null;
+  return hasRows || Boolean(onboarding?.isOnboardingComplete);
+}
+
+export type Backup = { savedAt: string; ownerId: string | null; data: Snapshot };
+
+function readBackups(storage: StorageLike): Backup[] {
+  const raw = parseJson(storage.getItem(BACKUP_KEY) ?? undefined);
+  if (Array.isArray(raw)) return raw as Backup[];
+  // Older single-backup format, before backups were tagged with their owner.
+  if (raw && typeof raw === 'object' && 'data' in raw) return [{ ownerId: null, ...(raw as Omit<Backup, 'ownerId'>) }];
+  return [];
+}
+
+/** Backups this person may restore: their own, or data made before anyone signed in. */
+export function backupsFor(storage: StorageLike, userId: string | null): Backup[] {
+  return readBackups(storage).filter((b) => b.ownerId === null || b.ownerId === userId);
+}
+
+function writeBackups(storage: StorageLike, backups: Backup[]): void {
+  // Each backup is a full copy; if the browser's storage is full, keep fewer rather than fail the restore.
+  for (let keep = backups.length; keep > 0; keep -= 1) {
+    try {
+      storage.setItem(BACKUP_KEY, JSON.stringify(backups.slice(0, keep)));
+      return;
+    } catch {
+      // try again with one fewer
+    }
+  }
+}
+
+/** Remove one backup after it has been restored. */
+export function dropBackup(storage: StorageLike, savedAt: string): void {
+  writeBackups(storage, readBackups(storage).filter((b) => b.savedAt !== savedAt));
+}
+
+/**
+ * Replace this device's app data with `data`. The previous data is kept as a
+ * backup tagged with whose it was (the last three are kept), so a restore can
+ * be undone, and never by a different person.
+ */
+export function applySnapshot(storage: StorageLike, data: Snapshot, now: string, ownerId: string | null = null): void {
   const previous = collectSnapshot(storage);
-  storage.setItem(BACKUP_KEY, JSON.stringify({ savedAt: now, data: previous }));
+  if (Object.keys(previous).length) {
+    writeBackups(storage, [{ savedAt: now, ownerId, data: previous }, ...readBackups(storage)].slice(0, MAX_BACKUPS));
+  }
   for (const key of Object.keys(previous)) {
     if (!(key in data)) storage.removeItem(key);
   }
@@ -89,6 +145,8 @@ export function decideFirstSync(args: {
   const { userId, server, meta, local } = args;
   if (meta && meta.userId !== userId) return server ? 'restore' : 'fresh';
   if (!server) return hasAppData(local) ? 'upload' : 'in_sync';
+  // Same content on both sides: nothing to choose, whatever the version numbers say.
+  if (snapshotHash(local) === snapshotHash(server.data)) return 'in_sync';
   if (!meta) return hasAppData(local) ? 'ask' : 'restore';
   return decideKnownDevice(server, meta, local);
 }

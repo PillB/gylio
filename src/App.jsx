@@ -252,6 +252,8 @@ function AppLayout({ clerkEnabled }) {
         }}
       >
         <AppHeader clerkEnabled={clerkEnabled} />
+        {/* On every screen, onboarding included: a new device must see the choice before redoing setup. */}
+        <SyncConflictBanner />
         <Outlet />
       </div>
       <GuidedTourOverlay />
@@ -378,7 +380,6 @@ function TabsLayout() {
       />
       <main>
         <WelcomeBackBanner />
-        <SyncConflictBanner />
         <TrialBanner />
         <Outlet />
       </main>

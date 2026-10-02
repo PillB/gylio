@@ -14,13 +14,18 @@ import { useAppAuth } from '../../core/context/AuthContext';
 import { authHeaders } from '../../core/utils/authToken';
 import { apiUrl } from '../../core/utils/apiUrl';
 import {
-  applySnapshot, collectSnapshot, decideFirstSync, readMeta, snapshotHash, writeMeta,
+  BACKUP_KEY, applySnapshot, collectSnapshot, decideFirstSync, readMeta, snapshotHash, writeMeta,
   type ServerState, type Snapshot,
 } from './accountSync';
 
 const SAVE_INTERVAL_MS = 15_000;
+const RELINK_INTERVAL_MS = 60_000;
+/** Browsers refuse keepalive requests with bodies over 64 KiB. */
+const KEEPALIVE_LIMIT = 60_000;
 
-export type SyncStatus = 'off' | 'checking' | 'saved' | 'saving' | 'offline' | 'conflict';
+export type SyncStatus = 'off' | 'checking' | 'saved' | 'saving' | 'offline' | 'conflict' | 'tooLarge';
+
+class TooLargeError extends Error {}
 
 type PutResult = { saved: boolean; state: ServerState };
 
@@ -31,12 +36,15 @@ async function getServerState(): Promise<ServerState> {
 }
 
 async function putServerState(baseVersion: number, data: Snapshot, keepalive = false): Promise<PutResult> {
+  const body = JSON.stringify({ baseVersion, data });
   const res = await fetch(apiUrl('/api/state'), {
     method: 'PUT',
     headers: await authHeaders({ 'Content-Type': 'application/json' }),
-    body: JSON.stringify({ baseVersion, data }),
-    keepalive,
+    body,
+    // keepalive lets a save finish while the tab closes, but only for small bodies.
+    keepalive: keepalive && body.length < KEEPALIVE_LIMIT,
   });
+  if (res.status === 413) throw new TooLargeError('state too large');
   if (res.status !== 200 && res.status !== 409) throw new Error(`state ${res.status}`);
   return res.json();
 }
@@ -59,8 +67,21 @@ const SyncCtx = createContext<SyncState>({
   chooseDeviceCopy: async () => undefined,
 });
 
+/** Tells other open tabs that this device's data was replaced, so they reload instead of overwriting it. */
+const REPLACED_KEY = 'gylio:sync:replacedAt';
+
+function markReplaced() {
+  try {
+    localStorage.setItem(REPLACED_KEY, new Date().toISOString());
+  } catch {
+    // storage full: the reload below still shows the right data in this tab
+  }
+}
+
 function restoreAndReload(userId: string, server: NonNullable<ServerState>) {
-  applySnapshot(localStorage, server.data, new Date().toISOString());
+  const previousOwner = readMeta(localStorage)?.userId ?? null;
+  applySnapshot(localStorage, server.data, new Date().toISOString(), previousOwner);
+  markReplaced();
   writeMeta(localStorage, { userId, version: server.version, hash: snapshotHash(server.data), savedAt: server.updatedAt });
   // Every screen reads storage when it starts, so a reload is the reliable way to show the restored data.
   window.location.reload();
@@ -68,9 +89,21 @@ function restoreAndReload(userId: string, server: NonNullable<ServerState>) {
 
 /** The data on this device belonged to someone else: set it aside (undoable from Settings) and start empty. */
 function startEmptyAndReload(userId: string) {
-  applySnapshot(localStorage, {}, new Date().toISOString());
+  // Tagged with the previous person, so only they can bring it back.
+  applySnapshot(localStorage, {}, new Date().toISOString(), readMeta(localStorage)?.userId ?? null);
+  markReplaced();
   writeMeta(localStorage, { userId, version: 0, hash: snapshotHash({}), savedAt: null });
   window.location.reload();
+}
+
+function keepAccountCopy(server: NonNullable<ServerState>, userId: string | null) {
+  try {
+    const existing = JSON.parse(localStorage.getItem(BACKUP_KEY) || '[]');
+    const list = Array.isArray(existing) ? existing : [];
+    localStorage.setItem(BACKUP_KEY, JSON.stringify([{ savedAt: new Date().toISOString(), ownerId: userId, data: server.data }, ...list].slice(0, 3)));
+  } catch {
+    // storage full: the choice still goes ahead, as before
+  }
 }
 
 export function AccountSyncProvider({ children }: { children: ReactNode }) {
@@ -79,6 +112,17 @@ export function AccountSyncProvider({ children }: { children: ReactNode }) {
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
   const [conflict, setConflict] = useState<ServerState>(null);
   const busy = useRef(false);
+  // Hash of data the server refused as too large: don't re-send it every 15 seconds.
+  const tooLargeHash = useRef<string | null>(null);
+
+  const fail = useCallback((error: unknown) => {
+    if (error instanceof TooLargeError) {
+      tooLargeHash.current = snapshotHash(collectSnapshot(localStorage));
+      setStatus('tooLarge');
+    } else {
+      setStatus('offline');
+    }
+  }, []);
 
   const push = useCallback(async (baseVersion: number, keepalive = false) => {
     if (!userId) return;
@@ -99,16 +143,17 @@ export function AccountSyncProvider({ children }: { children: ReactNode }) {
     if (!userId || busy.current || conflict) return;
     const meta = readMeta(localStorage);
     if (meta?.userId !== userId) return;
-    if (meta.hash === snapshotHash(collectSnapshot(localStorage))) return;
+    const hash = snapshotHash(collectSnapshot(localStorage));
+    if (meta.hash === hash || hash === tooLargeHash.current) return;
     busy.current = true;
     try {
       await push(meta.version, keepalive);
-    } catch {
-      setStatus('offline');
+    } catch (error) {
+      fail(error);
     } finally {
       busy.current = false;
     }
-  }, [userId, conflict, push]);
+  }, [userId, conflict, push, fail]);
 
   const settle = useCallback((uid: string, server: ServerState) => {
     if (server) writeMeta(localStorage, { userId: uid, version: server.version, hash: snapshotHash(server.data), savedAt: server.updatedAt });
@@ -142,10 +187,32 @@ export function AccountSyncProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!userId) {
       setStatus('off');
-      return;
+      return undefined;
     }
-    firstSyncRef.current(userId).catch(() => setStatus('offline'));
-  }, [userId]);
+    let done = false;
+    const attempt = () => {
+      if (done) return;
+      firstSyncRef.current(userId).then(() => { done = true; }, fail);
+    };
+    attempt();
+    // If the first sync failed (offline), keep trying: saving only starts once it succeeds.
+    const timer = window.setInterval(attempt, RELINK_INTERVAL_MS);
+    window.addEventListener('online', attempt);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener('online', attempt);
+    };
+  }, [userId, fail]);
+
+  // Another tab replaced this device's data (restore, account switch): this tab's
+  // in-memory copy is now stale and would overwrite it, so reload.
+  useEffect(() => {
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === REPLACED_KEY) window.location.reload();
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
 
   useEffect(() => {
     if (!userId) return undefined;
@@ -164,14 +231,17 @@ export function AccountSyncProvider({ children }: { children: ReactNode }) {
 
   const chooseDeviceCopy = useCallback(async () => {
     if (!conflict) return;
+    // The account copy is about to be replaced: keep it on this device so it can be restored.
+    keepAccountCopy(conflict, userId);
     setConflict(null);
-    await push(conflict.version).catch(() => setStatus('offline'));
-  }, [conflict, push]);
+    await push(conflict.version).catch(fail);
+  }, [conflict, push, fail, userId]);
 
   const saveNow = useCallback(async () => {
     const meta = readMeta(localStorage);
-    await push(meta?.userId === userId ? meta.version : 0).catch(() => setStatus('offline'));
-  }, [push, userId]);
+    tooLargeHash.current = null;
+    await push(meta?.userId === userId ? meta.version : 0).catch(fail);
+  }, [push, userId, fail]);
 
   const value = useMemo(
     () => ({ status, lastSavedAt, conflict, saveNow, chooseAccountCopy, chooseDeviceCopy }),
