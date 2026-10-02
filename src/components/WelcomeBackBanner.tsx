@@ -21,10 +21,14 @@ const LAST_STREAK_BEFORE_KEY = 'gylio:lastStreakBeforeBreak';
 const GAP_DAYS               = 3;
 const MESSAGE_COUNT          = 4; // must match welcomeBack.message0..3 keys
 
+// An ISO date carries a month from 1 to 12; Date.UTC counts months from 0.
+function utcDay(isoDate: string): number {
+  const [year, month, day] = isoDate.split('-').map(Number) as [number, number, number];
+  return Date.UTC(year, month - 1, day);
+}
+
 function daysBetween(a: string, b: string): number {
-  const utcA = Date.UTC(...(a.split('-').map(Number) as [number, number, number]));
-  const utcB = Date.UTC(...(b.split('-').map(Number) as [number, number, number]));
-  return Math.floor((utcB - utcA) / 86_400_000);
+  return Math.floor((utcDay(b) - utcDay(a)) / 86_400_000);
 }
 
 function todayISO(): string {
