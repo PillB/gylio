@@ -15,7 +15,8 @@ type NotificationsModule = typeof import('expo-notifications');
 type UseTasksResult = {
   tasks: ChecklistTask[];
   loading: boolean;
-  toggleTaskStatus: (taskId: number) => Promise<void>;
+  /** Resolves true once the new status is stored; false when the task is not loaded yet or the save failed. */
+  toggleTaskStatus: (taskId: number) => Promise<boolean>;
   toggleSubtask: (taskId: number, subtaskIndex: number) => Promise<void>;
   refreshTasks: () => Promise<void>;
   addTask: (options: {
@@ -118,15 +119,18 @@ const useTasks = (): UseTasksResult => {
   );
 
   const toggleTaskStatus = useCallback(
-    async (taskId: number) => {
+    async (taskId: number): Promise<boolean> => {
       const target = tasks.find((task) => task.id === taskId);
-      if (!target) return;
+      if (!target) return false;
 
       const nextStatus = target.status === 'completed' ? 'pending' : 'completed';
+      // True once the new status is stored; a failure after that (rewards, announcement) keeps it true.
+      let saved = false;
 
       try {
         const updated = await updateTask(taskId, { status: nextStatus });
-        if (!updated) return;
+        if (!updated) return false;
+        saved = true;
 
         setTasks((prev) => prev.map((entry) => (entry.id === taskId ? { ...entry, status: nextStatus } : entry)));
 
@@ -145,6 +149,7 @@ const useTasks = (): UseTasksResult => {
       } catch (error) {
         console.error('Failed to toggle task status', error);
       }
+      return saved;
     },
     [applyRewardsProgress, refreshTasks, speak, t, tasks, updateTask]
   );

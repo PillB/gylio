@@ -187,12 +187,12 @@ test.describe('New component smoke tests', () => {
     expect(missing, `Missing keys:\n${missing.join('\n')}`).toHaveLength(0);
   });
 
-  test('Reliability status button visible on Tasks page', async ({ page }) => {
+  test('Reliability status stays hidden while no task repeats', async ({ page }) => {
     await gotoPage(page, '/tasks');
-    // The button text comes from i18n key recurring.showPanel = "Reliability status" (en) or
-    // "Estado de recurrencia" (es-PE). Test checks both.
-    const btn = page.locator('button').filter({ hasText: /recurrencia|reliability status/i }).first();
-    await expect(btn).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('#new-task')).toBeVisible({ timeout: 5000 });
+    // Tasks do not persist a recurrence yet, so the entry point (recurring.showPanel:
+    // "Reliability status" / "Estado de recurrencia") must not be offered.
+    await expect(page.locator('button').filter({ hasText: /recurrencia|reliability status/i })).toHaveCount(0);
   });
 
   test('Settings Daily View section visible', async ({ page }) => {

@@ -544,60 +544,65 @@ const TaskList: React.FC = () => {
         )}
       </div>
 
-      {/* ── Recurring reliability status ── */}
-      <div style={{ marginBottom: `${theme.spacing.md}px` }}>
-        <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-          <button
-            type="button"
-            onClick={() => {
-              const next = !showReliabilityPanel;
-              setShowReliabilityPanel(next);
-              if (next) track(Events.RECURRING_RELIABILITY_VIEWED);
-            }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
-              minHeight: 44,
-              borderRadius: theme.shape.radiusFull,
-              border: `1.5px solid ${showReliabilityPanel ? theme.colors.primary : theme.colors.border}`,
-              background: showReliabilityPanel ? `${theme.colors.primary}12` : 'transparent',
-              color: showReliabilityPanel ? theme.colors.primary : theme.colors.muted,
-              cursor: 'pointer',
-              fontSize: '0.875rem',
-              fontWeight: 600,
-              fontFamily: theme.typography.body.family,
-            }}
-          >
-            <span>🔁</span>
-            {showReliabilityPanel
-              ? t('recurring.hidePanel', 'Hide reliability status')
-              : t('recurring.showPanel', 'Reliability status')}
-          </button>
-          <BudgetTooltip content={t('tooltips.tasks.reliability', 'Tracks how consistently you complete recurring tasks. Use this to spot patterns, identify what is stalling, and build a more reliable routine over time.')} />
-        </span>
-        {showReliabilityPanel && (
-          <div
-            style={{
-              marginTop: `${theme.spacing.sm}px`,
-              border: `1px solid ${theme.colors.border}`,
-              borderRadius: theme.shape.radiusMd,
-              padding: `${theme.spacing.sm}px`,
-              background: theme.colors.surface,
-            }}
-          >
-            <RecurringReliabilityPanel
-              rows={reliability.rows}
-              lastGlobalCheckAt={reliability.lastGlobalCheckAt}
-              isChecking={reliability.isChecking}
-              isRepairing={reliability.isRepairing}
-              onManualCheck={reliability.runCheck}
-              onRepair={reliability.repair}
-            />
-          </div>
-        )}
-      </div>
+      {/* ── Recurring reliability status ──
+          Shown only once a stored task repeats. Tasks do not persist a recurrence yet
+          (no tasks column, no mapTask field, no form control), so the panel could only
+          ever say "No recurring tasks configured". It appears on its own once they do. */}
+      {reliability.rows.length > 0 && (
+        <div style={{ marginBottom: `${theme.spacing.md}px` }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+            <button
+              type="button"
+              onClick={() => {
+                const next = !showReliabilityPanel;
+                setShowReliabilityPanel(next);
+                if (next) track(Events.RECURRING_RELIABILITY_VIEWED);
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
+                minHeight: 44,
+                borderRadius: theme.shape.radiusFull,
+                border: `1.5px solid ${showReliabilityPanel ? theme.colors.primary : theme.colors.border}`,
+                background: showReliabilityPanel ? `${theme.colors.primary}12` : 'transparent',
+                color: showReliabilityPanel ? theme.colors.primary : theme.colors.muted,
+                cursor: 'pointer',
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                fontFamily: theme.typography.body.family,
+              }}
+            >
+              <span>🔁</span>
+              {showReliabilityPanel
+                ? t('recurring.hidePanel', 'Hide reliability status')
+                : t('recurring.showPanel', 'Reliability status')}
+            </button>
+            <BudgetTooltip content={t('tooltips.tasks.reliability', 'Tracks how consistently you complete recurring tasks. Use this to spot patterns, identify what is stalling, and build a more reliable routine over time.')} />
+          </span>
+          {showReliabilityPanel && (
+            <div
+              style={{
+                marginTop: `${theme.spacing.sm}px`,
+                border: `1px solid ${theme.colors.border}`,
+                borderRadius: theme.shape.radiusMd,
+                padding: `${theme.spacing.sm}px`,
+                background: theme.colors.surface,
+              }}
+            >
+              <RecurringReliabilityPanel
+                rows={reliability.rows}
+                lastGlobalCheckAt={reliability.lastGlobalCheckAt}
+                isChecking={reliability.isChecking}
+                isRepairing={reliability.isRepairing}
+                onManualCheck={reliability.runCheck}
+                onRepair={reliability.repair}
+              />
+            </div>
+          )}
+        </div>
+      )}
 
       {/* An implicit `auto` grid column cannot shrink below a child's intrinsic
           width. #new-task (size=20 at the 16px iOS no-zoom font size) is ~268px,
