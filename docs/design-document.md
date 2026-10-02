@@ -7,8 +7,8 @@
 **NeuroFlow** is a web-based application tailored for neurodivergent users (autism, ADHD, dyslexia, dyspraxia, etc.) that unifies **task management**, **calendar/routines**, and **budgeting/debt reduction**. The product emphasizes predictable layouts, low sensory load, dyslexia-friendly typography, and ethical gamification (points, streaks, gentle nudges) to support self-set goals. Budgeting follows **Caleb Hammer’s zero-based approach** with **Needs vs Wants** tracking and **Snowball/Avalanche** debt simulators.
 
 **Stack (proposed, offline-first):**
-- Frontend: React + TypeScript, ARIA-compliant UI, service worker + IndexedDB for caching.
-- Backend: Node.js + Express (REST), JWT auth.
+- Frontend: React + TypeScript, ARIA-compliant UI, service worker + IndexedDB for caching. Auth via `@clerk/react` v6 (Core 3).
+- Backend: Node.js + Express (REST), JWT auth verified via Clerk JWKS (RS256).
 - Data: MongoDB in production; **SQLite fallback for full local/offline runs** (plus browser IndexedDB cache).
 
 This document (≈40-page equivalent) details features, UX, APIs, data models, roadmap, and testing (with neurodivergent participants) to ensure the experience is empowering, predictable, and accessible.
@@ -84,7 +84,16 @@ Top nav (persistent): Tasks & Focus | Calendar | Budget | Rewards | Settings (Ac
 4. **Mini tour:** Tooltips with TTS.
 
 ### 3.4 Accessibility Requirements
-- WCAG 2.2 AA, semantic HTML, ARIA landmarks/roles.
+- **WCAG 2.2 AA** (W3C Recommendation, October 2023) — current legally-recognised standard. New criteria especially relevant to neurodivergent users:
+  - **2.4.11 Focus Not Obscured** — focus indicators must not be fully hidden (AA)
+  - **2.4.13 Focus Appearance** — focus indicators meet minimum contrast + size (AA)
+  - **2.5.7 Dragging Movements** — drag interactions must have a single-pointer alternative (AA)
+  - **2.5.8 Target Size (Minimum)** — interactive targets ≥24×24 CSS px (AA)
+  - **3.3.7 Redundant Entry** — don't ask users to re-enter info already provided (A)
+  - **3.3.8 Accessible Authentication** — no cognitive function tests (e.g. CAPTCHAs) required without alternative (AA)
+  - Note: SC 4.1.1 Parsing was **removed** in WCAG 2.2 as obsolete.
+- WCAG 3.0 is a Working Draft (latest: September 2025); W3C Recommendation not expected before 2028. It introduces a Bronze/Silver/Gold rating model and expanded cognitive accessibility guidance. Design with WCAG 3.0 principles in mind but target WCAG 2.2 AA for compliance today.
+- Semantic HTML, ARIA landmarks/roles.
 - Base font ≥16px; line height 1.5–1.8; left-aligned text.
 - Contrast ≥4.5:1; avoid red/green for critical info.
 - Full keyboard navigation; visible focus outlines.
@@ -388,9 +397,17 @@ if conflict, prompt user to reconcile (server vs local timestamps).
 ## 19. References (Contextual Research)
 - ADDitude Magazine on ADHD productivity tools.
 - UX Design articles on designing for autistic users.
-- WCAG 2.2 guidelines for accessibility.
-- Behavioral science references on nudges and ethical gamification.
+- WCAG 2.2 W3C Recommendation (October 2023) — current accessibility standard. New SC 2.4.11, 2.5.7, 2.5.8 directly benefit neurodivergent users.
+- WCAG 3.0 Working Draft (September 2025) — draft; introduces expanded cognitive accessibility guidelines and Bronze/Silver/Gold rating model. Target Recommendation: ~2028.
+- Behavioral science references on nudges and ethical gamification (Fogg Behavior Model, Self-Determination Theory).
 - Caleb Hammer budgeting and debt reduction strategies.
+- Branson et al. (ACM TACCESS, 2024): first peer-reviewed study on body doubling; 85% of 220 neurodivergent participants reported improved task completion.
+- Lott et al. (arXiv:2509.12153, 2025): VR body doubling study confirming benefits from AI and human doubles.
+- arXiv:2507.06864 (2025): systems review recommending adaptive, human-in-the-loop ADHD tools over prescriptive workflows.
+- Marinus et al. (PMC/PLOS ONE, 2017) and Broadbent (UCL, 2023): OpenDyslexic shows no reliable reading improvement; Lexend preferred.
+- [Clerk Pricing](https://clerk.com/pricing): 50K MAU free tier (as of 2026).
+- [Railway Pricing](https://railway.app/pricing): Hobby plan $5/mo; no traditional free tier.
+- [Render Pricing](https://render.com/pricing): free tier spins down after 15 min; $7/mo for always-on.
 
 ---
 

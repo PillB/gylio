@@ -1,0 +1,122 @@
+{
+  "heading": "Consola de administración",
+  "loading": "Cargando…",
+  "notAllowed": "Esta página es solo para administradores de Gylio.",
+  "error": "No funcionó. Inténtalo de nuevo.",
+  "tab": {
+    "pro": "Acceso Pro",
+    "qa": "Bandeja de pruebas",
+    "analytics": "Analítica"
+  },
+  "gift": {
+    "heading": "Regalar Pro",
+    "target": "Correo o id de usuario",
+    "duration": "Duración",
+    "durationOption": {
+      "7": "7 días",
+      "30": "1 mes (30 días)",
+      "90": "3 meses",
+      "365": "1 año",
+      "indefinite": "Sin fecha de fin"
+    },
+    "reason": "Motivo",
+    "reasonOption": {
+      "tester": "Tester",
+      "friend": "Amistad",
+      "family": "Familia",
+      "support": "Soporte / cortesía",
+      "promo": "Promoción",
+      "other": "Otro"
+    },
+    "note": "Nota privada (opcional)",
+    "submit": "Regalar Pro",
+    "granted": "Listo. Pro ya está activo para esa cuenta, o empieza justo después del regalo que ya tenga.",
+    "pending": "Guardado. Esta persona aún no tiene cuenta; recibirá Pro cuando inicie sesión con ese correo."
+  },
+  "pro": {
+    "heading": "Quién tiene Pro ahora",
+    "empty": "Nadie tiene Pro en este momento.",
+    "caption": "Cuentas con Pro: {{count}}",
+    "user": "Cuenta",
+    "source": "Motivo",
+    "until": "Hasta",
+    "sourceName": {
+      "subscription": "Pagado",
+      "gift": "Regalo",
+      "trial": "Prueba",
+      "null": "—"
+    },
+    "renews": "Se renueva automáticamente",
+    "indefinite": "Sin fecha de fin"
+  },
+  "gifts": {
+    "heading": "Historial de regalos",
+    "empty": "Aún no hay regalos.",
+    "state": {
+      "active": "Activo",
+      "scheduled": "Empieza después",
+      "ended": "Terminado",
+      "revoked": "Quitado"
+    },
+    "revoke": "Quitar",
+    "confirmRevoke": "¿Quitar el regalo Pro de {{who}}? Se detiene de inmediato."
+  },
+  "report": {
+    "description": "Descripción",
+    "stepsToReproduce": "Pasos",
+    "expected": "Esperado",
+    "actual": "Real",
+    "route": "Página",
+    "userId": "Cuenta",
+    "status": "Estado",
+    "note": "Nota interna",
+    "save": "Guardar",
+    "empty": "Ningún reporte coincide con estos filtros."
+  },
+  "filter": {
+    "all": "Todos",
+    "kind": "Tipo",
+    "export": "Descargar JSON"
+  },
+  "analytics": {
+    "heading": "Analítica",
+    "range": "Periodo",
+    "days": {
+      "1": "Últimas 24 horas",
+      "7": "Últimos 7 días",
+      "30": "Últimos 30 días",
+      "90": "Últimos 90 días"
+    },
+    "refresh": "Actualizar",
+    "truncated": "Se muestran los primeros 50 000 eventos del periodo.",
+    "summary": "{{events}} eventos de {{sessions}} sesiones ({{signedIn}} con sesión iniciada).",
+    "funnelHeading": "Embudo de pago (sesiones que hicieron cada paso y todos los anteriores)",
+    "step": {
+      "paywall_viewed": "Vio la página de precios",
+      "trial_started": "Empezó la prueba",
+      "checkout_opened": "Abrió el pago",
+      "checkout_completed": "Pagó"
+    },
+    "abHeading": "Pruebas A/B",
+    "experiment": "Experimento",
+    "variant": "Variante",
+    "exposed": "Sesiones que lo vieron",
+    "trials": "Pruebas iniciadas",
+    "trialRate": "Tasa de prueba",
+    "abNote": "Decide solo al llegar al tamaño de muestra fijado de antemano (unas 7 600 sesiones por variante); las diferencias tempranas suelen ser ruido.",
+    "adsHeading": "Anuncios",
+    "provider": "Origen",
+    "placement": "Página",
+    "impressions": "Mostrados",
+    "clicks": "Clics",
+    "ctr": "Tasa de clic",
+    "eventsHeading": "Todos los eventos",
+    "event": "Evento",
+    "count": "Eventos",
+    "sessions": "Sesiones",
+    "dailyHeading": "Por día",
+    "day": "Día",
+    "empty": "Todavía no hay eventos en este periodo.",
+    "error": "No se pudo cargar la analítica."
+  }
+}

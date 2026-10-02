@@ -5,14 +5,21 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:noauth": "VITE_CLERK_PUBLISHABLE_KEY= vite --port 5174",
     "build": "vite build",
     "preview": "vite preview",
     "start": "npm --prefix server start",
     "lint": "eslint src/features --ext .ts,.tsx",
     "test": "vitest run",
     "typecheck": "tsc --noEmit --project tsconfig.tasks.json",
+    "test:server": "vitest run --config vitest.server.config.ts",
+    "test:all": "vitest run && vitest run --config vitest.server.config.ts",
     "check:i18n": "node scripts/check-i18n.mjs",
-    "install:api": "npm ci --ignore-scripts --prefix server"
+    "install:api": "npm ci --ignore-scripts --prefix server",
+    "lint:complexity": "eslint --no-config-lookup --max-warnings 0 --rule '{\"complexity\":[\"error\",10]}' server/billing server/feedback server/routes/admin.js server/routes/feedback.js server/routes/webhooks.js server/routes/billing.js server/routes/state.js server/billing/financeModel.js && eslint --max-warnings 0 --rule '{\"complexity\":[\"error\",10]}' src/shims/expo-sqlite.ts src/features/billing src/features/ads src/features/experiments src/features/feedback src/features/admin src/features/account src/features/subscription/PricingPage.tsx src/features/subscription/useSubscription.ts",
+    "typecheck:billing": "tsc -p tsconfig.billing.json",
+    "finance:report": "node scripts/finance-report.cjs",
+    "verify": "npm run -s lint && npm run -s lint:complexity && npm run -s typecheck && npm run -s typecheck:billing && npm run -s check:i18n && vitest run && vitest run --config vitest.server.config.ts && npm run -s build"
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.61.6",
@@ -31,18 +38,25 @@
     "react-router-dom": "^6.30.6"
   },
   "devDependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.2.91",
+    "@anthropic-ai/sdk": "^0.82.0",
     "@playwright/test": "^1.63.0",
+    "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.3",
+    "@types/react": "^18.3.31",
+    "@types/react-dom": "^18.3.7",
     "@typescript-eslint/eslint-plugin": "^8.70.0",
     "@typescript-eslint/parser": "^8.70.0",
     "@vitejs/plugin-react": "^4.2.1",
     "eslint": "^9.24.0",
     "globals": "^16.0.0",
     "jsdom": "^26.0.0",
+    "mongodb-memory-server": "^11.3.0",
+    "sqlite3": "^5.1.7",
+    "supertest": "^7.2.2",
     "typescript": "^5.8.2",
     "vite": "^7.3.6",
-    "vitest": "^3.2.7",
-    "@testing-library/dom": "^10.4.2"
+    "vitest": "^3.2.7"
   }
 }

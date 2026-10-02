@@ -1,0 +1,122 @@
+{
+  "heading": "Admin console",
+  "loading": "Loading…",
+  "notAllowed": "This page is only for Gylio admins.",
+  "error": "That didn't work. Please try again.",
+  "tab": {
+    "pro": "Pro access",
+    "qa": "QA inbox",
+    "analytics": "Analytics"
+  },
+  "gift": {
+    "heading": "Give Pro",
+    "target": "Email or user id",
+    "duration": "Length",
+    "durationOption": {
+      "7": "7 days",
+      "30": "1 month (30 days)",
+      "90": "3 months",
+      "365": "1 year",
+      "indefinite": "No end date"
+    },
+    "reason": "Reason",
+    "reasonOption": {
+      "tester": "Tester",
+      "friend": "Friend",
+      "family": "Family",
+      "support": "Support / goodwill",
+      "promo": "Promotion",
+      "other": "Other"
+    },
+    "note": "Private note (optional)",
+    "submit": "Give Pro",
+    "granted": "Done. Pro is on for that account now, or right after any gift it already has.",
+    "pending": "Saved. This person hasn't signed up yet; they get Pro when they sign in with that email."
+  },
+  "pro": {
+    "heading": "Who has Pro now",
+    "empty": "Nobody has Pro right now.",
+    "caption": "Accounts with Pro: {{count}}",
+    "user": "Account",
+    "source": "Why",
+    "until": "Until",
+    "sourceName": {
+      "subscription": "Paid",
+      "gift": "Gift",
+      "trial": "Trial",
+      "null": "—"
+    },
+    "renews": "Renews automatically",
+    "indefinite": "No end date"
+  },
+  "gifts": {
+    "heading": "Gift history",
+    "empty": "No gifts yet.",
+    "state": {
+      "active": "Active",
+      "scheduled": "Starts later",
+      "ended": "Ended",
+      "revoked": "Removed"
+    },
+    "revoke": "Remove",
+    "confirmRevoke": "Remove the Pro gift for {{who}}? It stops right away."
+  },
+  "report": {
+    "description": "Description",
+    "stepsToReproduce": "Steps",
+    "expected": "Expected",
+    "actual": "Actual",
+    "route": "Page",
+    "userId": "Account",
+    "status": "Status",
+    "note": "Internal note",
+    "save": "Save",
+    "empty": "No reports match these filters."
+  },
+  "filter": {
+    "all": "All",
+    "kind": "Type",
+    "export": "Download JSON"
+  },
+  "analytics": {
+    "heading": "Analytics",
+    "range": "Period",
+    "days": {
+      "1": "Last 24 hours",
+      "7": "Last 7 days",
+      "30": "Last 30 days",
+      "90": "Last 90 days"
+    },
+    "refresh": "Refresh",
+    "truncated": "Showing the first 50,000 events of this period.",
+    "summary": "{{events}} events from {{sessions}} sessions ({{signedIn}} signed in).",
+    "funnelHeading": "Paywall funnel (sessions that did each step and every step before it)",
+    "step": {
+      "paywall_viewed": "Saw the pricing page",
+      "trial_started": "Started the trial",
+      "checkout_opened": "Opened checkout",
+      "checkout_completed": "Paid"
+    },
+    "abHeading": "A/B tests",
+    "experiment": "Experiment",
+    "variant": "Variant",
+    "exposed": "Sessions shown",
+    "trials": "Trials started",
+    "trialRate": "Trial rate",
+    "abNote": "Decide only at the sample size set in advance (about 7,600 sessions per variant); early differences are usually noise.",
+    "adsHeading": "Ads",
+    "provider": "Source",
+    "placement": "Page",
+    "impressions": "Shown",
+    "clicks": "Clicks",
+    "ctr": "Click rate",
+    "eventsHeading": "All events",
+    "event": "Event",
+    "count": "Events",
+    "sessions": "Sessions",
+    "dailyHeading": "By day",
+    "day": "Day",
+    "empty": "No events in this period yet.",
+    "error": "Analytics couldn't be loaded."
+  }
+}

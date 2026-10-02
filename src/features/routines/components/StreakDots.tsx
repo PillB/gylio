@@ -32,11 +32,11 @@ export const StreakDots: React.FC<Props> = ({ completionLog, theme }) => {
         const isFuture = day > todayKey;
         const isToday = day === todayKey;
 
-        let backgroundColor = '#D1D5DB';
+        let backgroundColor = theme.colors.borderStrong;
         let border = `1px solid ${theme.colors.border}`;
 
         if (isCompleted) {
-          backgroundColor = '#22C55E';
+          backgroundColor = theme.colors.success;
           border = '2px solid currentColor';
         } else if (isFuture) {
           backgroundColor = 'transparent';

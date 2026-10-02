@@ -215,7 +215,7 @@ export default function RoutineTemplateGallery({ onSelect, theme }: Props) {
           >
             ⏱ {dur}
           </span>
-          {tpl.anchorHabit && (
+          {tpl.anchorHabitKey && (
             <span
               style={{
                 fontSize: 12,
@@ -226,7 +226,7 @@ export default function RoutineTemplateGallery({ onSelect, theme }: Props) {
                 fontFamily: theme.typography.body.family,
               }}
             >
-              🔗 {tpl.anchorHabit}
+              🔗 {t(tpl.anchorHabitKey)}
             </span>
           )}
           <span
@@ -282,7 +282,7 @@ export default function RoutineTemplateGallery({ onSelect, theme }: Props) {
               gap: 3,
             }}
           >
-            {tpl.steps.slice(0, 2).map((step, i) => (
+            {tpl.stepKeys.slice(0, 2).map((key, i) => (
               <li
                 key={i}
                 style={{
@@ -292,10 +292,10 @@ export default function RoutineTemplateGallery({ onSelect, theme }: Props) {
                   fontFamily: theme.typography.body.family,
                 }}
               >
-                {t(`${tpl.titleKey.replace('.title', `.step${i + 1}`)}`, step)}
+                {t(key)}
               </li>
             ))}
-            {tpl.steps.length > 2 && (
+            {tpl.stepKeys.length > 2 && (
               <li
                 style={{
                   fontSize: 12,
@@ -305,7 +305,7 @@ export default function RoutineTemplateGallery({ onSelect, theme }: Props) {
                   fontFamily: theme.typography.body.family,
                 }}
               >
-                {t('routines.gallery.moreSteps', { count: tpl.steps.length - 2 })}
+                {t('routines.gallery.moreSteps', { count: tpl.stepKeys.length - 2 })}
               </li>
             )}
           </ol>

@@ -12,17 +12,30 @@ type PublicMetadata = Record<string, unknown>;
 type AuthContextValue = {
   userId: string | null;
   userMetadata: PublicMetadata | null;
+  /** Reloads the Clerk user session to pick up publicMetadata changes. Null when Clerk is disabled. */
+  reloadUser: (() => Promise<void>) | null;
+  /** True when the app is running with ClerkProvider present. */
+  clerkEnabled: boolean;
+  /** False until Clerk has decided whether someone is signed in. Always true without Clerk. */
+  authLoaded: boolean;
 };
 
-const AuthCtx = createContext<AuthContextValue>({ userId: null, userMetadata: null });
+const AuthCtx = createContext<AuthContextValue>({
+  userId: null,
+  userMetadata: null,
+  reloadUser: null,
+  clerkEnabled: false,
+  authLoaded: true,
+});
 
 /** Use when ClerkProvider IS present (clerkEnabled=true path). */
 function ClerkAuthProvider({ children }: { children: ReactNode }) {
-  const { userId } = useAuth();
+  const { userId, isLoaded } = useAuth();
   const { user } = useUser();
   const userMetadata = (user?.publicMetadata as PublicMetadata) ?? null;
+  const reloadUser = user ? () => user.reload().then(() => undefined) : null;
   return (
-    <AuthCtx.Provider value={{ userId: userId ?? null, userMetadata }}>
+    <AuthCtx.Provider value={{ userId: userId ?? null, userMetadata, reloadUser, clerkEnabled: true, authLoaded: Boolean(isLoaded) }}>
       {children}
     </AuthCtx.Provider>
   );
@@ -30,7 +43,11 @@ function ClerkAuthProvider({ children }: { children: ReactNode }) {
 
 /** Use when ClerkProvider is NOT present (no-auth path). */
 function NoAuthProvider({ children }: { children: ReactNode }) {
-  return <AuthCtx.Provider value={{ userId: null, userMetadata: null }}>{children}</AuthCtx.Provider>;
+  return (
+    <AuthCtx.Provider value={{ userId: null, userMetadata: null, reloadUser: null, clerkEnabled: false, authLoaded: true }}>
+      {children}
+    </AuthCtx.Provider>
+  );
 }
 
 export function AuthProvider({

@@ -4,15 +4,32 @@ import useDB from '../core/hooks/useDB';
 import useGamification from '../core/hooks/useGamification';
 import { useTheme } from '../core/context/ThemeContext';
 import SectionCard from './SectionCard.jsx';
+import BudgetTooltip from './atoms/BudgetTooltip';
+import AdSlot from '../features/ads/AdSlot';
 
 /**
  * RewardsView component
  *
  * Rewards provide gentle positive feedback for completing tasks, maintaining
  * streaks or reviewing budgets. Users can disable points and streaks in
- * Settings. This stub displays a short description and will later show
- * accumulated points, streak indicators and cosmetic unlocks.
+ * Settings. This component displays accumulated points, streak indicators,
+ * cosmetic unlocks, and compassionate recovery messaging for lapsed streaks.
  */
+
+const LAST_STREAK_BEFORE_KEY = 'gylio:lastStreakBeforeBreak';
+
+/**
+ * Returns days elapsed since lastActivityDate (ISO string), or null if unknown.
+ */
+function daysSinceActivity(lastActivityDate) {
+  if (!lastActivityDate) return null;
+  const last    = new Date(lastActivityDate);
+  const today   = new Date();
+  const utcLast  = Date.UTC(last.getFullYear(), last.getMonth(), last.getDate());
+  const utcToday = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+  return Math.floor((utcToday - utcLast) / 86_400_000);
+}
+
 const RewardsView = () => {
   const { t } = useTranslation();
   const { ready, getRewards, getRewardsProgress, insertReward, updateReward, deleteReward } = useDB();
@@ -77,6 +94,26 @@ const RewardsView = () => {
       return distA < distB ? r : closest;
     });
   }, [rewards, progressSummary]);
+
+  /**
+   * bestStreak — merges the DB-level bestStreak with the localStorage
+   * snapshot so history survives even if the DB is cleared/reset.
+   */
+  const bestStreak = useMemo(() => {
+    const fromProgress = progress?.bestStreak ?? 0;
+    const fromStorage  = parseInt(localStorage.getItem(LAST_STREAK_BEFORE_KEY) ?? '0', 10);
+    return Math.max(fromProgress, fromStorage);
+  }, [progress]);
+
+  /**
+   * gapDays — calendar days since last recorded activity.
+   * Only meaningful when taskStreakDays === 0 (streak broken).
+   */
+  const gapDays = useMemo(() => {
+    if ((progress?.taskStreakDays ?? 0) > 0) return null;
+    const days = daysSinceActivity(progress?.lastActivityDate ?? null);
+    return days !== null && days > 1 ? days : null;
+  }, [progress]);
 
   useEffect(() => {
     if (!ready) return;
@@ -145,9 +182,11 @@ const RewardsView = () => {
       ariaLabel={`${t('rewards.title')} module`}
       title={t('rewards.title')}
       subtitle={t('rewardsPlaceholder') || ''}
+      badge={<BudgetTooltip content={t('tooltips.rewards.section', 'Rewards give you gentle, consistent positive feedback for building habits. XP, streaks, and unlocks are optional — they are here to celebrate progress, not add pressure.')} />}
     >
-      <div style={{ display: 'grid', gap: `${theme.spacing.md}px` }}>
+      <div style={{ display: 'grid', gap: `${theme.spacing.md}px`, gridTemplateColumns: 'minmax(0, 1fr)' }}>
         <section
+          data-tour="rewards-toggle"
           style={{
             border: `1px solid ${theme.colors.border}`,
             borderRadius: theme.shape.radiusMd,
@@ -161,7 +200,10 @@ const RewardsView = () => {
           }}
         >
           <div>
-            <p style={{ margin: 0, fontWeight: 600 }}>{t('rewards.gamificationLabel') || 'Gamification'}</p>
+            <p style={{ margin: 0, fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+              {t('rewards.gamificationLabel') || 'Gamification'}
+              <BudgetTooltip content={t('tooltips.rewards.gamification', 'Toggle XP points, level-ups, and streaks on or off. When off, tasks and budgets still work — you just skip the game layer. Your data is never deleted.')} />
+            </p>
             <small style={{ color: theme.colors.muted }}>
               {t('rewards.gamificationHelper') ||
                 'Toggle XP, streaks, and unlocks on or off. Your data stays local.'}
@@ -190,6 +232,7 @@ const RewardsView = () => {
         ) : (
           <>
             <section
+              data-tour="rewards-progress"
               style={{
                 border: `1px solid ${theme.colors.border}`,
                 borderRadius: theme.shape.radiusMd,
@@ -201,7 +244,10 @@ const RewardsView = () => {
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: theme.spacing.md }}>
                 <div>
-                  <p style={{ margin: 0, fontWeight: 600 }}>{t('rewards.levelLabel') || 'Level'}</p>
+                  <p style={{ margin: 0, fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+                    {t('rewards.levelLabel') || 'Level'}
+                    <BudgetTooltip content={t('tooltips.rewards.level', 'Your level reflects cumulative XP across all completed tasks and budget reviews. Levels are purely cosmetic — they show long-term consistency, not short-term performance.')} />
+                  </p>
                   <p style={{ margin: '0.25rem 0 0' }}>
                     {t('rewards.levelSummary', { level: progressSummary.level }) || `Level ${progressSummary.level}`}
                   </p>
@@ -213,22 +259,85 @@ const RewardsView = () => {
                   </small>
                 </div>
                 <div>
-                  <p style={{ margin: 0, fontWeight: 600 }}>{t('rewards.skipTokensLabel') || 'Skip tokens'}</p>
+                  <p style={{ margin: 0, fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+                    {t('rewards.skipTokensLabel') || 'Skip tokens'}
+                    <BudgetTooltip content={t('tooltips.rewards.skipTokens', 'Skip tokens protect your streak when life gets in the way. Earn them by completing tasks or budget reviews. Use them on days you miss — no guilt, no reset.')} />
+                  </p>
                   <p style={{ margin: '0.25rem 0 0' }}>{progressSummary.skipTokens}</p>
                   <small style={{ color: theme.colors.muted }}>
                     {t('rewards.skipTokensHelper') || 'Use a token to preserve a streak after a missed day.'}
                   </small>
                 </div>
               </div>
+              {/* ── Streak status — taskStreakDays is the primary streak ── */}
               <div style={{ display: 'grid', gap: theme.spacing.xs }}>
-                <p style={{ margin: 0, fontWeight: 600 }}>{t('rewards.streakHeading') || 'Streak status'}</p>
+                <p style={{ margin: 0, fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+                  {t('rewards.streakHeading') || 'Streak status'}
+                  <BudgetTooltip content={t('tooltips.rewards.streak', 'Streaks track how many consecutive days you\'ve completed tasks, focused, or reviewed your budget. Consistency beats intensity — even 1 task a day counts.')} />
+                </p>
+
+                {/* Task streak — prominent counter */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: theme.spacing.sm,
+                    padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
+                    borderRadius: theme.shape.radiusMd,
+                    background: progressSummary.taskStreakDays > 0
+                      ? `${theme.colors.primary}12`
+                      : theme.colors.background,
+                    border: `1px solid ${progressSummary.taskStreakDays > 0
+                      ? theme.colors.primary + '40'
+                      : theme.colors.border}`,
+                  }}
+                >
+                  <span
+                    role="status"
+                    aria-label={t('rewards.taskStreak', { days: progressSummary.taskStreakDays })}
+                    style={{
+                      fontSize: 36,
+                      fontWeight: 800,
+                      lineHeight: 1,
+                      color: progressSummary.taskStreakDays > 0
+                        ? theme.colors.primary
+                        : theme.colors.muted,
+                    }}
+                  >
+                    {progressSummary.taskStreakDays}
+                  </span>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: theme.colors.text }}>
+                      {t('rewards.taskStreak', { days: progressSummary.taskStreakDays }) ||
+                        `Task completion streak: ${progressSummary.taskStreakDays} days`}
+                    </span>
+
+                    {progressSummary.taskStreakDays === 0 && gapDays !== null && (
+                      <span
+                        role="note"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: theme.colors.muted }}
+                      >
+                        <span aria-hidden="true">📅</span>
+                        {t('streakRecovery.gapBadge', { days: gapDays }) || `${gapDays} days since last activity`}
+                      </span>
+                    )}
+
+                    {progressSummary.taskStreakDays === 0 && bestStreak > 0 && (
+                      <span
+                        aria-label={t('streakRecovery.bestStreakAriaLabel', { count: bestStreak })}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: theme.colors.muted }}
+                      >
+                        <span aria-hidden="true">🏅</span>
+                        {t('streakRecovery.bestStreak', { count: bestStreak }) || `Best: ${bestStreak} days`}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
                 <small style={{ color: theme.colors.muted }}>
                   {t('rewards.focusStreak', { days: progressSummary.focusStreakDays }) ||
                     `Daily focus streak: ${progressSummary.focusStreakDays} days`}
-                </small>
-                <small style={{ color: theme.colors.muted }}>
-                  {t('rewards.taskStreak', { days: progressSummary.taskStreakDays }) ||
-                    `Task completion streak: ${progressSummary.taskStreakDays} days`}
                 </small>
                 <small style={{ color: theme.colors.muted }}>
                   {t('rewards.budgetStreak', { weeks: progressSummary.budgetStreakWeeks }) ||
@@ -237,9 +346,50 @@ const RewardsView = () => {
               </div>
             </section>
 
-            <div style={{ display: 'grid', gap: `${theme.spacing.sm}px`, marginBottom: `${theme.spacing.md}px` }}>
+            {!rewards.length && gamificationEnabled && (
+              <div style={{ marginBottom: `${theme.spacing.md}px` }}>
+                <p style={{ margin: `0 0 ${theme.spacing.xs}px`, fontSize: '0.8125rem', color: theme.colors.muted }}>
+                  {t('rewards.starterHint', 'Not sure what to add? Start with these:')}
+                </p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  {[
+                    { title: t('rewards.starter.coffee', 'Coffee break'), pts: 50 },
+                    { title: t('rewards.starter.episode', 'Watch an episode'), pts: 75 },
+                    { title: t('rewards.starter.walk', '15-min walk outside'), pts: 30 },
+                    { title: t('rewards.starter.snack', 'Favourite snack'), pts: 40 },
+                    { title: t('rewards.starter.nap', 'Power nap'), pts: 60 },
+                    { title: t('rewards.starter.game', '20 min of gaming'), pts: 80 },
+                  ].map(({ title, pts }) => (
+                    <button
+                      key={title}
+                      type="button"
+                      onClick={() => insertReward(title, pts, null)
+                        .then((created) => setRewards((prev) => (prev.length ? [created, ...prev] : [created])))
+                        .catch(() => {})}
+                      style={{
+                        padding: '4px 12px',
+                        borderRadius: theme.shape.radiusFull,
+                        border: `1px dashed ${theme.colors.border}`,
+                        background: 'transparent',
+                        color: theme.colors.text,
+                        cursor: 'pointer',
+                        fontSize: '0.8rem',
+                        fontFamily: theme.typography.body.family,
+                      }}
+                    >
+                      + {title} <span style={{ color: theme.colors.muted, fontSize: '0.72rem' }}>{pts}pts</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div data-tour="rewards-form" style={{ display: 'grid', gap: `${theme.spacing.sm}px`, marginBottom: `${theme.spacing.md}px` }}>
               <label>
-                {t('titleLabel') || 'Title'}
+                <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+                  {t('titleLabel') || 'Title'}
+                  <BudgetTooltip content={t('tooltips.rewards.rewardTitle', "What reward do you want to unlock? Make it something you genuinely look forward to — a meal out, a new book, a guilt-free lazy day.")} />
+                </span>
                 <input
                   type="text"
                   value={form.title}
@@ -262,7 +412,10 @@ const RewardsView = () => {
                 ) : null}
               </label>
               <label>
-                {t('pointsRequiredLabel') || 'Points required'}
+                <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+                  {t('pointsRequiredLabel') || 'Points required'}
+                  <BudgetTooltip content={t('tooltips.rewards.pointsRequired', 'How much XP to unlock this reward? You earn XP by completing tasks (10 pts each) and reviewing your budget weekly. Set thresholds you can realistically hit.')} />
+                </span>
                 <input
                   type="number"
                   value={form.pointsRequired}
@@ -285,7 +438,10 @@ const RewardsView = () => {
                 ) : null}
               </label>
               <label>
-                {t('descriptionLabel') || 'Description'}
+                <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+                  {t('descriptionLabel') || 'Description'}
+                  <BudgetTooltip content={t('tooltips.rewards.rewardDescription', 'Optional notes about the reward — where to go, what to order, what it costs.')} />
+                </span>
                 <textarea
                   value={form.description}
                   onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
@@ -305,6 +461,7 @@ const RewardsView = () => {
                 onClick={handleAdd}
                 style={{
                   padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
+                  minHeight: '44px',
                   width: 'fit-content',
                   borderRadius: theme.shape.radiusSm,
                   border: `1px solid ${theme.colors.primary}`,
@@ -396,19 +553,22 @@ const RewardsView = () => {
                         </div>
                         {reward.description ? <p style={{ marginTop: '0.25rem' }}>{reward.description}</p> : null}
                       </div>
-                      <div style={{ display: 'flex', gap: `${theme.spacing.sm}px`, alignItems: 'flex-start' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: `${theme.spacing.xs}px`, alignItems: 'stretch', flexShrink: 0 }}>
                         <button
                           type="button"
                           onClick={() => toggleRedeemed(reward)}
                           disabled={!reward.unlocked}
                           style={{
-                            padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
+                            padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
+                            minHeight: 44,
                             borderRadius: theme.shape.radiusSm,
                             border: `1px solid ${theme.colors.border}`,
                             backgroundColor: reward.unlocked ? theme.colors.background : theme.colors.border,
                             color: reward.unlocked ? theme.colors.text : theme.colors.muted,
                             cursor: reward.unlocked ? 'pointer' : 'not-allowed',
                             fontFamily: theme.typography.body.family,
+                            fontSize: '0.8125rem',
+                            whiteSpace: 'nowrap',
                           }}
                         >
                           {t('toggleRedeemed') || 'Toggle redeemed'}
@@ -465,13 +625,16 @@ const RewardsView = () => {
                             type="button"
                             onClick={() => setRewardDeleteConfirmId(reward.id)}
                             style={{
-                              padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
+                              padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
+                              minHeight: 44,
                               borderRadius: theme.shape.radiusSm,
                               border: `1px solid ${theme.colors.border}`,
                               backgroundColor: theme.colors.background,
                               color: theme.colors.text,
                               cursor: 'pointer',
                               fontFamily: theme.typography.body.family,
+                              fontSize: '0.8125rem',
+                              whiteSpace: 'nowrap',
                             }}
                           >
                             {t('deleteLabel') || 'Delete'}
@@ -486,6 +649,7 @@ const RewardsView = () => {
           </>
         )}
       </div>
+      <AdSlot placement="rewards" />
     </SectionCard>
   );
 };
