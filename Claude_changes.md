@@ -858,6 +858,29 @@ Numbered after #82's CHG-046 to keep IDs unique; #82 stacks on this branch.
 - Nothing in `src/`, `server/` or `e2e/` imports them, and no `package.json` script runs them.
 - The six `scripts/batch-*.ts` runners stay and recreate their output folders when run. `batch-pricing-corrections.ts` reads `scripts/pricing-research/SPOT_CHECK_CORRECTIONS.md` when it starts, and the other runners use earlier output as input, so restore the folder before re-running one.
 
+**Codex review of #88 after #90 landed (6 findings on 9cc63c5: five fixed here, one left to #89):**
+- **`/api/health` threw on every request** (P1, `server/server.js`):
+  - What was wrong: the batch work replaced the startup block that declared `missingAiEnvVars` with a plain `OPENAI_API_KEY` warning, but the health route still read `missingAiEnvVars.length`. Every call raised a `ReferenceError` and answered 500, so a health probe would mark a healthy backend as down.
+  - Fix: the route reads `OPENAI_API_KEY` when it answers, as `authConfigured` reads `CLERK_ISSUER`. A `no-undef` scan of every server and `src` `.js`/`.jsx` file finds no other undefined name.
+  - Tests: `server/server.health.test.js` fails with a 500 before the fix. It also checks the 503 JSON body while persistence is not ready and that `aiConfigured` follows the key.
+- **Analytics events carried task titles and transaction dates** (P1, `DataFreshnessBanner.jsx`, `useRecurringReliability.ts`, `useStreakRecovery.ts`):
+  - What was wrong: `track()` appends every property to the `analytics:queue` array in localStorage. The stale-budget warning sent the budget month and the exact date of the last transaction, the missing-recurring event sent the task title, and the streak-recovery event sent the title of the tiny-step task. CLAUDE.md says not to log or store sensitive personal or financial data unnecessarily.
+  - Fix: the stale warning sends `daysSinceLastTransaction` as a bucket (`8-30`, `31-90`, `90+` or `never`) and fires once per bucket; the missing-recurring event sends the id and the expected date; the streak-recovery event sends no properties. The other `track()` calls already send ids, counts, flags or enum values, and the reconciliation event keeps its month key.
+  - Tests: six cases fail before the fix (the four buckets, the recurring event, the streak event). A fresh budget still records nothing.
+- **The freshness warning ignored which budget month was open** (P2, `DataFreshnessBanner.jsx`):
+  - What was wrong: `computeFreshness` compared the latest transaction with today and ignored `budgetMonthKey`. Opening a month older than a week, or one that had not started, showed the assertive "Data may be stale" alert asking the user to add missing entries to a period that was closed or empty by design.
+  - Fix: the banner renders nothing unless the budget month is the current local month, and records its event only then. Without a month key it judges the dates it is given, as before.
+  - Tests: the existing test hard-coded `budgetMonthKey="2026-09"` and only passed because the month was ignored; it now uses the current month. The past-month and future-month cases fail before the fix; two guards check that the current month still warns and still suggests a review.
+- **The welcome-back gap was off by a month** (P2, `WelcomeBackBanner.tsx`):
+  - What was wrong: `daysBetween` passed an ISO date's month (1 to 12) straight to `Date.UTC`, which counts months from 0, so every date was read one month late. At a month end that moves the day: 2026-01-30 became 2026-03-02, the same instant as 2026-02-02, so a three-day absence read as no gap, and 2026-02-28 to 2026-03-02 read as five days and showed the card after two.
+  - Fix: the month has 1 subtracted.
+  - Tests: `WelcomeBackBanner.test.tsx` fixes the system date. Two month-boundary cases and the two-day gap across a month end fail before the fix; a year-boundary case guards the December to January wrap. All four also pass with the host zone set to America/Los_Angeles and Pacific/Auckland.
+- **The PWA icons were missing** (P2, `public/icons`, `index.html`, `.gitignore`):
+  - What was wrong: the manifest, its two shortcuts and the apple-touch-icon link named `icons/icon-192.png` and `icons/icon-512.png`, but `public/icons` never made it into the repo because `.gitignore` ignores every `*.png`. Each request returned 404 and installed shortcuts and iOS home-screen installs had no icon. The favicon and touch-icon hrefs were also relative, so on a nested route such as `/sign-in/factor-one` they pointed under `/sign-in/`.
+  - Fix: `scripts/make-pwa-icons.mjs` renders both PNGs from the favicon: the same gradient and "G", full-bleed so a maskable-icon mask can crop it, with the "G" inside the central 60%. `.gitignore` now keeps `public/icons/*.png`. The two links are root-absolute, so Vite adds the base the way it does for the manifest link.
+  - Tests: `pwaManifest.test.ts` builds for both bases and checks that every icon the manifest and its shortcuts name is in the build, that each PNG has the size the manifest declares, and that the favicon and touch icon resolve to built files from a nested deep link. Six cases fail before the fix.
+- **The CSP does not allow a separately hosted API origin** (P1, `index.html`): not changed here. #89 replaces the fixed CSP with a build-time one (`csp.config.js`, 334010e, with a test), and this branch leaves those lines to it so the two do not edit the same lines. Until #89 merges, a frontend and backend on different origins would be blocked by the CSP; none is deployed.
+
 **Verified (on the head with the prune and the Codex follow-ups on #90):**
 - `npm run lint`, `npm run typecheck` and `npm run check:i18n` pass.
 - Unit tests: `npx vitest run`, 25 files / 178 tests (also with the host zone set to America/Los_Angeles and with `TZ` unset). Server tests: `npm run test:server`, 102/102.
@@ -867,7 +890,6 @@ Numbered after #82's CHG-046 to keep IDs unique; #82 stacks on this branch.
 **Not in this entry:** Codex findings 1 (paid-plan JWT claim) and 2 (CSP connect-src for the API origin) are fixed on #89, not here.
 
 **Follow-ups:**
-- `public/icons/icon-192.png` and `icon-512.png` do not exist on any branch. The manifest icons and index.html's `favicon.svg` and `icons/icon-192.png` hrefs are left as they are until the icons exist.
 - Persisting recurrence end to end is a main follow-up. It also needs the dormant reliability defects fixed first: the double check on mount, the stale `writeMeta` resetting `failureCount`, and `repair` calling `insertTask` with an object.
 - WinCard (main) should reuse `useDialogFocus`.
 - When #82 next merges #88:
