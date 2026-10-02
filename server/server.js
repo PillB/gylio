@@ -49,19 +49,7 @@ if (!process.env.CLERK_ISSUER) {
   console.warn('CLERK_ISSUER not set. Protected API routes will return AUTH_NOT_CONFIGURED.');
 }
 
-const configuredOrigins = (process.env.CORS_ORIGINS || '')
-  .split(',')
-  .map((value) => value.trim())
-  .filter(Boolean);
-
-const developmentOrigins = ['http://localhost:5173', 'http://127.0.0.1:5173'];
-const allowedOrigins = new Set(
-  configuredOrigins.length > 0
-    ? configuredOrigins
-    : process.env.NODE_ENV === 'production'
-      ? []
-      : developmentOrigins
-);
+const allowedOrigins = require('./lib/origins').allowedOrigins();
 
 const app = express();
 app.set('trust proxy', 1);
@@ -158,7 +146,7 @@ app.use('/api/budgets',      requireAuth, budgetsRouter);
 app.use('/api/budget',       requireAuth, budgetsRouter);
 app.use('/api/transactions', requireAuth, transactionsRouter);
 app.use('/api/debts',        requireAuth, debtsRouter);
-app.use('/api/ai',           requireAuth, requirePro(getBillingService), mutationRateLimit, aiRouter);
+app.use('/api/ai',           requireAuth, mutationRateLimit, requirePro(getBillingService), aiRouter);
 app.use('/api/billing',      publicBillingRouter);
 app.use('/api/billing',      requireAuth, mutationRateLimit, createBillingRouter());
 app.use('/api/feedback',     optionalAuth, createFeedbackRouter({ rateLimit: feedbackRateLimit }));

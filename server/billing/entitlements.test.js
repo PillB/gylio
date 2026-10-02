@@ -110,3 +110,33 @@ describe('planGiftWindow', () => {
     }
   });
 });
+
+describe('review fixes: gifts and renewals', () => {
+  it('stacks a third one-month gift after the second (scheduled) one, not on top of it', () => {
+    const first = planGiftWindow({ days: 30, now: NOW });
+    const second = planGiftWindow({ existingGifts: [first], days: 30, now: NOW });
+    const third = planGiftWindow({ existingGifts: [first, second], days: 30, now: NOW });
+    // 1 Oct 12:00 + 30 = 31 Oct; + 30 = 30 Nov; + 30 = 30 Dec.
+    expect(third).toEqual({ startsAt: '2026-11-30T12:00:00.000Z', endsAt: '2026-12-30T12:00:00.000Z' });
+  });
+
+  it('shows the end of back-to-back gifts as the end of the last one', () => {
+    const gifts = [
+      { startsAt: '2026-09-01T00:00:00.000Z', endsAt: '2026-10-15T00:00:00.000Z' },
+      { startsAt: '2026-10-15T00:00:00.000Z', endsAt: '2026-11-15T00:00:00.000Z' },
+      // a gap, then another gift: not contiguous, so not counted yet
+      { startsAt: '2027-01-01T00:00:00.000Z', endsAt: '2027-02-01T00:00:00.000Z' },
+    ];
+    expect(computeEntitlement({ gifts, now: NOW }).expiresAt).toBe('2026-11-15T00:00:00.000Z');
+  });
+
+  it('keeps a renewing subscription on for a day after the period end while the renewal webhook arrives', () => {
+    const sub = { provider: 'paddle', status: 'active', currentPeriodEnd: '2026-10-01T11:00:00.000Z' };
+    // One hour past the period end, renewal not yet reported: still Pro.
+    expect(computeEntitlement({ subscriptions: [sub], now: NOW }).plan).toBe('pro');
+    // A day and a bit later with no renewal: off.
+    expect(computeEntitlement({ subscriptions: [sub], now: '2026-10-02T11:00:01.000Z' }).plan).toBe('free');
+    // A subscription set to cancel gets no extra day.
+    expect(computeEntitlement({ subscriptions: [{ ...sub, cancelAtPeriodEnd: true }], now: NOW }).plan).toBe('free');
+  });
+});

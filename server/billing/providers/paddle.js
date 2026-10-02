@@ -86,9 +86,13 @@ function firstPrice(data) {
   const price = ((data.items || [])[0] || {}).price || {};
   const unit = price.unit_price || {};
   const amount = Number(unit.amount);
+  // The subscription bills in its own currency (soles for Peru); the price's
+  // base amount is only that amount when the currencies match.
+  const currency = data.currency_code || unit.currency_code || null;
+  const sameCurrency = !data.currency_code || data.currency_code === unit.currency_code;
   return {
-    currency: unit.currency_code || data.currency_code || null,
-    amountMinor: Number.isFinite(amount) ? amount : null,
+    currency,
+    amountMinor: sameCurrency && Number.isFinite(amount) ? amount : null,
   };
 }
 

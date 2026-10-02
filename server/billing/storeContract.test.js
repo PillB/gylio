@@ -154,5 +154,16 @@ describe.each(backends)('billing store contract: %s', (_name, make) => {
     const rows = await store.listAnalyticsEvents({ from: T0, to: T1 });
     expect(rows.filter((r) => r.sessionId === 's9')).toHaveLength(2);
   });
+
+  it('lets the newer of two racing webhook updates win, whatever order they land in', async () => {
+    const base = { provider: 'paddle', providerRef: 'sub_race', userId: 'user_race', interval: 'month', currentPeriodEnd: T2 };
+    const older = { ...base, status: 'active', providerUpdatedAt: '2026-10-01T00:00:00Z' };
+    const newer = { ...base, status: 'cancelled', providerUpdatedAt: '2026-10-02T00:00:00.000Z' };
+    await Promise.all([store.upsertSubscription(newer, { now: T1 }), store.upsertSubscription(older, { now: T1 })]);
+    expect((await store.getSubscriptionByRef('paddle', 'sub_race')).status).toBe('cancelled');
+    // Two first deliveries of the same subscription at once don't fail.
+    const first = { ...base, providerRef: 'sub_twin', status: 'active', providerUpdatedAt: T0 };
+    await expect(Promise.all([store.upsertSubscription(first, { now: T0 }), store.upsertSubscription(first, { now: T0 })])).resolves.toBeDefined();
+  });
 });
 

@@ -185,25 +185,26 @@ function createSqliteStore(db) {
      * already applied is ignored, so out-of-order webhooks cannot resurrect a
      * cancelled subscription. Returns { applied, subscription }.
      */
+    /**
+     * Insert or update by (provider, providerRef) in one statement. An event
+     * older than the one already applied changes nothing, even when two
+     * deliveries race. Returns { applied, subscription }.
+     */
     async upsertSubscription(record, { now }) {
-      const existing = await store.getSubscriptionByRef(record.provider, record.providerRef);
-      if (existing && isStale(record, existing)) return { applied: false, subscription: existing };
-
-      const values = SUBSCRIPTION_FIELDS.map((field) => normalizeSubscriptionValue(field, record[field]));
-      if (existing) {
-        const assignments = SUBSCRIPTION_FIELDS.map((field) => `${field} = ?`).join(', ');
-        await run(db, `UPDATE billing_subscriptions SET ${assignments}, updatedAt = ? WHERE id = ?`, [
-          ...values, now, Number(existing.id),
-        ]);
-      } else {
-        const columns = ['provider', 'providerRef', ...SUBSCRIPTION_FIELDS, 'createdAt', 'updatedAt'];
-        await run(
-          db,
-          `INSERT INTO billing_subscriptions (${columns.join(', ')}) VALUES (${columns.map(() => '?').join(', ')})`,
-          [record.provider, record.providerRef, ...values, now, now]
-        );
-      }
-      return { applied: true, subscription: await store.getSubscriptionByRef(record.provider, record.providerRef) };
+      const normalized = { ...record, providerUpdatedAt: toIsoOrNull(record.providerUpdatedAt) };
+      const values = SUBSCRIPTION_FIELDS.map((field) => normalizeSubscriptionValue(field, normalized[field]));
+      const columns = ['provider', 'providerRef', ...SUBSCRIPTION_FIELDS, 'createdAt', 'updatedAt'];
+      const updates = [...SUBSCRIPTION_FIELDS, 'updatedAt'].map((field) => `${field} = excluded.${field}`).join(', ');
+      const result = await run(
+        db,
+        `INSERT INTO billing_subscriptions (${columns.join(', ')}) VALUES (${columns.map(() => '?').join(', ')})
+         ON CONFLICT(provider, providerRef) DO UPDATE SET ${updates}
+         WHERE excluded.providerUpdatedAt IS NULL
+            OR billing_subscriptions.providerUpdatedAt IS NULL
+            OR excluded.providerUpdatedAt >= billing_subscriptions.providerUpdatedAt`,
+        [record.provider, record.providerRef, ...values, now, now]
+      );
+      return { applied: result.changes === 1, subscription: await store.getSubscriptionByRef(record.provider, record.providerRef) };
     },
 
     async listGifts({ userId } = {}) {
@@ -360,14 +361,16 @@ function createSqliteStore(db) {
   return store;
 }
 
-function isStale(incoming, existing) {
-  if (!incoming.providerUpdatedAt || !existing.providerUpdatedAt) return false;
-  return Date.parse(incoming.providerUpdatedAt) < Date.parse(existing.providerUpdatedAt);
+/** Provider timestamps compared as strings must share one format. */
+function toIsoOrNull(value) {
+  const ms = value ? Date.parse(value) : NaN;
+  return Number.isFinite(ms) ? new Date(ms).toISOString() : null;
 }
+
 
 function normalizeSubscriptionValue(field, value) {
   if (field === 'cancelAtPeriodEnd') return value ? 1 : 0;
   return value === undefined ? null : value;
 }
 
-module.exports = { createSqliteStore, isStale };
+module.exports = { createSqliteStore, toIsoOrNull };

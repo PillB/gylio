@@ -21,6 +21,13 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 /** Days a past-due subscription keeps Pro while the provider retries the card. */
 const PAST_DUE_GRACE_DAYS = 3;
 
+/**
+ * A renewing subscription's period ends a moment before the provider's renewal
+ * webhook arrives. Without a buffer, paying customers would drop to free in
+ * that gap. Cancelling subscriptions get no buffer.
+ */
+const RENEWAL_GRACE_MS = DAY_MS;
+
 const SOURCE_PRIORITY = ['subscription', 'gift', 'trial'];
 
 const toMs = (value) => {
@@ -41,6 +48,7 @@ function subscriptionAccessEnd(subscription) {
 
   switch (subscription.status) {
     case 'active':
+      return subscription.cancelAtPeriodEnd ? periodEnd : periodEnd + RENEWAL_GRACE_MS;
     case 'trialing':
     // A cancelled subscription stays paid through the period already charged.
     case 'cancelled':
@@ -71,15 +79,28 @@ function isTrialActive(account, nowMs) {
   return end !== null && end > nowMs;
 }
 
-/** Latest end among active gifts; null means at least one is indefinite. */
-function giftAccessEnd(activeGifts) {
-  let latest = -Infinity;
+/**
+ * When gift access ends: start from the active gifts, then follow any gift that
+ * starts before (or exactly when) the current end, so back-to-back gifts read as
+ * one stretch. null means an indefinite gift is in the chain.
+ */
+function giftAccessEnd(activeGifts, allGifts = activeGifts) {
+  let end = -Infinity;
   for (const gift of activeGifts) {
-    const end = toMs(gift.endsAt);
-    if (end === null) return null;
-    latest = Math.max(latest, end);
+    const giftEnd = toMs(gift.endsAt);
+    if (giftEnd === null) return null;
+    end = Math.max(end, giftEnd);
   }
-  return latest;
+  const later = allGifts
+    .filter((g) => !g.revokedAt)
+    .sort((a, b) => (toMs(a.startsAt) ?? 0) - (toMs(b.startsAt) ?? 0));
+  for (const gift of later) {
+    if ((toMs(gift.startsAt) ?? 0) > end) continue;
+    const giftEnd = toMs(gift.endsAt);
+    if (giftEnd === null) return null;
+    end = Math.max(end, giftEnd);
+  }
+  return end;
 }
 
 function pickSubscription(subscriptions, nowMs) {
@@ -100,10 +121,10 @@ function describeSubscription(subscription) {
   };
 }
 
-function collectSources({ subscription, activeGifts, trialActive, account }) {
+function collectSources({ subscription, activeGifts, gifts, trialActive, account }) {
   const sources = {};
   if (subscription) sources.subscription = toIso(subscriptionAccessEnd(subscription));
-  if (activeGifts.length) sources.gift = toIso(giftAccessEnd(activeGifts));
+  if (activeGifts.length) sources.gift = toIso(giftAccessEnd(activeGifts, gifts));
   if (trialActive) sources.trial = toIso(toMs(account.trialEndsAt));
   return sources;
 }
@@ -123,7 +144,7 @@ function computeEntitlement({ account = null, subscriptions = [], gifts = [], no
   const subscription = pickSubscription(subscriptions, nowMs);
   const activeGifts = gifts.filter((gift) => isGiftActive(gift, nowMs));
   const trialActive = isTrialActive(account, nowMs);
-  const sources = collectSources({ subscription, activeGifts, trialActive, account });
+  const sources = collectSources({ subscription, activeGifts, gifts, trialActive, account });
 
   const activeKeys = SOURCE_PRIORITY.filter((key) => key in sources);
 
@@ -171,8 +192,9 @@ function planGiftWindow({ existingGifts = [], days, now }) {
     throw new RangeError('Gift length must be a whole number of days between 1 and 3660');
   }
 
+  // Active and scheduled (future) fixed gifts both count: a third gift goes after the second.
   const activeFixedEnds = existingGifts
-    .filter((gift) => isGiftActive(gift, nowMs) && toMs(gift.endsAt) !== null)
+    .filter((gift) => !gift.revokedAt && toMs(gift.endsAt) !== null && toMs(gift.endsAt) > nowMs)
     .map((gift) => toMs(gift.endsAt));
   const startMs = Math.max(nowMs, ...activeFixedEnds);
   return { startsAt: toIso(startMs), endsAt: toIso(startMs + days * DAY_MS) };

@@ -14,8 +14,7 @@ const { ApiError } = require('../lib/errors');
 const { PLANS, PASSES, publicCatalog } = require('../billing/plans');
 const { getBillingService } = require('../billing');
 
-const allowedReturnOrigins = () =>
-  new Set(String(process.env.CORS_ORIGINS || '').split(',').map((v) => v.trim()).filter(Boolean));
+const { allowedOrigins: allowedReturnOrigins } = require('../lib/origins');
 
 /** Only send people back to an origin we serve; never to one the request names freely. */
 function safeReturnUrl(candidate) {
@@ -31,12 +30,12 @@ function createBillingRouter({ service = getBillingService } = {}) {
   const router = express.Router();
 
   router.get('/entitlement', asyncHandler(async (req, res) => {
-    const entitlement = await service().getEntitlement(req.user.id);
+    const entitlement = await service().getEntitlement(req.user.id, { claimGifts: true });
     res.json({ ...entitlement, isAdmin: isAdminUser(req.user.id) });
   }));
 
   router.post('/trial', asyncHandler(async (req, res) => {
-    res.status(201).json(await service().startTrial(req.user.id));
+    res.status(201).json({ ...(await service().startTrial(req.user.id)), isAdmin: isAdminUser(req.user.id) });
   }));
 
   router.post('/checkout', asyncHandler(async (req, res) => {

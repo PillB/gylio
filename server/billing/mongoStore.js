@@ -10,7 +10,7 @@
 
 const crypto = require('node:crypto');
 const mongoose = require('mongoose');
-const { isStale } = require('./sqliteStore');
+const { toIsoOrNull } = require('./sqliteStore');
 
 const { Schema } = mongoose;
 const opts = { versionKey: false };
@@ -170,10 +170,9 @@ function createMongoStore(connection = mongoose.connection) {
     getSubscriptionByRef: async (provider, providerRef) =>
       clean(await Subscription.findOne({ provider, providerRef }).lean()),
 
+    /** Same contract as SQLite: one conditional write, so a racing older event can't win. */
     async upsertSubscription(record, { now }) {
-      const existing = await store.getSubscriptionByRef(record.provider, record.providerRef);
-      if (existing && isStale(record, existing)) return { applied: false, subscription: existing };
-
+      const incoming = toIsoOrNull(record.providerUpdatedAt);
       const fields = {
         userId: record.userId,
         status: record.status,
@@ -184,15 +183,20 @@ function createMongoStore(connection = mongoose.connection) {
         cancelAtPeriodEnd: Boolean(record.cancelAtPeriodEnd),
         customerRef: record.customerRef ?? null,
         manageUrl: record.manageUrl ?? null,
-        providerUpdatedAt: record.providerUpdatedAt ?? null,
+        providerUpdatedAt: incoming,
         updatedAt: now,
       };
-      await Subscription.updateOne(
-        { provider: record.provider, providerRef: record.providerRef },
-        { $set: fields, $setOnInsert: { createdAt: now } },
-        { upsert: true }
-      );
-      return { applied: true, subscription: await store.getSubscriptionByRef(record.provider, record.providerRef) };
+      const filter = { provider: record.provider, providerRef: record.providerRef };
+      if (incoming) filter.$or = [{ providerUpdatedAt: null }, { providerUpdatedAt: { $lte: incoming } }];
+      let applied = true;
+      try {
+        await Subscription.updateOne(filter, { $set: fields, $setOnInsert: { createdAt: now } }, { upsert: true });
+      } catch (error) {
+        // The filter didn't match because a newer event is stored, so the upsert tried to insert a duplicate.
+        if (error?.code !== DUPLICATE_KEY) throw error;
+        applied = false;
+      }
+      return { applied, subscription: await store.getSubscriptionByRef(record.provider, record.providerRef) };
     },
 
     listGifts: async ({ userId } = {}) =>

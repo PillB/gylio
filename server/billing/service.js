@@ -35,9 +35,16 @@ function createBillingService({ store, clock = () => new Date(), clerk, paddle, 
     return { account, subscriptions, gifts };
   }
 
+  // Last claim attempt per user: the Clerk lookup runs at most every 10 minutes per person.
+  const lastClaim = new Map();
+  const CLAIM_EVERY_MS = 10 * 60 * 1000;
+
   /** Gifts sent to an email before the person signed up become theirs on first look. */
   async function claimPendingGifts(userId) {
+    const nowMs = clock().getTime();
+    if (nowMs - (lastClaim.get(userId) ?? -Infinity) < CLAIM_EVERY_MS) return;
     if (!clerk?.configured || !(await store.hasUnclaimedGifts())) return;
+    lastClaim.set(userId, nowMs);
     try {
       const emails = await clerk.getVerifiedEmails(userId);
       await store.claimGiftsByEmail(emails, userId, { now: now() });
@@ -47,8 +54,12 @@ function createBillingService({ store, clock = () => new Date(), clerk, paddle, 
     }
   }
 
-  async function getEntitlement(userId) {
-    await claimPendingGifts(userId);
+  /**
+   * `claimGifts` only from the entitlement endpoint the app reads on sign-in;
+   * the AI gate and other per-request checks skip the Clerk lookup.
+   */
+  async function getEntitlement(userId, { claimGifts = false } = {}) {
+    if (claimGifts) await claimPendingGifts(userId);
     return computeEntitlement({ ...(await loadRecords(userId)), now: now() });
   }
 

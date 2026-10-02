@@ -4,7 +4,7 @@
  * checks. Only the outside world is faked: Paddle, Mercado Pago and Clerk's
  * user API, plus the clock.
  */
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createRequire } from 'node:module';
 import http from 'node:http';
 import crypto from 'node:crypto';
@@ -78,17 +78,18 @@ beforeEach(async () => {
   clock = { now: Date.parse('2026-10-01T12:00:00.000Z') };
   payments = {};
   clerkEmails = {};
-  const service = createBillingService({
-    store,
-    clock: () => new Date(clock.now),
-    logger: { warn() {} },
-    clerk: {
+  const clerkFake = {
       configured: true,
       getVerifiedEmails: async (userId) => clerkEmails[userId] || [],
       findUserIdByEmail: async (email) =>
         Object.keys(clerkEmails).find((id) => clerkEmails[id].includes(email)) || null,
       getPrimaryEmails: async (ids) => Object.fromEntries(ids.map((id) => [id, clerkEmails[id]?.[0] || null])),
-    },
+  };
+  const service = createBillingService({
+    store,
+    clock: () => new Date(clock.now),
+    logger: { warn() {} },
+    clerk: clerkFake,
     paddle: {
       configured: true,
       createCheckout: async ({ planId }) => (planId === 'pro_yearly' ? { provider: 'paddle', transactionId: 'txn_1' } : null),
@@ -99,7 +100,9 @@ beforeEach(async () => {
       fetchPayment: async (id) => payments[id],
     },
   });
+  service.__clerk = clerkFake;
   billing.setBillingContext({ store, service });
+  billing.__test_context = () => ({ store, service });
 });
 
 describe('trial', () => {
@@ -422,5 +425,32 @@ describe('analytics', () => {
     expect(res.body.experiments).toEqual([
       { experiment: 'trial_cta_copy', variant: 'start_trial', exposed: 2, trials: 1, checkouts: 0, trialRate: 0.5 },
     ]);
+  });
+});
+
+describe('review fixes: server', () => {
+  it('looks up emails in Clerk only from the entitlement read, at most once per 10 minutes', async () => {
+    const { store, service } = billing.__test_context();
+    const spy = vi.spyOn(service.__clerk, 'getVerifiedEmails');
+    await store.createGift({ email: 'pending@example.com', startsAt: '2026-10-01T00:00:00.000Z', endsAt: null, reason: 'tester', grantedBy: 'user_admin', grantedAt: '2026-10-01T00:00:00.000Z' });
+    await request(app).post('/api/ai/social-suggestions').set(as('user_x')).send({});
+    expect(spy).not.toHaveBeenCalled();
+    await request(app).get('/api/billing/entitlement').set(as('user_x'));
+    await request(app).get('/api/billing/entitlement').set(as('user_x'));
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the admin flag in the answer to starting a trial', async () => {
+    const res = await request(app).post('/api/billing/trial').set(as('user_admin'));
+    expect(res.body).toMatchObject({ plan: 'pro', isAdmin: true });
+  });
+
+  it('answers a signed Mercado Pago notification whose body is JSON null without crashing', async () => {
+    const ts = Math.floor(Date.now() / 1000);
+    const manifest = `id:777;request-id:r-null;ts:${ts};`;
+    const v1 = crypto.createHmac('sha256', MP_SECRET).update(manifest).digest('hex');
+    const res = await request(app).post('/api/webhooks/mercadopago?data.id=777&type=payment')
+      .set('x-signature', `ts=${ts},v1=${v1}`).set('x-request-id', 'r-null').set('Content-Type', 'application/json').send('null');
+    expect(res.status).not.toBe(500);
   });
 });

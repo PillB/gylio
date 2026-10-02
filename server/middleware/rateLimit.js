@@ -1,9 +1,14 @@
 const rateLimit = require('express-rate-limit');
 
+// Signed-in requests are counted per person, not per IP: many people share one IP
+// behind an office, school or internet-cafe network, and autosave alone is 4 requests a minute each.
+const keyGenerator = (req) => (req.user?.id ? `user:${req.user.id}` : rateLimit.ipKeyGenerator(req.ip || ''));
+
 const buildRateLimit = ({ windowMs, max, code, message }) =>
   rateLimit({
     windowMs,
     max,
+    keyGenerator,
     standardHeaders: true,
     legacyHeaders: false,
     handler: (_req, res) => {
@@ -49,6 +54,7 @@ const analyticsRateLimit = buildRateLimit({
 });
 
 module.exports = {
+  buildRateLimit,
   analyticsRateLimit,
   feedbackRateLimit,
   authRateLimit,

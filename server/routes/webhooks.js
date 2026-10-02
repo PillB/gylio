@@ -24,8 +24,10 @@ const parseJson = (buffer) => {
 
 /** Mercado Pago puts the payment id and topic in the query string, the body, or both. */
 function readMercadoPagoNotification(req) {
-  const body = Buffer.isBuffer(req.body) && req.body.length ? parseJson(req.body) : {};
-  const data = body.data || {};
+  const parsed = Buffer.isBuffer(req.body) && req.body.length ? parseJson(req.body) : null;
+  // `null`, a number or an array is valid JSON but not a notification.
+  const body = parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+  const data = body.data && typeof body.data === 'object' ? body.data : {};
   return {
     dataId: String(req.query['data.id'] || data.id || ''),
     topic: req.query.type || req.query.topic || body.type,
