@@ -58,4 +58,26 @@ describe('DataFreshnessBanner', () => {
       expect(track).not.toHaveBeenCalled();
     });
   });
+
+  // The analytics queue is kept in localStorage, so an event must not carry the date of a
+  // transaction or the month a budget covers.
+  describe('the stale-warning analytics event', () => {
+    it.each([
+      ['10 days old', daysAgo(10), '8-30'],
+      ['45 days old', daysAgo(45), '31-90'],
+      ['200 days old', daysAgo(200), '90+'],
+      ['missing', null, 'never'],
+    ])('records only a day bucket when the last transaction is %s', (_label, lastTransactionDate, bucket) => {
+      render(<DataFreshnessBanner lastTransactionDate={lastTransactionDate} budgetMonthKey={thisMonth} />);
+
+      expect(track).toHaveBeenCalledTimes(1);
+      expect(track).toHaveBeenCalledWith('BUDGET_DATA_STALE_WARNING_SHOWN', { daysSinceLastTransaction: bucket });
+    });
+
+    it('records nothing while the data is fresh', () => {
+      render(<DataFreshnessBanner lastTransactionDate={daysAgo(0)} budgetMonthKey={thisMonth} />);
+
+      expect(track).not.toHaveBeenCalled();
+    });
+  });
 });
