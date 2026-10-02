@@ -103,14 +103,16 @@ const FRESHNESS_CONFIG = {
   },
 };
 
-export default function DataFreshnessBanner({ lastTransactionDate, budgetMonthKey }) {
-  const { t } = useTranslation();
-  const { theme } = useTheme();
-
-  // Freshness asks whether this month has been kept up to date. A closed month has
-  // nothing left to add and a month that has not started has nothing to record yet,
-  // so a budget for another month is not judged. Without a month key, or with a period
-  // that is not a year and a month, the banner judges the dates it is given, as before.
+/**
+ * The freshness level to show, or null when there is nothing to judge, and the analytics
+ * event for a stale warning.
+ *
+ * Freshness asks whether this month has been kept up to date. A closed month has nothing
+ * left to add and a month that has not started has nothing to record yet, so a budget for
+ * another month is not judged. Without a month key, or with a period that is not a year
+ * and a month, the dates are judged as they are given.
+ */
+function useFreshness(lastTransactionDate, budgetMonthKey) {
   const otherMonth = isOtherMonth(budgetMonthKey);
 
   const freshness = useMemo(
@@ -118,12 +120,20 @@ export default function DataFreshnessBanner({ lastTransactionDate, budgetMonthKe
     [otherMonth, lastTransactionDate],
   );
 
-  // Fire analytics when a stale warning is shown. The bucket triggers the effect, so a new
-  // Date object for the same staleness does not record the warning again.
+  // The bucket triggers the effect, so a new Date object for the same staleness does not
+  // record the warning again.
   const staleDays = freshness === 'stale' ? staleBucket(lastTransactionDate) : null;
   useEffect(() => {
     if (staleDays) track(Events.BUDGET_DATA_STALE_WARNING_SHOWN, { daysSinceLastTransaction: staleDays });
   }, [staleDays]);
+
+  return freshness;
+}
+
+export default function DataFreshnessBanner({ lastTransactionDate, budgetMonthKey }) {
+  const { t } = useTranslation();
+  const { theme } = useTheme();
+  const freshness = useFreshness(lastTransactionDate, budgetMonthKey);
 
   if (!freshness) return null;
 
