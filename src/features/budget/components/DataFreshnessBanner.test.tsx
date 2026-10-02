@@ -1,5 +1,5 @@
 import React from 'react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { contrastRatio, themes } from '../../../core/themes';
 import { track } from '../../../core/analytics';
@@ -14,18 +14,24 @@ vi.mock('../../../core/analytics', () => ({ track: vi.fn(), Events: new Proxy({}
 const rgbToHex = (rgb: string) =>
   `#${(rgb.match(/\d+/g) ?? []).slice(0, 3).map((n) => Number(n).toString(16).padStart(2, '0')).join('')}`;
 
-const monthKey = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-const daysAgo = (days: number) => new Date(Date.now() - days * 86_400_000);
+// A fixed "today" (20 April 2026, local time) keeps the month cases independent of when the suite runs.
+const NOW = new Date(2026, 3, 20, 12);
+const daysAgo = (days: number) => new Date(NOW.getTime() - days * 86_400_000);
 
-const thisMonth = monthKey(new Date());
-const lastMonth = monthKey(new Date(new Date().getFullYear(), new Date().getMonth() - 1, 15));
-const nextMonth = monthKey(new Date(new Date().getFullYear(), new Date().getMonth() + 1, 15));
+const THIS_MONTH = '2026-04';
+const LAST_MONTH = '2026-03';
+const NEXT_MONTH = '2026-05';
 
 describe('DataFreshnessBanner', () => {
-  beforeEach(() => vi.mocked(track).mockClear());
+  beforeEach(() => {
+    vi.mocked(track).mockClear();
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(NOW);
+  });
+  afterEach(() => vi.useRealTimers());
 
   it('renders the stale label as AA text on the surface', () => {
-    render(<DataFreshnessBanner lastTransactionDate={new Date(2020, 0, 1)} budgetMonthKey={thisMonth} />);
+    render(<DataFreshnessBanner lastTransactionDate={new Date(2020, 0, 1)} budgetMonthKey={THIS_MONTH} />);
     const label = screen.getByText('Data may be stale');
     const color = rgbToHex(getComputedStyle(label).color);
     expect(contrastRatio(color, themes.light.colors.surface)).toBeGreaterThanOrEqual(4.5);
@@ -33,18 +39,18 @@ describe('DataFreshnessBanner', () => {
 
   describe('which budget month it judges', () => {
     it('warns when the current month has no recent transactions', () => {
-      render(<DataFreshnessBanner lastTransactionDate={null} budgetMonthKey={thisMonth} />);
+      render(<DataFreshnessBanner lastTransactionDate={null} budgetMonthKey={THIS_MONTH} />);
       expect(screen.getByRole('alert').textContent).toContain('Data may be stale');
     });
 
     it('suggests a review when the last transaction is a few days old', () => {
-      render(<DataFreshnessBanner lastTransactionDate={daysAgo(3)} budgetMonthKey={thisMonth} />);
+      render(<DataFreshnessBanner lastTransactionDate={daysAgo(3)} budgetMonthKey={THIS_MONTH} />);
       expect(screen.getByRole('status').textContent).toContain('Review suggested');
     });
 
     it('stays silent for a past month, whose old transactions are expected', () => {
       const { container } = render(
-        <DataFreshnessBanner lastTransactionDate={daysAgo(40)} budgetMonthKey={lastMonth} />,
+        <DataFreshnessBanner lastTransactionDate={daysAgo(40)} budgetMonthKey={LAST_MONTH} />,
       );
 
       expect(container.firstChild).toBeNull();
@@ -52,10 +58,21 @@ describe('DataFreshnessBanner', () => {
     });
 
     it('stays silent for a month that has not started, which has no transactions yet', () => {
-      const { container } = render(<DataFreshnessBanner lastTransactionDate={null} budgetMonthKey={nextMonth} />);
+      const { container } = render(<DataFreshnessBanner lastTransactionDate={null} budgetMonthKey={NEXT_MONTH} />);
 
       expect(container.firstChild).toBeNull();
       expect(track).not.toHaveBeenCalled();
+    });
+
+    // The period is a text field. A current month typed without its zero, or text that is not a
+    // year and a month, must keep the warning rather than silently switch it off.
+    it.each([
+      ['a current month typed without its leading zero', '2026-4'],
+      ['a period that is not a year and a month', 'April'],
+    ])('still judges the dates for %s', (_label, budgetMonthKey) => {
+      render(<DataFreshnessBanner lastTransactionDate={null} budgetMonthKey={budgetMonthKey} />);
+
+      expect(screen.getByRole('alert').textContent).toContain('Data may be stale');
     });
   });
 
@@ -68,14 +85,14 @@ describe('DataFreshnessBanner', () => {
       ['200 days old', daysAgo(200), '90+'],
       ['missing', null, 'never'],
     ])('records only a day bucket when the last transaction is %s', (_label, lastTransactionDate, bucket) => {
-      render(<DataFreshnessBanner lastTransactionDate={lastTransactionDate} budgetMonthKey={thisMonth} />);
+      render(<DataFreshnessBanner lastTransactionDate={lastTransactionDate} budgetMonthKey={THIS_MONTH} />);
 
       expect(track).toHaveBeenCalledTimes(1);
       expect(track).toHaveBeenCalledWith('BUDGET_DATA_STALE_WARNING_SHOWN', { daysSinceLastTransaction: bucket });
     });
 
     it('records nothing while the data is fresh', () => {
-      render(<DataFreshnessBanner lastTransactionDate={daysAgo(0)} budgetMonthKey={thisMonth} />);
+      render(<DataFreshnessBanner lastTransactionDate={daysAgo(0)} budgetMonthKey={THIS_MONTH} />);
 
       expect(track).not.toHaveBeenCalled();
     });

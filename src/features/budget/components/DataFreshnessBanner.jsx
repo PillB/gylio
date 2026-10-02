@@ -41,10 +41,14 @@ function staleBucket(lastDate) {
 }
 
 /**
- * The local month of a Date as 'YYYY-MM', the format budgets use for `month`.
+ * True when a budget period names a month other than the current local month.
+ * The period is a text field (the app asks for YYYY-MM but only checks that it is not
+ * empty), so text that is not a year and a month is not judged either way.
  */
-function monthKeyOf(date) {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+function isOtherMonth(budgetMonthKey, now = new Date()) {
+  const match = /^\s*(\d{4})-(\d{1,2})\s*$/.exec(budgetMonthKey ?? '');
+  if (!match) return false;
+  return Number(match[1]) !== now.getFullYear() || Number(match[2]) !== now.getMonth() + 1;
 }
 
 /**
@@ -105,13 +109,13 @@ export default function DataFreshnessBanner({ lastTransactionDate, budgetMonthKe
 
   // Freshness asks whether this month has been kept up to date. A closed month has
   // nothing left to add and a month that has not started has nothing to record yet,
-  // so only the current month is judged. Without a month key the banner judges the
-  // dates it is given, as before.
-  const isCurrentMonth = !budgetMonthKey || budgetMonthKey === monthKeyOf(new Date());
+  // so a budget for another month is not judged. Without a month key, or with a period
+  // that is not a year and a month, the banner judges the dates it is given, as before.
+  const otherMonth = isOtherMonth(budgetMonthKey);
 
   const freshness = useMemo(
-    () => (isCurrentMonth ? computeFreshness(lastTransactionDate) : null),
-    [isCurrentMonth, lastTransactionDate],
+    () => (otherMonth ? null : computeFreshness(lastTransactionDate)),
+    [otherMonth, lastTransactionDate],
   );
 
   // Fire analytics when a stale warning is shown. The bucket triggers the effect, so a new
