@@ -168,4 +168,59 @@ describe('tour dialogs manage keyboard focus', () => {
     expect(fireEvent.keyDown(addDetails, { key: 'Tab' })).toBe(true);
     expect(focused()).toBe(addDetails);
   });
+
+  // Every flow ends on a centred card that follows a spotlight step. ArrowRight advances the
+  // tour from anywhere, so a keyboard user standing on the highlighted control lands on a modal
+  // card while focus is still on the page behind it. The card has to pull focus in, or Enter
+  // would press a control that is hidden behind it.
+  describe('when ArrowRight moves on from a control on the page', () => {
+    const advanceFromPage = async (fromStep: string, page: React.ReactNode, controlName: string) => {
+      Element.prototype.scrollIntoView = vi.fn();
+      const stepIndex = TASKS_FLOW.steps.findIndex((s) => s.id === fromStep);
+      localStorage.setItem('gylio_tour', JSON.stringify({ active: true, stepIndex, completed: false, flowId: 'tasks' }));
+      render(
+        <MemoryRouter initialEntries={['/tasks']}>
+          <GuidedTourProvider>
+            {page}
+            <GuidedTourOverlay />
+          </GuidedTourProvider>
+        </MemoryRouter>,
+      );
+      const settle = () =>
+        act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+      await settle();
+      const control = screen.getByRole('button', { name: controlName });
+      control.focus();
+      fireEvent.keyDown(control, { key: 'ArrowRight' });
+      await settle();
+      return { control, tour: screen.getByRole('dialog', { name: 'Feature tour' }) };
+    };
+
+    it('moves focus into the tour when the next step is a centred card', async () => {
+      const { tour } = await advanceFromPage(
+        'tasks-submit',
+        <button type="button" data-tour="task-submit">Add task</button>,
+        'Add task',
+      );
+      expect(tour.getAttribute('aria-modal')).toBe('true');
+      expect(tour.contains(focused())).toBe(true);
+    });
+
+    // Guard: refocusing on every step change would take the person off the control the
+    // spotlight step asks them to use.
+    it('leaves focus on the page when the next step is another spotlight', async () => {
+      const { control, tour } = await advanceFromPage(
+        'tasks-title',
+        <>
+          <button type="button" data-tour="task-input">Task title</button>
+          <button type="button" data-tour="task-date">Task date</button>
+        </>,
+        'Task title',
+      );
+      expect(tour.hasAttribute('aria-modal')).toBe(false);
+      expect(focused()).toBe(control);
+    });
+  });
 });

@@ -156,8 +156,9 @@ export default function GuidedTourOverlay() {
   }, [isActive, isLast, isFirst, pauseTour, nextStep, prevStep]);
 
   // Tab is trapped only on centred steps (aria-modal); spotlight steps keep the
-  // highlighted element reachable for "Try it".
-  useDialogFocus(dialogRef, currentStep !== null);
+  // highlighted element reachable for "Try it". The step index lets a spotlight step that
+  // hands over to a centred card pull focus back in from the page.
+  useDialogFocus(dialogRef, currentStep !== null, stepIndex);
 
   if (!isActive || !currentStep) return null;
 
