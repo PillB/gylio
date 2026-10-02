@@ -266,7 +266,7 @@ const TaskList: React.FC = () => {
             onToggle={() => setFocusModeExpanded((prev) => !prev)}
           />
         )}
-        <div role="list" aria-label={t('tasks.chunkedListAria')} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: '1rem' }}>
+        <div role={loading || filteredTasks.length === 0 ? undefined : 'list'} aria-label={loading || filteredTasks.length === 0 ? undefined : t('tasks.chunkedListAria')} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: '1rem' }}>
           <TaskListBody
             loading={loading}
             view={viewFilter}

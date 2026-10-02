@@ -645,7 +645,7 @@ const SettingsView = () => {
             borderRadius: theme.shape.radiusMd,
             border: `1px solid ${theme.colors.primary}`,
             background: theme.colors.overlay,
-            color: theme.colors.primary,
+            color: theme.colors.text,
             cursor: 'pointer',
             fontSize: '0.875rem',
             fontWeight: 600,

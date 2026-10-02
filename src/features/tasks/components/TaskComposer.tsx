@@ -45,7 +45,6 @@ const TemplateToggle: React.FC<{ onSelect: (template: TaskTemplate) => void }> =
           fontFamily: theme.typography.body.family,
         }}
       >
-        <span aria-hidden="true">⚡</span>
         {open ? t('tasks.tpl.hideGallery', 'Hide quick-start tasks') : t('tasks.tpl.showGallery', 'Browse quick-start tasks')}
       </button>
       {open && (
