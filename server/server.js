@@ -126,7 +126,7 @@ app.get('/api/health', (_req, res) => {
   res.status(databaseReady ? 200 : 503).json({
     status: databaseReady ? 'ok' : 'degraded',
     authConfigured: Boolean(process.env.CLERK_ISSUER),
-    aiConfigured: missingAiEnvVars.length === 0,
+    aiConfigured: Boolean(process.env.OPENAI_API_KEY),
     database: persistenceMode,
     databaseReady,
   });

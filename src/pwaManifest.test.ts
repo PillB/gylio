@@ -101,3 +101,53 @@ describe('PWA manifest base independence', () => {
     expect(baseRelativeMembers('/')).toEqual(baseRelativeMembers('/gylio/'));
   });
 });
+
+/** The built file a browser is served for `url`, or undefined when the URL is outside the base. */
+const builtFileFor = (base: Base, url: string) => {
+  if (!url.startsWith(`${ORIGIN}${base}`)) return undefined;
+  return path.join(outDirs.get(base)!, new URL(url).pathname.slice(base.length));
+};
+
+const isBuilt = (file: string | undefined) => Boolean(file && fs.existsSync(file));
+
+/** `<width>x<height>` of a PNG, read from its IHDR chunk. */
+const pngSize = (file: string) => {
+  const bytes = fs.readFileSync(file);
+  expect(bytes.subarray(0, 8).toString('hex'), `${file} is a PNG`).toBe('89504e470d0a1a0a');
+  return `${bytes.readUInt32BE(16)}x${bytes.readUInt32BE(20)}`;
+};
+
+describe.each(BASES)('PWA icons built with VITE_BASE_PATH=%s', (base) => {
+  const manifestIcons = () => {
+    const { manifestUrl, json } = loadManifest(base);
+    const icons: { src: string; sizes?: string }[] = [
+      ...json.icons,
+      ...(json.shortcuts ?? []).flatMap((shortcut: { icons?: { src: string }[] }) => shortcut.icons ?? []),
+    ];
+    return icons.map((icon) => ({ ...icon, url: new URL(icon.src, manifestUrl).href }));
+  };
+
+  it('ships every icon the manifest and its shortcuts name', () => {
+    for (const icon of manifestIcons()) {
+      expect(isBuilt(builtFileFor(base, icon.url)), `${icon.src} is in the build`).toBe(true);
+    }
+  });
+
+  it('declares each PNG icon at the size it really has', () => {
+    const pngs = manifestIcons().filter((icon) => icon.src.endsWith('.png'));
+    expect(pngs.length, 'the manifest names PNG icons').toBeGreaterThan(0);
+    for (const icon of pngs) {
+      expect(pngSize(builtFileFor(base, icon.url)!), `${icon.src} size`).toBe(icon.sizes);
+    }
+  });
+
+  it('finds the favicon and the touch icon from a nested deep link', () => {
+    const html = fs.readFileSync(path.join(outDirs.get(base)!, 'index.html'), 'utf8');
+    const hrefs = [...html.matchAll(/<link[^>]*rel="(?:icon|apple-touch-icon)"[^>]*href="([^"]+)"/g)].map((m) => m[1]);
+    expect(hrefs.length, 'index.html links a favicon and a touch icon').toBe(2);
+    for (const href of hrefs) {
+      const url = new URL(href, `${ORIGIN}${base}sign-in/factor-one`).href;
+      expect(isBuilt(builtFileFor(base, url)), `${href} resolves to a built file`).toBe(true);
+    }
+  });
+});

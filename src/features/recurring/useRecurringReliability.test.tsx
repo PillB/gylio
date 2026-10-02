@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
+import { track } from '../../core/analytics';
 import { useRecurringReliability } from './useRecurringReliability';
 
 const dbApi = {
@@ -18,6 +19,7 @@ vi.mock('../../core/analytics', () => ({ track: vi.fn(), Events: new Proxy({}, {
 beforeEach(() => {
   localStorage.clear();
   showToast.mockClear();
+  vi.mocked(track).mockClear();
 });
 
 describe('useRecurringReliability', () => {
@@ -29,5 +31,16 @@ describe('useRecurringReliability', () => {
     expect(showToast.mock.calls[0]).toEqual([
       expect.objectContaining({ message: expect.stringContaining('1 recurring'), type: 'warning' }),
     ]);
+  });
+
+  it('keeps the task title out of the analytics event for a missing instance', async () => {
+    renderHook(() => useRecurringReliability('2026-09-30'));
+    await waitFor(() => expect(showToast).toHaveBeenCalled());
+
+    // The analytics queue is kept in localStorage; a title is text the user wrote.
+    const missing = vi.mocked(track).mock.calls.find(([name]) => name === 'RECURRING_EXPECTED_MISSING');
+    expect(missing).toBeDefined();
+    expect(missing?.[1]).toEqual({ taskId: expect.anything(), expectedDate: expect.any(String) });
+    expect(JSON.stringify(missing)).not.toContain('Take meds');
   });
 });
