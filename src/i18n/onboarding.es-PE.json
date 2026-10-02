@@ -1,5 +1,5 @@
 {
-  "intro": "Configura solo lo que te ayude. Puedes cambiar estas opciones más adelante en Configuración.",
+  "intro": "Configura solo lo que te ayude.",
   "stepSection": "Configuración inicial",
   "progress": "Paso {{current}} de {{total}}",
   "back": "Atrás",
@@ -9,7 +9,7 @@
     "savedAndEditable": "Se guarda en este dispositivo. Puedes salir ahora y cambiar estas opciones después en Configuración."
   },
   "predictableSteps": {
-    "accessibility": "Primero: elige preferencias de interfaz. Ya hay opciones neutrales seleccionadas.",
+    "accessibility": "Primero: elige preferencias de interfaz.",
     "quickSetup": "Luego: opcionalmente agrega una primera tarea.",
     "tour": "Al final: revisa dónde están las partes principales de GYLIO."
   },

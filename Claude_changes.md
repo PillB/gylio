@@ -830,3 +830,15 @@ Numbered after #82's CHG-043/044 to keep IDs unique; #82 stacks on this branch.
 - `eslint.config.js`, `src/test/rawHexColors.test.ts`, `AGENTS.md` — `src/core/contrast.ts` no longer exists; `readableTextOn` lives in `themes.ts`.
 
 **Verified:** lint, typecheck, 234 unit tests, check:i18n, build.
+
+---
+
+### CHG-049 – 2026-10-02 (Onboarding step 1: say each reassurance once)
+
+**Why:** Step 1 showed "Neutral defaults are already selected" twice and "change later in Settings" twice (page intro plus the saved-on-device line). For users prone to overload, repeated copy adds reading cost without information.
+
+**Files changed:**
+- `src/i18n/onboarding.en.json`, `src/i18n/onboarding.es-PE.json` — trimmed `intro` and `predictableSteps.accessibility`; the subtitle and saved-on-device line still carry both messages once.
+- `e2e/onboarding-science.spec.ts` — test that each line appears once (fails on the old copy).
+
+**Trade-off:** Other locales keep the longer copy until translated; parity checks pass because keys are unchanged.
