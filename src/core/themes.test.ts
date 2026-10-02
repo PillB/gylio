@@ -13,6 +13,10 @@ describe('contrastRatio', () => {
     expect(contrastRatio('#767676', '#FFFFFF')).toBeCloseTo(4.54, 2);
   });
 
+  it('is symmetric in its arguments', () => {
+    expect(contrastRatio('#5B5CF6', '#FFFFFF')).toBeCloseTo(contrastRatio('#FFFFFF', '#5B5CF6'), 10);
+  });
+
   it('rejects colors it cannot parse instead of guessing', () => {
     expect(() => relativeLuminance('rgba(0,0,0,0.5)')).toThrow(/Unsupported color/);
   });
@@ -35,6 +39,8 @@ describe.each(MODES)('%s theme tokens', (mode) => {
 
   it.each([
     ['primary', 'primaryForeground'],
+    // App.jsx draws primaryForeground text across a primary -> secondary gradient.
+    ['secondary', 'primaryForeground'],
     ['secondary', 'onSecondary'],
     ['info', 'onInfo'],
     ['success', 'onSuccess'],
@@ -48,6 +54,17 @@ describe.each(MODES)('%s theme tokens', (mode) => {
     const strong = colors[`${status}Strong`];
     expect(contrastRatio(strong, colors[`${status}Soft`])).toBeGreaterThanOrEqual(AA_TEXT);
     expect(contrastRatio(strong, colors.surface)).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+
+  it('body and muted text are AA on background and surface (WCAG 1.4.3)', () => {
+    for (const bg of [colors.background, colors.surface]) {
+      expect(contrastRatio(colors.text, bg)).toBeGreaterThanOrEqual(AA_TEXT);
+      expect(contrastRatio(colors.muted, bg)).toBeGreaterThanOrEqual(AA_TEXT);
+    }
+  });
+
+  it.each(['success', 'warning', 'error'] as const)('%sStrong text is also AA on the page background', (status) => {
+    expect(contrastRatio(colors[`${status}Strong`], colors.background)).toBeGreaterThanOrEqual(AA_TEXT);
   });
 
   it('every data-viz hue is distinguishable from the surface (WCAG 1.4.11)', () => {

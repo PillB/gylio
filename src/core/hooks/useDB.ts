@@ -196,7 +196,19 @@ type StatementSet = {
   updateTaskWithTimeLog: string;
 };
 
-const mapRows = <T>(rows: SQLResultSetRowList, transformer: (row: any) => T): T[] => {
+// SQLite rows are untyped until a mapper below coerces each column into a domain type.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SqlRow = Record<string, any>;
+
+/** Resolves with a row that must exist (e.g. one just inserted); rejects instead of resolving null. */
+const requireRow =
+  <T>(resolve: (value: T) => void, reject: (reason?: unknown) => void) =>
+  (row: T | null) => {
+    if (row) resolve(row);
+    else reject(new Error('Saved row could not be read back'));
+  };
+
+const mapRows = <T>(rows: SQLResultSetRowList, transformer: (row: SqlRow) => T): T[] => {
   const items: T[] = [];
   for (let i = 0; i < rows.length; i += 1) {
     items.push(transformer(rows.item(i)));
@@ -304,7 +316,7 @@ const normalizeCategories = (value: unknown): BudgetCategory[] => {
     .filter((entry): entry is BudgetCategory => Boolean(entry));
 };
 
-const mapTask = (row: any): Task => ({
+const mapTask = (row: SqlRow): Task => ({
   id: row.id,
   title: row.title,
   status: row.status,
@@ -320,7 +332,7 @@ const mapTask = (row: any): Task => ({
   updatedAt: row.updatedAt ?? null,
 });
 
-const mapEvent = (row: any): Event => ({
+const mapEvent = (row: SqlRow): Event => ({
   id: row.id,
   title: row.title,
   description: row.description ?? null,
@@ -335,7 +347,7 @@ const mapEvent = (row: any): Event => ({
   createdAt: row.createdAt ?? null,
 });
 
-const mapBudget = (row: any): Budget => ({
+const mapBudget = (row: SqlRow): Budget => ({
   id: row.id,
   month: row.month ?? '',
   income: normalizeIncome(row.income),
@@ -343,7 +355,7 @@ const mapBudget = (row: any): Budget => ({
   createdAt: row.createdAt ?? null,
 });
 
-const mapTransaction = (row: any): Transaction => ({
+const mapTransaction = (row: SqlRow): Transaction => ({
   id: row.id,
   budgetMonth: row.budgetMonth,
   amount: Number(row.amount),
@@ -354,7 +366,7 @@ const mapTransaction = (row: any): Transaction => ({
   createdAt: row.createdAt ?? null,
 });
 
-const mapDebt = (row: any): Debt => ({
+const mapDebt = (row: SqlRow): Debt => ({
   id: row.id,
   name: row.name,
   balance: Number(row.balance),
@@ -364,7 +376,7 @@ const mapDebt = (row: any): Debt => ({
   createdAt: row.createdAt ?? null,
 });
 
-const mapSocialPlan = (row: any): SocialPlan => ({
+const mapSocialPlan = (row: SqlRow): SocialPlan => ({
   id: row.id,
   title: row.title,
   type: row.type,
@@ -382,7 +394,7 @@ const mapSocialPlan = (row: any): SocialPlan => ({
   createdAt: row.createdAt ?? null,
 });
 
-const mapReward = (row: any): Reward => ({
+const mapReward = (row: SqlRow): Reward => ({
   id: row.id,
   title: row.title,
   pointsRequired: row.pointsRequired,
@@ -391,7 +403,7 @@ const mapReward = (row: any): Reward => ({
   createdAt: row.createdAt ?? null,
 });
 
-const mapRoutine = (row: any): Routine => ({
+const mapRoutine = (row: SqlRow): Routine => ({
   id: row.id,
   title: row.title,
   description: row.description ?? null,
@@ -404,7 +416,7 @@ const mapRoutine = (row: any): Routine => ({
   createdAt: row.createdAt ?? null,
 });
 
-const mapRewardsProgress = (row: any): RewardsProgress => ({
+const mapRewardsProgress = (row: SqlRow): RewardsProgress => ({
   id: row.id,
   points: Number(row.points ?? 0),
   level: Number(row.level ?? 1),
@@ -524,7 +536,7 @@ const useDB = () => {
   );
 
   const runTransaction = useCallback(
-    <T>(operation: (tx: SQLTransaction, resolve: (value: T) => void, reject: (reason?: any) => void) => void) =>
+    <T>(operation: (tx: SQLTransaction, resolve: (value: T) => void, reject: (reason?: unknown) => void) => void) =>
       new Promise<T>((resolve, reject) => {
         if (!db) {
           reject(new Error('Database not initialized'));
@@ -540,7 +552,7 @@ const useDB = () => {
   );
 
   const selectSingle = useCallback(
-    <T>(tx: SQLTransaction, sql: string, params: any[], mapper: (row: any) => T, resolve: (value: T | null) => void, reject: (reason?: any) => void) => {
+    <T>(tx: SQLTransaction, sql: string, params: unknown[], mapper: (row: SqlRow) => T, resolve: (value: T | null) => void, reject: (reason?: unknown) => void) => {
       tx.executeSql(
         sql,
         params,
@@ -624,7 +636,7 @@ const useDB = () => {
                   const timestamp = created.updatedAt ?? created.createdAt ?? new Date().toISOString();
                   queueSyncAction('task', 'create', created as unknown as Record<string, unknown>, timestamp);
                 }
-                resolve(created);
+                requireRow(resolve, reject)(created);
               },
               reject
             );
@@ -636,7 +648,7 @@ const useDB = () => {
           }
         );
       }),
-    [runTransaction, selectSingle, statements.insertTask, statements.selectTaskById]
+    [queueSyncAction, runTransaction, selectSingle, statements.insertTask, statements.selectTaskById]
   );
 
   const updateTask = useCallback(
@@ -774,7 +786,7 @@ const useDB = () => {
                   const timestamp = created.createdAt ?? new Date().toISOString();
                   queueSyncAction('event', 'create', created as unknown as Record<string, unknown>, timestamp);
                 }
-                resolve(created);
+                requireRow(resolve, reject)(created);
               },
               reject
             );
@@ -786,7 +798,7 @@ const useDB = () => {
           }
         );
       }),
-    [runTransaction, selectSingle, statements.insertEvent, statements.selectEventById]
+    [queueSyncAction, runTransaction, selectSingle, statements.insertEvent, statements.selectEventById]
   );
 
   const updateEvent = useCallback(
@@ -897,7 +909,7 @@ const useDB = () => {
               reject(new Error('Budget insert failed'));
               return false;
             }
-            selectSingle(tx, statements.selectBudgetById, [insertId], mapBudget, resolve, reject);
+            selectSingle(tx, statements.selectBudgetById, [insertId], mapBudget, requireRow(resolve, reject), reject);
             return true;
           },
           (_, error) => {
@@ -1008,7 +1020,7 @@ const useDB = () => {
                   const timestamp = created.createdAt ?? new Date().toISOString();
                   queueSyncAction('transaction', 'create', created as unknown as Record<string, unknown>, timestamp);
                 }
-                resolve(created);
+                requireRow(resolve, reject)(created);
               },
               reject
             );
@@ -1020,7 +1032,7 @@ const useDB = () => {
           }
         );
       }),
-    [runTransaction, selectSingle, statements.insertTransaction, statements.selectTransactionById]
+    [queueSyncAction, runTransaction, selectSingle, statements.insertTransaction, statements.selectTransactionById]
   );
 
   const updateTransaction = useCallback(
@@ -1123,7 +1135,7 @@ const useDB = () => {
               reject(new Error('Debt insert failed'));
               return false;
             }
-            selectSingle(tx, statements.selectDebtById, [insertId], mapDebt, resolve, reject);
+            selectSingle(tx, statements.selectDebtById, [insertId], mapDebt, requireRow(resolve, reject), reject);
             return true;
           },
           (_, error) => {
@@ -1233,7 +1245,7 @@ const useDB = () => {
               reject(new Error('Social plan insert failed'));
               return false;
             }
-            selectSingle(tx, statements.selectSocialPlanById, [insertId], mapSocialPlan, resolve, reject);
+            selectSingle(tx, statements.selectSocialPlanById, [insertId], mapSocialPlan, requireRow(resolve, reject), reject);
             return true;
           },
           (_, error) => {
@@ -1352,7 +1364,7 @@ const useDB = () => {
               reject(new Error('Reward insert failed'));
               return false;
             }
-            selectSingle(tx, statements.selectRewardById, [insertId], mapReward, resolve, reject);
+            selectSingle(tx, statements.selectRewardById, [insertId], mapReward, requireRow(resolve, reject), reject);
             return true;
           },
           (_, error) => {
@@ -1421,7 +1433,7 @@ const useDB = () => {
           statements.insertRewardsProgress,
           [],
           () => {
-            selectSingle(tx, statements.selectRewardsProgress, [1], mapRewardsProgress, resolve, reject);
+            selectSingle(tx, statements.selectRewardsProgress, [1], mapRewardsProgress, requireRow(resolve, reject), reject);
           },
           (_, error) => {
             reject(error);
@@ -1520,7 +1532,7 @@ const useDB = () => {
           [title, description, frequency, triggerTime, JSON.stringify(steps), null, anchorHabit, JSON.stringify(completionLog)],
           (_, result) => {
             const insertId = result.insertId;
-            selectSingle(tx, statements.selectRoutineById, [insertId], mapRoutine, resolve, reject);
+            selectSingle(tx, statements.selectRoutineById, [insertId], mapRoutine, requireRow(resolve, reject), reject);
             return true;
           },
           (_, error) => {

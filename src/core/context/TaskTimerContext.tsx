@@ -118,7 +118,9 @@ export function TaskTimerProvider({ children }: { children: ReactNode }) {
     }, 1000);
 
     return clearIv;
-  }, [timer?.status]); // eslint-disable-line react-hooks/exhaustive-deps
+    // The interval only needs resetting when the timer starts, pauses or finishes, not on every tick.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timer?.status]);
 
   // ---- Handle phase-done: create entry + advance ----
   const settingsRef = useRef(settings);
@@ -168,7 +170,7 @@ export function TaskTimerProvider({ children }: { children: ReactNode }) {
         phaseStartedAt: new Date().toISOString(),
       });
     }
-  }, [timer]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [timer]);
 
   // ---- Actions ----
 

@@ -178,7 +178,6 @@ function _exec(sql: string, args: unknown[]): SQLResultSet {
         const col = wm[1];
         const rawVal = wm[2];
         const val = rawVal === '?' ? nextArg() : parseFloat(rawVal);
-        // eslint-disable-next-line eqeqeq
         rows = rows.filter((r) => r[col] == val);
       }
     }
@@ -221,7 +220,6 @@ function _exec(sql: string, args: unknown[]): SQLResultSet {
 
     let updated = 0;
     table.rows = table.rows.map((row) => {
-      // eslint-disable-next-line eqeqeq
       if (row[whereCol] != whereVal) return row;
       const newRow = { ...row };
       setCols.forEach((col, i) => {
@@ -246,7 +244,6 @@ function _exec(sql: string, args: unknown[]): SQLResultSet {
     const table = _getTable(tableName);
 
     const before = table.rows.length;
-    // eslint-disable-next-line eqeqeq
     table.rows = table.rows.filter((r) => r[whereCol] != whereVal);
     const removed = before - table.rows.length;
     if (removed > 0) _saveStore();

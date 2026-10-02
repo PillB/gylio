@@ -36,6 +36,9 @@ async function assertDocumentLanguage(page: Page, locale: AuditLocale) {
 }
 
 async function assertNoDocumentOverflow(page: Page) {
+  // Measure only after web fonts settle. Widths depend on the loaded face, so
+  // measuring during a fallback font let local runs pass what CI (Inter) fails.
+  await page.evaluate(() => document.fonts.ready);
   const audit = await page.evaluate(() => {
     const viewportWidth = window.innerWidth;
     const geometry = {
@@ -190,3 +193,26 @@ for (const locale of locales) {
     });
   }
 }
+
+test.describe('layout integrity — task edit form — small-mobile', () => {
+  test.use({ viewport: { width: 320, height: 568 } });
+
+  for (const locale of locales) {
+    test(`${locale}: editing a task stays inside the viewport`, async ({ page }) => {
+      await seedCompletedOnboarding(page, locale);
+      await page.goto('./tasks');
+      await page.waitForLoadState('networkidle');
+
+      const title = 'Reply to the project email';
+      await page.locator('#new-task').fill(title);
+      await page.locator('#new-task').press('Enter');
+      await expect(page.getByText(title, { exact: true })).toBeVisible();
+
+      await page.getByRole('button', { name: /^(edit|editar)$/i }).first().click();
+      await expect(page.locator('input[id^="edit-title-"]')).toBeVisible();
+
+      await assertNoDocumentOverflow(page);
+      await assertControlsStayInsideHorizontalViewport(page);
+    });
+  }
+});

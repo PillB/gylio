@@ -160,7 +160,9 @@ export const TemplateGallery: React.FC<Props> = ({ relationshipType, onSelect, t
               <div style={{ padding: `${theme.spacing.sm}px ${theme.spacing.md}px` }}>
                 <button
                   type="button"
-                  onClick={() => onSelect(tpl, tpl.conversationStarters[0] ?? null)}
+                  onClick={() => onSelect(tpl, tpl.conversationStarters.length > 0
+                    ? t(`${tpl.titleKey.replace('.title', '.starter1')}`, tpl.conversationStarters[0])
+                    : null)}
                   style={{
                     width: '100%',
                     padding: `${theme.spacing.xs}px`,

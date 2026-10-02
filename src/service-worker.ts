@@ -1,3 +1,8 @@
+/// <reference lib="webworker" />
+// Checked by tsconfig.sw.json: service-worker globals (WebWorker lib) clash with the DOM lib.
+declare const self: ServiceWorkerGlobalScope;
+export {};
+
 const STATIC_CACHE = 'gylio-static-v1';
 const MANIFEST_URL = new URL('manifest.json', self.registration.scope).toString();
 
@@ -53,7 +58,8 @@ self.addEventListener('fetch', (event) => {
         })
         .catch(async () => {
           const cache = await caches.open(STATIC_CACHE);
-          return (await cache.match(request)) || (await cache.match(self.registration.scope));
+          // Response.error() when nothing is cached yet, instead of an invalid undefined response.
+          return (await cache.match(request)) ?? (await cache.match(self.registration.scope)) ?? Response.error();
         })
     );
     return;
@@ -73,7 +79,11 @@ self.addEventListener('fetch', (event) => {
   }
 });
 
-self.addEventListener('sync', (event) => {
+// Background Sync (Chromium only) is not in the WebWorker lib typings.
+type SyncEvent = ExtendableEvent & { tag: string };
+
+self.addEventListener('sync' as keyof ServiceWorkerGlobalScopeEventMap, (rawEvent) => {
+  const event = rawEvent as SyncEvent;
   if (event.tag === 'gylio-sync') {
     event.waitUntil(
       self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {

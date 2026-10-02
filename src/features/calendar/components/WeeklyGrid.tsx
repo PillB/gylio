@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Event } from '../../../core/hooks/useDB';
 import type { ThemeTokens } from '../../../core/themes';
@@ -13,18 +13,10 @@ type Props = {
 
 const HOUR_START = 6;
 const HOUR_END = 22;
-const HOUR_HEIGHT = 56; // px per hour
+const HOUR_HEIGHT_BASE = 56; // px per hour at zoom 1
 const TIME_COL_W = 44; // px
-
-const EVENT_COLORS = [
-  '#5B5CF6',
-  '#8B5CF6',
-  '#EC4899',
-  '#F59E0B',
-  '#22C55E',
-  '#3B82F6',
-  '#EF4444',
-];
+const ZOOM_MIN = 28;
+const ZOOM_MAX = 120;
 
 export const WeeklyGrid: React.FC<Props> = ({
   events,
@@ -33,9 +25,70 @@ export const WeeklyGrid: React.FC<Props> = ({
   onEventClick,
 }) => {
   const { t, i18n } = useTranslation();
+  const EVENT_COLORS = (['indigo', 'violet', 'pink', 'amber', 'green', 'blue', 'red'] as const).map(
+    (hue) => theme.dataViz[hue],
+  );
+
+  const [hourHeight, setHourHeight] = useState(HOUR_HEIGHT_BASE);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const touchDistRef = useRef<number | null>(null);
 
   const totalHours = HOUR_END - HOUR_START;
-  const gridH = totalHours * HOUR_HEIGHT;
+  const gridH = totalHours * hourHeight;
+
+  // ── Wheel zoom (ctrl+scroll or trackpad pinch = ctrlKey) ─────────────────
+  const handleWheel = useCallback((e: WheelEvent) => {
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? -4 : 4;
+      setHourHeight((h) => Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, h + delta)));
+    }
+  }, []);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    el.addEventListener('wheel', handleWheel, { passive: false });
+    return () => el.removeEventListener('wheel', handleWheel);
+  }, [handleWheel]);
+
+  // ── Touch pinch zoom ─────────────────────────────────────────────────────
+  const handleTouchStart = useCallback((e: TouchEvent) => {
+    if (e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      touchDistRef.current = Math.hypot(dx, dy);
+    }
+  }, []);
+
+  const handleTouchMove = useCallback((e: TouchEvent) => {
+    if (e.touches.length === 2 && touchDistRef.current !== null) {
+      e.preventDefault();
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.hypot(dx, dy);
+      const scale = dist / touchDistRef.current;
+      touchDistRef.current = dist;
+      setHourHeight((h) => Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, h * scale)));
+    }
+  }, []);
+
+  const handleTouchEnd = useCallback(() => {
+    touchDistRef.current = null;
+  }, []);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    el.addEventListener('touchstart', handleTouchStart, { passive: true });
+    el.addEventListener('touchmove', handleTouchMove, { passive: false });
+    el.addEventListener('touchend', handleTouchEnd, { passive: true });
+    return () => {
+      el.removeEventListener('touchstart', handleTouchStart);
+      el.removeEventListener('touchmove', handleTouchMove);
+      el.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [handleTouchStart, handleTouchMove, handleTouchEnd]);
 
   const days = useMemo(() => {
     return Array.from({ length: 7 }, (_, i) => {
@@ -55,12 +108,16 @@ export const WeeklyGrid: React.FC<Props> = ({
     [i18n.language]
   );
 
+  const timeFormatter = useMemo(
+    () => new Intl.DateTimeFormat(i18n.language, { hour: 'numeric', minute: '2-digit' }),
+    [i18n.language]
+  );
+
   const nowMinutes = useMemo(() => {
     const now = new Date();
-    return (now.getHours() + now.getMinutes() / 60 - HOUR_START) * HOUR_HEIGHT;
-  }, []);
+    return (now.getHours() + now.getMinutes() / 60 - HOUR_START) * hourHeight;
+  }, [hourHeight]);
 
-  // Build events per day
   const eventsByDay = useMemo(() => {
     const map: Event[][] = days.map(() => []);
     events.forEach((ev) => {
@@ -95,168 +152,196 @@ export const WeeklyGrid: React.FC<Props> = ({
     const endH = end.getHours() + end.getMinutes() / 60;
     const clampedStart = Math.max(startH, HOUR_START);
     const clampedEnd = Math.min(endH, HOUR_END);
-    const top = (clampedStart - HOUR_START) * HOUR_HEIGHT;
-    const height = Math.max((clampedEnd - clampedStart) * HOUR_HEIGHT, 20);
-    return { top, height };
+    const top = (clampedStart - HOUR_START) * hourHeight;
+    const height = Math.max((clampedEnd - clampedStart) * hourHeight, 20);
+    return { top, height, startH, endH };
+  };
+
+  const formatEventTime = (ev: Event) => {
+    const start = new Date(ev.startDate);
+    if (!ev.endDate) return timeFormatter.format(start);
+    const end = new Date(ev.endDate);
+    return `${timeFormatter.format(start)}–${timeFormatter.format(end)}`;
   };
 
   return (
-    <div
-      role="region"
-      aria-label={t('calendarWeeklyGridAria', 'Weekly calendar')}
-      style={{ overflowX: 'auto', overflowY: 'auto', maxHeight: '70vh' }}
-    >
-      <div style={{ minWidth: 480, position: 'relative' }}>
-        {/* Header row */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: `${TIME_COL_W}px repeat(7, 1fr)`,
-            position: 'sticky',
-            top: 0,
-            zIndex: 10,
-            backgroundColor: theme.colors.surface,
-            borderBottom: `1.5px solid ${theme.colors.border}`,
-          }}
-        >
-          <div style={{ height: 36 }} />
-          {days.map((day, i) => (
-            <div
-              key={i}
-              style={{
-                height: 36,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '0.8rem',
-                fontWeight: isToday(day) ? 700 : 400,
-                color: isToday(day) ? theme.colors.primary : theme.colors.text,
-                borderLeft: `1px solid ${theme.colors.border}`,
-              }}
-            >
-              {dayFormatter.format(day)}
-            </div>
-          ))}
-        </div>
+    <div style={{ position: 'relative' }}>
+      {/* Zoom hint */}
+      <div style={{ fontSize: '0.7rem', color: theme.colors.muted, marginBottom: 4, textAlign: 'right' }}>
+        {t('calendarZoomHint', 'Ctrl+scroll or pinch to zoom')} · {Math.round((hourHeight / HOUR_HEIGHT_BASE) * 100)}%
+      </div>
 
-        {/* Grid body */}
-        <div
-          style={{
-            position: 'relative',
-            display: 'grid',
-            gridTemplateColumns: `${TIME_COL_W}px repeat(7, 1fr)`,
-            height: gridH,
-          }}
-        >
-          {/* Time labels column */}
-          <div style={{ position: 'relative' }}>
-            {Array.from({ length: totalHours }, (_, i) => (
+      <div
+        ref={containerRef}
+        role="region"
+        tabIndex={0}
+        aria-label={t('calendarWeeklyGridAria', 'Weekly calendar')}
+        style={{ overflowX: 'auto', overflowY: 'auto', maxHeight: '70vh' }}
+      >
+        <div style={{ minWidth: 480, position: 'relative' }}>
+          {/* Header row */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: `${TIME_COL_W}px repeat(7, 1fr)`,
+              position: 'sticky',
+              top: 0,
+              zIndex: 10,
+              backgroundColor: theme.colors.surface,
+              borderBottom: `1.5px solid ${theme.colors.border}`,
+            }}
+          >
+            <div style={{ height: 36 }} />
+            {days.map((day, i) => (
               <div
                 key={i}
                 style={{
-                  position: 'absolute',
-                  top: i * HOUR_HEIGHT - 7,
-                  left: 0,
-                  width: TIME_COL_W,
-                  fontSize: '0.65rem',
-                  color: theme.colors.muted,
-                  textAlign: 'right',
-                  paddingRight: 6,
-                  lineHeight: '1',
+                  height: 36,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '0.8rem',
+                  fontWeight: isToday(day) ? 700 : 400,
+                  color: isToday(day) ? theme.colors.primary : theme.colors.text,
+                  borderLeft: `1px solid ${theme.colors.border}`,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  padding: '0 2px',
                 }}
               >
-                {hourFormatter.format(new Date(2000, 0, 1, HOUR_START + i))}
+                {dayFormatter.format(day)}
               </div>
             ))}
           </div>
 
-          {/* Day columns */}
-          {days.map((day, dayIdx) => (
-            <div
-              key={dayIdx}
-              style={{
-                position: 'relative',
-                borderLeft: `1px solid ${theme.colors.border}`,
-                backgroundColor: isToday(day) ? `${theme.colors.primary}08` : 'transparent',
-              }}
-            >
-              {/* Hour lines */}
+          {/* Grid body */}
+          <div
+            style={{
+              position: 'relative',
+              display: 'grid',
+              gridTemplateColumns: `${TIME_COL_W}px repeat(7, 1fr)`,
+              height: gridH,
+            }}
+          >
+            {/* Time labels column */}
+            <div style={{ position: 'relative' }}>
               {Array.from({ length: totalHours }, (_, i) => (
                 <div
                   key={i}
                   style={{
                     position: 'absolute',
-                    top: i * HOUR_HEIGHT,
+                    top: i * hourHeight - 7,
                     left: 0,
-                    right: 0,
-                    height: 1,
-                    backgroundColor: theme.colors.border,
-                    opacity: 0.5,
+                    width: TIME_COL_W,
+                    fontSize: '0.65rem',
+                    color: theme.colors.muted,
+                    textAlign: 'right',
+                    paddingRight: 6,
+                    lineHeight: '1',
                   }}
-                />
+                >
+                  {hourFormatter.format(new Date(2000, 0, 1, HOUR_START + i))}
+                </div>
               ))}
+            </div>
 
-              {/* Current time indicator */}
-              {isToday(day) && nowMinutes >= 0 && nowMinutes <= gridH && (
-                <div
-                  aria-hidden="true"
-                  style={{
-                    position: 'absolute',
-                    top: nowMinutes,
-                    left: 0,
-                    right: 0,
-                    height: 2,
-                    backgroundColor: '#EF4444',
-                    zIndex: 5,
-                  }}
-                />
-              )}
-
-              {/* Events */}
-              {eventsByDay[dayIdx].map((ev, evIdx) => {
-                const { top, height } = placeEvent(ev);
-                const color = EVENT_COLORS[evIdx % EVENT_COLORS.length];
-                return (
-                  <button
-                    key={ev.id}
-                    type="button"
-                    onClick={() => onEventClick(ev)}
+            {/* Day columns */}
+            {days.map((day, dayIdx) => (
+              <div
+                key={dayIdx}
+                style={{
+                  position: 'relative',
+                  borderLeft: `1px solid ${theme.colors.border}`,
+                  backgroundColor: isToday(day) ? `${theme.colors.primary}08` : 'transparent',
+                }}
+              >
+                {/* Hour lines */}
+                {Array.from({ length: totalHours }, (_, i) => (
+                  <div
+                    key={i}
                     style={{
                       position: 'absolute',
-                      top,
-                      left: 2,
-                      right: 2,
-                      height,
-                      backgroundColor: `${color}22`,
-                      border: `1.5px solid ${color}`,
-                      borderRadius: 4,
-                      padding: '1px 4px',
-                      fontSize: '0.7rem',
-                      color: theme.colors.text,
-                      textAlign: 'left',
-                      cursor: 'pointer',
-                      overflow: 'hidden',
-                      zIndex: 2,
-                      fontFamily: theme.typography.body.family,
+                      top: i * hourHeight,
+                      left: 0,
+                      right: 0,
+                      height: 1,
+                      backgroundColor: theme.colors.border,
+                      opacity: 0.5,
                     }}
-                    aria-label={ev.title}
-                  >
-                    <span
+                  />
+                ))}
+
+                {/* Current time indicator */}
+                {isToday(day) && nowMinutes >= 0 && nowMinutes <= gridH && (
+                  <div
+                    aria-hidden="true"
+                    style={{
+                      position: 'absolute',
+                      top: nowMinutes,
+                      left: 0,
+                      right: 0,
+                      height: 2,
+                      backgroundColor: theme.colors.error,
+                      zIndex: 5,
+                    }}
+                  />
+                )}
+
+                {/* Events */}
+                {eventsByDay[dayIdx].map((ev, evIdx) => {
+                  const { top, height } = placeEvent(ev);
+                  const color = EVENT_COLORS[evIdx % EVENT_COLORS.length];
+                  const isSpacious = height >= 44;
+                  return (
+                    <button
+                      key={ev.id}
+                      type="button"
+                      onClick={() => onEventClick(ev)}
+                      title={`${ev.title} · ${formatEventTime(ev)}`}
+                      aria-label={`${ev.title}, ${formatEventTime(ev)}`}
                       style={{
-                        fontWeight: 600,
-                        display: 'block',
+                        position: 'absolute',
+                        top,
+                        left: 2,
+                        right: 2,
+                        height,
+                        backgroundColor: `${color}22`,
+                        border: `1.5px solid ${color}`,
+                        borderRadius: 4,
+                        padding: isSpacious ? '2px 4px' : '1px 4px',
+                        fontSize: '0.7rem',
+                        color: theme.colors.text,
+                        textAlign: 'left',
+                        cursor: 'pointer',
                         overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
+                        zIndex: 2,
+                        fontFamily: theme.typography.body.family,
                       }}
                     >
-                      {ev.title}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          ))}
+                      <span
+                        style={{
+                          fontWeight: 600,
+                          display: 'block',
+                          overflow: 'hidden',
+                          ...(isSpacious
+                            ? { whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.3 }
+                            : { textOverflow: 'ellipsis', whiteSpace: 'nowrap' }),
+                        }}
+                      >
+                        {ev.title}
+                      </span>
+                      {isSpacious && (
+                        <span style={{ display: 'block', fontSize: '0.65rem', color: theme.colors.text, marginTop: 1 }}>
+                          {formatEventTime(ev)}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

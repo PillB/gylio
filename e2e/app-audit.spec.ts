@@ -6,14 +6,17 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const SCREENSHOT_DIR = path.join(__dirname, 'screenshots');
 
-const BASE = 'http://localhost:5173/gylio';
-const goto = (page: Page, route: string) =>
-  page.goto(route === '/' ? `${BASE}/` : `${BASE}${route}`);
+// Navigate relative to the Playwright baseURL (playwright.config.ts), like the
+// other specs, so PLAYWRIGHT_BASE_URL and PLAYWRIGHT_PORT runs audit that target.
+const goto = (page: Page, route: string) => page.goto(`.${route}`);
 
 async function completeOnboardingIfNeeded(page: Page) {
-  if (!page.url().includes('/onboarding')) return;
-
-  await page.evaluate(() => {
+  // Seed unconditionally: under parallel load the redirect to /onboarding can
+  // land after this check would run, so a URL guard skipped seeding and the
+  // next goto() still hit onboarding. addInitScript applies the fixture before
+  // the app's scripts on every later navigation, so the provider cannot
+  // overwrite it with its initial state.
+  await page.addInitScript(() => {
     localStorage.setItem('onboardingFlowState', JSON.stringify({
       isOnboardingComplete: true,
       currentStep: 4,
@@ -27,8 +30,7 @@ async function completeOnboardingIfNeeded(page: Page) {
   });
 
   // The onboarding provider has already hydrated by this point. Reload the
-  // document so the completed fixture is consumed during the next hydration,
-  // rather than racing the provider's initial persistence effect.
+  // document so the completed fixture is consumed during the next hydration.
   await page.reload({ waitUntil: 'networkidle' });
   await page.waitForTimeout(250);
 }
