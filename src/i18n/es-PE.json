@@ -107,28 +107,28 @@
       },
       "cleanSpace": {
         "title": "Limpia tu espacio inmediato",
-        "why": "Peterson: el orden en tu entorno reduce la carga cognitiva y le indica a tu cerebro que puedes asumir responsabilidades.",
+        "why": "Un espacio ordenado te da menos cosas que rastrear. Muchas personas les resulta más fácil empezar cuando su entorno inmediato está en orden.",
         "step1": "Despeja la superficie donde trabajas",
         "step2": "Retira la basura o el desorden del cuarto",
         "step3": "Guarda una cosa que haya estado fuera de lugar"
       },
       "digitalDeclutter": {
         "title": "Limpieza digital",
-        "why": "Newport: la atención es limitada. Cada app y notificación compite por tu ancho de banda cognitivo. Elimina lo que no sirve a tus metas.",
+        "why": "La atención es limitada. Quitar apps y notificaciones que no sirven a tus metas deja más espacio para las que sí.",
         "step1": "Elimina apps que no hayas abierto en 30 días",
         "step2": "Cancela la suscripción a 5 listas de correo",
         "step3": "Deja en la pantalla de inicio solo lo esencial"
       },
       "designEnv": {
         "title": "Diseña tu entorno para mejores hábitos",
-        "why": "Clear: el diseño del entorno es la mano invisible del comportamiento. Haz que la decisión correcta sea la más fácil.",
+        "why": "Haz que la opción correcta sea la opción fácil: ajustar tu entorno suele funcionar mejor que depender solo de la fuerza de voluntad.",
         "step1": "Identifica un mal hábito y elimina su detonante del espacio",
         "step2": "Facilita un buen hábito (pon el objeto a la vista)",
         "step3": "Organiza tu área de trabajo antes de terminar hoy"
       },
       "deepWork": {
         "title": "Bloque de trabajo profundo",
-        "why": "Newport: la capacidad de concentrarse sin distracciones es cada vez más rara y valiosa. Una sesión enfocada vale más que cuatro dispersas.",
+        "why": "Un bloque de enfoque protegido suele rendir más que varios intentos dispersos. Esta plantilla reserva ese bloque y le da forma.",
         "step1": "Elige UNA tarea importante — la que has estado evitando",
         "step2": "Activa un temporizador de 90 minutos con notificaciones desactivadas",
         "step3": "Escribe tu objetivo para este bloque antes de empezar",
@@ -136,14 +136,14 @@
       },
       "shutdownRitual": {
         "title": "Ritual de cierre diario",
-        "why": "Newport: sin un cierre claro, tu cerebro sigue procesando trabajo pendiente. El ritual de apagado crea descanso genuino.",
+        "why": "Un final claro para la jornada facilita dejar de dar vueltas al trabajo pendiente. Anota lo que quedó abierto y retómalo mañana.",
         "step1": "Revisa tu lista de tareas — captura lo que no hayas registrado",
         "step2": "Escribe las 3 prioridades de mañana",
         "step3": "Di en voz alta: 'Cierre completado'"
       },
       "brainDump": {
         "title": "Vaciado mental",
-        "why": "Allen: tu cerebro sirve para tener ideas, no para almacenarlas. Cada pensamiento no capturado cuesta atención. Vacíalo por completo.",
+        "why": "Cargar cada idea en la cabeza cuesta atención. Escribirlas en un solo lugar convierte una lista en bucle en una lista manejable.",
         "step1": "Activa un temporizador de 15 minutos",
         "step2": "Escribe cada bucle abierto, preocupación o pendiente que tengas — sin filtrar",
         "step3": "Revisa la lista y marca qué elementos realmente requieren acción",
@@ -151,7 +151,7 @@
       },
       "weeklyReview": {
         "title": "Revisión semanal",
-        "why": "Allen: la revisión semanal es la llave maestra del GTD. Sin ella, el sistema se deteriora. Con ella, mantienes claridad y control.",
+        "why": "Un repaso semanal de tus compromisos mantiene confiable el sistema. Sáltatelo unas semanas y los pendientes se acumulan.",
         "step1": "Vacía tu bandeja de entrada y captura nuevos compromisos",
         "step2": "Revisa tu lista de proyectos — ¿hay algo bloqueado?",
         "step3": "Comprueba lo que lograste esta semana",
@@ -160,97 +160,97 @@
       },
       "nextAction": {
         "title": "Define la próxima acción",
-        "why": "Allen: los proyectos vagos no avanzan. En el momento en que defines una acción física concreta, la procrastinación disminuye y el impulso regresa.",
+        "why": "Los proyectos vagos se estancan. Definir una acción concreta y física hace que empezar sea mucho más fácil.",
         "step1": "Elige tu proyecto más bloqueado o postergado",
         "step2": "Pregunta: ¿cuál es la próxima acción física concreta?",
         "step3": "Agrega esa acción específica a tu lista y agrégala al calendario"
       },
       "morningSunlight": {
         "title": "Luz solar matutina",
-        "why": "Huberman: la exposición a la luz de la mañana ajusta tu reloj circadiano, eleva el cortisol en el momento adecuado y mejora el estado de ánimo, el enfoque y el sueño.",
+        "why": "La luz de la mañana está muy ligada a cómo el cuerpo programa el sueño y la vigilia. Una caminata corta al aire libre es la versión más simple.",
         "step1": "Sal a la calle en los primeros 30–60 minutos tras despertar",
         "step2": "Permanece afuera 10–15 minutos sin gafas de sol",
         "step3": "Camina o quédate de pie — el movimiento ayuda a la absorción"
       },
       "moveBody": {
         "title": "Mueve tu cuerpo",
-        "why": "Huberman: 20–30 minutos de cardio elevan BDNF, dopamina y serotonina — el trío para el ánimo, el aprendizaje y la resiliencia al estrés.",
+        "why": "El cardio regular se asocia con mejor ánimo, enfoque y resistencia al estrés en una amplia cantidad de investigaciones. Empieza con 20–30 minutos a tu ritmo.",
         "step1": "Elige una forma de movimiento (caminar, correr, pesas, nadar)",
         "step2": "Establece un mínimo: 20–30 minutos",
         "step3": "Hazlo antes de revisar noticias o redes sociales si puedes"
       },
       "fixSleep": {
         "title": "Regula tu horario de sueño",
-        "why": "Breus: el sueño es la intervención de mayor impacto para el rendimiento mental, la regulación emocional y la salud física.",
+        "why": "El sueño afecta casi todo lo demás de esta lista. Esta plantilla repasa lo básico de un horario consistente.",
         "step1": "Elige una hora consistente para despertar y mantenla 2 semanas",
         "step2": "Pon una alarma para empezar a relajarte 1 hora antes de dormir",
         "step3": "Saca el teléfono del dormitorio o ponlo al otro lado del cuarto"
       },
       "reduceAlcohol": {
         "title": "Reduce el alcohol esta semana",
-        "why": "Huberman: incluso el alcohol moderado interrumpe el sueño REM, suprime la neurogénesis y baja los niveles basales de serotonina al día siguiente.",
+        "why": "El alcohol, incluso en cantidades moderadas, se asocia con un sueño más ligero y fragmentado. Reducirlo una semana te muestra el efecto directamente.",
         "step1": "Identifica en qué días/situaciones bebes más",
         "step2": "Establece una regla específica (p. ej., solo fines de semana, solo 1 bebida)",
         "step3": "Reemplaza el ritual con una alternativa sin alcohol por una semana"
       },
       "journal": {
         "title": "Escribe una página",
-        "why": "Peterson: escribir clarifica el pensamiento. Cuando articulas tus miedos e intenciones, dejas de cargarlos como un peso vago y empiezas a enfrentarlos directamente.",
+        "why": "Escribir convierte preocupaciones vagas en frases concretas. Una vez escritas, es más fácil examinarlas y actuar.",
         "step1": "Escribe una página — flujo de conciencia, sin editar",
         "step2": "Termina con: ¿qué podría hacer diferente mañana?"
       },
       "gratitude": {
         "title": "Práctica de gratitud",
-        "why": "Emmons: la gratitud específica — nombrar qué y por qué — mejora el bienestar, reduce la envidia y fortalece las relaciones de manera medible.",
+        "why": "Nombrar cosas específicas por las que estás agradecido — qué y por qué — es una práctica simple que a muchos les ayuda a estabilizar el ánimo.",
         "step1": "Escribe 3 cosas específicas por las que estás agradecido/a (no genéricas)",
         "step2": "Para cada una, escribe POR QUÉ estás agradecido/a",
         "step3": "Manda un mensaje a una de esas personas si aplica"
       },
       "comparePastSelf": {
         "title": "Compárate con quien eras ayer",
-        "why": "Peterson: compararte con otros genera resentimiento. Compararte con tu yo del pasado genera mejora y autorespeto.",
+        "why": "Compararte con otros genera resentimiento; compararte con tu yo pasado muestra progreso real. Esta plantilla hace concreta esa comparación.",
         "step1": "Escribe 3 formas en que has mejorado en los últimos 6 meses",
         "step2": "Identifica un área en la que aún tienes dificultades",
         "step3": "Establece una meta pequeña y específica solo para esta semana"
       },
       "tellTruth": {
         "title": "Di la verdad — o al menos no mientas",
-        "why": "Peterson: las pequeñas mentiras se acumulan y distorsionan tu vida. Cada acto honesto fortalece tu sentido de identidad y reduce la ansiedad de mantener una fachada falsa.",
+        "why": "Las mentiras pequeñas son costosas de mantener. Actuar con honestidad, incluso en lo pequeño, elimina ese costo.",
         "step1": "Identifica algo que hayas estado evitando decir o hacer",
         "step2": "Escribe qué es realmente verdad sobre tu situación",
         "step3": "Decide una acción honesta que puedas tomar esta semana"
       },
       "takeResponsibility": {
         "title": "Asume responsabilidad por una cosa",
-        "why": "Peterson: antes de cambiar algo afuera, debes asumir la propiedad de lo que está dentro de tu control. Ahí es donde comienza la verdadera agencia.",
+        "why": "Enfocarte en lo que está bajo tu control es el punto de partida práctico para cambiar cualquier otra cosa.",
         "step1": "Nombra un problema que hayas estado culpando a otros o a las circunstancias",
         "step2": "Escribe qué parte de esto está realmente dentro de tu control",
         "step3": "Elige una acción que esté completamente en tu poder"
       },
       "reachOut": {
         "title": "Contacta a alguien",
-        "why": "Dunbar: los humanos evolucionamos para grupos sociales de ~150. El contacto regular con tu círculo íntimo no es opcional — el aislamiento aumenta la mortalidad más que fumar.",
+        "why": "El contacto regular con amigos y familia es uno de los correlatos más fuertes del bienestar a largo plazo en la investigación social. Un mensaje corto cuenta.",
         "step1": "Piensa en alguien con quien no hayas hablado en más de 2 semanas",
         "step2": "Envía un mensaje genuino y no genérico (no solo 'hola')",
         "step3": "Haz una pregunta real sobre su vida"
       },
       "repairRelationship": {
         "title": "Repara una relación",
-        "why": "Gottman: los intentos de reparación — incluso los pequeños — predicen la supervivencia de la relación más que la frecuencia de conflictos. La evasión siempre empeora las cosas.",
+        "why": "Los pequeños intentos de reparación tras un conflicto predicen la salud de la relación mejor que evitar el conflicto. Esta plantilla redacta uno.",
         "step1": "Identifica la relación que has estado evitando o descuidando",
         "step2": "Escribe lo que querrías decir — primero como carta no enviada",
         "step3": "Comunícate y di una cosa verdadera sin ponerte a la defensiva"
       },
       "expressAppreciation": {
         "title": "Expresa aprecio",
-        "why": "Gottman: la ratio 5:1 — cinco interacciones positivas por cada negativa — determina la salud de la relación. El aprecio deliberado es la forma de construirla.",
+        "why": "Los investigadores de relaciones encuentran que las relaciones sanas se inclinan fuertemente hacia lo positivo. El aprecio deliberado es la forma más simple de sumar de ese lado.",
         "step1": "Nombra a una persona que merezca reconocimiento hoy",
         "step2": "Dile algo específico (no general) que aprecias",
         "step3": "Hazlo en persona o por voz — no por texto si es posible"
       },
       "deliberatePractice": {
         "title": "Sesión de práctica deliberada",
-        "why": "Newport: la acumulación de habilidades mediante la práctica deliberada es cómo construyes capital profesional — las capacidades raras y valiosas que te dan control sobre tu vida laboral.",
+        "why": "Las habilidades crecen más rápido al borde de tu capacidad, con esfuerzo enfocado y retroalimentación — no solo con horas. Esta plantilla estructura una sesión.",
         "step1": "Identifica la habilidad más valiosa de tu campo",
         "step2": "Encuentra el límite de tu capacidad actual en esa habilidad",
         "step3": "Practica justo más allá de tu zona de confort por 45–60 minutos",
@@ -258,7 +258,7 @@
       },
       "identifyMission": {
         "title": "Identifica tu misión profesional",
-        "why": "Newport: una misión profesional compelling surge de la intersección de tu capital profesional y lo posible adyacente — no puedes atajarla, pero sí mapearla.",
+        "why": "Una dirección de carrera suele surgir de las habilidades que ya construiste, no solo de la introspección. Esta plantilla mapea lo que tienes.",
         "step1": "Escribe en qué eres genuinamente bueno/a (habilidades por las que pagan)",
         "step2": "Escribe qué problemas del mundo te importan",
         "step3": "Encuentra una intersección entre esas dos listas",
@@ -266,14 +266,14 @@
       },
       "sayNo": {
         "title": "Di no a un compromiso",
-        "why": "Newport: cada sí es un no al trabajo profundo. Proteger tu tiempo requiere sustracción deliberada, no solo mejor planificación.",
+        "why": "Cada sí gasta tiempo que no puedes reembolsar. Proteger tus horas de enfoque implica declinar cosas a propósito.",
         "step1": "Lista tus compromisos actuales — cada sí que hayas dado",
         "step2": "Identifica uno que no esté alineado con tus prioridades",
         "step3": "Declínalo o retírate con una respuesta clara y honesta"
       },
       "listDebts": {
         "title": "Lista todas tus deudas",
-        "why": "Hammer: no puedes combatir lo que te niegas a ver. La mayoría de las personas no conocen sus números reales. Escribirlos es el primer acto de coraje financiero.",
+        "why": "No puedes gestionar lo que no has escrito. Listar cada deuda con su número real es el primer paso de cualquier plan de pago.",
         "step1": "Abre cada estado de cuenta que hayas estado evitando",
         "step2": "Escribe cada deuda: acreedor, saldo, tasa de interés, pago mínimo",
         "step3": "Ordénalas por tasa de interés (mayor primero = método avalancha)",
@@ -281,7 +281,7 @@
       },
       "emergencyFund": {
         "title": "Empieza un fondo de emergencia",
-        "why": "Hammer: sin un colchón de efectivo, cada gasto inesperado se convierte en deuda. Incluso S/200 ahorrados rompen el ciclo de endeudamiento reactivo.",
+        "why": "Un pequeño colchón de efectivo convierte gastos sorpresa de nuevas deudas en inconvenientes. Incluso un inicio modesto cambia el patrón.",
         "step1": "Calcula tus gastos mensuales esenciales (alquiler + comida + servicios)",
         "step2": "Identifica cuánto tienes actualmente en ahorros",
         "step3": "Abre una cuenta de ahorros separada si aún no tienes una",
@@ -289,7 +289,7 @@
       },
       "trackSpending": {
         "title": "Registra tus gastos por una semana",
-        "why": "Hammer: la mayoría estima sus gastos y se equivoca entre 30–50%. Una semana de datos reales revela las fugas que ningún plan presupuestario puede corregir en abstracto.",
+        "why": "Las suposiciones sobre tus gastos suelen estar equivocadas. Una semana de números reales muestra exactamente a dónde va el dinero.",
         "step1": "Abre los estados de cuenta de tu banco/tarjeta de los últimos 7 días",
         "step2": "Categoriza cada transacción: necesidad, deseo o ahorro",
         "step3": "Suma el total de cada categoría",
@@ -297,7 +297,7 @@
       },
       "cancelSubs": {
         "title": "Cancela suscripciones que no usas",
-        "why": "Hammer: el aumento silencioso de suscripciones destruye los presupuestos domésticos. La mayoría paga 2–3 servicios que olvidó que tenía.",
+        "why": "Las suscripciones olvidadas son una fuga lenta común. Una auditoría de 15 minutos de cargos recurrentes suele encontrar al menos una.",
         "step1": "Busca en tu correo 'suscripción', 'renovación', 'recibo'",
         "step2": "Lista cada cargo recurrente",
         "step3": "Cancela los que no hayas usado en 30+ días",
@@ -305,7 +305,7 @@
       },
       "negotiateBill": {
         "title": "Negocia una factura",
-        "why": "Hammer: una sola llamada de 15 minutos puede ahorrarte S/30–180 al mes. La frugalidad no es privación — es negarse a pagar más de lo necesario.",
+        "why": "Muchas facturas — internet, teléfono, seguros — son negociables con una llamada. El peor resultado suele ser un 'no'.",
         "step1": "Elige una factura recurrente (internet, teléfono, seguro)",
         "step2": "Investiga qué cobran los competidores por el mismo servicio",
         "step3": "Llama y di que estás considerando cambiar — pide una mejor tarifa",
@@ -531,7 +531,7 @@
     "title": "Recompensas",
     "confirmDelete": "¿Eliminar la recompensa {{title}}?",
     "gamificationLabel": "Gamificación",
-    "gamificationHelper": "Activa o desactiva XP, rachas y desbloqueos. Tus datos quedan en local.",
+    "gamificationHelper": "La retroalimentación de progreso funciona mejor como una elección. Los XP y las rachas son opcionales, tú las controlas y puedes desactivarlas cuando quieras. Tus datos quedan en local.",
     "gamificationOn": "Activado",
     "gamificationOff": "Desactivado",
     "gamificationDisabled": "La gamificación está desactivada.",
@@ -539,7 +539,7 @@
     "levelSummary": "Nivel {{level}}",
     "xpSummary": "{{points}} XP / {{target}} XP",
     "skipTokensLabel": "Pases de omisión",
-    "skipTokensHelper": "Usa un pase para conservar una racha tras un día perdido.",
+    "skipTokensHelper": "La vida pasa. Un día perdido rompería tu racha. Los pases conservan tu impulso: úsalos cuando los necesites.",
     "streakHeading": "Estado de rachas",
     "focusStreak": "Racha de enfoque diario: {{days}} días",
     "taskStreak": "Racha de tareas completadas: {{days}} días",
@@ -1505,8 +1505,8 @@
     "regionAria": "Mejora tu plan para acceder a esta función",
     "iconAria": "Destellos",
     "title": "{{feature}} es una función premium",
-    "subtitle": "Esta función es parte de Gylio Premium. Comienza con 10 días gratis, sin compromiso y puedes cancelar cuando quieras.",
-    "startTrial": "Comenzar prueba de 10 días",
+    "subtitle": "Esta función es parte de Gylio Premium. Comienza con 7 días gratis, sin compromiso y puedes cancelar cuando quieras.",
+    "startTrial": "Comenzar prueba de 7 días",
     "seePlans": "Ver planes",
     "tryFree": "Probar gratis",
     "tryOnce": "Probar esto una vez, gratis",
@@ -1723,7 +1723,7 @@
     "next": "Siguiente",
     "finish": "¡Listo!",
     "keyboardHint": "← → navegar · Esc pausar",
-    "unlockCta": "Iniciar prueba gratuita de 10 días →",
+    "unlockCta": "Iniciar prueba gratuita de 7 días →",
     "signInCta": "Inicia sesión para ver esta función en vivo →",
     "startButton": "Guía",
     "startAria": "Iniciar guía interactiva",

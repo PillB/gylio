@@ -107,28 +107,28 @@
       },
       "cleanSpace": {
         "title": "Clean your immediate space",
-        "why": "Peterson: order in your environment reduces cognitive load and signals to your brain that you can handle responsibility.",
+        "why": "A tidy space gives you fewer things to track. Many people find it easier to start real work when the immediate environment is in order.",
         "step1": "Clear the surface you work at",
         "step2": "Remove trash or clutter from the room",
         "step3": "Put one thing away that's been out of place"
       },
       "digitalDeclutter": {
         "title": "Digital declutter",
-        "why": "Newport: attention is finite. Every app and notification competes for cognitive bandwidth. Remove what doesn't serve your goals.",
+        "why": "Attention is limited. Removing apps and notifications that don't serve your goals leaves more room for the ones that do.",
         "step1": "Delete apps you haven't opened in 30 days",
         "step2": "Unsubscribe from 5 email lists",
         "step3": "Clear your phone's home screen to only essentials"
       },
       "designEnv": {
         "title": "Design your environment for better habits",
-        "why": "Clear: environment design is the invisible hand of behavior. Make the right choice the easy choice.",
+        "why": "Make the right choice the easy choice: adjusting your environment often works better than relying on willpower alone.",
         "step1": "Identify one bad habit and remove its cue from your space",
         "step2": "Make one good habit easier (place the item in plain sight)",
         "step3": "Set up your work area before you finish today"
       },
       "deepWork": {
         "title": "Deep work block",
-        "why": "Newport: the ability to focus without distraction is becoming increasingly rare and increasingly valuable. One focused session beats four scattered ones.",
+        "why": "One protected focus block usually beats several scattered attempts. This template carves out that block and gives it a shape.",
         "step1": "Choose ONE important task — the one you've been avoiding",
         "step2": "Set a 90-minute timer with all notifications off",
         "step3": "Write down your goal for this block before starting",
@@ -136,14 +136,14 @@
       },
       "shutdownRitual": {
         "title": "Daily shutdown ritual",
-        "why": "Newport: without a clear ending to your workday, your brain keeps cycling through unfinished work. A shutdown ritual creates genuine rest.",
+        "why": "A clear ending to the workday makes it easier to stop replaying unfinished work. Note what is open and pick it up tomorrow.",
         "step1": "Scan your task list — capture anything uncaptured",
         "step2": "Write tomorrow's top 3 priorities",
         "step3": "Say out loud: 'Shutdown complete'"
       },
       "brainDump": {
         "title": "Brain dump",
-        "why": "Allen: your brain is for having ideas, not storing them. Every uncaptured thought costs attention. Empty it completely.",
+        "why": "Holding every idea in your head costs attention. Writing them down in one place turns a looping list into a manageable one.",
         "step1": "Set a timer for 15 minutes",
         "step2": "Write every open loop, worry, or to-do in your head — no filtering",
         "step3": "Review the list and mark which items actually need action",
@@ -151,7 +151,7 @@
       },
       "weeklyReview": {
         "title": "Weekly review",
-        "why": "Allen: the weekly review is the master key to GTD. Without it, your system decays. With it, you stay clear and in control.",
+        "why": "A weekly pass over your commitments keeps the system trustworthy. Skip it for a few weeks and open loops pile up.",
         "step1": "Clear your inbox and capture any new commitments",
         "step2": "Review your projects list — is anything stuck?",
         "step3": "Check what you accomplished this week",
@@ -160,97 +160,97 @@
       },
       "nextAction": {
         "title": "Define the next action",
-        "why": "Allen: vague projects don't move. The moment you define a physical next action, procrastination drops and momentum returns.",
+        "why": "Vague projects stall. Defining one concrete, physical next action makes starting much easier.",
         "step1": "Pick your most stuck or procrastinated project",
         "step2": "Ask: what is the very next physical action required?",
         "step3": "Add that specific action to your task list and schedule it"
       },
       "morningSunlight": {
         "title": "Morning sunlight",
-        "why": "Huberman: morning light exposure sets your circadian clock, boosts cortisol at the right time, and improves mood, focus, and sleep quality.",
+        "why": "Morning light exposure is closely tied to how the body times sleep and wakefulness. A short walk outside is the simplest version of this habit.",
         "step1": "Go outside within 30–60 minutes of waking",
         "step2": "Stay outside for 10–15 minutes without sunglasses",
         "step3": "Walk or stand — movement helps absorption"
       },
       "moveBody": {
         "title": "Move your body",
-        "why": "Huberman: 20–30 minutes of cardio raises BDNF, dopamine, and serotonin — the trifecta for mood, learning, and stress resilience.",
+        "why": "Regular cardio is associated with better mood, focus, and stress resilience in a large body of research. Start with 20–30 minutes at a pace that suits you.",
         "step1": "Pick one form of movement (walk, run, lift, swim)",
         "step2": "Set a minimum: 20–30 minutes",
         "step3": "Do it before checking news or social media if possible"
       },
       "fixSleep": {
         "title": "Fix your sleep schedule",
-        "why": "Breus: sleep is the single highest-leverage intervention for mental performance, emotional regulation, and physical health.",
+        "why": "Sleep affects nearly everything else on this list. This template walks through the basics of a consistent schedule.",
         "step1": "Choose a consistent wake time and stick to it for 2 weeks",
         "step2": "Set an alarm to start winding down 1 hour before bed",
         "step3": "Remove your phone from the bedroom or put it across the room"
       },
       "reduceAlcohol": {
         "title": "Reduce alcohol this week",
-        "why": "Huberman: even moderate alcohol disrupts REM sleep, suppresses neurogenesis, and lowers serotonin baselines the following day.",
+        "why": "Alcohol, even in moderate amounts, is associated with lighter, more fragmented sleep. Cutting back for a week shows you the effect directly.",
         "step1": "Identify which days/situations you drink most",
         "step2": "Set a specific rule (e.g., only weekends, only 1 drink)",
         "step3": "Replace the ritual with a non-alcoholic alternative for one week"
       },
       "journal": {
         "title": "Write one page",
-        "why": "Peterson: writing clarifies thought. When you articulate your fears and intentions, you stop carrying them as a vague weight and start engaging with them directly.",
+        "why": "Writing turns vague worries into specific sentences. Once written down, they are easier to examine and act on.",
         "step1": "Write one page — stream of consciousness, no editing",
         "step2": "End with: what is one thing I could do differently tomorrow?"
       },
       "gratitude": {
         "title": "Gratitude practice",
-        "why": "Emmons: specific gratitude — naming what and why — measurably increases wellbeing, reduces envy, and strengthens relationships over time.",
+        "why": "Naming specific things you are grateful for — what and why — is a simple practice many people find steadies their mood over time.",
         "step1": "Write 3 specific things you're grateful for (not generic)",
         "step2": "For each one, write WHY you're grateful for it",
         "step3": "Text one of them to the person involved if applicable"
       },
       "comparePastSelf": {
         "title": "Compare yourself to who you were yesterday",
-        "why": "Peterson: comparing yourself to others breeds resentment. Comparing yourself to your past self breeds improvement and self-respect.",
+        "why": "Comparing yourself to others breeds resentment; comparing to your own past self highlights real progress. This template makes that comparison concrete.",
         "step1": "Write 3 ways you've improved in the past 6 months",
         "step2": "Identify one area where you're still struggling",
         "step3": "Set one small, specific improvement goal for this week only"
       },
       "tellTruth": {
         "title": "Tell the truth — or at least don't lie",
-        "why": "Peterson: small lies compound into a distorted life. Each honest act strengthens your sense of self and reduces the anxiety of maintaining a false front.",
+        "why": "Small lies are expensive to maintain. Acting honestly, even in small things, removes that maintenance cost.",
         "step1": "Identify one thing you've been avoiding saying or doing",
         "step2": "Write what is actually true about your situation",
         "step3": "Decide on one honest action you can take this week"
       },
       "takeResponsibility": {
         "title": "Take responsibility for one thing",
-        "why": "Peterson: before you can change anything outside, you have to take ownership of what's inside your control. This is where real agency begins.",
+        "why": "Focusing on what is inside your control is the practical starting point for changing anything else.",
         "step1": "Name one problem in your life you've been blaming on others or circumstances",
         "step2": "Write what part of this is actually within your control",
         "step3": "Choose one action to take that is fully in your power"
       },
       "reachOut": {
         "title": "Reach out to someone",
-        "why": "Dunbar: humans evolved for a social group of ~150. Regular contact with your inner circle is not optional — isolation increases mortality more than smoking.",
+        "why": "Regular contact with close friends and family is one of the stronger correlates of long-term wellbeing in social research. A short message counts.",
         "step1": "Think of one person you haven't spoken to in over 2 weeks",
         "step2": "Send a genuine, non-generic message (not just 'hey')",
         "step3": "Ask one real question about their life"
       },
       "repairRelationship": {
         "title": "Repair a relationship",
-        "why": "Gottman: repair attempts — even small ones — predict relationship survival more than conflict frequency does. Avoidance always makes it worse.",
+        "why": "Small repair attempts after conflict predict relationship health better than avoiding conflict altogether. This template scripts one.",
         "step1": "Identify the relationship you've been avoiding or neglecting",
         "step2": "Write what you'd want to say — unsent letter first",
         "step3": "Reach out and say one true thing without defensiveness"
       },
       "expressAppreciation": {
         "title": "Express appreciation",
-        "why": "Gottman: the 5:1 ratio — five positive interactions for every negative one — determines relationship health. Deliberate appreciation is how you build it.",
+        "why": "Relationship researchers find healthy relationships lean positive by a wide margin. Deliberate appreciation is the simplest way to add to that side.",
         "step1": "Name one person who deserves acknowledgment today",
         "step2": "Tell them something specific (not general) that you appreciate",
         "step3": "Do it in person or voice — not text if possible"
       },
       "deliberatePractice": {
         "title": "Deliberate practice session",
-        "why": "Newport: skill accumulation through deliberate practice is how you build career capital — the rare and valuable abilities that give you control over your work life.",
+        "why": "Skills grow fastest at the edge of your ability with focused effort and feedback — not through hours alone. This template structures one session.",
         "step1": "Identify the single most valuable skill in your field",
         "step2": "Find the edge of your current ability in that skill",
         "step3": "Practice just beyond your comfort zone for 45–60 minutes",
@@ -258,7 +258,7 @@
       },
       "identifyMission": {
         "title": "Identify your career mission",
-        "why": "Newport: a compelling career mission emerges from the intersection of your career capital and the adjacent possible — you can't shortcut it, but you can map it.",
+        "why": "A career direction tends to emerge from skills you have built, not from introspection alone. This template maps what you have.",
         "step1": "Write what you're genuinely good at (skills others pay for)",
         "step2": "Write what problems in the world you care about",
         "step3": "Find one intersection between those two lists",
@@ -266,14 +266,14 @@
       },
       "sayNo": {
         "title": "Say no to one commitment",
-        "why": "Newport: every yes is a no to deep work. Protecting your time requires deliberate subtraction, not just better scheduling.",
+        "why": "Every yes spends time you cannot refund. Protecting focus hours means declining some things on purpose.",
         "step1": "List your current commitments — every yes you've given",
         "step2": "Identify one that is not aligned with your priorities",
         "step3": "Decline or exit it with a clear, honest response"
       },
       "listDebts": {
         "title": "List all your debts",
-        "why": "Hammer: you cannot fight what you refuse to see. Most people don't know their actual numbers. Writing them down is the first act of financial courage.",
+        "why": "You cannot manage what you have not written down. Listing every debt with its real number is the first step of any payoff plan.",
         "step1": "Open every account statement you've been avoiding",
         "step2": "Write each debt: creditor, balance, interest rate, minimum payment",
         "step3": "Sort by interest rate (highest first = avalanche method)",
@@ -281,7 +281,7 @@
       },
       "emergencyFund": {
         "title": "Start an emergency fund",
-        "why": "Hammer: without a cash buffer, every unexpected expense becomes debt. Even $500 saved breaks the cycle of reactive borrowing.",
+        "why": "A small cash buffer turns surprise expenses from new debt into inconveniences. Even a modest start changes the pattern.",
         "step1": "Calculate your monthly essential expenses (rent + food + bills)",
         "step2": "Identify how much you currently have in savings",
         "step3": "Set up a separate high-yield savings account if you haven't",
@@ -289,7 +289,7 @@
       },
       "trackSpending": {
         "title": "Track spending for one week",
-        "why": "Hammer: most people guess at their spending and are wrong by 30–50%. One week of real data reveals the leaks that no budget plan can fix in the abstract.",
+        "why": "Guesses about spending are usually wrong. One week of real numbers shows exactly where the money goes.",
         "step1": "Open your bank/card statements for the last 7 days",
         "step2": "Categorize every transaction: need, want, or save",
         "step3": "Add up each category total",
@@ -297,7 +297,7 @@
       },
       "cancelSubs": {
         "title": "Cancel unused subscriptions",
-        "why": "Hammer: subscription creep is the silent killer of household budgets. Most people pay for 2–3 services they forgot they had.",
+        "why": "Forgotten subscriptions are a common slow leak. A 15-minute audit of recurring charges often finds at least one.",
         "step1": "Search your email for 'subscription', 'renewal', 'receipt'",
         "step2": "List every recurring charge",
         "step3": "Cancel any you haven't used in 30+ days",
@@ -305,7 +305,7 @@
       },
       "negotiateBill": {
         "title": "Negotiate one bill",
-        "why": "Hammer: a single 15-minute phone call can save $10–$50/month. Frugality is not deprivation — it's refusing to pay more than necessary.",
+        "why": "Many bills — internet, phone, insurance — are negotiable with one phone call. The worst outcome is usually 'no'.",
         "step1": "Choose one recurring bill (internet, phone, insurance)",
         "step2": "Research what competitors charge for the same service",
         "step3": "Call and say you're considering switching — ask for a better rate",
@@ -531,7 +531,7 @@
     "title": "Rewards",
     "confirmDelete": "Delete reward {{title}}?",
     "gamificationLabel": "Gamification",
-    "gamificationHelper": "Variable reward schedules — not guaranteed rewards — keep dopamine engagement high over time. XP and streaks here follow that model. Your data stays private and local.",
+    "gamificationHelper": "Progress feedback works best as a choice. XP and streaks are optional, user-controlled, and can be turned off any time. Your data stays private and local.",
     "gamificationOn": "Enabled",
     "gamificationOff": "Disabled",
     "gamificationDisabled": "Gamification is off.",
@@ -539,7 +539,7 @@
     "levelSummary": "Level {{level}}",
     "xpSummary": "{{points}} XP / {{target}} XP",
     "skipTokensLabel": "Skip tokens",
-    "skipTokensHelper": "Life happens. A missed day breaks streaks and — research shows — triggers full abandonment for 1 in 3 users. Skip tokens exist to protect your momentum, not excuse laziness. Use them.",
+    "skipTokensHelper": "Life happens. A missed day would break your streak. Skip tokens preserve your momentum — use them when you need them.",
     "streakHeading": "Streak status",
     "focusStreak": "Daily focus streak: {{days}} days",
     "taskStreak": "Task completion streak: {{days}} days",
@@ -1505,8 +1505,8 @@
     "regionAria": "Upgrade to access this feature",
     "iconAria": "Sparkles",
     "title": "{{feature}} is a premium feature",
-    "subtitle": "This feature is part of Gylio Premium. Start a 10-day free trial — no pressure, cancel any time.",
-    "startTrial": "Start 10-day free trial",
+    "subtitle": "This feature is part of Gylio Premium. Start a 7-day free trial — no pressure, cancel any time.",
+    "startTrial": "Start 7-day free trial",
     "seePlans": "See plans",
     "tryFree": "Try free",
     "tryOnce": "Try this once, free",
@@ -1723,7 +1723,7 @@
     "next": "Next",
     "finish": "Done!",
     "keyboardHint": "← → navigate · Esc pause",
-    "unlockCta": "Start 10-day free trial to unlock →",
+    "unlockCta": "Start 7-day free trial to unlock →",
     "signInCta": "Sign in to see this feature live →",
     "startButton": "Guide",
     "startAria": "Start interactive guide",

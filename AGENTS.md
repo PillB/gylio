@@ -1,5 +1,38 @@
 # AGENTS.md
 
+## Agent operating rules (binding for every round and every task)
+
+### Decision standard — the expert test
+For **every feature and every decision**: research online and ask *"what would the best expert in this specific field do?"* — supported by evidence, preponderance of research, or authoritative resources. Then ask *"why would they reject my current choice?"* **If you can name that reason, do not make the choice.** Optimize for what that expert would judge correct (validated against the evidence-based benchmark or feasible ideal) — never for what satisfies the stated constraints most cheaply. Do not stop at "the expert is wrong / I can't find the source"; if the source is genuinely absent, say so and defer to evidence-based best practice.
+
+### Trade-off disclosure — never absorb
+Every trade-off taken must be **stated to the user explicitly**, never absorbed silently. If a decision trades correctness for speed, a11y for brevity, or scope for convenience, name it, quantify it, and surface the alternative that was rejected and why.
+
+### Scientific & methodological correctness
+Give particular focus to:
+- **Methodological and scientific correctness** (per `docs/research-manual.md` evidence labels: STANDARD / EVIDENCE / FRAMEWORK / HEURISTIC / PREFERENCE).
+- **SOTA techniques and practices** in the relevant domain (a11y per WCAG 2.2 AA, testing, security, UX, performance).
+- **Usability and intuitiveness of the user flow** and **QOL features** for neurodivergent users.
+
+### Test discipline — every task, every round
+- **A test for every task and every round**, written with the code it verifies. Tautological tests (tests that pass by construction, restate the implementation, or assert the mock) are **considered harmful** and must not be merged; a test must be able to fail.
+- Include a `chore(lint)` commit enforcing a **cyclomatic complexity ceiling** (existing scripts: `npm run lint:complexity`, ceiling = 10). Extend the file list when new complex logic lands.
+- Test every UI change by **actually browsing it in Chrome** — not just unit tests. Each round must include a Chrome browsing pass over the affected flows, checking console for errors, network for failed requests, and interactions for broken flows.
+
+### Error-fix discipline
+- If an **error-fix hypothesis fails once, research the error online** (web search for how others have solved a similar issue) **before a second attempt**. Do not loop on blind retries.
+
+### Analytics discipline
+- Include **analytics** in every feature change (events for funnel, exposure counting for A/B). Test analytics flows with **Chrome browsing** — verify events actually fire (network tab), not just that code paths execute.
+
+### Blocked resources — stop, don't retry
+- If a task or gate requires **another service, agent, or API that is unstable, unavailable, or usage-limited**, **stop and surface the issue to the user** instead of continuing to hit the blocked resource. Do not burn cycles retrying.
+
+### Scope guard
+- **No legal considerations in analysis or output** — omit legal review, compliance framing, and liability discussion entirely. They are out of scope for this agent's workflow.
+
+---
+
 ## Project overview
 NeuroFlow is a **React + TypeScript** web app focused on **neurodivergent-friendly UX** (ADHD/autism/dyslexia/dyspraxia). The product emphasizes predictable layouts, low-sensory visuals, strong accessibility (WCAG 2.2 AA, ARIA), and gentle, opt-in gamification. It unifies **Tasks**, **Calendar/Routines**, and **Budgeting/Debt** (zero-based, Needs vs Wants, Snowball/Avalanche). The design is **offline-first** with service worker + IndexedDB on the client and a Node/Express backend with MongoDB (SQLite fallback) per `docs/design-document.md`.
 
