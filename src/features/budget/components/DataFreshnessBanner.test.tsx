@@ -64,11 +64,14 @@ describe('DataFreshnessBanner', () => {
       expect(track).not.toHaveBeenCalled();
     });
 
-    // The period is a text field. A current month typed without its zero, or text that is not a
-    // year and a month, must keep the warning rather than silently switch it off.
+    // The period is a text field. A current month typed without its zero, text that is not a
+    // year and a month, and a month number that does not exist must keep the warning rather
+    // than silently switch it off.
     it.each([
       ['a current month typed without its leading zero', '2026-4'],
       ['a period that is not a year and a month', 'April'],
+      ['a month number past 12', '2026-13'],
+      ['a month number of 0', '2026-00'],
     ])('still judges the dates for %s', (_label, budgetMonthKey) => {
       render(<DataFreshnessBanner lastTransactionDate={null} budgetMonthKey={budgetMonthKey} />);
 

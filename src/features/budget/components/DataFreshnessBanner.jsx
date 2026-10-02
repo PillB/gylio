@@ -43,12 +43,16 @@ function staleBucket(lastDate) {
 /**
  * True when a budget period names a month other than the current local month.
  * The period is a text field (the app asks for YYYY-MM but only checks that it is not
- * empty), so text that is not a year and a month is not judged either way.
+ * empty), so text that is not a year and a month, or names a month that does not exist
+ * such as 2026-13, is not judged either way.
  */
 function isOtherMonth(budgetMonthKey, now = new Date()) {
   const match = /^\s*(\d{4})-(\d{1,2})\s*$/.exec(budgetMonthKey ?? '');
   if (!match) return false;
-  return Number(match[1]) !== now.getFullYear() || Number(match[2]) !== now.getMonth() + 1;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  if (month < 1 || month > 12) return false;
+  return year !== now.getFullYear() || month !== now.getMonth() + 1;
 }
 
 /**
