@@ -9,9 +9,13 @@ const SignUpPage: React.FC = () => {
       style={{
         display: 'flex',
         justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: '60vh',
+        alignItems: 'flex-start',
+        minHeight: '60dvh',
+        maxHeight: 'calc(100dvh - 80px)',
+        overflowY: 'auto',
         padding: `${theme.spacing.lg}px`,
+        paddingBottom: `calc(${theme.spacing.lg}px + env(safe-area-inset-bottom, 0px))`,
+        WebkitOverflowScrolling: 'touch' as const,
       }}
     >
       <SignUp

@@ -764,3 +764,113 @@ es-PE.json: full Spanish translations for all step and starter keys.
 - `.github/dependabot.yml` — ignore semver-minor updates for `react-native`, `react`, `react-dom` so the group PR stops breaking install; that upgrade needs its own migration.
 
 **Verified:** `npm ci`, lint, typecheck, check:i18n, 71 unit tests, build all pass. Playwright: 104/105 pass; the one failure is external fonts blocked by the sandbox proxy certificate (ERR_CERT_AUTHORITY_INVALID), not app code.
+
+---
+
+### CHG-045 – 2026-09-29 (WIP batch branch: dataViz theme tokens, WCAG contrast tests, nav reflow, e2e stabilization)
+
+Numbered after #82's CHG-043/044 to keep IDs unique; #82 stacks on this branch.
+
+**Why:** Batch-agent work (dashboard, recurring, budget features, server tests) lived only on one device. Components hardcoded light-palette hex, which defeated dark and high-contrast modes. White text on primary fills measured about 1.07:1 in high contrast (white on yellow). The primary nav hid 4 of 7 destinations off-screen at 320px.
+
+**Files changed:**
+- `src/core/contrast.ts` (new): WCAG 2.x relative luminance, contrast ratio, `readableTextOn`.
+- `src/core/themes.ts`: `dataViz` (energy, budget, series, eventTints) per mode; `primaryGradientEnd`, `successStrong`, `errorStrong`. Light chart hues moved to 600-level green, amber and violet.
+- `src/core/themes.test.ts` (new, 41 tests): asserts real ratios. Covers text and muted text at AA, 3:1 non-text for every chart hue (WCAG 1.4.11), the on-colors, the whole primary gradient, strong status text and calendar tints. Two of these failed on the previous light palette (2.15–2.28:1).
+- Components: `#fff` on filled controls replaced by `primaryForeground`, `onSuccess`/`onError` or `readableTextOn(bg)`. Template libraries reference `dataViz.series` by index. `DataFreshnessBanner` no longer looks up nonexistent `*Bg` keys.
+- `src/components/NavBar.jsx`, `index.html`: the nav wraps (WCAG 2.2 SC 1.4.10) and is compacted at ≤430px.
+- `e2e/happy-paths.spec.ts`, `e2e/app-audit.spec.ts`: onboarding fixture seeded with `page.addInitScript`. Seeding with `page.evaluate` after load raced the provider's persistence effect, so tests intermittently stayed on /onboarding under parallel workers. happy-paths also uses the baseURL and local-date keys.
+- `package.json`/`package-lock.json`: merged main's dependency bumps and kept the branch's added dev dependencies.
+- Left for #82: hex in TaskList, CalendarView, BudgetView, App.jsx, PricingPage, SpendingChart and ReconciliationChecklist.
+
+**Verified:** lint, typecheck, check:i18n and build pass. Unit tests 112/112, server tests 102/102. Playwright (system Chrome, no Clerk key, as in CI): 114/114 on the second run. The first run had 1 failure in `onboarding-migration.spec.ts:80`, a spec this change did not touch.
+
+---
+
+### CHG-047 – 2026-09-30 (#88 after the merge with main: 320px forms, deterministic e2e, tour crash, theme and AA fixes, Codex findings 3-7)
+
+Numbered after #82's CHG-046 to keep IDs unique; #82 stacks on this branch.
+
+**Why:** #88 was rebuilt on main's colour scheme (#87), and the follow-up review plus Codex found layout, e2e, crash, contrast and behaviour bugs in the WIP code.
+
+**Merge with main (3e1ab41):**
+- Adopted #87's named-hue scheme: `dataViz` is `Record<DataVizHue, string>`, with top-level `eventTints`, `energyTone`, and `contrastRatio`/`readableTextOn` exported from `src/core/themes.ts`. WIP-only consumers were mapped to named hues with their previous colours kept (SpendingChart NEED/WANT/GOAL/DEBT → indigo/violet/green/amber, WeeklyGrid series order, RoutinesView → violet).
+- `src/core/contrast.ts` (added in CHG-045) is dropped because main's themes exports cover it. `themes.test.ts` is main's file plus the WIP assertions (59 tests).
+
+**Fixes on top of the merge:**
+- a0969dd, `TaskList.tsx`: the new-task and edit forms stay inside 320px screens. The form and list grids use `minmax(0, 1fr)`, the schedule and subtask fieldsets get `minWidth: 0`, and subtask inputs can shrink so Remove stays on screen. Before, #new-task overflowed (body 333 > 320) and the edit form reached 392px. It is covered by a new 320px edit-form case in `e2e/layout-integrity.spec.ts` (en, es-PE).
+- 2ccaac5, e2e determinism:
+  - layout-integrity waits for `document.fonts.ready` before measuring.
+  - `public/service-worker.js` is deleted. It only ran in dev, since the build uses `src/service-worker.ts`, and it answered navigations cache-first with index.html, which booted the app on the seeding page and overwrote fixtures.
+  - `playwright.config.ts` sets `use.serviceWorkers: 'block'`.
+  - localization-shell seeds from deployment-guide.html like the other specs.
+- 68f966b, `GuidedTourOverlay.tsx`: the progress segments read an undefined `index`, so opening the tour threw a ReferenceError and unmounted the app. A jsdom render test was added.
+- b7a56c8, `energyTone.ts`: energy chips use dataViz green/blue/amber/red with `readableTextOn` text. The old success/warning fills measured 2.28:1 and 2.15:1 on the light surface. A test now requires every fill to be ≥ 3:1 against `colors.surface` in all modes.
+- 39d63b3, `ReconciliationChecklist`, `DataFreshnessBanner`:
+  - They read theme keys that do not exist, so the light-palette hex fallbacks always won, even in dark mode. They now use `successSoft`, `successStrong`, `muted`, `surfaceElevated` and named spacing tokens.
+  - The stale label (3.76:1) uses the *Strong token.
+  - The stale help box uses `colors.surface`.
+  - vitest now uses the automatic JSX runtime.
+- 510af40, AA status text: SpendingChart, FinancialDiagnostic, WeeklyGrid and RecurringReliabilityPanel use `errorStrong`/`successStrong`/`colors.text`. The missing `budget.chartTapHint`, `chartUnderBudget` and `chartEmpty` keys were added in en and es-PE.
+- 3eeaa14, e2e tooling: `app-audit.spec.ts` hard-coded `http://localhost:5173/gylio`, so a `PLAYWRIGHT_BASE_URL` run still audited localhost and a run from a second checkout (a git worktree) tested whichever dev server held port 5173. It now navigates relative to the Playwright `baseURL` like the other specs. `playwright.config.ts` reads `PLAYWRIGHT_PORT` (default 5173) and starts the dev server with `--strictPort`, so it cannot drift to another port while the config waits on the busy one. With a decoy server on 5173 and `PLAYWRIGHT_PORT=5199`, app-audit failed before (it audited the decoy) and passes after (15/15); a default CI-style run of app-audit and happy-paths passes 24/24.
+
+**Codex review findings 3-7:**
+- **#4, Daily Mode completion** (`src/features/dashboard/DailyCommandCenter.tsx`):
+  - What was wrong: ticking a task wrote `status: 'done'` through useDB, so no XP or task streak was awarded, and the rest of the app did not treat the task as finished.
+  - Fix: `handleComplete` now calls `useTasks().toggleTaskStatus`, which writes `'completed'`, awards 10 points and advances the streak. It only completes (a ticked box is ignored) and ticks optimistically.
+  - #82's 6bd18cf hunks in this file are ported verbatim, except the `useDB()` destructure (no `updateTask`) and `handleComplete` (body and deps), which now go through `useTasks`; both conflict with #82 (see follow-ups). The verbatim hunks: numeric ids, `'completed'`, bare `YYYY-MM-DD` compared as a local day in `isTaskToday` (Lima showed tomorrow's tasks as today's), the dropped `useDB()` cast and local Budget/Transaction interfaces, `nowMs`, full `loadData` deps, and `dateLabel` built from `todayKey`.
+  - Today's Focus rows are dated through `parseScheduled()`, which also reads a bare `YYYY-MM-DD` as a local day. Before, west of UTC every row showed yesterday's date under a header showing today.
+  - `vitest.config.ts` aliases `expo-notifications` to the same shim `vite.config.ts` uses.
+  - Test: `DailyCommandCenter.rewards.test.tsx`, 3 tests that fail before the fix. The Lima case also checks the row's date label, and restores the host time zone by deleting `TZ` when it was unset (assigning `undefined` stores the string "undefined", which Node reads as UTC and which made the other two cases fail on non-UTC hosts in the evening).
+- **#3, budget snapshot** (same file): the nudge took the category with the most money left across every stored month, so an old month could win (for example "$1,200 remaining in Rent" from August). It now reads only the budget and transactions for today's local `YYYY-MM`. Test: `DailyCommandCenter.budget.test.tsx`, which uses a stable useDB mock. Both cases fail before the fix.
+- **#5, recurrence is never persisted** (`TaskList.tsx`, `useRecurringReliability.ts`):
+  - What was wrong: tasks have no recurrence column, `mapTask` field or form control, so the reliability panel could only say "No recurring tasks configured".
+  - Fix: the "Reliability status" entry point renders only when `reliability.rows.length > 0`.
+  - Two 6bd18cf hunks are ported: the `showToast` options object and `getLocalDateKey()`. The react-hooks eslint-disable hunk is not ported, because #88 has no react-hooks plugin.
+  - The `e2e/happy-paths.spec.ts` smoke test now asserts that the button is absent.
+  - Tests: `TaskList.recurring.test.tsx` (both cases fail before the fix; the recurring case also asserts the button is absent until the stored tasks are read) and `useRecurringReliability.test.tsx`.
+- **#6, tour dialog focus** (`src/core/hooks/useDialogFocus.ts`, new; `TourFlowSelector.tsx`, `GuidedTourOverlay.tsx`):
+  - Opening a tour dialog moves focus into it. Next/Finish is marked `data-autofocus`.
+  - Tab and Shift+Tab stay inside while the dialog is `aria-modal="true"`. Spotlight steps are not trapped.
+  - Only steps designed as centred cards (`placement: 'center'` or no target) are modal. A targeted step whose element is not on screen yet (Tasks step 2, the date field behind the collapsed "Add details") is still drawn centred but is not modal and does not trap Tab, so a keyboard user can reach the page to do what the step asks.
+  - Focus returns to the opener when the dialog closes.
+  - Tab is left alone when focus is in another modal layered on top (a native `<dialog open>` or WinCard).
+  - Test: `src/components/tourDialogFocus.test.tsx`. The first 7 cases fail before the fix: each guard case first checks that focus moved into the tour. Making the trap unconditional fails the spotlight case, and removing the other-modal guard fails both layered cases. An 8th case, a targeted step with its element missing, fails when `aria-modal` follows the centred layout instead of the step definition.
+- **#7, manifest base path** (`public/manifest.json`, `index.html`):
+  - What was wrong: the manifest hard-coded `/gylio/`, so a root-hosted install launched at an unmatched route.
+  - Fix: every manifest URL member is now relative to the manifest. The link href is `/manifest.json`, which Vite rewrites to `${base}manifest.json`. The old relative href resolved to `/sign-in/manifest.json` on nested routes.
+  - Test: `src/pwaManifest.test.ts` builds the app for `/` and `/gylio/`. All 4 cases fail before the fix; the launch/scope case checks both bases in one test.
+
+**Codex review of #90 (two P2 findings in the fixes above):**
+- **Daily Mode completion could report success without saving** (`DailyCommandCenter.tsx`, `useTasks.ts`):
+  - What was wrong: `toggleTaskStatus` returned normally when the save threw, when `updateTask` found no task, and when its own copy of the task list had not loaded the task. Daily Mode had already ticked the row and then counted the completion event, so a reload silently reopened a task that was shown as done, and no points were awarded.
+  - Fix: `toggleTaskStatus` now resolves `true` once the status is stored and `false` otherwise (a failure after the save, in rewards or the announcement, keeps it `true`). Daily Mode puts the row back to its earlier status and skips the event when it gets `false`. The Tasks screen ignores the result, as before.
+  - Not changed: the row un-ticks without a message. A gentle retry message needs new i18n keys and is a follow-up.
+  - Tests: two cases in `DailyCommandCenter.rewards.test.tsx` (the save throws; the task is not in the database) fail before the fix, and the success case now also checks that the event is recorded.
+- **Tour focus after a step turns modal** (`useDialogFocus.ts`, `GuidedTourOverlay.tsx`):
+  - What was wrong: every flow ends on a centred card that follows a spotlight step. ArrowRight advances the tour from anywhere, so a keyboard user standing on the highlighted control landed on a modal card while focus stayed on the page behind it, and Enter pressed a hidden control.
+  - Fix: the hook takes the step index. When it changes while the dialog is `aria-modal="true"` and focus is outside it (and not in another layered modal), focus moves to the card's autofocus button. The opener stays the element restored on close, and a spotlight step that follows another spotlight leaves focus where it is.
+  - Tests: `tourDialogFocus.test.tsx`, 2 new cases. The centred-card case fails before the fix; the spotlight-to-spotlight case guards against refocusing on every step change.
+
+**Pruned research files (Pablo chose Prune on 2026-10-02):**
+- `scripts/batch-results/`, `scripts/impl-results/` and `scripts/pricing-research/` are removed: 34 files (32 Markdown, 2 JSON), about 14,000 lines of generated output. They held an unresolved LLM security audit and pricing and unit-economics notes, and the repo is public.
+- They stay in git history, PR #88 and the WIP laptop, so this keeps them out of main's files, not out of the repo's history. Restore a folder with `git checkout 510af40 -- scripts/<folder>`.
+- Nothing in `src/`, `server/` or `e2e/` imports them, and no `package.json` script runs them.
+- The six `scripts/batch-*.ts` runners stay and recreate their output folders when run. `batch-pricing-corrections.ts` reads `scripts/pricing-research/SPOT_CHECK_CORRECTIONS.md` when it starts, and the other runners use earlier output as input, so restore the folder before re-running one.
+
+**Verified (on the head with the prune and the Codex follow-ups on #90):**
+- `npm run lint`, `npm run typecheck` and `npm run check:i18n` pass.
+- Unit tests: `npx vitest run`, 25 files / 178 tests (also with the host zone set to America/Los_Angeles and with `TZ` unset). Server tests: `npm run test:server`, 102/102.
+- `npm run build` passes.
+- Playwright (bundled Chromium, no Clerk key, `--ignore-certificate-errors` so the external fonts load as on CI): 116/116, including every layout-integrity case. Without the flag `app-audit` 15 (console errors) fails on the sandbox proxy certificate (ERR_CERT_AUTHORITY_INVALID), and it fails the same way on 510af40.
+
+**Not in this entry:** Codex findings 1 (paid-plan JWT claim) and 2 (CSP connect-src for the API origin) are fixed on #89, not here.
+
+**Follow-ups:**
+- `public/icons/icon-192.png` and `icon-512.png` do not exist on any branch. The manifest icons and index.html's `favicon.svg` and `icons/icon-192.png` hrefs are left as they are until the icons exist.
+- Persisting recurrence end to end is a main follow-up. It also needs the dormant reliability defects fixed first: the double check on mount, the stale `writeMeta` resetting `failureCount`, and `repair` calling `insertTask` with an object.
+- WinCard (main) should reuse `useDialogFocus`.
+- When #82 next merges #88:
+  - resolve `DailyCommandCenter.tsx` by taking #88's side of its two conflict hunks: the uncast `useDB()` without `updateTask` plus `useTasks`, and `handleComplete` through `toggleTaskStatus`, which now also puts the row back when the save fails. The `parseScheduled` hunk merges cleanly;
+  - add a `useAccessibility` mock to #82's `DailyCommandCenter.test.tsx`. It fails to load once DCC imports useTasks ("Failed to resolve import expo-av"; aliasing expo-av only moves the failure to "must be used within an AccessibilityProvider"). With that one mock its 2 tests pass against this branch;
+  - move the reliability gate into `RecurringStatusToggle.tsx`.

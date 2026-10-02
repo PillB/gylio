@@ -14,9 +14,12 @@ import { useAppAuth } from '../../core/context/AuthContext';
 import { authHeaders } from '../../core/utils/authToken';
 import { apiUrl } from '../../core/utils/apiUrl';
 
-const CheckIcon = () => (
-  <span aria-hidden="true" style={{ color: '#22C55E', fontWeight: 700, marginRight: 8 }}>✓</span>
-);
+const CheckIcon = () => {
+  const { theme } = useTheme();
+  return (
+    <span aria-hidden="true" style={{ color: theme.colors.success, fontWeight: 700, marginRight: 8 }}>✓</span>
+  );
+};
 
 type ActivationState = 'idle' | 'loading' | 'success' | 'error';
 
@@ -27,7 +30,7 @@ export const PricingPage: React.FC = () => {
   const { theme } = useTheme();
   const navigate = useNavigate();
   const { plan, isFree, trialDays, monthlyPrice, yearlyPrice } = useSubscription();
-  const { userId } = useAppAuth();
+  const { userId, reloadUser, clerkEnabled } = useAppAuth();
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('yearly');
   const [activation, setActivation] = useState<ActivationState>('idle');
   const [errorMsg, setErrorMsg] = useState('');
@@ -35,6 +38,12 @@ export const PricingPage: React.FC = () => {
   const price = billing === 'yearly' ? yearlyPrice : monthlyPrice;
 
   const handleStartTrial = async () => {
+    if (!clerkEnabled) {
+      setErrorMsg(t('pricing.noAuthError', 'Sign in to activate your trial'));
+      setActivation('error');
+      return;
+    }
+
     // Production checkout is explicitly opt-in. A static preview must never
     // pretend that a trial was activated or attempt an unavailable backend.
     if (!billingEnabled) return;
@@ -58,6 +67,10 @@ export const PricingPage: React.FC = () => {
         const body = await res.json().catch(() => ({}));
         throw new Error(body?.error || `Server error ${res.status}`);
       }
+
+      // Re-fetch Clerk user so publicMetadata.plan is fresh — this causes
+      // useSubscription() to update and premium gates to open immediately.
+      await reloadUser?.();
 
       setActivation('success');
 
@@ -159,6 +172,7 @@ export const PricingPage: React.FC = () => {
               style={{
                 minWidth: 0,
                 padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
+                minHeight: '44px',
                 border: 'none',
                 borderRadius: 0,
                 background: billing === b ? theme.colors.primary : 'transparent',
@@ -250,6 +264,7 @@ export const PricingPage: React.FC = () => {
             onClick={() => navigate('/tasks')}
             style={{
               padding: `${theme.spacing.sm}px`,
+              minHeight: '44px',
               borderRadius: theme.shape.radiusFull,
               border: `1.5px solid ${theme.colors.border}`,
               background: 'transparent',
@@ -337,9 +352,10 @@ export const PricingPage: React.FC = () => {
             onClick={handleStartTrial}
             style={{
               padding: `${theme.spacing.sm}px`,
+              minHeight: '44px',
               borderRadius: theme.shape.radiusFull,
               border: 'none',
-              background: activation === 'success' ? '#22C55E' : '#fff',
+              background: activation === 'success' ? theme.colors.success : theme.colors.surface,
               color: activation === 'success' ? '#fff' : theme.colors.primary,
               fontWeight: 700,
               cursor: !billingEnabled || activation === 'loading' || plan === 'user_subscription' ? 'default' : 'pointer',
