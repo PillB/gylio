@@ -2,6 +2,7 @@ import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import DailyCommandCenter from './DailyCommandCenter';
+import { track } from '../../core/analytics';
 
 // In-memory stand-in for the local database. Every hook (DailyCommandCenter,
 // useTasks, useRewards) gets this same object, so useCallback deps stay stable
@@ -48,7 +49,10 @@ vi.mock('../../core/hooks/useDB', () => ({ default: () => db.api }));
 vi.mock('../../core/hooks/useGamification', () => ({ default: () => ({ gamificationEnabled: true }) }));
 const speak = vi.hoisted(() => async () => undefined);
 vi.mock('../../core/hooks/useAccessibility', () => ({ default: () => ({ speak }) }));
-vi.mock('../../core/analytics', () => ({ track: vi.fn(), Events: {} }));
+vi.mock('../../core/analytics', () => ({
+  track: vi.fn(),
+  Events: { DAILY_MODE_TASK_COMPLETED: 'daily_mode_task_completed', DAILY_MODE_EXITED: 'daily_mode_exited' },
+}));
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string, fallback?: unknown, vars?: Record<string, string>) =>
@@ -56,7 +60,10 @@ vi.mock('react-i18next', () => ({
   }),
 }));
 
-beforeEach(() => db.reset());
+beforeEach(() => {
+  db.reset();
+  vi.mocked(track).mockClear();
+});
 afterEach(cleanup);
 
 describe('DailyCommandCenter today filter', () => {
@@ -91,6 +98,7 @@ describe('DailyCommandCenter completing a task', () => {
     expect(db.state.rewards.taskStreakDays).toBe(1);
     expect(db.state.tasks[0].status).toBe('completed');
     expect((screen.getByRole('checkbox', { name: /Pay rent/ }) as HTMLInputElement).checked).toBe(true);
+    expect(track).toHaveBeenCalledWith('daily_mode_task_completed', { taskId: 1 });
   });
 
   it('does not re-award points or reopen the task when the ticked box is clicked again', async () => {
@@ -105,5 +113,31 @@ describe('DailyCommandCenter completing a task', () => {
 
     expect(db.state.rewards.points).toBe(10);
     expect(db.state.tasks[0].status).toBe('completed');
+  });
+});
+
+describe('DailyCommandCenter when a completion is not saved', () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  // toggleTaskStatus resolves normally when saving fails or the task is unknown, so the
+  // optimistic tick has to be taken back. Otherwise a reload silently reopens a task that
+  // was shown as done, and the completion event was already counted.
+  it.each([
+    ['saving fails', () => vi.spyOn(db.api, 'updateTask').mockRejectedValueOnce(new Error('disk full'))],
+    ['the task is not in the database', () => vi.spyOn(db.api, 'updateTask').mockResolvedValueOnce(null)],
+  ])('puts the row back and records nothing when %s', async (_label, breakSave) => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    breakSave();
+    render(<DailyCommandCenter onExitSimplified={() => undefined} />);
+
+    fireEvent.click(await screen.findByRole('checkbox', { name: /Pay rent/ }));
+
+    // The optimistic tick shows first; once the save is known to have failed the row is unticked again.
+    await waitFor(() =>
+      expect((screen.getByRole('checkbox', { name: /Pay rent/ }) as HTMLInputElement).checked).toBe(false),
+    );
+    expect(db.state.tasks[0].status).toBe('pending');
+    expect(db.state.rewards.points).toBe(0);
+    expect(track).not.toHaveBeenCalledWith('daily_mode_task_completed', expect.anything());
   });
 });

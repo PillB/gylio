@@ -313,7 +313,12 @@ const DailyCommandCenter: React.FC<DailyCommandCenterProps> = ({ onExitSimplifie
       setTasks((prev) =>
         prev.map((t) => (t.id === taskId ? { ...t, status: 'completed' } : t)),
       );
-      await toggleTaskStatus(taskId);
+      const saved = await toggleTaskStatus(taskId);
+      if (!saved) {
+        // Nothing was stored: show the task as open again instead of a completion a reload would undo.
+        setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, status: current.status } : t)));
+        return;
+      }
       track(Events.DAILY_MODE_TASK_COMPLETED, { taskId });
     },
     [tasks, toggleTaskStatus],
