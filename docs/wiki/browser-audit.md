@@ -7,4 +7,4 @@ Run against the Vite dev server (`npm run dev`, base path `/gylio/`).
 3. Sandbox note: use Chromium at `/opt/pw-browsers/chromium-1194/chrome-linux/chrome`. Without the Inter font that CI loads, the console-errors and 320px Tasks e2e tests fail only locally.
 4. Not reachable from automation: Google/Apple sign-in and Clerk's bot check. Test signed-in, admin and analytics flows through the local server's dev setup.
 
-Findings go in `issues.md`.
+Findings go in the wiki (see `audit-2026-10-02.md` for the first round).
