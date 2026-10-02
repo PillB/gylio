@@ -27,6 +27,13 @@ function computeFreshness(lastDate) {
 }
 
 /**
+ * The local month of a Date as 'YYYY-MM', the format budgets use for `month`.
+ */
+function monthKeyOf(date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+}
+
+/**
  * Formats a Date for human display, preferring relative labels.
  */
 function formatLastUpdated(date, t) {
@@ -82,17 +89,16 @@ export default function DataFreshnessBanner({ lastTransactionDate, budgetMonthKe
   const { t } = useTranslation();
   const { theme } = useTheme();
 
-  const freshness = useMemo(
-    () => computeFreshness(lastTransactionDate),
-    [lastTransactionDate],
-  );
+  // Freshness asks whether this month has been kept up to date. A closed month has
+  // nothing left to add and a month that has not started has nothing to record yet,
+  // so only the current month is judged. Without a month key the banner judges the
+  // dates it is given, as before.
+  const isCurrentMonth = !budgetMonthKey || budgetMonthKey === monthKeyOf(new Date());
 
-  const config = FRESHNESS_CONFIG[freshness];
-  const label = t(config.labelKey, config.labelFallback);
-  const pillLabel = t(config.pillKey, config.pillFallback);
-  const lastUpdatedLabel = formatLastUpdated(lastTransactionDate, t);
-  const colors = theme.colors ?? {};
-  const spacing = theme.spacing ?? {};
+  const freshness = useMemo(
+    () => (isCurrentMonth ? computeFreshness(lastTransactionDate) : null),
+    [isCurrentMonth, lastTransactionDate],
+  );
 
   // Fire analytics when stale warning is shown
   useEffect(() => {
@@ -103,6 +109,15 @@ export default function DataFreshnessBanner({ lastTransactionDate, budgetMonthKe
       });
     }
   }, [freshness, budgetMonthKey]);
+
+  if (!freshness) return null;
+
+  const config = FRESHNESS_CONFIG[freshness];
+  const label = t(config.labelKey, config.labelFallback);
+  const pillLabel = t(config.pillKey, config.pillFallback);
+  const lastUpdatedLabel = formatLastUpdated(lastTransactionDate, t);
+  const colors = theme.colors ?? {};
+  const spacing = theme.spacing ?? {};
 
   // Derive the tinted surface from the themed semantic colour so the banner
   // follows light, dark and high-contrast modes.
