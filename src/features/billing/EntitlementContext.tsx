@@ -11,7 +11,7 @@ import { billingApi, type Entitlement } from './billingApi';
 
 const CACHE_KEY = 'gylio:entitlement:v1';
 
-type CachedEntitlement = { userId: string; plan: Entitlement['plan']; expiresAt: string | null; source: Entitlement['source'] };
+type CachedEntitlement = { userId: string; plan: Entitlement['plan']; expiresAt: string | null; source: Entitlement['source']; renews?: boolean };
 
 type EntitlementState = {
   entitlement: Entitlement | null;
@@ -38,7 +38,7 @@ function readCache(userId: string, nowMs: number): Entitlement | null {
       plan: stillValid ? 'pro' : 'free',
       source: stillValid ? cached.source : null,
       expiresAt: cached.expiresAt,
-      renews: false,
+      renews: stillValid ? Boolean(cached.renews) : false,
       trial: { eligible: false, endsAt: null },
       subscription: null,
     };
@@ -49,7 +49,7 @@ function readCache(userId: string, nowMs: number): Entitlement | null {
 
 function writeCache(userId: string, entitlement: Entitlement) {
   try {
-    const cached: CachedEntitlement = { userId, plan: entitlement.plan, expiresAt: entitlement.expiresAt, source: entitlement.source };
+    const cached: CachedEntitlement = { userId, plan: entitlement.plan, expiresAt: entitlement.expiresAt, source: entitlement.source, renews: entitlement.renews };
     localStorage.setItem(CACHE_KEY, JSON.stringify(cached));
   } catch {
     // Storage blocked (private mode): the live answer still works.
@@ -63,7 +63,8 @@ export function EntitlementProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
 
   const setEntitlement = useCallback((next: Entitlement) => {
-    setEntitlementState(next);
+    // Some answers (e.g. starting a trial) may not repeat isAdmin: keep the last known value.
+    setEntitlementState((prev) => (next.isAdmin === undefined && prev?.isAdmin !== undefined ? { ...next, isAdmin: prev.isAdmin } : next));
     if (userId) writeCache(userId, next);
   }, [userId]);
 

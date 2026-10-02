@@ -35,9 +35,12 @@ function GiftForm({ onGranted }: { onGranted: () => void }) {
   const [reason, setReason] = useState('tester');
   const [note, setNote] = useState('');
   const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
+  const [busy, setBusy] = useState(false);
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (busy) return;
+    setBusy(true);
     const isEmail = target.includes('@');
     try {
       const gift = await adminApi.grantGift({
@@ -52,6 +55,8 @@ function GiftForm({ onGranted }: { onGranted: () => void }) {
       onGranted();
     } catch (error) {
       setResult({ ok: false, text: error instanceof Error ? error.message : t('admin.error') });
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -79,7 +84,7 @@ function GiftForm({ onGranted }: { onGranted: () => void }) {
         {t('admin.gift.note')}
         <input value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} style={styles.input} />
       </label>
-      <button type="submit" style={styles.button}>{t('admin.gift.submit')}</button>
+      <button type="submit" style={styles.button} disabled={busy} aria-busy={busy}>{t('admin.gift.submit')}</button>
       {result && <p role={result.ok ? 'status' : 'alert'} style={{ margin: 0 }}>{result.text}</p>}
     </form>
   );
@@ -162,7 +167,15 @@ function ReportRow({ report, onSaved }: { report: FeedbackReport; onSaved: (r: F
   const styles = useStyles();
   const [status, setStatus] = useState(report.status);
   const [note, setNote] = useState(report.adminNote ?? '');
-  const save = async () => onSaved(await adminApi.triage(report.id, { status, adminNote: note }));
+  const [saveError, setSaveError] = useState(false);
+  const save = async () => {
+    setSaveError(false);
+    try {
+      onSaved(await adminApi.triage(report.id, { status, adminNote: note }));
+    } catch {
+      setSaveError(true);
+    }
+  };
   return (
     <details style={{ ...styles.card, padding: 12 }}>
       <summary style={{ cursor: 'pointer', minHeight: 44 }}>
@@ -186,6 +199,7 @@ function ReportRow({ report, onSaved }: { report: FeedbackReport; onSaved: (r: F
         </label>
         <button type="button" style={styles.button} onClick={save}>{t('admin.report.save')}</button>
       </div>
+      {saveError && <p role="alert">{t('admin.error')}</p>}
     </details>
   );
 }
@@ -195,9 +209,11 @@ function QaInboxTab() {
   const styles = useStyles();
   const [filters, setFilters] = useState({ status: 'new', kind: '' });
   const [reports, setReports] = useState<FeedbackReport[] | null>(null);
+  const [loadError, setLoadError] = useState(false);
   useEffect(() => {
     setReports(null);
-    adminApi.feedback(filters).then((r) => setReports(r.reports)).catch(() => setReports([]));
+    setLoadError(false);
+    adminApi.feedback(filters).then((r) => setReports(r.reports)).catch(() => { setLoadError(true); setReports([]); });
   }, [filters]);
 
   const exportJson = () => {
@@ -228,7 +244,8 @@ function QaInboxTab() {
         <button type="button" style={styles.quiet} onClick={exportJson} disabled={!reports?.length}>{t('admin.filter.export')}</button>
       </div>
       {reports === null ? <p>{t('admin.loading')}</p> : null}
-      {reports?.length === 0 ? <p>{t('admin.report.empty')}</p> : null}
+      {loadError && <p role="alert">{t('admin.error')}</p>}
+      {!loadError && reports?.length === 0 ? <p>{t('admin.report.empty')}</p> : null}
       {reports?.map((r) => <ReportRow key={r.id} report={r} onSaved={replace} />)}
     </div>
   );
@@ -240,8 +257,10 @@ export function AdminPage() {
   const styles = useStyles();
   const { entitlement, loading } = useEntitlement();
   const [tab, setTab] = useState<'pro' | 'qa' | 'analytics'>('pro');
+  // isAdmin is only known after the server answers; until then this is loading, not "not allowed".
   if (!entitlement?.isAdmin) {
-    return <p role="status">{loading ? t('admin.loading') : t('admin.notAllowed')}</p>;
+    const unknown = loading || entitlement === null || entitlement.isAdmin === undefined;
+    return <p role="status">{unknown ? t('admin.loading') : t('admin.notAllowed')}</p>;
   }
   const tabButton = (key: 'pro' | 'qa' | 'analytics') => (
     <button type="button" role="tab" aria-selected={tab === key} onClick={() => setTab(key)}

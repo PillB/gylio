@@ -15,6 +15,7 @@ import { useAppAuth } from '../../core/context/AuthContext';
 import { track } from '../../core/analytics';
 import { useEntitlement } from '../billing/EntitlementContext';
 import {
+  ApiRequestError,
   FALLBACK_CATALOG,
   billingApi,
   type Catalog,
@@ -48,6 +49,24 @@ function useCatalog() {
 const planFor = (catalog: Catalog, interval: Interval) =>
   catalog.plans.find((p) => p.interval === (interval === 'yearly' ? 'year' : 'month')) as CatalogPlan;
 
+const ERROR_KEYS: Record<string, string> = {
+  TRIAL_NOT_AVAILABLE: 'billing.error.trialUsed',
+  BILLING_NOT_CONFIGURED: 'billing.error.checkoutNotConfigured',
+  UPSTREAM_ERROR: 'billing.error.provider',
+  RATE_LIMITED: 'billing.error.rateLimited',
+  UNAUTHORIZED: 'billing.error.signIn',
+};
+
+/** Server and browser messages are English; show a translated reason instead. */
+function errorKey(error: unknown): string {
+  if (error instanceof ApiRequestError) return ERROR_KEYS[error.code] ?? 'billing.error.generic';
+  if (error instanceof CheckoutUnavailable) return 'billing.error.checkoutNotConfigured';
+  if (error instanceof TypeError) return 'billing.error.network';
+  return 'billing.error.generic';
+}
+
+class CheckoutUnavailable extends Error {}
+
 function useCheckoutActions() {
   const { t, i18n } = useTranslation();
   const { setEntitlement, refresh } = useEntitlement();
@@ -60,7 +79,7 @@ function useCheckoutActions() {
     try {
       await action();
     } catch (error) {
-      setMessage({ tone: 'error', text: error instanceof Error ? error.message : t('billing.error.generic') });
+      setMessage({ tone: 'error', text: t(errorKey(error)) });
     } finally {
       setBusy(null);
     }
@@ -74,7 +93,7 @@ function useCheckoutActions() {
   });
 
   const subscribe = (plan: CatalogPlan) => run('checkout', async () => {
-    if (!paddleConfigured()) throw new Error(t('billing.error.checkoutNotConfigured'));
+    if (!paddleConfigured()) throw new CheckoutUnavailable('Paddle is not configured');
     const { transactionId } = await billingApi.checkout(plan.id);
     track('checkout_opened', { plan: plan.id, provider: 'paddle' });
     await openPaddleCheckout(transactionId, i18n.language, () => {
@@ -96,8 +115,25 @@ function useCheckoutActions() {
     window.location.assign(url);
   });
 
+  // Back from Mercado Pago: it adds ?status=approved|pending|rejected (or collection_status).
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get('collection_status') || params.get('status');
+    if (!status || !params.get('payment_id')) return;
+    const key = MP_RESULT[status] ?? 'billing.passes.result.failed';
+    setMessage({ tone: key.endsWith('failed') ? 'error' : 'ok', text: t(key) });
+    if (status === 'approved' || status === 'pending') [2000, 6000, 15000].forEach((ms) => setTimeout(() => void refresh(), ms));
+    window.history.replaceState(null, '', window.location.pathname);
+  }, [t, refresh]);
+
   return { busy, message, startTrial, subscribe, buyPass, manage };
 }
+
+const MP_RESULT: Record<string, string> = {
+  approved: 'billing.passes.result.approved',
+  pending: 'billing.passes.result.pending',
+  in_process: 'billing.passes.result.pending',
+};
 
 export const PricingPage: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -188,7 +224,7 @@ function EntitlementStatus({ entitlement }: { entitlement: Entitlement | null })
         marginBottom: theme.spacing.lg,
       }}
     >
-      {t(key, { date: until, days, renews: entitlement.renews })}
+      {t(key, { date: until, count: days ?? 0, renews: entitlement.renews })}
     </p>
   );
 }
@@ -196,9 +232,13 @@ function EntitlementStatus({ entitlement }: { entitlement: Entitlement | null })
 function IntervalToggle({ value, onChange, savings }: { value: Interval; onChange: (v: Interval) => void; savings: number }) {
   const { t } = useTranslation();
   const { theme } = useTheme();
+  // The radio itself is visually hidden, so its label shows the keyboard focus (WCAG 2.4.7).
+  const [focused, setFocused] = useState<Interval | null>(null);
   const option = (interval: Interval, label: string) => (
     <label
       style={{
+        outline: focused === interval ? `3px solid ${theme.colors.focus}` : 'none',
+        outlineOffset: 2,
         display: 'inline-flex',
         alignItems: 'center',
         gap: theme.spacing.xs,
@@ -218,6 +258,8 @@ function IntervalToggle({ value, onChange, savings }: { value: Interval; onChang
         value={interval}
         checked={value === interval}
         onChange={() => onChange(interval)}
+        onFocus={() => setFocused(interval)}
+        onBlur={() => setFocused(null)}
         style={{ position: 'absolute', opacity: 0, width: 1, height: 1 }}
       />
       {label}
@@ -374,7 +416,8 @@ function ProActions({ plan, trialDays, entitlement, actions }: ProActionsProps) 
       </button>
     );
   }
-  if (entitlement?.source === 'subscription') {
+  // Paddle subscriptions can be managed; Yape/card passes just expire, so offer to subscribe instead.
+  if (entitlement?.source === 'subscription' && entitlement.subscription?.provider === 'paddle') {
     return (
       <button type="button" style={secondary} disabled={actions.busy === 'portal'} onClick={actions.manage}>
         {t('billing.cta.manage')}

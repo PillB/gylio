@@ -81,5 +81,6 @@
     "planLink": "Your plan",
     "adminLink": "Admin console"
   },
-  "errorRateLimited": "You've sent several reports in a short time. Please wait a few minutes and try again."
+  "errorRateLimited": "You've sent several reports in a short time. Please wait a few minutes and try again.",
+  "errorTooShort": "Please add a little more: a summary of at least 3 characters and a description of at least 10."
 }

@@ -81,5 +81,6 @@
     "planLink": "Tu plan",
     "adminLink": "Consola de administración"
   },
-  "errorRateLimited": "Enviaste varios reportes en poco tiempo. Espera unos minutos e inténtalo de nuevo."
+  "errorRateLimited": "Enviaste varios reportes en poco tiempo. Espera unos minutos e inténtalo de nuevo.",
+  "errorTooShort": "Agrega un poco más: un resumen de al menos 3 caracteres y una descripción de al menos 10."
 }

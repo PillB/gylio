@@ -30,14 +30,14 @@ function useFieldStyles() {
   };
 }
 
-function TextField({ label, value, onChange, multiline = false, required = false, hint }: {
-  label: string; value: string; onChange: (v: string) => void; multiline?: boolean; required?: boolean; hint?: string;
+function TextField({ label, value, onChange, multiline = false, required = false, hint, minLength }: {
+  label: string; value: string; onChange: (v: string) => void; multiline?: boolean; required?: boolean; hint?: string; minLength?: number;
 }) {
   const styles = useFieldStyles();
   const { theme } = useTheme();
   const hintId = useId();
   const common = {
-    value, required, 'aria-describedby': hint ? hintId : undefined,
+    value, required, minLength, 'aria-describedby': hint ? hintId : undefined,
     onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => onChange(e.target.value),
   };
   return (
@@ -126,6 +126,8 @@ function buildPayload(draft: Draft, route: string, diagnostics: Record<string, u
 function describeError(error: unknown, t: (key: string) => string): string {
   if (error instanceof ApiRequestError && error.status === 401) return t('feedback.qa.signInToReport');
   if (error instanceof ApiRequestError && error.status === 429) return t('feedback.errorRateLimited');
+  // The server's minimums (3-character summary, 10-character description): say what to fix.
+  if (error instanceof ApiRequestError && error.status === 400) return t('feedback.errorTooShort');
   return t('feedback.error');
 }
 
@@ -156,8 +158,8 @@ export function FeedbackForm({ onSubmitted, initialKind = 'bug' }: { onSubmitted
   return (
     <form onSubmit={submit} style={{ display: 'grid', gap: theme.spacing.md }}>
       <KindPicker value={draft.kind} onChange={(kind) => set({ kind })} />
-      <TextField label={t('feedback.title')} value={draft.title} onChange={(v) => set({ title: v })} required hint={t('feedback.titleHint')} />
-      <TextField label={t(`feedback.descriptionLabel.${draft.kind}`)} value={draft.description} onChange={(v) => set({ description: v })} multiline required hint={t('feedback.privacyHint')} />
+      <TextField label={t('feedback.title')} value={draft.title} onChange={(v) => set({ title: v })} required minLength={3} hint={t('feedback.titleHint')} />
+      <TextField label={t(`feedback.descriptionLabel.${draft.kind}`)} value={draft.description} onChange={(v) => set({ description: v })} multiline required minLength={10} hint={t('feedback.privacyHint')} />
       {draft.kind === 'bug' && <BugFields draft={draft} set={set} />}
       <DiagnosticsToggle include={includeDiagnostics} onChange={setIncludeDiagnostics} preview={diagnostics} />
       {state.error && <p role="alert" style={{ margin: 0, color: theme.colors.errorStrong }}>{state.error}</p>}

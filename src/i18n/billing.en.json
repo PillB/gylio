@@ -4,7 +4,12 @@
   "fineprint": "Cancel anytime in one step. If you cancel, Pro stays on until the end of the period you paid for, and your data stays yours on the free plan.",
   "error": {
     "generic": "Something went wrong. Please try again.",
-    "checkoutNotConfigured": "Checkout isn't available yet. Try again soon."
+    "checkoutNotConfigured": "Checkout isn't available yet. Try again soon.",
+    "trialUsed": "The free trial has already been used on this account.",
+    "provider": "The payment service didn't answer. Please try again in a minute.",
+    "rateLimited": "Too many tries in a short time. Please wait a minute and try again.",
+    "signIn": "Please sign in again to continue.",
+    "network": "No connection. Check your internet and try again."
   },
   "trial": {
     "started": "Your Pro trial has started. It ends on {{date}}, and nothing is charged."
@@ -13,12 +18,13 @@
     "completed": "Payment received. Pro will switch on in a few seconds."
   },
   "status": {
-    "trial": "Your Pro trial is on until {{date}} ({{days}} days left).",
     "trialIndefinite": "Your Pro trial is on.",
     "gift": "You have Pro as a gift until {{date}}.",
     "giftIndefinite": "You have Pro as a gift, with no end date.",
     "subscription": "Pro is active until {{date}}.",
-    "subscriptionIndefinite": "Pro is active."
+    "subscriptionIndefinite": "Pro is active.",
+    "trial_one": "Your Pro trial is on until {{date}} ({{count}} day left).",
+    "trial_other": "Your Pro trial is on until {{date}} ({{count}} days left)."
   },
   "interval": {
     "legend": "Billing period",
@@ -64,7 +70,12 @@
   "passes": {
     "heading": "Pay with Yape or a card in soles",
     "body": "A one-time pass. It doesn't renew by itself; we remind you before it ends.",
-    "buy": "{{days}} days · {{price}}"
+    "buy": "{{days}} days · {{price}}",
+    "result": {
+      "approved": "Payment received. Your pass will switch on in a few seconds.",
+      "pending": "Your payment is being processed. Pro switches on as soon as it is confirmed.",
+      "failed": "The payment didn't go through. Nothing was charged; you can try again."
+    }
   },
   "ads": {
     "houseLabel": "From Gylio",

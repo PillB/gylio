@@ -7,6 +7,8 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../../core/context/ThemeContext';
 import { useSubscription } from '../subscription/useSubscription';
+import { useAppAuth } from '../../core/context/AuthContext';
+import { useEntitlement } from '../billing/EntitlementContext';
 import {
   countHouseAdImpression,
   houseAdCapReached,
@@ -125,8 +127,13 @@ function AdSenseAd({ placement, onFail }: { placement: AdPlacement; onFail: () =
 
 export function AdSlot({ placement }: { placement: AdPlacement }) {
   const { hasFeature } = useSubscription();
+  const { userId, authLoaded } = useAppAuth();
+  const { entitlement } = useEntitlement();
   const [adsenseFailed, setAdsenseFailed] = useState(false);
   const markFailed = useCallback(() => setAdsenseFailed(true), []);
+  // Until sign-in and the plan are known, show nothing: a Pro user must never see
+  // an ad flash (or have AdSense load) while their plan is still loading.
+  if (!authLoaded || (userId && !entitlement)) return null;
   if (hasFeature('ad_free')) return null;
   const provider = resolveAdProvider(import.meta.env, placement);
   if (provider === 'off') return null;

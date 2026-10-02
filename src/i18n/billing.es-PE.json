@@ -4,7 +4,12 @@
   "fineprint": "Cancela cuando quieras en un paso. Si cancelas, Pro sigue activo hasta el final del periodo que pagaste, y tus datos se quedan contigo en el plan gratis.",
   "error": {
     "generic": "Algo salió mal. Inténtalo de nuevo.",
-    "checkoutNotConfigured": "El pago aún no está disponible. Vuelve a intentarlo pronto."
+    "checkoutNotConfigured": "El pago aún no está disponible. Vuelve a intentarlo pronto.",
+    "trialUsed": "La prueba gratis ya se usó en esta cuenta.",
+    "provider": "El servicio de pagos no respondió. Inténtalo de nuevo en un minuto.",
+    "rateLimited": "Demasiados intentos en poco tiempo. Espera un minuto y vuelve a intentarlo.",
+    "signIn": "Vuelve a iniciar sesión para continuar.",
+    "network": "Sin conexión. Revisa tu internet e inténtalo de nuevo."
   },
   "trial": {
     "started": "Tu prueba de Pro empezó. Termina el {{date}} y no se cobra nada."
@@ -13,12 +18,13 @@
     "completed": "Recibimos tu pago. Pro se activará en unos segundos."
   },
   "status": {
-    "trial": "Tu prueba de Pro está activa hasta el {{date}} (quedan {{days}} días).",
     "trialIndefinite": "Tu prueba de Pro está activa.",
     "gift": "Tienes Pro de regalo hasta el {{date}}.",
     "giftIndefinite": "Tienes Pro de regalo, sin fecha de fin.",
     "subscription": "Pro está activo hasta el {{date}}.",
-    "subscriptionIndefinite": "Pro está activo."
+    "subscriptionIndefinite": "Pro está activo.",
+    "trial_one": "Tu prueba de Pro está activa hasta el {{date}} (queda {{count}} día).",
+    "trial_other": "Tu prueba de Pro está activa hasta el {{date}} (quedan {{count}} días)."
   },
   "interval": {
     "legend": "Periodo de pago",
@@ -64,7 +70,12 @@
   "passes": {
     "heading": "Paga con Yape o con tarjeta en soles",
     "body": "Un pase de pago único. No se renueva solo; te avisamos antes de que termine.",
-    "buy": "{{days}} días · {{price}}"
+    "buy": "{{days}} días · {{price}}",
+    "result": {
+      "approved": "Recibimos tu pago. Tu pase se activará en unos segundos.",
+      "pending": "Tu pago se está procesando. Pro se activará apenas se confirme.",
+      "failed": "El pago no se completó. No se cobró nada; puedes intentarlo de nuevo."
+    }
   },
   "ads": {
     "houseLabel": "De Gylio",
