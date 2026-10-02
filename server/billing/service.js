@@ -17,7 +17,7 @@ const {
   isTrialEligible,
   planGiftWindow,
 } = require('./entitlements');
-const { TRIAL_DAYS } = require('./plans');
+const { PASSES, TRIAL_DAYS } = require('./plans');
 const { normalizePaddleEvent } = require('./providers/paddle');
 const { interpretPassPayment } = require('./providers/mercadopago');
 
@@ -118,6 +118,9 @@ function createBillingService({ store, clock = () => new Date(), clerk, paddle, 
     const providerRef = String(payment.id);
     const existing = await store.getSubscriptionByRef('mercadopago', providerRef);
     if (existing?.status === verdict.status) return { outcome: 'duplicate' };
+    // A payment that never succeeded grants nothing and must not count as "has paid"
+    // (that would burn the person's one free trial).
+    if (!existing && verdict.status !== 'active') return { outcome: 'ignored', reason: `payment ${payment.status}` };
 
     const nowMs = clock().getTime();
     const currentPeriodEnd = existing?.currentPeriodEnd
@@ -134,7 +137,34 @@ function createBillingService({ store, clock = () => new Date(), clerk, paddle, 
       cancelAtPeriodEnd: true,
       providerUpdatedAt: payment.date_last_updated || null,
     }, { now: now() });
+    await afterPassChange(existing, verdict);
     return { outcome: 'applied' };
+  }
+
+  async function afterPassChange(before, verdict) {
+    if (before?.status === 'active' && verdict.status === 'refunded') {
+      await pullLaterPassesForward(verdict.userId, before, clock().getTime());
+    }
+  }
+
+  /**
+   * Passes stack end to end, so when one is refunded the passes queued behind it
+   * start sooner by the time the refunded pass had left to run.
+   */
+  async function pullLaterPassesForward(userId, refunded, nowMs) {
+    const pass = Object.values(PASSES).find((p) => p.amountMinor === refunded.amountMinor && p.currency === refunded.currency);
+    if (!pass) return;
+    const days = pass.days;
+    const endMs = Date.parse(refunded.currentPeriodEnd);
+    const startMs = endMs - days * DAY_MS;
+    const freedMs = Math.max(0, endMs - Math.max(nowMs, startMs));
+    if (!freedMs) return;
+    const later = (await store.listSubscriptions(userId)).filter((s) =>
+      s.provider === 'mercadopago' && s.providerRef !== refunded.providerRef
+      && s.status === 'active' && Date.parse(s.currentPeriodEnd) > endMs);
+    for (const pass of later) {
+      await store.upsertSubscription({ ...pass, currentPeriodEnd: iso(Date.parse(pass.currentPeriodEnd) - freedMs) }, { now: now() });
+    }
   }
 
   async function resolveGiftTarget({ userId, email }) {

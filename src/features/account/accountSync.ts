@@ -69,13 +69,15 @@ export function applySnapshot(storage: StorageLike, data: Snapshot, now: string)
 
 export type ServerState = { version: number; updatedAt: string; data: Snapshot } | null;
 
-export type FirstSyncDecision = 'upload' | 'restore' | 'ask' | 'in_sync' | 'push';
+export type FirstSyncDecision = 'upload' | 'restore' | 'ask' | 'in_sync' | 'push' | 'fresh';
 
 /**
  * What to do when a person signs in on this device.
  * - no server copy: upload this device's data (if any)
  * - server copy and this device already synced this account: push local edits or stay
- * - server copy, device never synced this account: restore if the device is
+ * - device last synced for a different person: its data is not this person's.
+ *   Restore their copy, or start empty; never upload or offer it to them
+ * - server copy, device never synced any account: restore if the device is
  *   empty, otherwise ask, because either choice would discard something
  */
 export function decideFirstSync(args: {
@@ -85,11 +87,17 @@ export function decideFirstSync(args: {
   local: Snapshot;
 }): FirstSyncDecision {
   const { userId, server, meta, local } = args;
+  if (meta && meta.userId !== userId) return server ? 'restore' : 'fresh';
   if (!server) return hasAppData(local) ? 'upload' : 'in_sync';
-  const knownHere = meta?.userId === userId;
-  if (!knownHere) return hasAppData(local) ? 'ask' : 'restore';
-  if (meta.version !== server.version) return meta.hash === snapshotHash(local) ? 'restore' : 'ask';
-  return meta.hash === snapshotHash(local) ? 'in_sync' : 'push';
+  if (!meta) return hasAppData(local) ? 'ask' : 'restore';
+  return decideKnownDevice(server, meta, local);
+}
+
+/** This device already synced this account before. */
+function decideKnownDevice(server: NonNullable<ServerState>, meta: SyncMeta, local: Snapshot): FirstSyncDecision {
+  const unchanged = meta.hash === snapshotHash(local);
+  if (meta.version !== server.version) return unchanged ? 'restore' : 'ask';
+  return unchanged ? 'in_sync' : 'push';
 }
 
 export function readMeta(storage: StorageLike): SyncMeta | null {

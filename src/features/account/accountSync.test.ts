@@ -58,8 +58,13 @@ describe('decideFirstSync', () => {
   });
   it('asks instead of overwriting when both this device and the account have data', () => {
     expect(decideFirstSync({ userId: 'u', server, meta: null, local })).toBe('ask');
-    // Same device, but it was synced for a different person.
-    expect(decideFirstSync({ userId: 'u', server, meta: { userId: 'other', version: 3, hash: snapshotHash(local), savedAt: null }, local })).toBe('ask');
+  });
+  it('never offers one person\'s synced data to the next person who signs in on the same browser', () => {
+    const theirs = { userId: 'other', version: 3, hash: snapshotHash(local), savedAt: null };
+    // The new person has no saved copy: their account must not receive the previous person's data.
+    expect(decideFirstSync({ userId: 'u', server: null, meta: theirs, local })).toBe('fresh');
+    // The new person has a saved copy: use it, not the previous person's data.
+    expect(decideFirstSync({ userId: 'u', server, meta: theirs, local })).toBe('restore');
   });
   it('pulls a newer copy when this device has no unsaved edits, and asks when it does', () => {
     const synced = { userId: 'u', version: 2, hash: snapshotHash(local), savedAt: null };

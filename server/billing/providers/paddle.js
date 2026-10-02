@@ -92,9 +92,23 @@ function firstPrice(data) {
   };
 }
 
-function periodEnd(data) {
+/**
+ * Paddle may already have advanced the billing period to the cycle whose charge
+ * failed. The paid access ended where that cycle started, so the grace period
+ * counts from there; counting from the new period's end would hand out a free month.
+ */
+function pastDueAnchor(data, period, eventAt) {
+  const endsMs = Date.parse(period.ends_at);
+  const startsMs = Date.parse(period.starts_at);
+  const eventMs = Date.parse(eventAt);
+  const advanced = Number.isFinite(endsMs) && Number.isFinite(startsMs) && Number.isFinite(eventMs) && endsMs > eventMs;
+  return advanced ? period.starts_at : period.ends_at || data.next_billed_at || null;
+}
+
+function periodEnd(data, eventAt) {
   const period = data.current_billing_period || {};
   if (data.status === 'canceled') return data.canceled_at || period.ends_at || null;
+  if (data.status === 'past_due') return pastDueAnchor(data, period, data.updated_at || eventAt);
   return period.ends_at || data.next_billed_at || null;
 }
 
@@ -114,7 +128,7 @@ function toRecord(event, data) {
     status: STATUS[data.status],
     interval: intervalOf(data),
     ...firstPrice(data),
-    currentPeriodEnd: periodEnd(data),
+    currentPeriodEnd: periodEnd(data, event.occurred_at),
     cancelAtPeriodEnd: (data.scheduled_change || {}).action === 'cancel',
     customerRef: data.customer_id || null,
     manageUrl: (data.management_urls || {}).cancel || null,

@@ -66,6 +66,13 @@ function restoreAndReload(userId: string, server: NonNullable<ServerState>) {
   window.location.reload();
 }
 
+/** The data on this device belonged to someone else: set it aside (undoable from Settings) and start empty. */
+function startEmptyAndReload(userId: string) {
+  applySnapshot(localStorage, {}, new Date().toISOString());
+  writeMeta(localStorage, { userId, version: 0, hash: snapshotHash({}), savedAt: null });
+  window.location.reload();
+}
+
 export function AccountSyncProvider({ children }: { children: ReactNode }) {
   const { userId } = useAppAuth();
   const [status, setStatus] = useState<SyncStatus>('off');
@@ -116,6 +123,8 @@ export function AccountSyncProvider({ children }: { children: ReactNode }) {
     const decision = decideFirstSync({ userId: uid, server, meta, local: collectSnapshot(localStorage) });
     if (decision === 'restore' && server) {
       restoreAndReload(uid, server);
+    } else if (decision === 'fresh') {
+      startEmptyAndReload(uid);
     } else if (decision === 'ask') {
       setConflict(server);
       setStatus('conflict');

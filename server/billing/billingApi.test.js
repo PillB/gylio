@@ -194,6 +194,23 @@ describe('Paddle webhooks', () => {
     expect(ent.body.plan).toBe('free');
   });
 
+  it('keeps a failed renewal on Pro for the 3-day grace period only, not for the whole unpaid month', async () => {
+    // Paddle has already moved the billing period forward to the cycle that could not be charged.
+    await post(JSON.stringify({
+      ...JSON.parse(event({
+        status: 'past_due',
+        billing_cycle: { interval: 'month', frequency: 1 },
+        current_billing_period: { starts_at: '2026-10-01T12:00:00.000Z', ends_at: '2026-11-01T12:00:00.000Z' },
+        updated_at: '2026-10-01T12:00:05.000Z',
+      })),
+      event_type: 'subscription.past_due', occurred_at: '2026-10-01T12:00:05.000Z',
+    }));
+    clock.now = Date.parse('2026-10-03T12:00:00.000Z');
+    expect((await request(app).get('/api/billing/entitlement').set(as('user_paid'))).body.plan).toBe('pro');
+    clock.now = Date.parse('2026-10-05T12:00:00.000Z');
+    expect((await request(app).get('/api/billing/entitlement').set(as('user_paid'))).body.plan).toBe('free');
+  });
+
   it('opens the Paddle portal for a paying user', async () => {
     await post(event());
     const res = await request(app).post('/api/billing/portal').set(as('user_paid'));
@@ -223,6 +240,27 @@ describe('Mercado Pago passes', () => {
     const ent = await request(app).get('/api/billing/entitlement').set(as('user_yape'));
     // 1 Oct 12:00 + 30 days = 31 Oct; + 30 more = 30 Nov.
     expect(ent.body).toMatchObject({ plan: 'pro', renews: false, expiresAt: '2026-11-30T12:00:00.000Z' });
+  });
+
+  it('after refunding the first of two stacked passes, the second starts now instead of after the refunded one', async () => {
+    payments['111'] = payment(111);
+    payments['222'] = payment(222);
+    await notify('111');
+    await notify('222');
+    clock.now = Date.parse('2026-10-03T12:00:00.000Z');
+    payments['111'] = payment(111, { status: 'refunded' });
+    await notify('111', 'req-refund');
+
+    const ent = await request(app).get('/api/billing/entitlement').set(as('user_yape'));
+    // Only the second pass is still paid for: 30 days from the refund, not until 30 Nov.
+    expect(ent.body).toMatchObject({ plan: 'pro', expiresAt: '2026-11-02T12:00:00.000Z' });
+  });
+
+  it('keeps the free trial available when a payment is rejected', async () => {
+    payments['666'] = payment(666, { status: 'rejected' });
+    await notify('666');
+    const ent = await request(app).get('/api/billing/entitlement').set(as('user_yape'));
+    expect(ent.body).toMatchObject({ plan: 'free', trial: { eligible: true } });
   });
 
   it('refuses a payment whose amount does not match the pass', async () => {
