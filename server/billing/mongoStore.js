@@ -116,6 +116,14 @@ const cleanAccount = (doc) => {
 const isObjectId = (id) => mongoose.isValidObjectId(id) && String(id).length === 24;
 const DUPLICATE_KEY = 11000;
 
+const OPTIONAL_SUBSCRIPTION_FIELDS = ['interval', 'currency', 'amountMinor', 'currentPeriodEnd', 'customerRef', 'manageUrl'];
+
+function subscriptionFields(record) {
+  const fields = { userId: record.userId, status: record.status, cancelAtPeriodEnd: Boolean(record.cancelAtPeriodEnd) };
+  for (const key of OPTIONAL_SUBSCRIPTION_FIELDS) fields[key] = record[key] ?? null;
+  return fields;
+}
+
 /** True when a bulk insert failed only because some documents already existed. */
 function isOnlyDuplicateKeys(error) {
   if (error && error.code === DUPLICATE_KEY) return true;
@@ -173,19 +181,7 @@ function createMongoStore(connection = mongoose.connection) {
     /** Same contract as SQLite: one conditional write, so a racing older event can't win. */
     async upsertSubscription(record, { now }) {
       const incoming = toIsoOrNull(record.providerUpdatedAt);
-      const fields = {
-        userId: record.userId,
-        status: record.status,
-        interval: record.interval ?? null,
-        currency: record.currency ?? null,
-        amountMinor: record.amountMinor ?? null,
-        currentPeriodEnd: record.currentPeriodEnd ?? null,
-        cancelAtPeriodEnd: Boolean(record.cancelAtPeriodEnd),
-        customerRef: record.customerRef ?? null,
-        manageUrl: record.manageUrl ?? null,
-        providerUpdatedAt: incoming,
-        updatedAt: now,
-      };
+      const fields = { ...subscriptionFields(record), providerUpdatedAt: incoming, updatedAt: now };
       const filter = { provider: record.provider, providerRef: record.providerRef };
       if (incoming) filter.$or = [{ providerUpdatedAt: null }, { providerUpdatedAt: { $lte: incoming } }];
       let applied = true;
