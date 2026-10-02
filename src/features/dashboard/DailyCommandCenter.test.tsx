@@ -19,6 +19,9 @@ const dbApi = {
 
 vi.mock('../../core/hooks/useDB', () => ({ default: () => dbApi }));
 vi.mock('../../core/analytics', () => ({ track: vi.fn(), Events: {} }));
+vi.mock('../../core/hooks/useAccessibility', () => ({
+  default: () => ({ reduceMotionEnabled: true, animationsEnabled: false }),
+}));
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string, fallback?: string) => (typeof fallback === 'string' ? fallback : key) }),
 }));

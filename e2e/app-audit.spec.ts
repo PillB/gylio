@@ -6,9 +6,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const SCREENSHOT_DIR = path.join(__dirname, 'screenshots');
 
-const BASE = 'http://localhost:5173/gylio';
-const goto = (page: Page, route: string) =>
-  page.goto(route === '/' ? `${BASE}/` : `${BASE}${route}`);
+// Navigate relative to the Playwright baseURL (playwright.config.ts), like the
+// other specs, so PLAYWRIGHT_BASE_URL and PLAYWRIGHT_PORT runs audit that target.
+const goto = (page: Page, route: string) => page.goto(`.${route}`);
 
 async function completeOnboardingIfNeeded(page: Page) {
   // Seed unconditionally: under parallel load the redirect to /onboarding can

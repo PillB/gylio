@@ -13,6 +13,9 @@ const RecurringStatusToggle: React.FC = () => {
   const [open, setOpen] = useState(false);
   const reliability = useRecurringReliability();
 
+  // Nothing to report until a recurring task exists, so the button stays hidden.
+  if (reliability.rows.length === 0) return null;
+
   const toggle = () => {
     const next = !open;
     setOpen(next);
