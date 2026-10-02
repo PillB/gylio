@@ -841,11 +841,18 @@ Numbered after #82's CHG-046 to keep IDs unique; #82 stacks on this branch.
   - Fix: every manifest URL member is now relative to the manifest. The link href is `/manifest.json`, which Vite rewrites to `${base}manifest.json`. The old relative href resolved to `/sign-in/manifest.json` on nested routes.
   - Test: `src/pwaManifest.test.ts` builds the app for `/` and `/gylio/`. All 4 cases fail before the fix; the launch/scope case checks both bases in one test.
 
+**Pruned research files (Pablo chose Prune on 2026-10-02):**
+- `scripts/batch-results/`, `scripts/impl-results/` and `scripts/pricing-research/` are removed: 34 files (32 Markdown, 2 JSON), about 14,000 lines of generated output. They held an unresolved LLM security audit and pricing and unit-economics notes, and the repo is public.
+- They stay in git history, PR #88 and the WIP laptop, so this keeps them out of main's files, not out of the repo's history. Restore a folder with `git checkout 510af40 -- scripts/<folder>`.
+- Nothing in `src/`, `server/` or `e2e/` imports them, and no `package.json` script runs them.
+- The six `scripts/batch-*.ts` runners stay and recreate their output folders when run. `batch-pricing-corrections.ts` reads `scripts/pricing-research/SPOT_CHECK_CORRECTIONS.md` when it starts, and the other runners use earlier output as input, so restore the folder before re-running one.
+
 **Verified:**
 - `npm run lint`, `npm run typecheck` and `npm run check:i18n` pass.
-- Unit tests: `npx vitest run`, 25 files / 173 tests (also with the host zone set to America/Los_Angeles and `TZ` unset). Server tests: `npm run test:server`, 102/102.
+- Unit tests: `npx vitest run`, 25 files / 174 tests (also with the host zone set to America/Los_Angeles and `TZ` unset). Server tests: `npm run test:server`, 102/102.
 - `npm run build` passes.
 - Playwright (bundled Chromium, no Clerk key): 115/116. The failure is `app-audit` 15 (console errors), caused by external fonts blocked by the sandbox proxy certificate (ERR_CERT_AUTHORITY_INVALID). The same test fails the same way on 510af40. With `--ignore-certificate-errors`, 116/116 pass, including every layout-integrity case (re-run after the date-label fix: 116/116).
+- After the prune: `npm run lint`, `npm run typecheck`, `npm run check:i18n`, `npm run build` and `npx vitest run` (25 files / 174 tests) pass again. The server tests and Playwright were not re-run, because nothing in `server/` or `e2e/` references the removed folders.
 
 **Not in this entry:** Codex findings 1 (paid-plan JWT claim) and 2 (CSP connect-src for the API origin) are fixed on #89, not here.
 
