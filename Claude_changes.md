@@ -841,18 +841,28 @@ Numbered after #82's CHG-046 to keep IDs unique; #82 stacks on this branch.
   - Fix: every manifest URL member is now relative to the manifest. The link href is `/manifest.json`, which Vite rewrites to `${base}manifest.json`. The old relative href resolved to `/sign-in/manifest.json` on nested routes.
   - Test: `src/pwaManifest.test.ts` builds the app for `/` and `/gylio/`. All 4 cases fail before the fix; the launch/scope case checks both bases in one test.
 
+**Codex review of #90 (two P2 findings in the fixes above):**
+- **Daily Mode completion could report success without saving** (`DailyCommandCenter.tsx`, `useTasks.ts`):
+  - What was wrong: `toggleTaskStatus` returned normally when the save threw, when `updateTask` found no task, and when its own copy of the task list had not loaded the task. Daily Mode had already ticked the row and then counted the completion event, so a reload silently reopened a task that was shown as done, and no points were awarded.
+  - Fix: `toggleTaskStatus` now resolves `true` once the status is stored and `false` otherwise (a failure after the save, in rewards or the announcement, keeps it `true`). Daily Mode puts the row back to its earlier status and skips the event when it gets `false`. The Tasks screen ignores the result, as before.
+  - Not changed: the row un-ticks without a message. A gentle retry message needs new i18n keys and is a follow-up.
+  - Tests: two cases in `DailyCommandCenter.rewards.test.tsx` (the save throws; the task is not in the database) fail before the fix, and the success case now also checks that the event is recorded.
+- **Tour focus after a step turns modal** (`useDialogFocus.ts`, `GuidedTourOverlay.tsx`):
+  - What was wrong: every flow ends on a centred card that follows a spotlight step. ArrowRight advances the tour from anywhere, so a keyboard user standing on the highlighted control landed on a modal card while focus stayed on the page behind it, and Enter pressed a hidden control.
+  - Fix: the hook takes the step index. When it changes while the dialog is `aria-modal="true"` and focus is outside it (and not in another layered modal), focus moves to the card's autofocus button. The opener stays the element restored on close, and a spotlight step that follows another spotlight leaves focus where it is.
+  - Tests: `tourDialogFocus.test.tsx`, 2 new cases. The centred-card case fails before the fix; the spotlight-to-spotlight case guards against refocusing on every step change.
+
 **Pruned research files (Pablo chose Prune on 2026-10-02):**
 - `scripts/batch-results/`, `scripts/impl-results/` and `scripts/pricing-research/` are removed: 34 files (32 Markdown, 2 JSON), about 14,000 lines of generated output. They held an unresolved LLM security audit and pricing and unit-economics notes, and the repo is public.
 - They stay in git history, PR #88 and the WIP laptop, so this keeps them out of main's files, not out of the repo's history. Restore a folder with `git checkout 510af40 -- scripts/<folder>`.
 - Nothing in `src/`, `server/` or `e2e/` imports them, and no `package.json` script runs them.
 - The six `scripts/batch-*.ts` runners stay and recreate their output folders when run. `batch-pricing-corrections.ts` reads `scripts/pricing-research/SPOT_CHECK_CORRECTIONS.md` when it starts, and the other runners use earlier output as input, so restore the folder before re-running one.
 
-**Verified:**
+**Verified (on the head with the prune and the Codex follow-ups on #90):**
 - `npm run lint`, `npm run typecheck` and `npm run check:i18n` pass.
-- Unit tests: `npx vitest run`, 25 files / 174 tests (also with the host zone set to America/Los_Angeles and `TZ` unset). Server tests: `npm run test:server`, 102/102.
+- Unit tests: `npx vitest run`, 25 files / 178 tests (also with the host zone set to America/Los_Angeles and with `TZ` unset). Server tests: `npm run test:server`, 102/102.
 - `npm run build` passes.
-- Playwright (bundled Chromium, no Clerk key): 115/116. The failure is `app-audit` 15 (console errors), caused by external fonts blocked by the sandbox proxy certificate (ERR_CERT_AUTHORITY_INVALID). The same test fails the same way on 510af40. With `--ignore-certificate-errors`, 116/116 pass, including every layout-integrity case (re-run after the date-label fix: 116/116).
-- After the prune: `npm run lint`, `npm run typecheck`, `npm run check:i18n`, `npm run build` and `npx vitest run` (25 files / 174 tests) pass again. The server tests and Playwright were not re-run, because nothing in `server/` or `e2e/` references the removed folders.
+- Playwright (bundled Chromium, no Clerk key, `--ignore-certificate-errors` so the external fonts load as on CI): 116/116, including every layout-integrity case. Without the flag `app-audit` 15 (console errors) fails on the sandbox proxy certificate (ERR_CERT_AUTHORITY_INVALID), and it fails the same way on 510af40.
 
 **Not in this entry:** Codex findings 1 (paid-plan JWT claim) and 2 (CSP connect-src for the API origin) are fixed on #89, not here.
 
@@ -861,6 +871,6 @@ Numbered after #82's CHG-046 to keep IDs unique; #82 stacks on this branch.
 - Persisting recurrence end to end is a main follow-up. It also needs the dormant reliability defects fixed first: the double check on mount, the stale `writeMeta` resetting `failureCount`, and `repair` calling `insertTask` with an object.
 - WinCard (main) should reuse `useDialogFocus`.
 - When #82 next merges #88:
-  - resolve `DailyCommandCenter.tsx` by taking #88's side of its two conflict hunks: the uncast `useDB()` without `updateTask` plus `useTasks`, and `handleComplete` through `toggleTaskStatus`. The `parseScheduled` hunk merges cleanly;
+  - resolve `DailyCommandCenter.tsx` by taking #88's side of its two conflict hunks: the uncast `useDB()` without `updateTask` plus `useTasks`, and `handleComplete` through `toggleTaskStatus`, which now also puts the row back when the save fails. The `parseScheduled` hunk merges cleanly;
   - add a `useAccessibility` mock to #82's `DailyCommandCenter.test.tsx`. It fails to load once DCC imports useTasks ("Failed to resolve import expo-av"; aliasing expo-av only moves the failure to "must be used within an AccessibilityProvider"). With that one mock its 2 tests pass against this branch;
   - move the reliability gate into `RecurringStatusToggle.tsx`.
