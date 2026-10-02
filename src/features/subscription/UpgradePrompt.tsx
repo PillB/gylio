@@ -287,7 +287,7 @@ export const UpgradePrompt: React.FC<Props> = ({
 
       {/* Heading + subtitle */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.sm, alignItems: 'center' }}>
-        <h3
+        <h2
           style={{
             margin: 0,
             fontFamily: theme.typography.heading.family,
@@ -297,7 +297,7 @@ export const UpgradePrompt: React.FC<Props> = ({
           }}
         >
           {t('upgrade.title', '{{feature}} is a premium feature', { feature: featureName })}
-        </h3>
+        </h2>
         <p style={{ margin: 0, color: theme.colors.muted, fontSize: '0.9375rem', lineHeight: 1.5 }}>
           {t(
             'upgrade.subtitle',
