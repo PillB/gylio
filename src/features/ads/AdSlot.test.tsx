@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import '../../i18n/i18n.js';
 import { ThemeProvider } from '../../core/context/ThemeContext';
@@ -16,7 +16,7 @@ vi.mock('../../core/analytics', async (importOriginal) => ({
   track: (...args: unknown[]) => trackMock(...args),
 }));
 
-const hasFeatureMock = vi.fn(() => false);
+const hasFeatureMock = vi.fn<(feature: string) => boolean>(() => false);
 vi.mock('../subscription/useSubscription', () => ({
   useSubscription: () => ({
     plan: 'free_user',
