@@ -12,6 +12,7 @@ Status: open / fixed (PR) / patch (owner PR).
 | Q-006 | axe, locked tabs | Heading order skipped (h1 then h3) on Social, Routines, Rewards when locked | `UpgradePrompt` uses `h3` | patch for #89 (it rewrites UpgradePrompt) |
 | Q-007 | Product | Social, Routines and Rewards are locked behind the paywall on main; gamified loops and social are core goals | free/Pro split | open, see #89 (its choices make streaks and rewards free) |
 | Q-008 | Onboarding | Step 1 stacks three near-duplicate intro sentences before the choices | copy accumulated across edits | open |
+| Q-009 | #90 known gap | If a Daily Mode save fails, the row un-ticks with no message | needs new translation keys; accepted in #90 | open; fix on #82's head after #90 lands |
 
 ## Repeat-issue patterns
 - Sandbox-only e2e failures from missing Inter font: not an app bug; load Inter or use CI.
