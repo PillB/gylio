@@ -159,6 +159,17 @@ SocialPlan {
 - **Tests**: Run relevant checks when code changes affect behavior.
 - **Accessibility**: Validate keyboard navigation and screen reader labels for any UI change.
 
+## Quality program rules
+- **Expert-choice test**: For every feature and decision, research what the best expert in that field would do (cite evidence, a review or an authoritative source) and why they would reject the current choice. If you can name that reason, do not make the choice. Optimize for the evidence-based benchmark or feasible ideal, never for what meets the stated constraints most cheaply. Weight methodological and scientific correctness, current best practice, usability and QOL features.
+- **State every trade-off**: Any trade-off you take goes in the PR description and `Claude_changes.md`; never absorb it silently.
+- **A test for every task and every round**: each task ships with a test that fails without the change; each round ends with the full suite plus a browser pass. Tautological tests (asserting what the code was just written to say) are harmful; test behaviour a user or screen reader would notice.
+- **Complexity ceiling**: keep cyclomatic complexity of every function at 10 or less. The `chore(lint)` that enforces it is in the complexity-ceiling PR (#82, `eslint.complexity.js`); do not add a second rule, and do not raise a cap.
+- **Failed fix hypothesis**: if a fix hypothesis fails once, research the error online to see how others solved a similar issue before trying again.
+- **Blocked resources**: if a task or gate needs a service, agent or API that is unstable, unavailable or usage-limited, stop and surface it to the user instead of retrying against it.
+- **Scope**: leave legal considerations out of plans and reviews unless the user asks.
+- **Browser validation**: validate every user-visible change in a real browser (Playwright Chromium) and run an axe-core pass on each primary view; record findings in `docs/wiki/`.
+- **Ledger and wiki**: log steps taken and planned in `docs/wiki/ledger.md`, issues and root causes in `docs/wiki/issues.md`, and a retrospective each round in `docs/wiki/retrospectives.md`. Check repeated issues there before starting new work.
+
 ## Do / Don’t
 **Do**
 - Keep UI predictable and low-noise.

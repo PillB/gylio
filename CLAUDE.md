@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+See [`AGENTS.md`](./AGENTS.md) (repo root: `/AGENTS.md`) for agent rules: feature design docs, the quality program (expert-choice test, a test per task and round, complexity ceiling, failed-hypothesis research) and the wiki/ledger workflow in `docs/wiki/`.
+
 ## Tech Stack (file-grounded)
 - Frontend: React 18 + Vite (`src/App.jsx`, `vite.config.ts`).
 - Language mix: JavaScript + TypeScript (`.jsx/.js` and `.tsx/.ts`).
