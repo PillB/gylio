@@ -764,3 +764,19 @@ es-PE.json: full Spanish translations for all step and starter keys.
 - `.github/dependabot.yml` — ignore semver-minor updates for `react-native`, `react`, `react-dom` so the group PR stops breaking install; that upgrade needs its own migration.
 
 **Verified:** `npm ci`, lint, typecheck, check:i18n, 71 unit tests, build all pass. Playwright: 104/105 pass; the one failure is external fonts blocked by the sandbox proxy certificate (ERR_CERT_AUTHORITY_INVALID), not app code.
+
+---
+
+### CHG-048 – 2026-10-02 (Quality program: axe audit fixes, AGENTS.md rules, wiki)
+
+**Why:** A Chromium + axe-core pass over every tab found one critical and three serious accessibility defects plus a duplicated icon on main.
+
+**Files changed:**
+- `src/components/atoms/Toast.tsx` — notification stack now has `role="region"` so its `aria-label` is valid.
+- `src/features/tasks/components/TaskList.tsx` — `role="list"` only when the wrapper contains list items; removed duplicate ⚡ (the i18n string already has it).
+- `src/features/calendar/components/WeeklyGrid.tsx` — scrollable grid is keyboard focusable.
+- `src/components/SettingsView.jsx` — "Restart guide" button text uses `theme.colors.text` (contrast 4.5:1+).
+- `docs/wiki/audit-2026-10-02.md`, `browser-audit.md`, `research-competitors-ideas.md` — one round's findings, steps and retrospective, the audit how-to and the research. Agent rules and the wiki index/ledger come from #89, so this PR carries no AGENTS.md or CLAUDE.md change.
+- Tests: `Toast.a11y.test.tsx`, `WeeklyGrid.a11y.test.tsx` (both fail without the fixes).
+
+**Trade-offs:** Settings button loses its primary-colour text to meet contrast, keeping the primary border. Axe e2e is deferred to avoid touching package.json while the lint thread owns it. Q-006 (locked-tab heading order) is left to #89, which rewrites UpgradePrompt.

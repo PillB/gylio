@@ -513,7 +513,6 @@ const TaskList: React.FC = () => {
             fontFamily: theme.typography.body.family,
           }}
         >
-          <span aria-hidden="true">⚡</span>
           {showTemplateGallery
             ? t('tasks.tpl.hideGallery', 'Hide quick-start tasks')
             : t('tasks.tpl.showGallery', 'Browse quick-start tasks')}
@@ -891,7 +890,11 @@ const TaskList: React.FC = () => {
             </button>
           </div>
         )}
-        <div role="list" aria-label={t('tasks.chunkedListAria')} style={{ display: 'grid', gap: '1rem' }}>
+        <div
+          role={loading || filteredTasks.length === 0 ? undefined : 'list'}
+          aria-label={loading || filteredTasks.length === 0 ? undefined : t('tasks.chunkedListAria')}
+          style={{ display: 'grid', gap: '1rem' }}
+        >
           {loading ? (
             <p>{t('loading')}</p>
           ) : filteredTasks.length === 0 ? (
