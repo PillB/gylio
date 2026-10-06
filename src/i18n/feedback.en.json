@@ -1,0 +1,86 @@
+{
+  "button": "Feedback",
+  "dialogTitle": "Report a bug or share an idea",
+  "close": "Close",
+  "thanks": "Thank you. We read every report.",
+  "seeMyReports": "See your reports and their status",
+  "kindLegend": "What is it?",
+  "kind": {
+    "bug": "Bug",
+    "idea": "Idea",
+    "question": "Question",
+    "praise": "Something I like"
+  },
+  "title": "Short summary",
+  "titleHint": "For example: \"The timer stops when I switch tabs\"",
+  "descriptionLabel": {
+    "bug": "What happened?",
+    "idea": "What would help you?",
+    "question": "What would you like to know?",
+    "praise": "What works well for you?"
+  },
+  "privacyHint": "Please don't include passwords, card numbers or other private details.",
+  "steps": "Steps to make it happen",
+  "stepsHint": "One step per line: 1. Open Tasks 2. …",
+  "expected": "What did you expect?",
+  "actual": "What happened instead?",
+  "severity": "How much does it affect you?",
+  "severityOption": {
+    "low": "Low · a small annoyance",
+    "medium": "Medium · gets in the way",
+    "high": "High · I can't do something",
+    "blocker": "Blocker · the app is unusable"
+  },
+  "includeDiagnostics": "Include technical details (screen size, browser, language, recent errors)",
+  "whatIsIncluded": "See exactly what is included",
+  "error": "The report couldn't be sent. Please try again.",
+  "sending": "Sending…",
+  "send": "Send",
+  "status": {
+    "new": "New",
+    "triaged": "Reviewed",
+    "in_progress": "In progress",
+    "fixed": "Fixed",
+    "wont_fix": "Won't fix",
+    "duplicate": "Duplicate"
+  },
+  "mine": {
+    "heading": "Your reports",
+    "loading": "Loading your reports…",
+    "error": "Your reports couldn't be loaded.",
+    "empty": "You haven't sent any reports yet."
+  },
+  "qa": {
+    "heading": "Help us test Gylio",
+    "intro": "Thank you for testing. Try things the way you normally would, and tell us when something is confusing, broken or missing.",
+    "whatToTest": "What to test",
+    "area": {
+      "onboarding": "Onboarding and first setup",
+      "tasks": "Creating, splitting and finishing tasks",
+      "calendar": "Calendar events and time blocks",
+      "budget": "Budget, transactions and debts",
+      "routines": "Routines (Pro)",
+      "rewards": "Rewards, streaks and badges",
+      "pricing": "Trial, pricing and payments (sandbox)",
+      "language": "Switching between English and Spanish",
+      "mobile": "Using it on a phone"
+    },
+    "goodReportHeading": "What makes a report easy to fix",
+    "tip": {
+      "one": "One problem per report.",
+      "steps": "The steps that lead to it.",
+      "expected": "What you expected and what happened instead.",
+      "screenshot": "If you can, mention the screen and your device."
+    },
+    "reportHeading": "Send a report",
+    "signInToReport": "Sign in to send a report and follow its status."
+  },
+  "settings": {
+    "heading": "Testing and plan",
+    "qaLink": "Report a bug or idea",
+    "planLink": "Your plan",
+    "adminLink": "Admin console"
+  },
+  "errorRateLimited": "You've sent several reports in a short time. Please wait a few minutes and try again.",
+  "errorTooShort": "Please add a little more: a summary of at least 3 characters and a description of at least 10."
+}

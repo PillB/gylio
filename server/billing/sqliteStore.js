@@ -1,0 +1,376 @@
+/**
+ * sqliteStore.js — billing, gift and feedback persistence for local/dev SQLite.
+ *
+ * Same contract as mongoStore.js; `storeContract.test.js` runs one suite
+ * against both so the two can never drift apart silently.
+ */
+
+'use strict';
+
+const crypto = require('node:crypto');
+const { run, get, all } = require('../lib/sqlite');
+
+const SCHEMA = [
+  `CREATE TABLE IF NOT EXISTS billing_accounts (
+    userId TEXT PRIMARY KEY,
+    email TEXT,
+    trialStartedAt TEXT,
+    trialEndsAt TEXT,
+    createdAt TEXT NOT NULL,
+    updatedAt TEXT NOT NULL
+  );`,
+  `CREATE TABLE IF NOT EXISTS billing_subscriptions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    userId TEXT NOT NULL,
+    provider TEXT NOT NULL,
+    providerRef TEXT NOT NULL,
+    status TEXT NOT NULL,
+    interval TEXT,
+    currency TEXT,
+    amountMinor INTEGER,
+    currentPeriodEnd TEXT,
+    cancelAtPeriodEnd INTEGER NOT NULL DEFAULT 0,
+    customerRef TEXT,
+    manageUrl TEXT,
+    providerUpdatedAt TEXT,
+    createdAt TEXT NOT NULL,
+    updatedAt TEXT NOT NULL,
+    UNIQUE (provider, providerRef)
+  );`,
+  'CREATE INDEX IF NOT EXISTS idx_billing_subscriptions_user ON billing_subscriptions(userId);',
+  `CREATE TABLE IF NOT EXISTS billing_gifts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    userId TEXT,
+    email TEXT,
+    startsAt TEXT NOT NULL,
+    endsAt TEXT,
+    reason TEXT NOT NULL,
+    note TEXT,
+    grantedBy TEXT NOT NULL,
+    grantedAt TEXT NOT NULL,
+    revokedAt TEXT,
+    revokedBy TEXT,
+    claimedAt TEXT
+  );`,
+  'CREATE INDEX IF NOT EXISTS idx_billing_gifts_user ON billing_gifts(userId);',
+  'CREATE INDEX IF NOT EXISTS idx_billing_gifts_email ON billing_gifts(email);',
+  `CREATE TABLE IF NOT EXISTS billing_webhook_events (
+    provider TEXT NOT NULL,
+    eventId TEXT NOT NULL,
+    receivedAt TEXT NOT NULL,
+    PRIMARY KEY (provider, eventId)
+  );`,
+  `CREATE TABLE IF NOT EXISTS feedback_reports (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    userId TEXT,
+    kind TEXT NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT NOT NULL,
+    stepsToReproduce TEXT,
+    expected TEXT,
+    actual TEXT,
+    severity TEXT,
+    route TEXT,
+    context TEXT NOT NULL DEFAULT '{}',
+    status TEXT NOT NULL DEFAULT 'new',
+    adminNote TEXT,
+    createdAt TEXT NOT NULL,
+    updatedAt TEXT NOT NULL
+  );`,
+  'CREATE INDEX IF NOT EXISTS idx_feedback_status ON feedback_reports(status, createdAt);',
+  `CREATE TABLE IF NOT EXISTS analytics_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    eventId TEXT,
+    name TEXT NOT NULL,
+    sessionId TEXT NOT NULL,
+    signedIn INTEGER NOT NULL DEFAULT 0,
+    props TEXT NOT NULL DEFAULT '{}',
+    receivedAt TEXT NOT NULL
+  );`,
+  'CREATE INDEX IF NOT EXISTS idx_analytics_received ON analytics_events(receivedAt);',
+  `CREATE TABLE IF NOT EXISTS user_state (
+    userId TEXT PRIMARY KEY,
+    data TEXT NOT NULL,
+    version INTEGER NOT NULL,
+    updatedAt TEXT NOT NULL
+  );`,
+];
+
+const SUBSCRIPTION_FIELDS = [
+  'userId', 'status', 'interval', 'currency', 'amountMinor', 'currentPeriodEnd',
+  'cancelAtPeriodEnd', 'customerRef', 'manageUrl', 'providerUpdatedAt',
+];
+
+const FEEDBACK_PATCH_FIELDS = ['status', 'adminNote', 'severity'];
+
+const toId = (row) => (row ? { ...row, id: String(row.id) } : null);
+
+const parseSubscription = (row) =>
+  row ? { ...toId(row), cancelAtPeriodEnd: Boolean(row.cancelAtPeriodEnd) } : null;
+
+const parseFeedback = (row) => {
+  if (!row) return null;
+  let context = {};
+  try { context = JSON.parse(row.context || '{}'); } catch (_e) { context = {}; }
+  return { ...toId(row), context };
+};
+
+const numericId = (id) => {
+  const n = Number(id);
+  return Number.isInteger(n) && n > 0 ? n : null;
+};
+
+function createSqliteStore(db) {
+  const store = {
+    kind: 'sqlite',
+
+    async init() {
+      for (const statement of SCHEMA) {
+        await run(db, statement);
+      }
+      // Databases created before event ids existed get the column; old rows keep NULL.
+      const columns = await all(db, 'PRAGMA table_info(analytics_events)');
+      if (!columns.some((c) => c.name === 'eventId')) await run(db, 'ALTER TABLE analytics_events ADD COLUMN eventId TEXT');
+      await run(db, 'CREATE UNIQUE INDEX IF NOT EXISTS idx_analytics_event_id ON analytics_events(eventId)');
+    },
+
+    getAccount: (userId) => get(db, 'SELECT * FROM billing_accounts WHERE userId = ?', [userId]),
+
+    async ensureAccount(userId, { email = null, now }) {
+      await run(
+        db,
+        `INSERT INTO billing_accounts (userId, email, createdAt, updatedAt) VALUES (?, ?, ?, ?)
+         ON CONFLICT(userId) DO UPDATE SET email = COALESCE(excluded.email, billing_accounts.email)`,
+        [userId, email, now, now]
+      );
+      return store.getAccount(userId);
+    },
+
+    /** Atomic: returns the account only if this call is the one that started the trial. */
+    async startTrial(userId, { startedAt, endsAt }) {
+      await store.ensureAccount(userId, { now: startedAt });
+      const result = await run(
+        db,
+        `UPDATE billing_accounts SET trialStartedAt = ?, trialEndsAt = ?, updatedAt = ?
+         WHERE userId = ? AND trialStartedAt IS NULL`,
+        [startedAt, endsAt, startedAt, userId]
+      );
+      return result.changes === 1 ? store.getAccount(userId) : null;
+    },
+
+    listActiveTrialAccounts: (now) =>
+      all(db, 'SELECT * FROM billing_accounts WHERE trialEndsAt > ? ORDER BY trialEndsAt', [now]),
+
+    async listSubscriptions(userId) {
+      const rows = await all(db, 'SELECT * FROM billing_subscriptions WHERE userId = ? ORDER BY createdAt', [userId]);
+      return rows.map(parseSubscription);
+    },
+
+    async listAllSubscriptions() {
+      const rows = await all(db, 'SELECT * FROM billing_subscriptions ORDER BY updatedAt DESC');
+      return rows.map(parseSubscription);
+    },
+
+    async getSubscriptionByRef(provider, providerRef) {
+      const row = await get(
+        db,
+        'SELECT * FROM billing_subscriptions WHERE provider = ? AND providerRef = ?',
+        [provider, providerRef]
+      );
+      return parseSubscription(row);
+    },
+
+    /**
+     * Insert or update by (provider, providerRef). An event older than the one
+     * already applied is ignored, so out-of-order webhooks cannot resurrect a
+     * cancelled subscription. Returns { applied, subscription }.
+     */
+    /**
+     * Insert or update by (provider, providerRef) in one statement. An event
+     * older than the one already applied changes nothing, even when two
+     * deliveries race. Returns { applied, subscription }.
+     */
+    async upsertSubscription(record, { now }) {
+      const normalized = { ...record, providerUpdatedAt: toIsoOrNull(record.providerUpdatedAt) };
+      const values = SUBSCRIPTION_FIELDS.map((field) => normalizeSubscriptionValue(field, normalized[field]));
+      const columns = ['provider', 'providerRef', ...SUBSCRIPTION_FIELDS, 'createdAt', 'updatedAt'];
+      const updates = [...SUBSCRIPTION_FIELDS, 'updatedAt'].map((field) => `${field} = excluded.${field}`).join(', ');
+      const result = await run(
+        db,
+        `INSERT INTO billing_subscriptions (${columns.join(', ')}) VALUES (${columns.map(() => '?').join(', ')})
+         ON CONFLICT(provider, providerRef) DO UPDATE SET ${updates}
+         WHERE excluded.providerUpdatedAt IS NULL
+            OR billing_subscriptions.providerUpdatedAt IS NULL
+            OR excluded.providerUpdatedAt >= billing_subscriptions.providerUpdatedAt`,
+        [record.provider, record.providerRef, ...values, now, now]
+      );
+      return { applied: result.changes === 1, subscription: await store.getSubscriptionByRef(record.provider, record.providerRef) };
+    },
+
+    async listGifts({ userId } = {}) {
+      const rows = userId
+        ? await all(db, 'SELECT * FROM billing_gifts WHERE userId = ? ORDER BY startsAt', [userId])
+        : await all(db, 'SELECT * FROM billing_gifts ORDER BY grantedAt DESC');
+      return rows.map(toId);
+    },
+
+    async getGift(id) {
+      const n = numericId(id);
+      return n ? toId(await get(db, 'SELECT * FROM billing_gifts WHERE id = ?', [n])) : null;
+    },
+
+    async createGift(gift) {
+      const result = await run(
+        db,
+        `INSERT INTO billing_gifts (userId, email, startsAt, endsAt, reason, note, grantedBy, grantedAt)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [gift.userId || null, gift.email || null, gift.startsAt, gift.endsAt ?? null, gift.reason,
+          gift.note || null, gift.grantedBy, gift.grantedAt]
+      );
+      return store.getGift(result.lastID);
+    },
+
+    /** Returns the revoked gift, or null if it does not exist or was already revoked. */
+    async revokeGift(id, { revokedAt, revokedBy }) {
+      const n = numericId(id);
+      if (!n) return null;
+      const result = await run(
+        db,
+        'UPDATE billing_gifts SET revokedAt = ?, revokedBy = ? WHERE id = ? AND revokedAt IS NULL',
+        [revokedAt, revokedBy, n]
+      );
+      return result.changes === 1 ? store.getGift(n) : null;
+    },
+
+    async hasUnclaimedGifts() {
+      const row = await get(db, 'SELECT 1 AS found FROM billing_gifts WHERE userId IS NULL AND revokedAt IS NULL LIMIT 1');
+      return Boolean(row);
+    },
+
+    /** Attach email-addressed gifts to the account that has proven it owns that email. */
+    async claimGiftsByEmail(emails, userId, { now }) {
+      const normalized = [...new Set(emails.map((e) => String(e).trim().toLowerCase()).filter(Boolean))];
+      if (!normalized.length) return 0;
+      const placeholders = normalized.map(() => '?').join(', ');
+      const result = await run(
+        db,
+        `UPDATE billing_gifts SET userId = ?, claimedAt = ? WHERE userId IS NULL AND email IN (${placeholders})`,
+        [userId, now, ...normalized]
+      );
+      return result.changes;
+    },
+
+    /** True the first time an event is seen; false for a duplicate delivery. */
+    async recordWebhookEvent(provider, eventId, { now }) {
+      const result = await run(
+        db,
+        'INSERT OR IGNORE INTO billing_webhook_events (provider, eventId, receivedAt) VALUES (?, ?, ?)',
+        [provider, String(eventId), now]
+      );
+      return result.changes === 1;
+    },
+
+    async hasWebhookEvent(provider, eventId) {
+      const row = await get(
+        db,
+        'SELECT 1 AS found FROM billing_webhook_events WHERE provider = ? AND eventId = ?',
+        [provider, String(eventId)]
+      );
+      return Boolean(row);
+    },
+
+    async createFeedback(report) {
+      const result = await run(
+        db,
+        `INSERT INTO feedback_reports (userId, kind, title, description, stepsToReproduce, expected, actual,
+          severity, route, context, status, createdAt, updatedAt)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'new', ?, ?)`,
+        [report.userId || null, report.kind, report.title, report.description, report.stepsToReproduce || null,
+          report.expected || null, report.actual || null, report.severity || null, report.route || null,
+          JSON.stringify(report.context || {}), report.createdAt, report.createdAt]
+      );
+      return store.getFeedback(result.lastID);
+    },
+
+    async getFeedback(id) {
+      const n = numericId(id);
+      return n ? parseFeedback(await get(db, 'SELECT * FROM feedback_reports WHERE id = ?', [n])) : null;
+    },
+
+    async listFeedback({ status, kind, userId, limit = 200 } = {}) {
+      const clauses = [];
+      const params = [];
+      if (status) { clauses.push('status = ?'); params.push(status); }
+      if (kind) { clauses.push('kind = ?'); params.push(kind); }
+      if (userId) { clauses.push('userId = ?'); params.push(userId); }
+      const where = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
+      const rows = await all(
+        db,
+        `SELECT * FROM feedback_reports ${where} ORDER BY createdAt DESC, id DESC LIMIT ?`,
+        [...params, Math.min(Math.max(1, limit), 500)]
+      );
+      return rows.map(parseFeedback);
+    },
+
+    async insertAnalyticsEvents(events) {
+      for (const e of events) {
+        await run(db, 'INSERT OR IGNORE INTO analytics_events (eventId, name, sessionId, signedIn, props, receivedAt) VALUES (?, ?, ?, ?, ?, ?)',
+          [e.eventId || `srv-${crypto.randomUUID()}`, e.name, e.sessionId, e.signedIn ? 1 : 0, JSON.stringify(e.props || {}), e.receivedAt]);
+      }
+      return events.length;
+    },
+
+    async listAnalyticsEvents({ from, to, limit = 50000 }) {
+      const rows = await all(
+        db,
+        'SELECT name, sessionId, signedIn, props, receivedAt FROM analytics_events WHERE receivedAt >= ? AND receivedAt < ? ORDER BY receivedAt LIMIT ?',
+        [from, to, limit]
+      );
+      return rows.map((r) => ({ ...r, signedIn: Boolean(r.signedIn), props: JSON.parse(r.props || '{}') }));
+    },
+
+    getUserState: (userId) => get(db, 'SELECT data, version, updatedAt FROM user_state WHERE userId = ?', [userId]),
+
+    /**
+     * Optimistic concurrency: the write lands only if the caller saw the current
+     * version (0 = no copy yet). Otherwise it returns the copy that won.
+     */
+    async putUserState(userId, { data, baseVersion, now }) {
+      const result = baseVersion === 0
+        ? await run(db, 'INSERT OR IGNORE INTO user_state (userId, data, version, updatedAt) VALUES (?, ?, 1, ?)', [userId, data, now])
+        : await run(
+          db,
+          'UPDATE user_state SET data = ?, version = version + 1, updatedAt = ? WHERE userId = ? AND version = ?',
+          [data, now, userId, baseVersion]
+        );
+      return { ok: result.changes === 1, state: await store.getUserState(userId) };
+    },
+
+    async updateFeedback(id, patch, { now }) {
+      const n = numericId(id);
+      if (!n) return null;
+      const fields = FEEDBACK_PATCH_FIELDS.filter((field) => patch[field] !== undefined);
+      if (!fields.length) return store.getFeedback(n);
+      const assignments = fields.map((field) => `${field} = ?`).join(', ');
+      await run(db, `UPDATE feedback_reports SET ${assignments}, updatedAt = ? WHERE id = ?`, [
+        ...fields.map((field) => patch[field]), now, n,
+      ]);
+      return store.getFeedback(n);
+    },
+  };
+  return store;
+}
+
+/** Provider timestamps compared as strings must share one format. */
+function toIsoOrNull(value) {
+  const ms = value ? Date.parse(value) : NaN;
+  return Number.isFinite(ms) ? new Date(ms).toISOString() : null;
+}
+
+
+function normalizeSubscriptionValue(field, value) {
+  if (field === 'cancelAtPeriodEnd') return value ? 1 : 0;
+  return value === undefined ? null : value;
+}
+
+module.exports = { createSqliteStore, toIsoOrNull };

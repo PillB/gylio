@@ -74,37 +74,246 @@
         "career": "Kazi",
         "finances": "Fedha"
       },
-      "cleanSpace": { "title": "Safisha eneo lako la kufanyia kazi", "why": "Peterson: Utaratibu katika mazingira yako hupunguza mzigo wa kiakili." },
-      "digitalDeclutter": { "title": "Safisha kidijitali", "why": "Newport: Umakini ni mdogo. Ondoa kinachokuzuia kwa malengo yako." },
-      "designEnv": { "title": "Buni mazingira kwa tabia bora", "why": "Clear: Muundo wa mazingira ni mkono usionekana wa tabia." },
-      "deepWork": { "title": "Kizuizi cha kazi ya kina", "why": "Newport: Uwezo wa kuzingatia bila usumbufu unakuwa nadra na wa thamani zaidi." },
-      "shutdownRitual": { "title": "Ibada ya kuzimika kila siku", "why": "Newport: Bila mwisho wazi wa siku yako ya kazi, ubongo wako unaendelea kuzunguka." },
-      "brainDump": { "title": "Tupa mawazo ya ubongo", "why": "Allen: Ubongo wako ni kwa ajili ya kuwa na mawazo, si kuyahifadhi." },
-      "weeklyReview": { "title": "Mapitio ya kila wiki", "why": "Allen: Mapitio ya kila wiki ni ufunguo mkuu wa GTD." },
-      "nextAction": { "title": "Fafanua hatua inayofuata", "why": "Allen: Miradi isiyo wazi haisogei. Fafanua hatua inayofuata ya kimwili." },
-      "morningSunlight": { "title": "Jua la asubuhi", "why": "Huberman: Mwanga wa asubuhi huweka saa yako ya circadian." },
-      "moveBody": { "title": "Sogeza mwili wako", "why": "Huberman: Dakika 20-30 za mazoezi ya moyo huinua BDNF, dopamine na serotonini." },
-      "fixSleep": { "title": "Rekebisha ratiba yako ya kulala", "why": "Breus: Usingizi ni nguzo ya juu zaidi kwa utendaji wa kiakili." },
-      "reduceAlcohol": { "title": "Punguza pombe wiki hii", "why": "Huberman: Hata pombe ya wastani husumbua usingizi wa REM." },
-      "journal": { "title": "Andika ukurasa mmoja", "why": "Peterson: Kuandika kunafafanua mawazo." },
-      "gratitude": { "title": "Mazoezi ya shukrani", "why": "Emmons: Shukrani maalum huongeza ustawi kwa kipimo." },
-      "comparePastSelf": { "title": "Jilinganishe na wewe wa jana", "why": "Peterson: Kujilinganisha na zamani zako huleta maendeleo na kujiheshimu." },
-      "tellTruth": { "title": "Sema ukweli", "why": "Peterson: Uongo mdogo hukusanyika na kuwa maisha yaliyopotoka." },
-      "takeResponsibility": { "title": "Chukua jukumu la kitu kimoja", "why": "Peterson: Kabla ya kubadilisha chochote nje, lazima uchukue umiliki ndani." },
-      "reachOut": { "title": "Wasiliana na mtu", "why": "Dunbar: Mawasiliano ya mara kwa mara na mzunguko wako wa karibu si ya hiari." },
-      "repairRelationship": { "title": "Rekebisha uhusiano", "why": "Gottman: Majaribio ya kurekebisha yanatabiri maisha ya uhusiano." },
-      "expressAppreciation": { "title": "Onyesha shukrani", "why": "Gottman: Uwiano wa 5:1 huamua afya ya uhusiano." },
-      "deliberatePractice": { "title": "Kipindi cha mazoezi ya makusudi", "why": "Newport: Mkusanyiko wa ujuzi kupitia mazoezi ya makusudi huunda mtaji wa kazi." },
-      "identifyMission": { "title": "Tambua dhamira yako ya kazi", "why": "Newport: Dhamira ya kuvutia inatoka kwenye makutano ya mtaji wako wa kazi." },
-      "sayNo": { "title": "Sema hapana kwa ahadi moja", "why": "Newport: Kila ndiyo ni hapana kwa kazi ya kina." },
-      "listDebts": { "title": "Orodhesha madeni yako yote", "why": "Hammer: Huwezi kupigana na unachokukataa kuona." },
-      "emergencyFund": { "title": "Anza mfuko wa dharura", "why": "Hammer: Bila akiba ya pesa taslimu, kila gharama isiyotarajiwa inakuwa deni." },
-      "trackSpending": { "title": "Fuatilia matumizi kwa wiki moja", "why": "Hammer: Watu wengi wanakadiria matumizi yao vibaya." },
-      "cancelSubs": { "title": "Ghairi usajili ambao haujatumika", "why": "Hammer: Usajili unaokua ni muuaji kimya wa bajeti za kaya." },
-      "negotiateBill": { "title": "Jadili bili moja", "why": "Hammer: Simu moja ya dakika 15 inaweza kuokoa $10-$50/mwezi." },
+      "cleanSpace": {
+        "title": "Safisha eneo lako la kufanyia kazi",
+        "why": "Peterson: Utaratibu katika mazingira yako hupunguza mzigo wa kiakili.",
+        "step1": "Safisha uso unaoufanyia kazi",
+        "step2": "Toa takataka au vitu visivyo na mpangilio kwenye chumba",
+        "step3": "Weka kitu kimoja mahali pake ambacho kilikuwa kimetawanyika"
+      },
+      "digitalDeclutter": {
+        "title": "Safisha kidijitali",
+        "why": "Newport: Umakini ni mdogo. Ondoa kinachokuzuia kwa malengo yako.",
+        "step1": "Futa programu ambazo hujazifungua kwa siku 30",
+        "step2": "Jiondoshe kwenye orodha 5 za barua pepe",
+        "step3": "Safisha skrini ya nyumbani ya simu hadi vitu muhimu tu"
+      },
+      "designEnv": {
+        "title": "Buni mazingira kwa tabia bora",
+        "why": "Clear: Muundo wa mazingira ni mkono usionekana wa tabia.",
+        "step1": "Tambua tabia moja mbaya na uondoe kichocheo chake kwenye nafasi yako",
+        "step2": "Fanya tabia moja nzuri iwe rahisi zaidi (weka kitu wazi macho)",
+        "step3": "Andaa eneo lako la kazi kabla ya kumaliza leo"
+      },
+      "deepWork": {
+        "title": "Kizuizi cha kazi ya kina",
+        "why": "Newport: Uwezo wa kuzingatia bila usumbufu unakuwa nadra na wa thamani zaidi.",
+        "step1": "Chagua kazi MOJ muhimu — ile uliyokuwa ukikimbia",
+        "step2": "Weka kipima muda cha dakika 90 na zima arifa zote",
+        "step3": "Andika lengo lako la kipindi hiki kabla ya kuanza",
+        "step4": "Kagua ulichozalisha mwishoni"
+      },
+      "shutdownRitual": {
+        "title": "Ibada ya kuzimika kila siku",
+        "why": "Newport: Bila mwisho wazi wa siku yako ya kazi, ubongo wako unaendelea kuzunguka.",
+        "step1": "Angalia orodha yako ya kazi — nakili chochote ambacho hakuandikwa",
+        "step2": "Andika vipaumbele 3 vya kesho",
+        "step3": "Sema kwa sauti: 'Kuzimika kumekamilika'"
+      },
+      "brainDump": {
+        "title": "Tupa mawazo ya ubongo",
+        "why": "Allen: Ubongo wako ni kwa ajili ya kuwa na mawazo, si kuyahifadhi.",
+        "step1": "Weka kipima muda cha dakika 15",
+        "step2": "Andika kila mzunguko wazi, wasiwasi, au kitu cha kufanya kilichoko akilini mwako — bila kuchuja",
+        "step3": "Kagua orodha na weka alama vitu vinavyohitaji hatua kweli kweli",
+        "step4": "Chagua kimoja muhimu zaidi na ukipange"
+      },
+      "weeklyReview": {
+        "title": "Mapitio ya kila wiki",
+        "why": "Allen: Mapitio ya kila wiki ni ufunguo mkuu wa GTD.",
+        "step1": "Safisha kikasha cha ingizo na nakili ahadi zozote mpya",
+        "step2": "Kagua orodha yako ya miradi — kuna kitu kimesimama?",
+        "step3": "Angalia ulichokamilisha wiki hii",
+        "step4": "Weka nia 3 kwa wiki ijayo",
+        "step5": "Panga mapitio ya wiki ijayo"
+      },
+      "nextAction": {
+        "title": "Fafanua hatua inayofuata",
+        "why": "Allen: Miradi isiyo wazi haisogei. Fafanua hatua inayofuata ya kimwili.",
+        "step1": "Chagua mradi wako ambao umekwama zaidi au unaouahirisha",
+        "step2": "Uliza: hatua inayofuata ya kimwili inayohitajika ni ipi?",
+        "step3": "Ongeza hatua hiyo maalum kwenye orodha yako ya kazi na uipange"
+      },
+      "morningSunlight": {
+        "title": "Jua la asubuhi",
+        "why": "Huberman: Mwanga wa asubuhi huweka saa yako ya circadian.",
+        "step1": "Toka nje ndani ya dakika 30–60 baada ya kuamka",
+        "step2": "Kaa nje kwa dakika 10–15 bila miwani ya jua",
+        "step3": "Tembea au simama — harakati husaidia ufyathuaji"
+      },
+      "moveBody": {
+        "title": "Sogeza mwili wako",
+        "why": "Huberman: Dakika 20-30 za mazoezi ya moyo huinua BDNF, dopamine na serotonini.",
+        "step1": "Chagua aina moja ya harakati (tembea, kimbia, inua, ogelea)",
+        "step2": "Weka kiwango cha chini: dakika 20–30",
+        "step3": "Fanya kabla ya kuangalia habari au mitandao ya kijamii ikiwezekana"
+      },
+      "fixSleep": {
+        "title": "Rekebisha ratiba yako ya kulala",
+        "why": "Breus: Usingizi ni nguzo ya juu zaidi kwa utendaji wa kiakili.",
+        "step1": "Chagua wakati wa kuamka unaofanana na ushike kwa wiki 2",
+        "step2": "Weka kengele kuanza kupumzika saa 1 kabla ya kulala",
+        "step3": "Toa simu yako kwenye chumba cha kulala au iweke upande mwingine wa chumba"
+      },
+      "reduceAlcohol": {
+        "title": "Punguza pombe wiki hii",
+        "why": "Huberman: Hata pombe ya wastani husumbua usingizi wa REM.",
+        "step1": "Tambua siku/hali unapokunua pombe zaidi",
+        "step2": "Weka sheria maalum (mfano: wikendi tu, kinywaji kimoja tu)",
+        "step3": "Badilisha desturi na mbadala usio na pombe kwa wiki moja"
+      },
+      "journal": {
+        "title": "Andika ukurasa mmoja",
+        "why": "Peterson: Kuandika kunafafanua mawazo.",
+        "step1": "Andika ukurasa mmoja — mkondo wa mawazo, bila kuhariri",
+        "step2": "Malizia na: kitu kimoja ninachoweza kukifanya tofauti kesho ni nini?"
+      },
+      "gratitude": {
+        "title": "Mazoezi ya shukrani",
+        "why": "Emmons: Shukrani maalum huongeza ustawi kwa kipimo.",
+        "step1": "Andika vitu 3 maalum unavyoshukuru (si vya kawaida)",
+        "step2": "Kwa kila kimoja, andika KWA NINI unashukuru",
+        "step3": "Tuma ujumbe kwa mtu mmoja wao ikiwa inafaa"
+      },
+      "comparePastSelf": {
+        "title": "Jilinganishe na wewe wa jana",
+        "why": "Peterson: Kujilinganisha na zamani zako huleta maendeleo na kujiheshimu.",
+        "step1": "Andika njia 3 ambazo umeboresha katika miezi 6 iliyopita",
+        "step2": "Tambua eneo moja ambalo bado unajitahidi",
+        "step3": "Weka lengo moja dogo, maalum la kuboresha kwa wiki hii tu"
+      },
+      "tellTruth": {
+        "title": "Sema ukweli",
+        "why": "Peterson: Uongo mdogo hukusanyika na kuwa maisha yaliyopotoka.",
+        "step1": "Tambua kitu kimoja ambacho umekuwa ukiepuka kukisema au kukifanya",
+        "step2": "Andika ukweli wa kweli kuhusu hali yako",
+        "step3": "Amua hatua moja ya uaminifu unayoweza kuchukua wiki hii"
+      },
+      "takeResponsibility": {
+        "title": "Chukua jukumu la kitu kimoja",
+        "why": "Peterson: Kabla ya kubadilisha chochote nje, lazima uchukue umiliki ndani.",
+        "step1": "Taja tatizo moja maishani mwako ambalo umekuwa ukilaumu wengine au mazingira",
+        "step2": "Andika sehemu gani ya hili iko ndani ya udhibiti wako kweli kweli",
+        "step3": "Chagua hatua moja ya kuchukua ambayo iko kabisa katika uwezo wako"
+      },
+      "reachOut": {
+        "title": "Wasiliana na mtu",
+        "why": "Dunbar: Mawasiliano ya mara kwa mara na mzunguko wako wa karibu si ya hiari.",
+        "step1": "Fikiria mtu mmoja ambaye hujazungumza naye kwa zaidi ya wiki 2",
+        "step2": "Tuma ujumbe wa kweli, usio wa kawaida (si 'habari' tu)",
+        "step3": "Uliza swali moja la kweli kuhusu maisha yao"
+      },
+      "repairRelationship": {
+        "title": "Rekebisha uhusiano",
+        "why": "Gottman: Majaribio ya kurekebisha yanatabiri maisha ya uhusiano.",
+        "step1": "Tambua uhusiano ambao umekuwa ukuukimbia au kuupuuza",
+        "step2": "Andika ungependa kusema nini — barua isiyotumwa kwanza",
+        "step3": "Wasiliana na sema kitu kimoja cha kweli bila kujitetea"
+      },
+      "expressAppreciation": {
+        "title": "Onyesha shukrani",
+        "why": "Gottman: Uwiano wa 5:1 huamua afya ya uhusiano.",
+        "step1": "Taja mtu mmoja anastahili kutambuliwa leo",
+        "step2": "Mwambie kitu maalum (si cha jumla) unachoshukuru",
+        "step3": "Fanya ana kwa ana au kwa sauti — si kwa maandishi ikiwezekana"
+      },
+      "deliberatePractice": {
+        "title": "Kipindi cha mazoezi ya makusudi",
+        "why": "Newport: Mkusanyiko wa ujuzi kupitia mazoezi ya makusudi huunda mtaji wa kazi.",
+        "step1": "Tambua ujuzi mmoja wenye thamani zaidi katika uwanja wako",
+        "step2": "Pata kikomo cha uwezo wako wa sasa katika ujuzi huo",
+        "step3": "Zoeza kidogo zaidi ya eneo lako la starehe kwa dakika 45–60",
+        "step4": "Kagua kilichokuwa kigumu na kilichoboresha"
+      },
+      "identifyMission": {
+        "title": "Tambua dhamira yako ya kazi",
+        "why": "Newport: Dhamira ya kuvutia inatoka kwenye makutano ya mtaji wako wa kazi.",
+        "step1": "Andika unachofanya vizuri kweli (ujuzi ambao wengine hulipa)",
+        "step2": "Andika matatizo gani ya ulimwengu unayojali",
+        "step3": "Tafuta makutano moja kati ya orodha hizo mbili",
+        "step4": "Tafuta mtu mmoja anayefanya kazi kwenye makutano hayo"
+      },
+      "sayNo": {
+        "title": "Sema hapana kwa ahadi moja",
+        "why": "Newport: Kila ndiyo ni hapana kwa kazi ya kina.",
+        "step1": "Orodhesha ahadi zako za sasa — kila ndiyo uliyotoa",
+        "step2": "Tambua moja ambayo haikusoroti na vipaumbele vyako",
+        "step3": "Kataa au toka nayo kwa jibu wazi na la uaminifu"
+      },
+      "listDebts": {
+        "title": "Orodhesha madeni yako yote",
+        "why": "Hammer: Huwezi kupigana na unachokukataa kuona.",
+        "step1": "Fungua kila kauli ya akaunti ambayo umekuwa ukiepuka",
+        "step2": "Andika kila deni: mkopeshaji, salio, kiwango cha riba, malipo ya chini",
+        "step3": "Panga kwa kiwango cha riba (juu zaidi kwanza = njia ya avalanche)",
+        "step4": "Jumla deni — andika nambari halisi"
+      },
+      "emergencyFund": {
+        "title": "Anza mfuko wa dharura",
+        "why": "Hammer: Bila akiba ya pesa taslimu, kila gharama isiyotarajiwa inakuwa deni.",
+        "step1": "Hesabu gharama zako za msingi za kila mwezi (kodi + chakula + bili)",
+        "step2": "Tambua kiasi ulichonacho sasa katika akiba",
+        "step3": "Fungua akaunti tofauti ya akiba yenye faida ya juu ikiwa hujafanya",
+        "step4": "Otomeshea kiasi kisichobadilika kuhamia siku ya kulipwa — hata KSh 500 inahesabu"
+      },
+      "trackSpending": {
+        "title": "Fuatilia matumizi kwa wiki moja",
+        "why": "Hammer: Watu wengi wanakadiria matumizi yao vibaya.",
+        "step1": "Fungua kauli za benki/kadi kwa siku 7 zilizopita",
+        "step2": "Kategorisha kila muamala: hitaji, tamaa, au akiba",
+        "step3": "Jumlisha jumla ya kila kategoria",
+        "step4": "Tafuta kategoria moja ya 'tamaa' iliyokushangaza zaidi"
+      },
+      "cancelSubs": {
+        "title": "Ghairi usajili ambao haujatumika",
+        "why": "Hammer: Usajili unaokua ni muuaji kimya wa bajeti za kaya.",
+        "step1": "Tafuta barua pepe yako kwa 'usajili', 'urejeshaji', 'risiti'",
+        "step2": "Orodhesha kila malipo ya kujirudia",
+        "step3": "Ghairi yoyote ambayo hujaitumia kwa siku 30+",
+        "step4": "Hesabu akiba yako ya kila mwezi"
+      },
+      "negotiateBill": {
+        "title": "Jadili bili moja",
+        "why": "Hammer: Simu moja ya dakika 15 inaweza kuokoa $10-$50/mwezi.",
+        "step1": "Chagua bili moja inayojirudia (intaneti, simu, bima)",
+        "step2": "Tafuta washindani wanaolipisha kiasi gani kwa huduma hiyo hiyo",
+        "step3": "Piga simu na sema unafikiri kubadilisha — omba kiwango bora",
+        "step4": "Andika matokeo na muda uliotumiwa dhidi ya pesa zilizookolewa"
+      },
       "showGallery": "⚡ Anza haraka na kazi zilizothibitishwa",
       "hideGallery": "Ficha kuanza haraka"
-    }
+    },
+    "viewUpcoming": "Yanayokuja",
+    "sectionOverdue": "Imechelewa",
+    "sectionToday": "Leo",
+    "sectionTomorrow": "Kesho",
+    "sectionThisWeek": "Wiki hii",
+    "sectionLater": "Baadaye",
+    "sectionUnscheduled": "Haijapangwa",
+    "upcomingEmpty": "Kila kitu kiko sawa!",
+    "upcomingEmptyBody": "Hakuna kazi zilizopangwa. Ongeza moja ili uone wiki yako kwa muhtasari.",
+    "clockNote": "Kazi zimepangwa katika saa yako ya ndani",
+    "deleted": "\"{{title}}\" imefutwa",
+    "undoDelete": "Tengua",
+    "startTimerBtn": "🍅 {{minutes}} dak",
+    "startTimerAria": "Anza dakika {{minutes}} za kuzingatia kwa {{title}}",
+    "timerPhaseFocus": "Kuzingatia",
+    "timerPhaseShortBreak": "Mapumziko mafupi",
+    "timerPhaseLongBreak": "Mapumziko marefu",
+    "timerSession": "Kipindi {{n}}",
+    "timerAfterSessions": "Baada ya vipindi {{n}}",
+    "timerStartFocusAria": "Anza kipindi cha kuzingatia",
+    "timerStartFocusBtn": "Anza kuzingatia",
+    "timerSkipToBreak": "Ruka hadi mapumziko",
+    "timerSkipToFocus": "Ruka mapumziko",
+    "timerSkipAria": "Ruka awamu ya sasa",
+    "timerStopAria": "Simamisha kipima muda na hifadhi maendeleo",
+    "timerStop": "Simamisha",
+    "timerRegionAria": "Kipima muda cha kazi",
+    "timerActiveTaskHint": "Kipima muda kinafanya kazi — tazama kadi ya kazi juu kwa vidhibiti.",
+    "timerStartHint": "▶ Gonga \"🍅 {{minutes}} dak\" kwenye kazi yoyote juu ili kuanza kipindi cha Pomodoro kilichozingatiwa.",
+    "timerSessionSingular": "kipindi",
+    "timerSessionPlural": "vipindi"
   },
   "checkbox": {
     "ariaLabel": "Kisanduku cha {{label}}",
@@ -128,7 +337,11 @@
     "nonNegativeInteger": "Ingiza nambari kamili ambayo ni sufuri au zaidi."
   },
   "calendar": "Kalenda",
-  "theme": { "light": "Mwanga", "dark": "Giza", "highContrast": "Tofauti ya Juu" },
+  "theme": {
+    "light": "Mwanga",
+    "dark": "Giza",
+    "highContrast": "Tofauti ya Juu"
+  },
   "settingsGamificationLabel": "Michezo",
   "settingsGamificationHelper": "Amsha XP, mfululizo, na kufungua vitu vya mapambo. Inaweza kuzimwa wakati wowote.",
   "enableTint": "Wezesha rangi ya skrini",
@@ -185,7 +398,12 @@
     "reviewDisabled": "Wezesha mchezo ili kufuatilia mfululizo wako wa bajeti wa kila wiki.",
     "reviewLogged": "Imerekodiwa wiki hii.",
     "logReview": "Rekodi mapitio ya kila wiki",
-    "categoryType": { "need": "Hitaji", "want": "Tamaa", "goal": "Lengo", "debt": "Deni" },
+    "categoryType": {
+      "need": "Hitaji",
+      "want": "Tamaa",
+      "goal": "Lengo",
+      "debt": "Deni"
+    },
     "zeroBasedExplain": "Bajeti ya msingi wa sufuri: ipe kila shilingi kazi. Ukifikia sufuri, kila senti ina lengo — hiyo ndiyo lengo zima.",
     "remainingExplain": "Pengo kati ya unachopata na ulichotengea. Lengo lako: fikia sufuri kabla ya mwezi kuisha.",
     "needTooltip": "Mahitaji ya lazima: kodi, chakula, usafiri, umeme, dawa. Bila haya maisha yanasimama.",
@@ -266,6 +484,44 @@
       "prefillClothing": "Mavazi",
       "prefillPersonalCare": "Utunzaji wa kibinafsi",
       "prefillSavings": "Akiba / Uwekezaji"
+    },
+    "noTransactionsYet": "Hakuna miamala iliyorekodiwa kwa {{month}} bado. Ongeza gharama yako ya kwanza hapa chini.",
+    "freshness": {
+      "never": "Kamwe",
+      "today": "Leo",
+      "yesterday": "Jana",
+      "upToDate": "Imesasishwa",
+      "reviewSuggested": "Mapitio yanashauriwa",
+      "dataStale": "Data inaweza kuwa ya zamani",
+      "pillFresh": "Mpya",
+      "pillReview": "Kagua",
+      "pillStale": "Ya zamani",
+      "lastUpdated": "Ilisasishwa mwisho",
+      "dataFreshnessLabel": "Hali ya data",
+      "staleHelp": "Data yako ya miamala haijasasishwa kwa zaidi ya wiki. Tafadhali kagua na ongeza maingizo yanayokosekana.",
+      "reconcile": {
+        "sectionLabel": "Orodha ya upatanisho",
+        "title": "Orodha ya Upatanisho",
+        "description": "Thibitisha kila kipengele ili kuweka alama bajeti ya mwezi huu kama imebatilishwa.",
+        "progressLabel": "{{completed}} ya {{total}} zimekamilika",
+        "income": "Mapato yaliyorekodiwa",
+        "expenses": "Gharama zote zimeingizwa",
+        "balances": "Salio linaoanana",
+        "allDone": "Vipengele vyote vimethibitishwa — bajeti yako imebatilishwa kwa mwezi huu."
+      }
+    },
+    "quickStart": {
+      "btn": "⚡ Anza haraka na aina 8 zilizopendekezwa (njia ya YNAB)"
+    },
+    "starter": {
+      "housing": "Makazi",
+      "food": "Chakula na Mboga",
+      "transport": "Usafiri",
+      "health": "Afya",
+      "entertainment": "Burudani",
+      "dining": "Kula Nje",
+      "savings": "Akiba",
+      "emergency": "Mfuko wa Dharura"
     }
   },
   "rewards": {
@@ -289,7 +545,16 @@
     "locked": "Imefungwa",
     "nearestHeading": "Uko karibu!",
     "progressLabel": "{{current}} / {{target}} pointi ({{pct}}% umefika!)",
-    "progressBarAria": "Maendeleo kuelekea {{title}}: asilimia {{pct}}"
+    "progressBarAria": "Maendeleo kuelekea {{title}}: asilimia {{pct}}",
+    "starterHint": "Hujui pa kuanzia? Anza na hizi:",
+    "starter": {
+      "coffee": "Mapumziko ya kahawa",
+      "episode": "Tazama kipindi kimoja",
+      "walk": "Matembezi ya dakika 15 nje",
+      "snack": "Vitafunio unavyopenda",
+      "nap": "Usingizi mfupi",
+      "game": "Dakika 20 za mchezo"
+    }
   },
   "rewardsPlaceholder": "Pointi na mfululizo vitaonekana hapa. Michezo ni ya hiari.",
   "social": {
@@ -340,52 +605,402 @@
     "reflectionEnergy3": "Wastani",
     "reflectionEnergy4": "Vizuri",
     "reflectionEnergy5": "Nishati nyingi",
-    "type": { "call": "Simu", "meetup": "Mkutano", "message": "Ujumbe", "event": "Tukio" },
-    "energy": { "low": "Chini", "med": "Wastani", "high": "Juu" },
-    "templates": {
-      "checkIn": { "label": "Ukaguzi wa haraka", "description": "Tuma ujumbe mfupi na wa kirafiki bila shinikizo.", "title": "Kagua mtu", "notes": "Iweke nyepesi — sentensi moja inatosha.", "steps": { "first": "Chagua mtu mmoja wa kuwasiliana naye.", "second": "Andika ujumbe rahisi.", "third": "Tuma na uweke alama imekamilika." } },
-      "birthday": { "label": "Kikumbusho cha siku ya kuzaliwa", "description": "Tuma ujumbe wa joto wa siku ya kuzaliwa.", "title": "Tuma ujumbe wa siku ya kuzaliwa", "notes": "Mfupi na wa upole unatosha.", "steps": { "first": "Tunga salamu fupi ya siku ya kuzaliwa.", "second": "Ongeza kumbukumbu au emoji ikiwa unataka.", "third": "Tuma au panga ujumbe." } },
-      "meetup": { "label": "Mkutano wa kawaida", "description": "Mwalika mtu kwa mkutano rahisi usio na shinikizo.", "title": "Panga mkutano laini", "notes": "Toa chaguo mbili ili iwe rahisi kusema ndiyo au hapana.", "steps": { "first": "Chagua mahali tulivu au shughuli.", "second": "Pendekeza dirisha la wakati badala ya nafasi maalum.", "third": "Tuma mwaliko na usubiri jibu." } },
-      "support": { "label": "Simu ya msaada", "description": "Jiandae kwa simu ya upole au ujumbe wa sauti.", "title": "Toa msaada", "notes": "Inaweza kuwa fupi na laini.", "steps": { "first": "Andika kitu kimoja unachotaka kusema.", "second": "Uliza kama wana wakati wa simu ya haraka.", "third": "Fuatilia na ujumbe wa msaada." } }
+    "type": {
+      "call": "Simu",
+      "meetup": "Mkutano",
+      "message": "Ujumbe",
+      "event": "Tukio"
     },
-    "relationship": { "pickLabel": "Hii ni kwa nani?", "friend": "Rafiki", "romantic": "Mpenzi", "family": "Familia", "acquaintance": "Mwenzako", "coworker": "Mwenzako wa kazi", "boss": "Bosi", "neighbor": "Jirani", "online_friend": "Rafiki wa mtandaoni" },
-    "depth": { "all": "Zote", "light": "Nyepesi", "medium": "Wastani", "deep": "Kina" },
-    "gallery": { "browsing": "Chagua mpango ulioundwa:", "startersLabel": "Uko tayari kutuma →", "copy": "Nakili", "copyAria": "Nakili ujumbe huu", "useTemplate": "Tumia mpango huu →", "empty": "Hakuna violezo vya kichujio hiki." },
+    "energy": {
+      "low": "Chini",
+      "med": "Wastani",
+      "high": "Juu"
+    },
+    "templates": {
+      "checkIn": {
+        "label": "Ukaguzi wa haraka",
+        "description": "Tuma ujumbe mfupi na wa kirafiki bila shinikizo.",
+        "title": "Kagua mtu",
+        "notes": "Iweke nyepesi — sentensi moja inatosha.",
+        "steps": {
+          "first": "Chagua mtu mmoja wa kuwasiliana naye.",
+          "second": "Andika ujumbe rahisi.",
+          "third": "Tuma na uweke alama imekamilika."
+        }
+      },
+      "birthday": {
+        "label": "Kikumbusho cha siku ya kuzaliwa",
+        "description": "Tuma ujumbe wa joto wa siku ya kuzaliwa.",
+        "title": "Tuma ujumbe wa siku ya kuzaliwa",
+        "notes": "Mfupi na wa upole unatosha.",
+        "steps": {
+          "first": "Tunga salamu fupi ya siku ya kuzaliwa.",
+          "second": "Ongeza kumbukumbu au emoji ikiwa unataka.",
+          "third": "Tuma au panga ujumbe."
+        }
+      },
+      "meetup": {
+        "label": "Mkutano wa kawaida",
+        "description": "Mwalika mtu kwa mkutano rahisi usio na shinikizo.",
+        "title": "Panga mkutano laini",
+        "notes": "Toa chaguo mbili ili iwe rahisi kusema ndiyo au hapana.",
+        "steps": {
+          "first": "Chagua mahali tulivu au shughuli.",
+          "second": "Pendekeza dirisha la wakati badala ya nafasi maalum.",
+          "third": "Tuma mwaliko na usubiri jibu."
+        }
+      },
+      "support": {
+        "label": "Simu ya msaada",
+        "description": "Jiandae kwa simu ya upole au ujumbe wa sauti.",
+        "title": "Toa msaada",
+        "notes": "Inaweza kuwa fupi na laini.",
+        "steps": {
+          "first": "Andika kitu kimoja unachotaka kusema.",
+          "second": "Uliza kama wana wakati wa simu ya haraka.",
+          "third": "Fuatilia na ujumbe wa msaada."
+        }
+      }
+    },
+    "relationship": {
+      "pickLabel": "Hii ni kwa nani?",
+      "friend": "Rafiki",
+      "romantic": "Mpenzi",
+      "family": "Familia",
+      "acquaintance": "Mwenzako",
+      "coworker": "Mwenzako wa kazi",
+      "boss": "Bosi",
+      "neighbor": "Jirani",
+      "online_friend": "Rafiki wa mtandaoni"
+    },
+    "depth": {
+      "all": "Zote",
+      "light": "Nyepesi",
+      "medium": "Wastani",
+      "deep": "Kina"
+    },
+    "gallery": {
+      "browsing": "Chagua mpango ulioundwa:",
+      "startersLabel": "Uko tayari kutuma →",
+      "copy": "Nakili",
+      "copyAria": "Nakili ujumbe huu",
+      "useTemplate": "Tumia mpango huu →",
+      "empty": "Hakuna violezo vya kichujio hiki."
+    },
     "startFromScratch": "Ruka — anza upya",
     "changeTemplate": "Badilisha",
     "tpl": {
-      "friendMemeShare": { "title": "Shiriki kitu cha kuchekesha", "desc": "Tuma meme iliyokukumbusha mara moja.", "notes": "Shinikizo chini na joto.", "step1": "Tafuta kitu kilichokukumbusha", "step2": "Tuma na sentensi moja" },
-      "friendVoiceNote": { "title": "Tuma ujumbe wa sauti", "desc": "Rekodi salamu fupi — ina joto zaidi kuliko maandishi.", "notes": "Iwe fupi na ya kweli.", "step1": "Tafuta sekunde 30 za utulivu", "step2": "Rekodi ujumbe wa utulivu", "step3": "Tuma bila kufikiri sana" },
-      "friendCoffee": { "title": "Mkutano wa kahawa", "desc": "Mkutano wa kawaida wa ana kwa ana bila ajenda.", "notes": "Toa vipindi viwili vya wakati.", "step1": "Waulize kuhusu upatikanaji", "step2": "Chagua wakati na mahali", "step3": "Fika na ufurahie" },
-      "friendRealCheckin": { "title": "Ukaguzi wa kweli", "desc": "Uliza jinsi wanavyohisi kweli kweli.", "notes": "Inahitaji ujasiri kidogo. Inastahili.", "step1": "Fikiria jinsi walivyoonekana hivi karibuni", "step2": "Tuma swali la moja kwa moja", "step3": "Sikiliza bila kukimbia kutatua" },
-      "celebrateWin": { "title": "Sherehekea ushindi", "desc": "Tambua kitu maalum walichofanikiwa.", "notes": "Kuwa maalum.", "step1": "Taja kitu maalum unachosherehekea", "step2": "Tuma ujumbe wa kweli" },
-      "gratitude": { "title": "Onyesha shukrani", "desc": "Waambie unachoshukuru kuhusu wao — maalum.", "notes": "Maalum ni kila kitu.", "step1": "Fikiria kitu kimoja walichofanya kilichokumaanisha", "step2": "Andika — maalum zaidi inabora zaidi", "step3": "Tuma" },
-      "friendReconnect": { "title": "Wasiliana tena", "desc": "Wasiliana baada ya muda — shinikizo chini.", "notes": "Pengo halihtaji maelezo.", "step1": "Andika ujumbe mfupi wa joto", "step2": "Uliza swali moja wazi", "step3": "Tuma na uacha wazi" },
-      "friend36q": { "title": "Maswali 36", "desc": "Mazungumzo ya kujenga ukaribu ya Arthur Aron.", "notes": "Fanya maswali kwa mpangilio.", "step1": "Chagua mahali pazuri na masaa 90 angalau", "step2": "Jibu maswali ya Seti 1 kwa zamu", "step3": "Nenda Seti 2 mnapokuwa tayari", "step4": "Maliza na Seti 3 na macho ya dakika 4" },
-      "friendSupport": { "title": "Kuwa huko kwao", "desc": "Wasiliana na mtu anayepitia wakati mgumu.", "notes": "Uliza wanachohitaji badala ya kudhani.", "step1": "Kagua kwa upole", "step2": "Uliza kinachosaidia", "step3": "Fuata mwongozo wao", "step4": "Fuatilia baada ya siku chache" },
-      "romanticAppreciation": { "title": "Wakati wa shukrani", "desc": "Waambie kitu maalum unachoshukuru.", "notes": "Kuwa maalum.", "step1": "Fikiria kitu maalum walichofanya au kusema hivi karibuni", "step2": "Waambie — ana kwa ana, ujumbe, au kumbukumbu" },
-      "romanticDateIdea": { "title": "Pendekeza wazo la tarehe", "desc": "Pendekeza kitu rahisi na cha makusudi.", "notes": "Rahisi inafanya kazi.", "step1": "Fikiria wazo rahisi la wote mngelifurahia", "step2": "Pendekeza kwa joto", "step3": "Thibitisha maelezo wanapojibu" },
-      "romanticQuality": { "title": "Wakati wa makusudi pamoja", "desc": "Panga wakati unaokusudiwa kwa kuwa pamoja tu.", "notes": "Linda wakati. Zima arifa.", "step1": "Chagua kipande cha wakati na kilinde", "step2": "Chagua kitu mnachodhani wote", "step3": "Kuwepo kikamilifu" },
-      "romanticCheckin": { "title": "Ukaguzi wa uhusiano", "desc": "Mazungumzo ya utulivu kuhusu jinsi unavyohisi kama wenza.", "notes": "Si kuhusu matatizo — kuhusu kubaki kuunganishwa.", "step1": "Kubali wakati wa utulivu bila shinikizo la wakati", "step2": "Kila mmoja ashiriki kitu kimoja kizuri na kimoja kinachohitaji umakini", "step3": "Zungumza kuhusu kila mmoja anahitaji zaidi nini", "step4": "Maliza na shukrani kwa kila mmoja" },
-      "romanticDreams": { "title": "Mazungumzo ya ndoto", "desc": "Zungumza kuhusu matumaini yenu maishani.", "notes": "Kuwa na udadisi si tathmini.", "step1": "Tenga saa moja ya utulivu", "step2": "Kila mmoja ashiriki ndoto ya kibinafsi", "step3": "Uliza maswali ya ufuatiliaji na sikiliza kwa kina" },
-      "familyUpdate": { "title": "Sasisho fupi la familia", "desc": "Shiriki sasisho dogo la maisha na ulize jinsi wanavyoenda.", "notes": "Hata ujumbe mfupi huweka uhusiano joto.", "step1": "Fikiria kitu kimoja cha wiki inayostahili kushirikiwa", "step2": "Tuma na swali rahisi kuhusu wao" },
-      "familyPhoto": { "title": "Shiriki kumbukumbu", "desc": "Tuma picha ya zamani au kumbukumbu iliyokufanya uimbie.", "notes": "Rahisi joto na inachukua dakika mbili.", "step1": "Tafuta picha au kumbukumbu inayohusiana nao", "step2": "Tuma na kumbukumbu fupi" },
-      "familyCall": { "title": "Simu ya mazungumzo ya familia", "desc": "Panga simu ya kweli ya simu au video — bila ajenda.", "notes": "Toa vipindi kadhaa vya wakati.", "step1": "Wasiliana ili kuangalia upatikanaji wao", "step2": "Weka wakati maalum ili itokee kweli", "step3": "Piga simu na acha mazungumzo yatiririke" },
-      "familyHelp": { "title": "Toa msaada maalum", "desc": "Toa pendekezo maalum — si 'niambie ukihitaji kitu'.", "notes": "Matoleo maalum ni rahisi kukubali.", "step1": "Fikiria kitu kimoja maalum unachoweza kweli kutoa", "step2": "Wasiliana na matoleo — iifanye iwe rahisi kusema ndiyo" },
-      "acquaintanceCongrats": { "title": "Tuma pongezi", "desc": "Tambua hatua au mafanikio waliyoshiriki.", "notes": "Mfupi na wa joto ni kamili.", "step1": "Andika kitu maalum unachopongeza", "step2": "Tuma ujumbe mfupi wa kweli" },
-      "acquaintanceReconnect": { "title": "Kuungana tena kwa utulivu", "desc": "Ujumbe wa kawaida baada ya muda.", "notes": "Pengo halihtaji maelezo.", "step1": "Andika ujumbe wa utulivu na wa joto", "step2": "Uliza swali moja rahisi la kualika jibu" },
-      "acquaintanceCoffee": { "title": "Pendekeza kahawa", "desc": "Pendekeza mkutano usio na shinikizo.", "notes": "Iifanye iwe rahisi kukubali.", "step1": "Wasiliana na upendekeze mkutano rahisi", "step2": "Kubali wakati na mahali", "step3": "Fika na udadisi" },
-      "coworkerRecognition": { "title": "Tambua kazi yao", "desc": "Bainisha kitu maalum walichofanya vizuri.", "notes": "Kuwa maalum kuhusu walichofanya na kwa nini ilipendeza.", "step1": "Taja kitu maalum walichofanya", "step2": "Tuma kumbukumbu ya moja kwa moja ya kweli ya utambuzi" },
-      "coworkerCasual": { "title": "Ukaguzi usio wa kazi", "desc": "Uliza jinsi wanavyoenda zaidi ya orodha ya kazi.", "notes": "Swali rahisi la kibinadamu linajenga uhusiano wa kweli.", "step1": "Tafuta wakati wa asili", "step2": "Uliza swali moja la kweli lisilo la kazi" },
-      "coworkerLunch": { "title": "Chakula cha mchana au kahawa", "desc": "Pendekeza chakula cha kawaida cha mchana bila ajenda ya kazi.", "notes": "Sehemu ya 'bila ajenda ya kazi' inafanya tofauti ya kweli.", "step1": "Wasiliana na upendekeze siku", "step2": "Tafuta wakati unaofaa kwa wote wawili" },
-      "coworkerFeedback": { "title": "Omba maoni", "desc": "Omba maoni ya kweli yanayozingatia ukuaji kutoka kwa mtu unayemwamini.", "notes": "Kuwa maalum kuhusu eneo. Kuwa tayari kusikiliza bila kujitetea.", "step1": "Amua eneo unalotaka maoni", "step2": "Uliza na udadisi wa kweli", "step3": "Sikiliza kikamilifu sema asante chukua maelezo" },
-      "bossUpdate": { "title": "Sasisho la makusudi", "desc": "Shiriki sasisho fupi la hali kabla hujaombwa.", "notes": "Mawasiliano ya makusudi hujenga imani.", "step1": "Fupisha hali inaposimama kwa sentensi 2-3", "step2": "Bainisha vizuizi au mahitaji", "step3": "Tuma — wazi ni bora kuliko kamili" },
-      "boss1on1": { "title": "Maandalizi ya 1:1", "desc": "Jiandae kwa mkutano wako wa kawaida wa 1:1 ili utumie muda vizuri.", "notes": "Kuja na maswali na mada.", "step1": "Kagua vitu wazi au vizuizi unavyotaka kuleta", "step2": "Andika kitu kimoja unachotaka maoni", "step3": "Andika swali moja kuhusu ukuaji au mwelekeo", "step4": "Nenda na orodha yako" },
-      "bossGrowth": { "title": "Mazungumzo ya ukuaji", "desc": "Omba mazungumzo yanayozingatia maendeleo na mwelekeo wako.", "notes": "Kuja na eneo maalum au swali.", "step1": "Amua unachotaka kukua au kuelewa", "step2": "Omba mkutano mfupi", "step3": "Katika mkutano: shiriki lengo lako uliza swali moja wazi" },
-      "neighborHello": { "title": "Sema habari", "desc": "Habari rahisi na ya joto kwa jirani yako.", "notes": "Kujirani ni jambo linalopiganishwa. Habari fupi inasaidia sana.", "step1": "Piga wimbi bisha mlango au tuma kumbukumbu fupi", "step2": "Iifanye iwe fupi na ya joto" },
-      "neighborHangout": { "title": "Kukusanyika kwa majirani", "desc": "Pendekeza kunywa kitu au kahawa pamoja.", "notes": "Kawaida na wa karibu inafanya iwe rahisi.", "step1": "Toa pendekezo — kawaida na wazi", "step2": "Kubali wakati" },
-      "onlineGaming": { "title": "Kipindi cha mchezo", "desc": "Panga kipindi sahihi cha mtandaoni — si 'wakati fulani'.", "notes": "Kupanga kunafanya iwe kweli.", "step1": "Kubali mchezo na siku", "step2": "Weka wakati maalum na ingia" },
-      "onlineVideo": { "title": "Mazungumzo ya video", "desc": "Kweli kuona ana kwa ana — hata mtandaoni.", "notes": "Simu za video zinajisikia karibu zaidi.", "step1": "Pendekeza tarehe na wakati", "step2": "Kubali na uweke kwenye kalenda", "step3": "Fika na ucheze tu" }
+      "friendMemeShare": {
+        "title": "Shiriki kitu cha kuchekesha",
+        "desc": "Tuma meme iliyokukumbusha mara moja.",
+        "notes": "Shinikizo chini na joto.",
+        "step1": "Tafuta kitu kilichokukumbusha",
+        "step2": "Tuma na sentensi moja",
+        "starter1": "Hii ilikufanya nifikirie mara moja 😄",
+        "starter2": "Sawa nilikuwa lazima nikutumie hii, inafaa sana kwetu",
+        "starter3": "Hakuna muktadha unaohitajika, nilidhani tu ungefurahia hii 😂"
+      },
+      "friendVoiceNote": {
+        "title": "Tuma ujumbe wa sauti",
+        "desc": "Rekodi salamu fupi — ina joto zaidi kuliko maandishi.",
+        "notes": "Iwe fupi na ya kweli.",
+        "step1": "Tafuta sekunde 30 za utulivu",
+        "step2": "Rekodi ujumbe wa utulivu",
+        "step3": "Tuma bila kufikiri sana",
+        "starter1": "Habari! Ninatuma ujumbe wa sauti wa haraka kwa sababu nilikuwa nikifikiri kukuhusu. Natumai uko vizuri ✨",
+        "starter2": "Salamu ya sekunde 30 tu — huhitaji kujibu, nilitaka tu ujue ninakufikiria 🤍"
+      },
+      "friendCoffee": {
+        "title": "Mkutano wa kahawa",
+        "desc": "Mkutano wa kawaida wa ana kwa ana bila ajenda.",
+        "notes": "Toa vipindi viwili vya wakati.",
+        "step1": "Waulize kuhusu upatikanaji",
+        "step2": "Chagua wakati na mahali",
+        "step3": "Fika na ufurahie",
+        "starter1": "Habari, nimekuwa nikitaka kukaa vizuri nawe. Kahawa au chai wakati fulani wiki hii au ijayo?",
+        "starter2": "Nakukosa! Unataka tunywе kahawa bila ajenda — kukaa tu?",
+        "starter3": "Je, una nafasi ya kahawa tulivu? Nina labda saa moja na nataka kusikia kinachoendelea nawe."
+      },
+      "friendRealCheckin": {
+        "title": "Ukaguzi wa kweli",
+        "desc": "Uliza jinsi wanavyohisi kweli kweli.",
+        "notes": "Inahitaji ujasiri kidogo. Inastahili.",
+        "step1": "Fikiria jinsi walivyoonekana hivi karibuni",
+        "step2": "Tuma swali la moja kwa moja",
+        "step3": "Sikiliza bila kukimbia kutatua",
+        "starter1": "Habari, nataka kukuuliza vizuri — unajisikiaje kweli kweli hivi karibuni? Si jibu la uso wa nje 💙",
+        "starter2": "Nilitambua sijakuuliza jinsi unavyofanya *kweli kweli* kwa muda. Kinachoendelea nawe ni nini?",
+        "starter3": "Ninakuangalia vizuri. Umeonekana [umechoka/umeshughulika/unatulia] hivi karibuni na nilitaka kutoa nafasi ikiwa unahitaji."
+      },
+      "celebrateWin": {
+        "title": "Sherehekea ushindi",
+        "desc": "Tambua kitu maalum walichofanikiwa.",
+        "notes": "Kuwa maalum.",
+        "step1": "Taja kitu maalum unachosherehekea",
+        "step2": "Tuma ujumbe wa kweli",
+        "starter1": "Nimesikia tu kuhusu [kitu] na nilihitaji kusema — hiyo ni jambo kubwa sana na ninajivunia sana nawe 🎉",
+        "starter2": "Tunaweza kuchukua dakika kusherehekea wewe?? [mafanikio maalum] ni ya ajabu!",
+        "starter3": "Sidhani unajipa sifa ya kutosha kwa [kitu]. Ilikuwa ya kweli ya kuvutia."
+      },
+      "gratitude": {
+        "title": "Onyesha shukrani",
+        "desc": "Waambie unachoshukuru kuhusu wao — maalum.",
+        "notes": "Maalum ni kila kitu.",
+        "step1": "Fikiria kitu kimoja walichofanya kilichokumaanisha",
+        "step2": "Andika — maalum zaidi inabora zaidi",
+        "step3": "Tuma",
+        "starter1": "Nilikuwa nikifikiri kukuhusu na nataka tu kusema asante kwa [kitu maalum]. Ilimaanisha zaidi kuliko nilivyosema wakati huo.",
+        "starter2": "Chapisho la shukrani bila mpangilio: wewe ni [sifa maalum] na ninashukuru sana uko maishani mwangu.",
+        "starter3": "Sisemi hii mara nyingi, lakini [kitu maalum ulichofanya] kwa kweli kilisaidia na nataka ujue hilo."
+      },
+      "friendReconnect": {
+        "title": "Wasiliana tena",
+        "desc": "Wasiliana baada ya muda — shinikizo chini.",
+        "notes": "Pengo halihtaji maelezo.",
+        "step1": "Andika ujumbe mfupi wa joto",
+        "step2": "Uliza swali moja wazi",
+        "step3": "Tuma na uacha wazi",
+        "starter1": "Habari mgeni! Maisha yamekuwa mengi hivi karibuni. Nakukosa na nilitaka kuwasiliana — umekuwa vipi?",
+        "starter2": "Nimekuwa nikifikiri kukuhusu. Najua imepita muda — hakuna shinikizo hata kidogo, nilitaka tu kusema habari.",
+        "starter3": "Sawa najua imepita muda mrefu, lakini niliona [kitu] na nilifikiria kuhusu wewe. Maisha yako yanakwenda vipi?"
+      },
+      "friend36q": {
+        "title": "Maswali 36",
+        "desc": "Mazungumzo ya kujenga ukaribu ya Arthur Aron.",
+        "notes": "Fanya maswali kwa mpangilio.",
+        "step1": "Chagua mahali pazuri na masaa 90 angalau",
+        "step2": "Jibu maswali ya Seti 1 kwa zamu",
+        "step3": "Nenda Seti 2 mnapokuwa tayari",
+        "step4": "Maliza na Seti 3 na macho ya dakika 4",
+        "starter1": "Nilikutana na kitu kinachoitwa 'maswali 36 yanayojenga ukaribu' na ilionekana ya kuvutia sana. Unataka kujaribu pamoja?",
+        "starter2": "Nataka kufanya kitu tofauti tunapokutana — kuna muundo huu wa mazungumzo unaothibitishwa na utafiti ambao ninadanganyika kuhusu. Uko tayari?"
+      },
+      "friendSupport": {
+        "title": "Kuwa huko kwao",
+        "desc": "Wasiliana na mtu anayepitia wakati mgumu.",
+        "notes": "Uliza wanachohitaji badala ya kudhani.",
+        "step1": "Kagua kwa upole",
+        "step2": "Uliza kinachosaidia",
+        "step3": "Fuata mwongozo wao",
+        "step4": "Fuatilia baada ya siku chache",
+        "starter1": "Habari, nimetambua unaonekana kupita wakati mgumu. Nipo hapa ikiwa unataka kuzungumza — hakuna shinikizo, lakini nipo.",
+        "starter2": "Sihitaji uwe sawa. Nataka tu kuwa pamoja nawe katika chochote unachopitia. Piga simu unapotaka?",
+        "starter3": "Ninafungua nafasi kwa ajili yako. Unahitaji nini sasa hivi — kutoa mshindo, kutatua tatizo, au tu kutokuwa peke yako?"
+      },
+      "romanticAppreciation": {
+        "title": "Wakati wa shukrani",
+        "desc": "Waambie kitu maalum unachoshukuru.",
+        "notes": "Kuwa maalum.",
+        "step1": "Fikiria kitu maalum walichofanya au kusema hivi karibuni",
+        "step2": "Waambie — ana kwa ana, ujumbe, au kumbukumbu",
+        "starter1": "Nataka kusema tu — ninatambua [kitu maalum unachofanya] na ninashukuru zaidi kuliko ninavyoonyesha.",
+        "starter2": "Shukrani ya nasibu ya katikati ya siku: wewe ni [sifa maalum] na nina bahati.",
+        "starter3": "Nilikuwa nikifikiria kuhusu [kumbukumbu maalum au kitu] na ilinifanya nitabasamu. Asante kwa kuwa wewe."
+      },
+      "romanticDateIdea": {
+        "title": "Pendekeza wazo la tarehe",
+        "desc": "Pendekeza kitu rahisi na cha makusudi.",
+        "notes": "Rahisi inafanya kazi.",
+        "step1": "Fikiria wazo rahisi la wote mngelifurahia",
+        "step2": "Pendekeza kwa joto",
+        "step3": "Thibitisha maelezo wanapojibu",
+        "starter1": "Wazo la nasibu: [wazo rahisi la tarehe]. Unataka? Tunaweza kuifanya tulivu kabisa.",
+        "starter2": "Nataka kutumia wakati wa makusudi nawe. Vipi kama tukifanya [wazo] wikendi hii?",
+        "starter3": "Vipi kama tukiwa na usiku bila simu wiki hii na tu [shughuli]?"
+      },
+      "romanticQuality": {
+        "title": "Wakati wa makusudi pamoja",
+        "desc": "Panga wakati unaokusudiwa kwa kuwa pamoja tu.",
+        "notes": "Linda wakati. Zima arifa.",
+        "step1": "Chagua kipande cha wakati na kilinde",
+        "step2": "Chagua kitu mnachodhani wote",
+        "step3": "Kuwepo kikamilifu",
+        "starter1": "Nataka kupanga kitu ambacho ni kuhusu sisi tu — bila shughuli, bila skrini, wakati tu pamoja."
+      },
+      "romanticCheckin": {
+        "title": "Ukaguzi wa uhusiano",
+        "desc": "Mazungumzo ya utulivu kuhusu jinsi unavyohisi kama wenza.",
+        "notes": "Si kuhusu matatizo — kuhusu kubaki kuunganishwa.",
+        "step1": "Kubali wakati wa utulivu bila shinikizo la wakati",
+        "step2": "Kila mmoja ashiriki kitu kimoja kizuri na kimoja kinachohitaji umakini",
+        "step3": "Zungumza kuhusu kila mmoja anahitaji zaidi nini",
+        "step4": "Maliza na shukrani kwa kila mmoja",
+        "starter1": "Nataka kuwa na mazungumzo ya 'tunakwenda vipi?' — hakuna dharura au mgongano, kukagua tu pamoja.",
+        "starter2": "Tunaweza kufanya ukaguzi wa uhusiano hivi karibuni? Nataka kuhakikisha wote wawili tunajisikia vizuri na kuunganishwa."
+      },
+      "romanticDreams": {
+        "title": "Mazungumzo ya ndoto",
+        "desc": "Zungumza kuhusu matumaini yenu maishani.",
+        "notes": "Kuwa na udadisi si tathmini.",
+        "step1": "Tenga saa moja ya utulivu",
+        "step2": "Kila mmoja ashiriki ndoto ya kibinafsi",
+        "step3": "Uliza maswali ya ufuatiliaji na sikiliza kwa kina",
+        "starter1": "Nataka kuzungumza kuhusu ndoto zetu wakati fulani — si mambo ya vitendo, ni nini kila mmoja wetu anatumainia maishani. Uko tayari?"
+      },
+      "familyUpdate": {
+        "title": "Sasisho fupi la familia",
+        "desc": "Shiriki sasisho dogo la maisha na ulize jinsi wanavyoenda.",
+        "notes": "Hata ujumbe mfupi huweka uhusiano joto.",
+        "step1": "Fikiria kitu kimoja cha wiki inayostahili kushirikiwa",
+        "step2": "Tuma na swali rahisi kuhusu wao",
+        "starter1": "Habari! Sasisho fupi kutoka kwangu: [kitu kimoja kilichotokea]. Unakwenda vipi?",
+        "starter2": "Ninakufikiria. Hapa kuna picha kutoka [kitu]. Nakukosa!",
+        "starter3": "Nilitaka tu kukuangalia. Mambo yanakwenda vipi upande wako?"
+      },
+      "familyPhoto": {
+        "title": "Shiriki kumbukumbu",
+        "desc": "Tuma picha ya zamani au kumbukumbu iliyokufanya uimbie.",
+        "notes": "Rahisi joto na inachukua dakika mbili.",
+        "step1": "Tafuta picha au kumbukumbu inayohusiana nao",
+        "step2": "Tuma na kumbukumbu fupi",
+        "starter1": "Nimepata picha hii ya zamani ya sisi! 😄 Unakumbuka [kitu]? Hii ilifurahi siku yangu.",
+        "starter2": "Ninashiriki kumbukumbu iliyonifanya nitabasamu leo — na ilinifanya nifikirie wewe."
+      },
+      "familyCall": {
+        "title": "Simu ya mazungumzo ya familia",
+        "desc": "Panga simu ya kweli ya simu au video — bila ajenda.",
+        "notes": "Toa vipindi kadhaa vya wakati.",
+        "step1": "Wasiliana ili kuangalia upatikanaji wao",
+        "step2": "Weka wakati maalum ili itokee kweli",
+        "step3": "Piga simu na acha mazungumzo yatiririke",
+        "starter1": "Habari, una nafasi ya simu wakati fulani wiki hii? Hakuna ajenda, nataka tu kukaa vizuri nawe.",
+        "starter2": "Nakukosa sauti yako. Tunaweza kupanga simu? Hata dakika 20 itakuwa nzuri."
+      },
+      "familyHelp": {
+        "title": "Toa msaada maalum",
+        "desc": "Toa pendekezo maalum — si 'niambie ukihitaji kitu'.",
+        "notes": "Matoleo maalum ni rahisi kukubali.",
+        "step1": "Fikiria kitu kimoja maalum unachoweza kweli kutoa",
+        "step2": "Wasiliana na matoleo — iifanye iwe rahisi kusema ndiyo",
+        "starter1": "Nataka kusaidia na [kitu maalum]. Naweza [toleo maalum]? Huhitaji kuwa na kila kitu kimepangwa.",
+        "starter2": "Najua una mengi sasa hivi. Ningependa [kitu maalum] ikiwa hiyo itasaidia hata kidogo."
+      },
+      "acquaintanceCongrats": {
+        "title": "Tuma pongezi",
+        "desc": "Tambua hatua au mafanikio waliyoshiriki.",
+        "notes": "Mfupi na wa joto ni kamili.",
+        "step1": "Andika kitu maalum unachopongeza",
+        "step2": "Tuma ujumbe mfupi wa kweli",
+        "starter1": "Hongera kwa [hatua]! Hiyo ni jambo kubwa na unapaswa kujivunia.",
+        "starter2": "Niliona habari yako kuhusu [kitu] — hiyo ni ya kufurahisha kweli kweli. Hongera!"
+      },
+      "acquaintanceReconnect": {
+        "title": "Kuungana tena kwa utulivu",
+        "desc": "Ujumbe wa kawaida baada ya muda.",
+        "notes": "Pengo halihtaji maelezo.",
+        "step1": "Andika ujumbe wa utulivu na wa joto",
+        "step2": "Uliza swali moja rahisi la kualika jibu",
+        "starter1": "Habari! Imepita muda. Nilikuwa nikifikiri kuhusu [kitu kilichoshirikiwa] na nilifikiria niwasiliane. Umekuwa vipi?",
+        "starter2": "Habari! Bila mpangilio lakini nilikumbushwa kuhusu wewe hivi karibuni. Natumai uko vizuri — mambo yakoje?"
+      },
+      "acquaintanceCoffee": {
+        "title": "Pendekeza kahawa",
+        "desc": "Pendekeza mkutano usio na shinikizo.",
+        "notes": "Iifanye iwe rahisi kukubali.",
+        "step1": "Wasiliana na upendekeze mkutano rahisi",
+        "step2": "Kubali wakati na mahali",
+        "step3": "Fika na udadisi",
+        "starter1": "Ningependa kukaa vizuri nawe wakati fulani — ungependa kahawa? Bila shinikizo kabisa."
+      },
+      "coworkerRecognition": {
+        "title": "Tambua kazi yao",
+        "desc": "Bainisha kitu maalum walichofanya vizuri.",
+        "notes": "Kuwa maalum kuhusu walichofanya na kwa nini ilipendeza.",
+        "step1": "Taja kitu maalum walichofanya",
+        "step2": "Tuma kumbukumbu ya moja kwa moja ya kweli ya utambuzi",
+        "starter1": "Nilitaka tu kusema — jinsi ulivyoshughulikia [kitu maalum] ilikuwa ya kuvutia kweli kweli. Kazi nzuri.",
+        "starter2": "Sidhani ulipata sifa ya kutosha kwa [kitu]. Nilitambua na nilitaka kusema kitu."
+      },
+      "coworkerCasual": {
+        "title": "Ukaguzi usio wa kazi",
+        "desc": "Uliza jinsi wanavyoenda zaidi ya orodha ya kazi.",
+        "notes": "Swali rahisi la kibinadamu linajenga uhusiano wa kweli.",
+        "step1": "Tafuta wakati wa asili",
+        "step2": "Uliza swali moja la kweli lisilo la kazi",
+        "starter1": "Swali lisilo la kazi: wikendi yako ilikwenda vipi / unakwenda vipi zaidi ya orodha za kazi?",
+        "starter2": "Habari, nikisimama mbali na mambo ya kazi kwa sekunde — mambo yakoje kwako kwa ujumla?"
+      },
+      "coworkerLunch": {
+        "title": "Chakula cha mchana au kahawa",
+        "desc": "Pendekeza chakula cha kawaida cha mchana bila ajenda ya kazi.",
+        "notes": "Sehemu ya 'bila ajenda ya kazi' inafanya tofauti ya kweli.",
+        "step1": "Wasiliana na upendekeze siku",
+        "step2": "Tafuta wakati unaofaa kwa wote wawili",
+        "starter1": "Unataka kwenda chakula cha mchana au kahawa wakati fulani wiki hii? Hakuna ajenda ya kazi — kuzungumza tu kweli kweli."
+      },
+      "coworkerFeedback": {
+        "title": "Omba maoni",
+        "desc": "Omba maoni ya kweli yanayozingatia ukuaji kutoka kwa mtu unayemwamini.",
+        "notes": "Kuwa maalum kuhusu eneo. Kuwa tayari kusikiliza bila kujitetea.",
+        "step1": "Amua eneo unalotaka maoni",
+        "step2": "Uliza na udadisi wa kweli",
+        "step3": "Sikiliza kikamilifu sema asante chukua maelezo",
+        "starter1": "Ninajaribu kukua na ninastahi mtazamo wako kweli kweli. Ungekuwa wazi kutoa maoni ya uaminifu kuhusu [eneo]?"
+      },
+      "bossUpdate": {
+        "title": "Sasisho la makusudi",
+        "desc": "Shiriki sasisho fupi la hali kabla hujaombwa.",
+        "notes": "Mawasiliano ya makusudi hujenga imani.",
+        "step1": "Fupisha hali inaposimama kwa sentensi 2-3",
+        "step2": "Bainisha vizuizi au mahitaji",
+        "step3": "Tuma — wazi ni bora kuliko kamili",
+        "starter1": "Sasisho fupi kuhusu [mradi]: [hali]. Kuna kitu ninachopaswa kuprioritisha tofauti?",
+        "starter2": "Nilitaka kushiriki wapi mambo yanasimama na [kitu] kabla ya usawazishaji wetu ujao."
+      },
+      "boss1on1": {
+        "title": "Maandalizi ya 1:1",
+        "desc": "Jiandae kwa mkutano wako wa kawaida wa 1:1 ili utumie muda vizuri.",
+        "notes": "Kuja na maswali na mada.",
+        "step1": "Kagua vitu wazi au vizuizi unavyotaka kuleta",
+        "step2": "Andika kitu kimoja unachotaka maoni",
+        "step3": "Andika swali moja kuhusu ukuaji au mwelekeo",
+        "step4": "Nenda na orodha yako"
+      },
+      "bossGrowth": {
+        "title": "Mazungumzo ya ukuaji",
+        "desc": "Omba mazungumzo yanayozingatia maendeleo na mwelekeo wako.",
+        "notes": "Kuja na eneo maalum au swali.",
+        "step1": "Amua unachotaka kukua au kuelewa",
+        "step2": "Omba mkutano mfupi",
+        "step3": "Katika mkutano: shiriki lengo lako uliza swali moja wazi",
+        "starter1": "Ningependa kupanga mazungumzo mafupi kuhusu njia yangu ya ukuaji — ungekuwa na dakika 20 hivi karibuni?"
+      },
+      "neighborHello": {
+        "title": "Sema habari",
+        "desc": "Habari rahisi na ya joto kwa jirani yako.",
+        "notes": "Kujirani ni jambo linalopiganishwa. Habari fupi inasaidia sana.",
+        "step1": "Piga wimbi bisha mlango au tuma kumbukumbu fupi",
+        "step2": "Iifanye iwe fupi na ya joto",
+        "starter1": "Habari jirani! Nilitaka tu kusema habari na kukuangalia uko vizuri.",
+        "starter2": "Habari! Nina [mazao ya ziada/kitu] ikiwa utataka — pia nilitaka tu kusema habari."
+      },
+      "neighborHangout": {
+        "title": "Kukusanyika kwa majirani",
+        "desc": "Pendekeza kunywa kitu au kahawa pamoja.",
+        "notes": "Kawaida na wa karibu inafanya iwe rahisi.",
+        "step1": "Toa pendekezo — kawaida na wazi",
+        "step2": "Kubali wakati",
+        "starter1": "Ungependa kwenda kinywaji au kahawa wakati fulani? Ningependa kujua majirani wangu kweli kweli."
+      },
+      "onlineGaming": {
+        "title": "Kipindi cha mchezo",
+        "desc": "Panga kipindi sahihi cha mtandaoni — si 'wakati fulani'.",
+        "notes": "Kupanga kunafanya iwe kweli.",
+        "step1": "Kubali mchezo na siku",
+        "step2": "Weka wakati maalum na ingia",
+        "starter1": "Unataka kucheza [mchezo] wakati fulani wiki hii? Imepita muda tangu tulikuwa na kipindi.",
+        "starter2": "Nakukosa vipindi vyetu vya [mchezo/kukutana]. Je, una nafasi wiki hii kufanya moja nzuri?"
+      },
+      "onlineVideo": {
+        "title": "Mazungumzo ya video",
+        "desc": "Kweli kuona ana kwa ana — hata mtandaoni.",
+        "notes": "Simu za video zinajisikia karibu zaidi.",
+        "step1": "Pendekeza tarehe na wakati",
+        "step2": "Kubali na uweke kwenye kalenda",
+        "step3": "Fika na ucheze tu",
+        "starter1": "Unataka kufanya simu ya video hivi karibuni? Nakukosa kuona uso wako kweli kweli.",
+        "starter2": "Uko tayari kwa kukaa kwa video nzuri? Tunaweza tu kustarehe na kuzungumza."
+      }
     }
   },
   "settings": "Mipangilio",
@@ -464,15 +1079,26 @@
     "intro": "Kamilisha mwanzo huu wa haraka ili kufungua Kazi Kalenda Bajeti Zawadi na Mipangilio.",
     "progress": "Hatua {{current}} ya {{total}}",
     "stepSection": "Hatua ya mwanzo",
-    "flow": { "autosave": "Maendeleo yako huhifadhiwa baada ya kila mabadiliko.", "resume": "Tunafungua hatua uliyoiacha ili mlolongo uwe wa kutabiriwa.", "validationReminder": "Kamilisha hatua ya sasa ili uwezeshe Inayofuata.", "reset": "Anza upya" },
+    "flow": {
+      "autosave": "Maendeleo yako huhifadhiwa baada ya kila mabadiliko.",
+      "resume": "Tunafungua hatua uliyoiacha ili mlolongo uwe wa kutabiriwa.",
+      "validationReminder": "Kamilisha hatua ya sasa ili uwezeshe Inayofuata.",
+      "reset": "Anza upya"
+    },
     "predictableSteps": {
       "accessibility": "Hatua 1 ya 4: Chagua maandishi utofauti harakati na TTS.",
       "neurodivergence": "Hatua 2 ya 4: Chagua mpangilio na msaada.",
       "quickSetup": "Hatua 3 ya 4: Ingiza lengo moja na bajeti ya kuanza.",
       "tour": "Hatua 4 ya 4: Thibitisha maelekezo na mapendekezo ya vikumbusho."
     },
-    "languageToggle": { "aria": "Badilisha lugha ya programu.", "helper": "Acha ubadilishaji wa lugha uonekane kwa urambazaji unaoweza kutabiriwa." },
-    "ttsToggle": { "aria": "Badilisha vikumbusho vya maandishi-kwa-sauti.", "helper": "Vikumbusho vya sauti vinaweza kuwashwa au kuzimwa wakati wowote." },
+    "languageToggle": {
+      "aria": "Badilisha lugha ya programu.",
+      "helper": "Acha ubadilishaji wa lugha uonekane kwa urambazaji unaoweza kutabiriwa."
+    },
+    "ttsToggle": {
+      "aria": "Badilisha vikumbusho vya maandishi-kwa-sauti.",
+      "helper": "Vikumbusho vya sauti vinaweza kuwashwa au kuzimwa wakati wowote."
+    },
     "next": "Inayofuata",
     "back": "Nyuma",
     "finish": "Maliza",
@@ -501,11 +1127,28 @@
       "supportsHeading": "Ni msaada upi unaosaidia zaidi?",
       "appliedBadge": "Mipangilio imetumika ✓",
       "skipManual": "Ruka / weka mwenyewe",
-      "adhd": { "title": "ADHD", "desc": "Kazi zilizogawanywa vipima muda vya kuzingatia arifa laini." },
-      "asd": { "title": "Uautismu", "desc": "Mipangilio inayoweza kutabiriwa utulivu wa hisia wasaidizi wa ratiba." },
-      "dyslexia": { "title": "Dyslexia", "desc": "Fonti zinazosomeka maelezo ya mwendo hatua zilizofupishwa." },
-      "auditory": { "title": "Usindikaji wa kusikia", "desc": "Maelezo ya kuona manukuu kiwango cha polepole zaidi cha kusema." },
-      "supports": { "focus": "Vidokezo vya kuzingatia na kasi", "sensory": "Mapumziko ya hisia na mandhari ya utulivu", "time": "Msaada wa upofu wa wakati", "money": "Mwongozo wa usimamizi wa fedha" }
+      "adhd": {
+        "title": "ADHD",
+        "desc": "Kazi zilizogawanywa vipima muda vya kuzingatia arifa laini."
+      },
+      "asd": {
+        "title": "Uautismu",
+        "desc": "Mipangilio inayoweza kutabiriwa utulivu wa hisia wasaidizi wa ratiba."
+      },
+      "dyslexia": {
+        "title": "Dyslexia",
+        "desc": "Fonti zinazosomeka maelezo ya mwendo hatua zilizofupishwa."
+      },
+      "auditory": {
+        "title": "Usindikaji wa kusikia",
+        "desc": "Maelezo ya kuona manukuu kiwango cha polepole zaidi cha kusema."
+      },
+      "supports": {
+        "focus": "Vidokezo vya kuzingatia na kasi",
+        "sensory": "Mapumziko ya hisia na mandhari ya utulivu",
+        "time": "Msaada wa upofu wa wakati",
+        "money": "Mwongozo wa usimamizi wa fedha"
+      }
     },
     "quickSetup": {
       "title": "Malengo ya haraka na bajeti",
@@ -527,7 +1170,12 @@
       "subtitle": "Thibitisha unajua mambo yalipo na kama unataka vikumbusho laini.",
       "helper": "Hatua hii ya mwisho inathibitisha urambazaji.",
       "summary": "Utaona dashibodi za Kazi Kalenda Bajeti na Zawadi ukimaliza hatua hii.",
-      "items": { "tasks": "Kazi: vunja miradi katika hatua za kirafiki.", "calendar": "Kalenda: matukio yenye rangi na vikumbusho.", "budget": "Bajeti: fuatilia mapato matumizi na maendeleo ya malipo.", "rewards": "Zawadi: mfululizo na pointi za hiari." },
+      "items": {
+        "tasks": "Kazi: vunja miradi katika hatua za kirafiki.",
+        "calendar": "Kalenda: matukio yenye rangi na vikumbusho.",
+        "budget": "Bajeti: fuatilia mapato matumizi na maendeleo ya malipo.",
+        "rewards": "Zawadi: mfululizo na pointi za hiari."
+      },
       "reminders": "Tuma kikumbusho kifupi cha kurudi nikisimama",
       "acknowledge": "Ninaelewa jinsi ya kufungua sehemu hizi"
     },
@@ -555,7 +1203,11 @@
     }
   },
   "sync": {
-    "entity": { "task": "Kazi", "event": "Tukio", "transaction": "Muamala" },
+    "entity": {
+      "task": "Kazi",
+      "event": "Tukio",
+      "transaction": "Muamala"
+    },
     "reviewTitle": "Mapitio ya usawazishaji nje ya mtandao",
     "reviewHelper": "Kagua mabadiliko ambayo hayakuweza kusawazishwa bado.",
     "reviewEmpty": "Hakuna migogoro ya usawazishaji ya kukagua.",
@@ -609,21 +1261,125 @@
       "showGallery": "🔬 Vinjari itifaki za utafiti",
       "hideGallery": "Ficha maktaba ya itifaki",
       "addRoutine": "→ Ongeza ratiba hii",
-      "cat": { "morning": "Asubuhi", "evening": "Jioni", "weekly": "Kila wiki", "focus": "Umakini", "health": "Afya" },
-      "hubermanMorning": { "title": "Itifaki ya Asubuhi ya Huberman", "why": "Mwangaza wa asubuhi huweka saa yako ya circadian cortisol huleta macho." },
-      "morningPages": { "title": "Kurasa za Asubuhi", "why": "Kuandika kwa mkono kabla ya skrini kunasafisha kelele za kiakili." },
-      "deepWorkLaunch": { "title": "Uzinduzi wa Kazi ya Kina", "why": "Kulinda masaa yako ya kilele cha kiakili kwa kazi ya kina." },
-      "exerciseMorning": { "title": "Mazoezi ya Asubuhi", "why": "Mazoezi ya asubuhi huongeza dopamine serotonini na BDNF kwa masaa 4-6 inayofuata." },
-      "hubermanEvening": { "title": "Itifaki ya Jioni ya Huberman", "why": "Mwanga mkali baada ya jua kuchwa huchelewa melatonini hadi masaa 3." },
-      "powerDownHour": { "title": "Saa ya Kuzima", "why": "Kuzimika kwa muundo kunasalisha mfumo wa neva kubadilika." },
-      "eveningReview": { "title": "Mapitio ya Jioni", "why": "Uandishi wa kujifunua wa Kimagharibi hupunguza kutafakari kupita kiasi." },
-      "tomorrowPrep": { "title": "Maandalizi ya Kesho", "why": "Kuamua mapema kwa kesho kunaondoa uchovu wa uamuzi mwanzoni mwa siku inayofuata." },
-      "weeklyReview": { "title": "Mapitio ya Kila Wiki", "why": "Mapitio ya kila wiki hugundua kupotoka kabla ya kukusanyika." },
-      "healthAudit": { "title": "Ukaguzi wa Afya wa Kila Wiki", "why": "Kinachopimwa kinasimamishwa. Ukaguzi wa dakika 15 wa kila wiki huunda uwajibikaji." },
-      "pomodoroBlock": { "title": "Kizuizi cha Umakini cha Pomodoro", "why": "Umakini wa muda maalum na mapumziko yaliyopangwa unalingana na midundo ya asili." },
-      "noPhoneMorning": { "title": "Asubuhi Bila Simu", "why": "Kuangalia simu yako kwanza hunaweka katika hali ya kuitikia." },
-      "zone2Cardio": { "title": "Cardio ya Eneo 2", "why": "Cardio ya Eneo 2 ni mazoezi ya juu zaidi ya ROI kwa afya ya kimetaboliki." },
-      "mobility": { "title": "Ratiba ya Uhamaji wa Kila Siku", "why": "Dakika kumi za uhamaji wa kila siku huzuia ugumu wa muda mrefu." }
+      "cat": {
+        "morning": "Asubuhi",
+        "evening": "Jioni",
+        "weekly": "Kila wiki",
+        "focus": "Umakini",
+        "health": "Afya"
+      },
+      "hubermanMorning": {
+        "title": "Itifaki ya Asubuhi ya Huberman",
+        "why": "Mwangaza wa asubuhi huweka saa yako ya circadian cortisol huleta macho.",
+        "step1": "Amka kwa wakati unaofanana (bila kulala tena)",
+        "step2": "Toka nje ndani ya dakika 30–60 — angalia anga la asubuhi kwa dakika 10–15",
+        "step3": "Chelewa kahawa dakika 90–120 baada ya kuamka",
+        "step4": "Fanya harakati nyepesi za dakika 10 au kunyoosha",
+        "step5": "Bafu baridi au uoga wa uso (sekunde 30) — huamsha uchangamfu"
+      },
+      "morningPages": {
+        "title": "Kurasa za Asubuhi",
+        "why": "Kuandika kwa mkono kabla ya skrini kunasafisha kelele za kiakili.",
+        "step1": "Kaa na kalamu na karatasi kabla ya skrini",
+        "step2": "Andika kurasa 3 kwa mkono — mkondo wa mawazo, bila kuhariri",
+        "step3": "Usisomee tena hadi angalau wiki moja baadaye"
+      },
+      "deepWorkLaunch": {
+        "title": "Uzinduzi wa Kazi ya Kina",
+        "why": "Kulinda masaa yako ya kilele cha kiakili kwa kazi ya kina.",
+        "step1": "Andika kazi moja muhimu zaidi ya leo (MIT)",
+        "step2": "Safisha meza yako ya kila kitu kisichohusiana na kazi hiyo",
+        "step3": "Weka kipima muda cha dakika 90 kabla ya kuangalia ujumbe",
+        "step4": "Weka simu kwenye chumba kingine au kwenye droo"
+      },
+      "exerciseMorning": {
+        "title": "Mazoezi ya Asubuhi",
+        "why": "Mazoezi ya asubuhi huongeza dopamine serotonini na BDNF kwa masaa 4-6 inayofuata.",
+        "step1": "Vaa nguo za mazoezi kabla ya kufanya maamuzi yoyote",
+        "step2": "Fanya dakika 20–30 za cardio au mafunzo ya nguvu",
+        "step3": "USIFUNGUE simu hadi mazoezi yamekamilika",
+        "step4": "Kula protini au mlo ndani ya dakika 60 baada ya kumaliza"
+      },
+      "hubermanEvening": {
+        "title": "Itifaki ya Jioni ya Huberman",
+        "why": "Mwanga mkali baada ya jua kuchwa huchelewa melatonini hadi masaa 3.",
+        "step1": "Tazama machweo ya jua au punguza taa masaa 2+ kabla ya kulala",
+        "step2": "Hakuna taa kali za juu baada ya saa 9 jioni — tumia taa ndogo",
+        "step3": "Hakuna kahawa baada ya saa 2 mchana (ikiwa bado hujafanya)",
+        "step4": "Usile ndani ya masaa 2–3 ya kulala",
+        "step5": "Weka chumba kipoa: 18–20°C"
+      },
+      "powerDownHour": {
+        "title": "Saa ya Kuzima",
+        "why": "Kuzimika kwa muundo kunasalisha mfumo wa neva kubadilika.",
+        "step1": "Dakika 20 za kwanza: maliza kazi ndogo na orodha ya kufanya ya kesho",
+        "step2": "Dakika 20 zinazofuata: usafi (oga, piga mswaki, utunzaji wa ngozi)",
+        "step3": "Dakika 20 za mwisho: shughuli za kupumzika tu — kusoma, kunyoosha kidogo, kupumua"
+      },
+      "eveningReview": {
+        "title": "Mapitio ya Jioni",
+        "why": "Uandishi wa kujifunua wa Kimagharibi hupunguza kutafakari kupita kiasi.",
+        "step1": "Andika: Nlifanya nini vizuri leo?",
+        "step2": "Andika: Ningelifikuwaje vizuri zaidi?",
+        "step3": "Andika: Ninashukuru nini leo?",
+        "step4": "Funga daftari lako — usiangalie skrini baada ya hii"
+      },
+      "tomorrowPrep": {
+        "title": "Maandalizi ya Kesho",
+        "why": "Kuamua mapema kwa kesho kunaondoa uchovu wa uamuzi mwanzoni mwa siku inayofuata.",
+        "step1": "Andika vipaumbele 3 vya kesho",
+        "step2": "Weka nje chochote utakachohitaji (mfuko wa gym, vitu vya kazi, n.k)",
+        "step3": "Amua mapema wakati wa kuamka wa kesho",
+        "step4": "Funga kichupo chote cha kivinjari na programu"
+      },
+      "weeklyReview": {
+        "title": "Mapitio ya Kila Wiki",
+        "why": "Mapitio ya kila wiki hugundua kupotoka kabla ya kukusanyika.",
+        "step1": "Safisha vikasha vyote vya ingizo (barua pepe, ujumbe, maelezo)",
+        "step2": "Kagua wiki iliyopita: kilichofanywa, kilichobaki, kilichokuzuia",
+        "step3": "Weka nia 3 kwa wiki inayokuja",
+        "step4": "Panga kazi muhimu kama vizuizi vya kalenda",
+        "step5": "Kagua fedha zako — angalia matumizi dhidi ya bajeti"
+      },
+      "healthAudit": {
+        "title": "Ukaguzi wa Afya wa Kila Wiki",
+        "why": "Kinachopimwa kinasimamishwa. Ukaguzi wa dakika 15 wa kila wiki huunda uwajibikaji.",
+        "step1": "Kumbuka ubora wa usingizi wiki hii (kipimo cha 1–5)",
+        "step2": "Kumbuka siku za mazoezi wiki hii",
+        "step3": "Kumbuka siku ngapi ulikula mboga",
+        "step4": "Tambua tabia #1 ya afya ya kuboresha wiki ijayo"
+      },
+      "pomodoroBlock": {
+        "title": "Kizuizi cha Umakini cha Pomodoro",
+        "why": "Umakini wa muda maalum na mapumziko yaliyopangwa unalingana na midundo ya asili.",
+        "step1": "Chagua kazi moja na uiandike",
+        "step2": "Weka kipima muda cha dakika 25 — fanya kitu hicho tu",
+        "step3": "Pumzika dakika 5 (simama, tembea)",
+        "step4": "Rudia mara 4 kisha pumzika dakika 20–30"
+      },
+      "noPhoneMorning": {
+        "title": "Asubuhi Bila Simu",
+        "why": "Kuangalia simu yako kwanza hunaweka katika hali ya kuitikia.",
+        "step1": "Usifungue simu yako kwa dakika 60 za kwanza baada ya kuamka",
+        "step2": "Fanya kwanza utaratibu wa asubuhi (mwanga, harakati, kifungua kinywa)",
+        "step3": "Baada ya dakika 60, angalia ujumbe kwa dirisha maalum la dakika 10 tu"
+      },
+      "zone2Cardio": {
+        "title": "Cardio ya Eneo 2",
+        "why": "Cardio ya Eneo 2 ni mazoezi ya juu zaidi ya ROI kwa afya ya kimetaboliki.",
+        "step1": "Fanya dakika 30–45 za cardio kwa kasi ya 'mazungumzo' — ungeweza kusema sentensi",
+        "step2": "Weka mapigo ya moyo karibu na 60–70% ya kiwango chako cha juu (takriban 180 minus umri wako)",
+        "step3": "Lenga vipindi 3–4 kwa wiki — hii ni dozi ya chini ya ufanisi kwa maisha marefu"
+      },
+      "mobility": {
+        "title": "Ratiba ya Uhamaji wa Kila Siku",
+        "why": "Dakika kumi za uhamaji wa kila siku huzuia ugumu wa muda mrefu.",
+        "step1": "Mzunguko wa shingo: duru 5 polepole kila upande",
+        "step2": "Mzunguko wa nyonga: 10 kila upande",
+        "step3": "Kunyoosha kwa uti wa mgongo wa cat-cow: marudio 10",
+        "step4": "Fikia vidole vya miguu: shikilia sekunde 30",
+        "step5": "Mkono mbele ya kifua: sekunde 30 kila upande"
+      }
     },
     "gallery": {
       "heading": "Maktaba ya Violezo vya Ratiba",
@@ -638,6 +1394,21 @@
       "daily": "Kila siku",
       "weekly": "Kila wiki",
       "addAria": "Ongeza ratiba: {{title}}"
+    },
+    "anchor": {
+      "afterWaking": "Baada ya kuamka",
+      "afterCoffee": "Baada ya kahawa",
+      "beforeEmail": "Kabla ya kufungua barua pepe",
+      "afterSunset": "Baada ya machweo",
+      "afterDinner": "Baada ya chakula cha jioni",
+      "beforeBed": "Kabla ya kulala",
+      "beforeShutdown": "Kabla ya ibada ya kuzimika",
+      "sundayAfternoon": "Alasiri ya Jumapili",
+      "sundayMorning": "Asubuhi ya Jumapili",
+      "beforeWork": "Kabla ya kuanza kazi",
+      "immediatelyOnWaking": "Mara baada ya kuamka",
+      "afterWork": "Baada ya kazi",
+      "afterMorningLight": "Baada ya mwanga wa asubuhi"
     }
   },
   "win": {
@@ -646,13 +1417,34 @@
     "copied": "✓ Imenakiliwa kwenye ubao wa nakili!",
     "shareError": "Haikuweza kushiriki",
     "keepGoing": "Endelea →",
-    "streak": { "headline": "Mfululizo wa Siku {{days}}", "sub": "Uthabiti ni riba iliyokusanyika ya juhudi. Endelea." },
-    "allTasksDone": { "headline": "Yote Imekamilika Leo", "sub": "Ulifika. Hiyo ndiyo mchezo wote." },
-    "routineComplete": { "headline": "Ratiba Imekamilika", "sub": "Umeshinda asubuhi yako. Hilo linakusanyika." },
-    "budgetGoal": { "headline": "Lengo la Bajeti Limefikiwa", "sub": "Aina moja imemilikiwa." },
-    "firstTask": { "headline": "Kazi ya Kwanza Imeundwa", "sub": "Ubongo wako unaweza kupumzika sasa. Iko katika mfumo." },
-    "firstRoutine": { "headline": "Ratiba ya Kwanza Imejengwa", "sub": "Msingi wa asubuhi yako umekuwa imara zaidi." },
-    "levelUp": { "headline": "Kiwango {{level}} Kimefikiwa", "sub": "Ukuaji si wa kawaida — lakini unasogea mbele." }
+    "streak": {
+      "headline": "Mfululizo wa Siku {{days}}",
+      "sub": "Uthabiti ni riba iliyokusanyika ya juhudi. Endelea."
+    },
+    "allTasksDone": {
+      "headline": "Yote Imekamilika Leo",
+      "sub": "Ulifika. Hiyo ndiyo mchezo wote."
+    },
+    "routineComplete": {
+      "headline": "Ratiba Imekamilika",
+      "sub": "Umeshinda asubuhi yako. Hilo linakusanyika."
+    },
+    "budgetGoal": {
+      "headline": "Lengo la Bajeti Limefikiwa",
+      "sub": "Aina moja imemilikiwa."
+    },
+    "firstTask": {
+      "headline": "Kazi ya Kwanza Imeundwa",
+      "sub": "Ubongo wako unaweza kupumzika sasa. Iko katika mfumo."
+    },
+    "firstRoutine": {
+      "headline": "Ratiba ya Kwanza Imejengwa",
+      "sub": "Msingi wa asubuhi yako umekuwa imara zaidi."
+    },
+    "levelUp": {
+      "headline": "Kiwango {{level}} Kimefikiwa",
+      "sub": "Ukuaji si wa kawaida — lakini unasogea mbele."
+    }
   },
   "welcomeBack": {
     "title": "Karibu tena — ulikuwa mbali kwa {{days}}.",
@@ -663,7 +1455,18 @@
     "message2": "Sehemu ngumu zaidi ni kurudi. Umefanya hivyo tu.",
     "message3": "Kila kuanza upya kunahesabu. Karibu tena.",
     "continueCta": "Chukua mahali nilipoacha",
-    "freshStartCta": "Anza upya leo"
+    "freshStartCta": "Anza upya leo",
+    "bannerAriaLabel": "Ujumbe wa karibu tena",
+    "heading": "Kila kuanza upya kunahesabu.",
+    "gapAriaLabel": "Umekuwa mbali kwa siku {{days}}",
+    "gapNote": "Siku {{days}} tangu shughuli yako ya mwisho — hakuna shinikizo.",
+    "lastStreakRecovery": "Ulikuwa na mfululizo wa siku {{count}} — endelea ulipoacha.",
+    "tinyStepAriaLabel": "Anza na hatua moja ndogo",
+    "tinyStep": "Anza na hatua moja ndogo",
+    "continueAriaLabel": "Endelea ulipoacha",
+    "continue": "Endelea nilipoacha",
+    "freshStartAriaLabel": "Anza upya leo",
+    "freshStart": "Anza upya leo"
   },
   "upgrade": {
     "premiumBadge": "✦ Premium",
@@ -674,7 +1477,31 @@
     "subtitle": "Anza jaribio lako la bure la siku 10 — haihitaji kadi ya mkopo.",
     "startTrial": "Anza jaribio la bure la siku 10",
     "seePlans": "Ona mipango",
-    "pricing": "$12/mwezi · au $10/mwezi kwa mwaka"
+    "pricing": "$12/mwezi · au $10/mwezi kwa mwaka",
+    "premiumBadgeAria": "Kipengele cha premium",
+    "iconAria": "Mng'aro",
+    "startTrialAria": "Anza jaribio lako la bure la siku 10",
+    "seePlansAria": "Tazama chaguzi zote za mpango",
+    "tryOnce": "Jaribu mara moja, bure",
+    "tryOnceAria": "Jaribu {{featureName}} mara moja bure",
+    "outcomesHeading": "Utakachoweza kufanya",
+    "outcomesListAria": "Unachopata na premium",
+    "freeAlternativePrefix": "Bado unaweza",
+    "social": {
+      "outcome1": "Shiriki mfululizo na ushindi wako na marafiki",
+      "outcome2": "Jiunge na vikundi vya uwajibikaji na changamoto za kikundi",
+      "freeAlt": "fuatilia maendeleo yako mwenyewe kwa siri"
+    },
+    "routines": {
+      "outcome1": "Jenga ratiba zisizo na kikomo za asubuhi, jioni na maalum",
+      "outcome2": "Pata vikumbusho laini vilivyopangwa kulingana na viwango vya nishati yako",
+      "freeAlt": "ongeza kazi hadi 3 kwenye ratiba yako ya kila siku"
+    },
+    "rewards": {
+      "outcome1": "Unda zawadi zako maalum na hatua za kumbuka",
+      "outcome2": "Fungua sherehe zilizohuishwa kwa mafanikio makubwa",
+      "freeAlt": "pata beji tatu za kumbuka zilizojengwa ndani"
+    }
   },
   "pricing": {
     "heading": "Bei rahisi na za uaminifu",
@@ -713,7 +1540,470 @@
       "aiUnlimited": "Mapendekezo ya AI yasiyo na kikomo",
       "sync": "Usawazishaji kati ya vifaa",
       "support": "Msaada wa kipaumbele"
+    },
+    "noAuthError": "Ingia ili kuamilisha jaribio lako"
+  },
+  "calendarWeeklyGridAria": "Kalenda ya wiki",
+  "calendarMonthView": "Mwezi",
+  "calendarToday": "Leo",
+  "calendarPrev": "Kipindi kilichopita",
+  "calendarNext": "Kipindi kinachofuata",
+  "streakRecovery": {
+    "gapBadge": "Siku {{days}} tangu shughuli ya mwisho",
+    "bestStreak": "Bora: siku {{count}}",
+    "bestStreakAriaLabel": "Mfululizo bora: siku {{count}}"
+  },
+  "recurring": {
+    "showPanel": "Hali ya uaminifu",
+    "hidePanel": "Ficha hali ya uaminifu",
+    "panelTitle": "Uaminifu wa kazi zinazorudiwa",
+    "noRecurringTasks": "Hakuna kazi zinazozingatia zilizosanidiwa.",
+    "colTask": "Kazi",
+    "colLastGen": "Uzalishaji wa mwisho",
+    "colNextExp": "Inayotarajiwa ijayo",
+    "colFailures": "Kushindwa",
+    "lastGenerated": "Ilizalishwa mwisho",
+    "neverGenerated": "Kamwe",
+    "nextExpected": "Inayotarajiwa ijayo",
+    "failureBadgeLabel": "Matukio {{count}} yaliyokosekana",
+    "checkNow": "Angalia sasa",
+    "checking": "Inakagua…",
+    "repair": "Jenga upya matukio yanayorudiwa",
+    "repairing": "Inajengа upya…",
+    "lastChecked": "Ilikaguliwa mwisho saa {{time}}"
+  },
+  "calendarZoomHint": "Ctrl+tazama au pinch kukuza",
+  "tooltips": {
+    "tasks": {
+      "section": "Kituo chako cha kazi cha kati — kila kitu unachohitaji kufanya, kikiwa kimegawanywa katika hatua unazoweza kuanza. Ongeza chochote hapa, kisha weka alama ukimaliza.",
+      "energy": "Chuja kazi kwa mafuta ya kiakili yanayohitajika sasa hivi. Ndogo/Chini kwa siku ngumu. Wastani/Juu unapokuwa katika hali nzuri. Linganisha juhudi na uwezo.",
+      "quickStart": "Violezo vya kazi vilivyothibitishwa na utafiti unavyoweza kuongeza kwa kugonga mara moja. Badilisha kichwa kulingana na hali yako — muundo umefanywa tayari.",
+      "reliability": "Hufuatilia jinsi kazi zako zinazozingatia zinavyozalishwa kiotomatiki kwa uthabiti. Ikiwa matukio yanakosekana, unaweza kuyajenga upya hapa.",
+      "subtasks": "Gawanya kazi kubwa katika hatua ndogo. Utafiti unaonyesha kuanzisha kazi — si kuitekeleza — ndio sehemu ngumu zaidi. Kuanza hatua ya kwanza ndogo ni 80% ya kazi.",
+      "plannedDate": "Kupanga kazi kunakufanya mara 2–3 zaidi uwezekane kuifanya. Hata kuibandika kwa 'leo' kunafanya kazi — maalum ndio pointi yote.",
+      "intention": "Nia ya utekelezaji (lini + wapi) inamaradufu ufuatiliaji — imethibitishwa katika masomo 94. Ubongo wako unaichukulia kama ahadi ya awali.",
+      "timer": "Vipindi vya Pomodoro: kazi iliyozingatiwa + mapumziko mafupi. Dharura ya kipima muda inaondoa mtego wa 'nitaanza baada ya dakika' bila kuongeza shinikizo.",
+      "templates": "Miundo ya kazi iliyotengenezwa tayari kwa hali za kawaida — kipindi cha kusoma, kizuizi cha kazi, kujitunza. Chagua moja na ubadilishe kichwa kulingana na muktadha wako.",
+      "title": "Ipa kazi yako jina wazi na maalum. Jina zuri zaidi la kichwa, ni rahisi zaidi kuanza — 'Tuma barua pepe kwa Dkt. Santos' inashinda 'Barua pepe' kila wakati."
+    },
+    "calendar": {
+      "section": "Panga matukio na zuia wakati kwa kazi. Kuweka kitu kwenye kalenda kunafanya mara 2–3 zaidi uwezekane kweli kweli kutokea.",
+      "suggestedFocus": "Kulingana na kazi zako wazi na wakati wako wa bure leo, nafasi hizi ni madirisha yako bora ya kazi iliyozingatiwa. Zipange sasa mawazo yako ikiwa mapya.",
+      "tasksToConvert": "Kazi bila kipande cha wakati bado. 'Badilisha kuwa tukio' inapa kila kazi wakati maalum — kubadilisha nia kuwa ahadi.",
+      "events": "Matukio yako yote yaliyopangwa. Gonga tukio lolote kuhariri, kuongeza kikumbusho, au kuliunganisha na kazi. Kufuta tukio hakufuti kamwe kazi iliyounganishwa.",
+      "title": "Ipa tukio lako jina wazi. Jumuisha ni nani au kwa nini ni: 'Mkutano wa timu' au 'Daktari wa meno — Dkt. Smith'. Hii inaonekana kwenye gridi yako ya kalenda.",
+      "startDate": "Tukio hili linaanza lini? Kuweka wakati maalum kunalizuia kwenye kalenda yako na kuzuia migongano ya ratiba.",
+      "endDate": "Tukio hili linaisha lini? Nyakati sahihi za mwisho zinakusaidia kuona madirisha ya bure kwa kazi na kuepuka mzigo wa ziada wa nyuma kwa nyuma.",
+      "location": "Hii inatokea wapi? Si lazima, lakini inafaa kwa vikumbusho vya wakati wa safari na muktadha.",
+      "description": "Maelezo ya hiari — vipengele vya ajenda, maelezo ya maandalizi, nambari za ufikiaji. Utaona hii unapogonga tukio.",
+      "taskLink": "Unganisha tukio hili na kazi iliyopo. Unapokamilisha tukio, inaweza kuweka alama kazi imekamilika pia — kuweka orodha zote mbili sawazishwa.",
+      "reminder": "Pata arifa kabla ya tukio kuanza. Inasaidia sana kwa miadi inayohitaji wakati wa safari au maandalizi.",
+      "addEvent": "Unda tukio jipya la kalenda. Kuweka kazi kwenye kalenda kunazifanya mara 3x zaidi uwezekane kutokea — hii ndiyo hatua kati ya kupanga na kufanya."
+    },
+    "budget": {
+      "section": "Bajeti ya msingi wa sufuri: kila shilingi inapata kazi kabla hujaipoteza. Mapato minus ugawaji wote unapaswa kuwa sufuri — makusudi, si bahati.",
+      "review": "Ukaguzi wa dakika 5 wa kila wiki ni tabia moja ya bajeti yenye ufanisi zaidi wa juu zaidi. Kuangalia nambari kuzuia uvujaji mdogo usio visima vikubwa.",
+      "month": "Kila bajeti imewekwa kwa mwezi wa kalenda (muundo wa YYYY-MM). Unda moja mpya mwanzoni mwa kila kipindi — au badilisha hadi miezi ya zamani kukagua historia.",
+      "categories": "Vyombo vya matumizi vilivyoitwa. Kila muamala lazima uwe wa kategoria — hivi ndivyo unavyofuatilia pesa yako inaenda wapi kweli dhidi ya mahali uliopanga.",
+      "categoryType": "Hitaji: muhimu usioepukika — kodi, chakula, huduma, usafiri, dawa.\nTamaa: chaguo za mtindo wa maisha — kula nje, streaming, burudani, ziada.\nLengo: wewe wa baadaye — akiba, uwekezaji, mfuko wa dharura, manunuzi makubwa.\nDeni: malipo — mikopo, kadi za mkopo, chochote chenye riba.",
+      "chart": "Mstari mwepesi = iliyopangwa. Mstari imara = halisi iliyotumika. Nyekundu inamaanisha imepita bajeti. Piga juu ya kila mstari kwa nambari sahihi na kategoria inayofunika nini.",
+      "chartBar": {
+        "NEED": "Gharama za lazima — kodi, chakula, huduma, usafiri. Sakafu ambayo chini yake maisha yanasimama.",
+        "WANT": "Chaguo za mtindo wa maisha — kula nje, streaming, burudani. Si pesa mbaya, ni uaminifu tu kuhusu ni nini.",
+        "GOAL": "Ujenzi wa siku zijazo — akiba, uwekezaji, mfuko wa dharura. Jilipe mwenyewe kwanza.",
+        "DEBT": "Malipo — mikopo, kadi za mkopo, chochote chenye riba. Kila shilingi ya ziada hapa hupunguza tarehe yako ya kuwa huru na deni."
+      },
+      "transactions": "Rekodi kila gharama au malipo hapa. Kila ingizo husasisha jumla halisi ya kategoria na kuweka chati kwa wakati halisi.",
+      "plannedActual": "Ukweli ulilingana vipi na mpango wako? Tumia hii kurekebisha bajeti ya mwezi ujao — umepita kwa Matakwa? Hamia bajeti huko kwa makusudi.",
+      "debts": "Fuatilia kila mkopo na kadi ya mkopo. Kujua salio, kiwango cha riba, na malipo ya chini kukuruhusu kujenga mpango wa kweli wa kutoka badala ya kudhani.",
+      "annualRate": "Kiwango cha riba cha kila mwaka (APR) kwenye deni hili. Viwango vya juu hugharimu zaidi kwa muda. Hizi ndizo za kushambulia kwanza ukitumia mkakati wa Avalanche.",
+      "minPayment": "Malipo ya chini ya kila mwezi ili kuweka akaunti hii ya sasa. Lipa angalau hii daima. Mkakati wako wa ulipaji unaongeza ziada juu.",
+      "categoryName": "Lebo fupi inayotambulika kwa chombo hiki cha matumizi — mfano 'Kodi', 'Mboga', 'Netflix'. Majina wazi hufanya iwe rahisi zaidi kategorisha miamala baadaye.",
+      "incomeSource": "Pesa hii inatoka wapi — mshahara, kazi ya uhuru, uhamisho, n.k. Kuweka lebo vyanzo vya mapato kukusaidia kuona mkondo unaotegemewa.",
+      "incomeAmount": "Kiasi ulichopokea au unatarajia kupokea kutoka chanzo hiki. Nambari sahihi hapa zinaweka dari kwa mpango wako wote wa mwezi.",
+      "plannedAmount": "Kiasi unachokusudia kutumia katika kategoria hii mwezi huu. Weka nambari ya kweli — unaweza kurekebisha wakati wowote mwezi unaoendelea.",
+      "transactionDate": "Gharama au malipo yalitokea lini. Kurekodi tarehe halisi kuweka mstari wako wa wakati sahihi kwa mapitio ya mwisho wa mwezi.",
+      "transactionAmount": "Kiasi halisi kilichotumika au kulipwa. Ingiza kilichoiacha akaunti yako — bila pande. Tofauti ndogo hukusanyika haraka.",
+      "transactionCategory": "Kategoria ya bajeti ambayo gharama hii ni ya. Kugawanya kila muamala kwa kategoria ndio kinachofanya chati iakisi ukweli.",
+      "transactionNote": "Muktadha wa hiari kwa ingizo hili — mfano 'chakula cha mchana na timu' au 'urejeshaji wa kila mwaka'. Maelezo hukufanya ushangilie wakati wa mapitio.",
+      "period": "Ingiza mwezi unaotaka kupanga bajeti kwa muundo wa YYYY-MM (mfano 2026-04 kwa Aprili 2026). Kila mwezi ni mpango mpya wa msingi wa sufuri — mapato na kategoria zako zina maana ndani ya dirisha hilo.",
+      "debtName": "Ita deni hili wazi ili uweze kulitambua kwa haraka — mfano 'Chase Visa', 'Mkopo wa Masomo', 'Fedha ya Gari'. Tumia jina la mkopeshaji + aina ya akaunti kwa ulinganishaji rahisi na kauli za benki yako.",
+      "debtBalance": "Salio lako la sasa linalodaiwa — si kiasi cha mkopo wa awali. Angalia kauli yako ya hivi karibuni kwa nambari sahihi. Hii ndiyo nambari ambayo kikokotoo cha ulipaji kinafanya kazi kutoka, hivyo usahihi ni muhimu.",
+      "debtCategory": "Kwa hiari unganisha deni hili na kategoria ya bajeti ya aina ya DENI. Hii inaruhusu rekodi yako ya muamala kutiririka kwenye kikifuatilia cha ulipaji kiotomatiki. Acha wazi ukipendelea kufuatilia deni kwa kujitegemea."
+    },
+    "rewards": {
+      "section": "Geuza tabia za kila siku kuwa mchezo wa maendeleo. Pata XP kwa kukamilisha kazi, kudumisha mfululizo kwa uthabiti, na weka zawadi unazotaka kweli kupata.",
+      "gamification": "Ratiba za zawadi zinazobadilika huweka motisha juu kwa muda. XP na mfululizo hapa unafuata muundo huo. Data yote inabaki ya siri na ya ndani — hakuna kinachoshirikiwa.",
+      "streak": "Mfululizo unahesabu siku za kuendelea ambazo umekuwa thabiti. Mfululizo wa kazi, kuzingatia, na bajeti hufuatiliwa tofauti — kuvunja moja hakuvunji vyote.",
+      "skipTokens": "Tumia ishara ya kuruka kuchukua siku ya mapumziko bila hatia bila kuvunja mfululizo wako. Ishara hupatanikana kwa kubaki thabiti. Kuruka kwa busara ni kupanga, si kushindwa.",
+      "rewardsList": "Zawadi za kibinafsi ambazo umejiahidi kuzipata. Weka lengo la pointi, taja zawadi yako, na uiitumie bila hatia unapofika lengo. Fanya zawadi unazotaka kweli kweli.",
+      "level": "Kiwango chako cha sasa cha XP. Kila kiwango kinawakilisha juhudi za kuendelea kwa muda — si ukamilifu, ni uendelezaji tu. Panda kiwango kwa kukamilisha kazi na kudumisha mfululizo.",
+      "rewardTitle": "Ni zawadi gani unataka kufungua? Ifanye kitu unachotarajia kweli kweli — chakula nje, kitabu kipya, siku ya bure bila hatia.",
+      "pointsRequired": "Ni XP ngapi kufungua zawadi hii? Unapata XP kwa kukamilisha kazi (pointi 10 kila moja) na kukagua bajeti yako kila wiki. Weka viwango unavyoweza kufikia kwa kweli.",
+      "rewardDescription": "Maelezo ya hiari kuhusu zawadi — mahali pa kwenda, cha kuagiza, kinagharimu kiasi gani."
+    },
+    "social": {
+      "section": "Uhusiano hubadilika bila juhudi ya makusudi. Kichupo hiki kinakusaidia kupanga ukaguzi wa kawaida na shughuli na watu wanaohusika — kabla umbali haujaingia.",
+      "relationshipType": "Chagua mpango huu ni kwa nani. Uhusiano tofauti unahitaji aina tofauti ya umakini — hii huunda mzunguko na aina ya shughuli unazopanga.",
+      "addPlan": "Unda hatua ya kijamii: taja shughuli (simu, ziara, tuma kumbukumbu), iunganishe na mtu, na weka jinsi mara ngapi unataka kuifanya. Kuiweka alama imekamilika huweka tabia hai.",
+      "plansList": "Kalenda yako ya uhusiano. Kila ingizo ni ahadi ya kuwekeza kwa mtu. Hatua ndogo za kuendelea kwa muda huzuia mwelekeo ambao polepole huharibu uhusiano wa karibu.",
+      "planTitle": "Ipa mpango huu wa uhusiano jina. Ifanye rahisi: 'Brunch na Sofia' au 'Piga simu Mama kila wiki'. Mpango wazi zaidi, ni rahisi zaidi kuufuata kweli kweli.",
+      "planType": "Ni aina gani ya mwingiliano huu? Simu = simu ya kawaida/video; Mkutano = ana kwa ana; Ujumbe = maandishi/barua pepe; Tukio = uzoefu ulioshirikiwa. Kila aina ina msuguano tofauti — anza na chaguo la msuguano mdogo zaidi.",
+      "energyLevel": "Ni nishati ngapi ya kijamii mwingiliano huu unahitaji? Linganisha hii na nishati unayopatikana — siku za nishati chini ni kamili kwa ujumbe wa haraka, siku za nishati juu kwa mkutano halisi.",
+      "dateTime": "Unataka hii itokee lini? Kupanga tarehe maalum kunafanya mara 10x zaidi uwezekane kutokea dhidi ya 'wakati fulani hivi karibuni'.",
+      "steps": "Gawanya mpango wa uhusiano katika hatua ndogo: 'tuma ujumbe kupendekeza tarehe', 'panga mkahawa', 'thibitisha siku moja kabla'. Kila hatua inaondoa sababu ya kuahirisha."
+    },
+    "routines": {
+      "section": "Ratiba ni hatua zilizopangwa awali zilizounganishwa na wakati wa siku. Badala ya kuamua cha kufanya kifuatacho, unafuata hatua — kuondoa uchovu wa uamuzi kutoka kwa mlingano.",
+      "addRoutine": "Jenga ratiba mpya: iite, chagua nanga (asubuhi/kazi/jioni), weka wakati wa kuanza, na orodhesha hatua. Weka kila hatua ndogo — dakika 5 au chini kila moja.",
+      "steps": "Hatua moja maalum, halisi kwa kila hatua. 'Jiandae' ni isiyo wazi sana. 'Piga mswaki, nawa uso, chukua dawa' ni inayofanywa. Hatua ndogo huondoa kikwazo cha kuanza.",
+      "anchor": "Kupanga tabia: unganisha tabia mpya na moja unayofanya kiotomatiki. Utafiti wa BJ Fogg unaonyesha hii inamaradufu mafanikio ya utekelezaji dhidi ya kuanza baridi.",
+      "title": "Ita ratiba yako wazi: 'Kupumzika kwa asubuhi' au 'Ibada ya kuzingatia kabla ya kazi'. Jina nzuri hufanya ionekane kwa makusudi na inastahili kulindwa katika ratiba yako.",
+      "description": "Muktadha wa hiari — ratiba hii ni kwa nini, unaifanya lini, au inakufanya ujisikie vipi. Inafaa unapoirejea wiki baadaye.",
+      "frequency": "Ni mara ngapi ratiba hii inapaswa kufanya kazi? Ratiba za kila siku hujenga otomatiki haraka zaidi; za kila wiki zinafaa kwa tabia zinazohitaji wakati zaidi wa kupona kati.",
+      "triggerTime": "Weka wakati unaochochea ratiba hii kwa kutegemewa. Kuoanisha na nanga ya wakati iliyopo (mfano 7:00 asubuhi mara baada ya kuamka) huimarisha mzunguko wa tabia."
+    },
+    "settings": {
+      "section": "Bainisha programu kwa ubongo wako, mapenzi ya hisia, na mtiririko wa kazi. Mipangilio yote inatumika kila mahali na inabaki kati ya vikao.",
+      "theme": "Mwanga kwa nafasi nyeupe, Giza kwa mazingira ya chini, Tofauti ya Juu kwa unyeti wa maono au matumizi ya nje. Chagua kinachoweka macho yako starehe zaidi.",
+      "screenTint": "Inaongeza safu ya amber ya joto kupunguza mwanga wa bluu jioni. Husaidia kutoa ishara ya wakati wa kupumzika kwa ubongo wako bila kubadilisha mipangilio ya skrini ya mfumo.",
+      "tts": "Inasoma mabadiliko ya mipangilio na arifa kwa sauti — inafaa kwa hali za macho bila mikono, kusimamia vikengeuzi, au kuthibitisha mabadiliko bila kutazama skrini.",
+      "announce": "Inatangaza kila mabadiliko unayofanya katika Mipangilio kwa sauti inapotokea — nzuri kwa kuangalia maradufu chaguo bila kusomea tena skrini.",
+      "timer": "Pomodoro: vipindi vya kazi vilivyopangwa wakati vifuatavyo na mapumziko mafupi. Utafiti unaonyesha dharura ya kipima muda hupunguza kuepuka bila kuongeza msongo — inafaa sana kwa ubongo wa ADHD.",
+      "shortcuts": "Njia za mkato za kibodi kukuruhusu kupita kwenye programu nzima bila kipanya. Jifunza 1–2 kwa wakati mmoja — kumbukumbu ya misuli hukusanyika haraka.",
+      "restartGuide": "Inaucheza upya ziara ya maingiliano ya programu kutoka mwanzo. Inafaa ikiwa unataka kuchunguza tena kipengele kilichorukwa, au unapowasilisha programu kwa mtu mpya.",
+      "dailyView": "Inaonyesha Kituo cha Amri cha Kila Siku kilichorahisishwa kwenye kichupo cha Kazi: kazi zako 3 za juu tu, tukio lifuatalo, na kichocheo cha bajeti. Nzuri kwa siku ambazo maono kamili yanajisikia mengi sana.",
+      "tint": "Inatumia safu ya rangi ya joto kupunguza mwanga wa bluu na utofauti mkali. Watumiaji wengi wa tofauti za neva hupata hii hupunguza mkazo wa macho na mzigo wa hisia wakati wa vikao virefu.",
+      "font": "Maandishi makubwa hupunguza mzigo wa kiakili wakati wa kutazama orodha ndefu. Ukubwa wa kawaida umezapangwa kwa usomaji; uongeze ikiwa unajikuta ukipanda macho au ukipoteza mahali pako.",
+      "motion": "Kuzima uhuishaji huondoa athari zote za kuteleza, kupungua na kuruka. Muhimu ikiwa harakati husababisha usumbufu, kizunguzungu, au mzigo wa hisia.",
+      "gamification": "Inazima XP, viwango, na mfululizo kimataifa au kuvizima. Data yako ya maendeleo inabaki ikiwa imehifadhiwa kwa njia yoyote — unaweza kuwezesha tena wakati wowote.",
+      "announceSettings": "Inasoma mipangilio yako ya sasa kwa sauti ili uweze kuthibitisha kila kitu kimesanidiwa kama inavyotarajiwa bila kusomea orodha."
     }
   },
-  "calendarWeeklyGridAria": "Kalenda ya wiki"
+  "shortcutsHeading": "Njia za mkato za kibodi",
+  "shortcutAddTask": "Zingatia ingizo la \"Ongeza kazi\"",
+  "shortcutDismiss": "Ondoa arifa / funga safu juu",
+  "aboutHeading": "Kuhusu",
+  "appVersion": "Toleo",
+  "buildDate": "Ujenzi",
+  "stack": "Mfumo",
+  "aboutDescription": "GYLIO ni programu ya tija yenye urafiki kwa tofauti za neva iliyojengwa kwa ufikiaji, mzigo mdogo wa kiakili, na UX laini msingi wake.",
+  "tourDescription": "Fanya tena ziara ya maingiliano kugundua upya vipengele au kuonyesha programu kwa mtu mpya.",
+  "timerHeading": "Kipima muda cha kuzingatia",
+  "timerFocusLabel": "Muda wa kuzingatia",
+  "timerShortBreakLabel": "Mapumziko mafupi",
+  "timerLongBreakLabel": "Mapumziko marefu",
+  "timerSessionsLabel": "Vipindi kabla ya mapumziko marefu",
+  "timerAutoBreak": "Anza kiotomatiki mapumziko kuzingatia kumalizapo",
+  "timerInsight": "Utafiti unaonyesha ubongo hufanya kazi katika mizunguko ya ~dakika 90 ya ultradian. Vipindi vifupi (dakika 25) vinafaa kwa kazi nyingi; vipindi virefu (dakika 45–90) vinahitaji mapumziko marefu zaidi kwa uwiano ili kuepuka uchovu wa kiakili. Tafuta dirisha lako.",
+  "timerBreakInsight": "Vipindi virefu vya kuzingatia vinahitaji mapumziko marefu zaidi: dakika 45 → mapumziko ya dakika 15; dakika 90 → mapumziko ya dakika 20. Kuruka mapumziko hukusanya uchovu wa kiakili.",
+  "dailyViewHeading": "Maono ya kila siku",
+  "dailyViewToggle": "Wezesha maono ya kila siku",
+  "dailyViewDescription": "Onyesha Kituo cha Amri cha Kila Siku kilichorahisishwa kwenye kichupo cha Kazi — kazi zako 3 za juu tu, tukio lifuatalo, na kichocheo cha bajeti.",
+  "clock": {
+    "about": "karibu {{time}}",
+    "around": "karibu na {{time}}",
+    "toggleGranularity": "Badilisha uonyeshaji wa wakati",
+    "granularityExact": "Wakati sahihi",
+    "granularityHalf": "Takriban nusu saa",
+    "granularityHour": "Takriban saa",
+    "granularityNoTime": "Tarehe tu",
+    "granularityHidden": "Imefichwa"
+  },
+  "tour": {
+    "dialogAria": "Ziara ya maingiliano ya vipengele",
+    "stepOf": "Hatua {{current}} ya {{total}}",
+    "progressAria": "Maendeleo ya ziara",
+    "pauseAria": "Simamisha ziara",
+    "prevAria": "Hatua iliyotangulia",
+    "nextAria": "Hatua inayofuata",
+    "finishAria": "Maliza ziara",
+    "prev": "Nyuma",
+    "next": "Inayofuata",
+    "finish": "Imekamilika!",
+    "keyboardHint": "← → pita · Esc simamisha",
+    "unlockCta": "Anza jaribio la bure la siku 10 kufungua →",
+    "signInCta": "Ingia ili kuona kipengele hiki moja kwa moja →",
+    "startButton": "Mwongozo",
+    "startAria": "Anza mwongozo wa maingiliano",
+    "activeLabel": "Mwongozo umewashwa",
+    "activeAria": "Ziara inaendelea",
+    "restartButton": "Anza upya mwongozo",
+    "restartAria": "Anza upya mwongozo wa maingiliano",
+    "welcome": {
+      "title": "Karibu GYLIO",
+      "content": "Ziara hii ya haraka inakupeleka kupitia vipengele muhimu — inachukua karibu dakika 2. Unaweza kusimama wakati wowote na kurudi mahali ulipoishia."
+    },
+    "navBar": {
+      "title": "Urambazaji wako mkuu",
+      "content": "Badilisha kati ya Kazi, Kalenda, Bajeti, na zaidi ukitumia mstari huu. Vipengele vilivyowekwa alama ya ✦ vinapatikana kwenye mpango wa Premium."
+    },
+    "taskInput": {
+      "title": "Ongeza kazi",
+      "content": "Andika kazi yako hapa. Kuwa maalum — 'Jibu barua pepe ya Maria kabla ya saa 3 jioni' inashinda 'angalia barua pepe'. Bonyeza N wakati wowote kuruka moja kwa moja hapa."
+    },
+    "taskEnergy": {
+      "title": "Linganisha kazi na nishati yako",
+      "content": "Chagua kiasi gani cha nishati kazi inahitaji. Betri chini? Chagua kazi Ndogo au Chini. Unajisikia vizuri? Shughulikia ya Juu. Hii husaidia GYLIO kupendekeza kazi sahihi wakati sahihi."
+    },
+    "taskSteps": {
+      "title": "Gawanya kazi kubwa",
+      "content": "Kazi kubwa zinajisikia nyingi. Gonga 'Gawanya katika hatua' kugawanya kazi moja katika hatua ndogo — hata hatua 3 ndogo hufanya kuanza kuwa rahisi zaidi."
+    },
+    "pomodoro": {
+      "title": "Vizuizi vya kuzingatia (Pomodoro)",
+      "content": "Fanya kazi katika vipindi vifupi vya wakati — dakika 25 kufanya kazi, kisha pumzika. Mdundo wa asili wa ubongo wako unaoanana na mzunguko huu, ili ubaki katika mtiririko mrefu na kuhisi uchovu mdogo."
+    },
+    "calendar": {
+      "title": "Kalenda yako",
+      "content": "Tazama siku yako, wiki, au mwezi kwa muhtasari. Ongeza matukio na uone jinsi ratiba yako inavyoonekana ili uweze kupanga kazi karibu na ahadi zako halisi."
+    },
+    "budget": {
+      "title": "Kifuatilia cha bajeti",
+      "content": "Fuatilia mapato na matumizi kwa kategoria. Mistari ya maendeleo inaonyesha kwa usahihi kiasi gani cha kila bajeti umetumia mwezi huu — bila mshangao."
+    },
+    "social": {
+      "title": "Mipango ya kijamii",
+      "content": "Panga simu, mikutano, na ujumbe na watu wanaohusika. Chagua aina ya uhusiano, chagua kiolezo, na ongeza mpango wako."
+    },
+    "routines": {
+      "title": "Ratiba",
+      "content": "Jenga tabia za kila siku zinazoishikilia. Unda ratiba na nyakati za kuchochea na hatua ndogo — uthabiti unashinda nguvu kila wakati."
+    },
+    "rewards": {
+      "title": "Zawadi na mfululizo",
+      "content": "Pata XP kwa kukamilisha kazi, kudumisha mfululizo, na kukagua bajeti yako. Weka zawadi maalum kujiweka na motisha."
+    },
+    "done": {
+      "title": "Uko tayari!",
+      "content": "Unajua mambo ya msingi. Chunguza kwa kasi yako mwenyewe — na uanze upya mwongozo huu wakati wowote kutoka Mipangilio au kitufe cha Mwongozo katika kichwa."
+    },
+    "interactive": "Jaribu",
+    "selector": {
+      "title": "Chagua mwongozo wako",
+      "subtitle": "Anza muhtasari wa haraka au nenda kwa kina kwenye sehemu yoyote",
+      "close": "Funga",
+      "start": "Anza",
+      "hint": "Bonyeza Esc kufunga · Unaweza kuanza upya mwongozo wowote kutoka Mipangilio"
+    },
+    "flows": {
+      "overview": {
+        "name": "Muhtasari wa haraka",
+        "desc": "Vipengele vyote kwa muhtasari",
+        "duration": "~dakika 2"
+      },
+      "tasks": {
+        "name": "Maelezo ya kazi",
+        "desc": "Unda, panga na kamilisha kazi hatua kwa hatua",
+        "duration": "~dakika 2"
+      },
+      "calendar": {
+        "name": "Maelezo ya kalenda",
+        "desc": "Panga matukio na upange wiki yako",
+        "duration": "~dakika 2"
+      },
+      "budget": {
+        "name": "Maelezo ya bajeti",
+        "desc": "Weka mapato, kategoria na miamala",
+        "duration": "~dakika 4"
+      },
+      "social": {
+        "name": "Maelezo ya kijamii",
+        "desc": "Panga mwingiliano wa kijamii na ukae umeunganishwa",
+        "duration": "~dakika 2"
+      },
+      "routines": {
+        "name": "Maelezo ya ratiba",
+        "desc": "Jenga tabia thabiti za kila siku hatua kwa hatua",
+        "duration": "~dakika 2"
+      },
+      "rewards": {
+        "name": "Maelezo ya zawadi",
+        "desc": "Fuatilia XP, mfululizo na fungua zawadi maalum",
+        "duration": "~dakika 2"
+      },
+      "settings": {
+        "name": "Maelezo ya mipangilio",
+        "desc": "Bainisha uzoefu wako",
+        "duration": "~dakika 1"
+      }
+    },
+    "premium": {
+      "title": "Vipengele vya premium",
+      "content": "Mipango ya Kijamii, Ratiba, na Zawadi hufunguliwa kwenye mpango wa Premium. Kila kichupo kilichowekwa alama ya ✦ hukuruhusu kujaribu mara moja bure — angalia bango unapotembelea."
+    },
+    "tasksFlow": {
+      "welcome": {
+        "title": "Kazi — maelezo ya maingiliano",
+        "content": "Tutajenga kazi halisi pamoja. Fuata kila hatua — sehemu ziko hai ili uweze kuzijaza tunapoendelea."
+      },
+      "title": {
+        "title": "Hatua 1: Ita kazi yako",
+        "content": "Andika kitu maalum — 'Tuma barua pepe kwa Dkt. García kabla ya adhuhuri' inashinda 'barua pepe'. Bonyeza N wakati wowote kuruka hapa."
+      },
+      "date": {
+        "title": "Hatua 2: Ipange",
+        "content": "Chagua leo au tarehe ya baadaye. Kupanga kazi kunakufanya mara 2–3 zaidi uwezekane kuifanya."
+      },
+      "energy": {
+        "content": "Chagua kiasi gani cha nishati hii inahitaji. Betri chini? Chuja kwa kazi Ndogo. Unajisikia vizuri? Shughulikia ya Juu.",
+        "title": "Hatua 3: Linganisha nishati yako"
+      },
+      "steps": {
+        "content": "Gonga 'Gawanya katika hatua' na ongeza hatua ndogo 2–3. Kuanza kidogo kunashinda kamili kila wakati."
+      },
+      "submit": {
+        "title": "Hatua 4: Ongeza kazi",
+        "content": "Gonga 'Ongeza kazi'. Itaonekana kwenye kichupo cha Leo — weka alama ukimaliza."
+      },
+      "tabs": {
+        "title": "Maono yako ya kazi",
+        "content": "Leo inaonyesha kazi zilizopangwa sasa. Wiki inaonyesha siku 7 kamili. Backlog inashikilia kila kitu kisichopangwa — hakuna haraka."
+      },
+      "done": {
+        "title": "Kazi zimefanyika!",
+        "content": "Unajua jinsi ya kunakili, kupanga, kugawanya, na kukamilisha kazi. Fungua kipima muda cha Pomodoro kuendesha kipindi kilichozingatiwa."
+      },
+      "templates": {
+        "title": "Anza na kazi iliyothibitishwa",
+        "content": "Gonga hapa kuvinjari violezo 28 vilivyothibitishwa na utafiti katika maeneo 7 ya maisha. Chagua moja na kichwa chako, kiwango cha nishati, na hatua ndogo zimejazwa mara moja."
+      }
+    },
+    "calendarFlow": {
+      "welcome": {
+        "title": "Kalenda — maelezo ya maingiliano",
+        "content": "Tazama ratiba yako kamili na unda matukio. Tutapita kwenye maono ya wiki na kuongeza tukio pamoja."
+      },
+      "grid": {
+        "title": "Maono yako ya wiki",
+        "content": "Kila safu wima ni siku. Gonga tukio lolote kulihariri. Unaweza kuunganisha matukio ya kalenda na kazi ili hakuna kinachopita bila kugundulika."
+      },
+      "add": {
+        "title": "Ongeza tukio",
+        "content": "Gonga '+ Ongeza tukio' kufungua fomu. Ijaribu sasa — fomu itaonekana chini ya kitufe mara moja."
+      },
+      "form": {
+        "title": "Jaza maelezo",
+        "content": "Ingiza kichwa, wakati wa kuanza, na wakati wa kumalizia. Pia unaweza kuunganisha tukio hili na kazi, kuongeza mahali, au kuweka kikumbusho."
+      },
+      "done": {
+        "title": "Kalenda iko tayari!",
+        "content": "Matukio yanakaa karibu na kazi zako ili ujue wakati wowote ni nini kilichoahidiwa na kilichokuwa na nafasi ya kupumua."
+      }
+    },
+    "budgetFlow": {
+      "welcome": {
+        "title": "Bajeti — maelezo ya maingiliano",
+        "content": "Weka bajeti ya msingi wa sufuri katika hatua nne: unda mwezi, ongeza mapato, fafanua kategoria, kisha rekodi miamala."
+      },
+      "month": {
+        "title": "Hatua 1: Chagua mwezi wako wa bajeti",
+        "content": "Andika mwezi (mfano 2026-04) au tumia chaguo la sasa. Gonga 'Fungua bajeti' kuiunda. Kila mwezi unaanza upya."
+      },
+      "income": {
+        "title": "Hatua 2: Ongeza mapato yako",
+        "content": "Ingiza kila chanzo cha mapato na kiasi chake. Kidhibiti cha 'Iliyobaki' kinapungua unavyogawanya kategoria — sufuri inamaanisha kila shilingi ina kazi."
+      },
+      "categories": {
+        "title": "Hatua 3: Unda kategoria za matumizi",
+        "content": "Ongeza kategoria kama 'Kodi' (Hitaji), 'Mikahawa' (Tamaa), au 'Mfuko wa dharura' (Lengo) na kiasi kilichopangwa."
+      },
+      "transactions": {
+        "title": "Hatua 4: Rekodi muamala",
+        "content": "Rekodi gharama halisi: ingiza kiasi, chagua kategoria, na weka tarehe. Mistari ya maendeleo inasasishwa kwa wakati halisi."
+      },
+      "done": {
+        "title": "Bajeti imewekwa!",
+        "content": "Rudi tena kila wiki — hata mapitio ya dakika 5 ya nambari zako ndio inayokuweka kwenye njia."
+      }
+    },
+    "settingsFlow": {
+      "welcome": {
+        "title": "Mipangilio — maelezo ya maingiliano",
+        "content": "GYLIO inabadilika kulingana na jinsi ubongo wako unavyofanya kazi. Hebu tuweke mandhari, ufikiaji, na vipengele vya nguvu."
+      },
+      "theme": {
+        "title": "Chagua mandhari yako",
+        "content": "Mwanga, Giza, au Tofauti ya Juu — chagua inayofaa zaidi macho yako. Mabadiliko yanatumiwa mara moja kila mahali."
+      },
+      "gamification": {
+        "title": "Michezo",
+        "content": "Pata pointi kwa kukamilisha kazi, kurekodi mapitio ya bajeti, na kudumisha mfululizo. Izime wakati wowote kwa uzoefu usio na vikengeuzi."
+      },
+      "tour": {
+        "title": "Anza upya mwongozo huu",
+        "content": "Unaweza kuanzisha upya mwongozo wowote kutoka hapa — inafaa unaposhiriki programu au kugundua tena kipengele."
+      },
+      "done": {
+        "title": "Yote iko tayari!",
+        "content": "Mipangilio yako imehifadhiwa mara moja. Nenda kwenye Kazi kuanza kipindi chako cha kwanza chenye tija."
+      }
+    },
+    "socialFlow": {
+      "welcome": {
+        "title": "Kijamii — maelezo ya maingiliano",
+        "content": "Panga mwingiliano wa kijamii bila wasiwasi wa kujua cha kufanya. Tutaunda mpango pamoja ukitumia aina ya uhusiano na kiolezo."
+      },
+      "relationship": {
+        "title": "Hatua 1: Hii ni kwa nani?",
+        "content": "Chagua aina ya uhusiano — Familia, Rafiki, Mwenzako, au Kimapenzi. Hii huchuja violezo hadi vinavyofaa muktadha kweli kweli."
+      },
+      "form": {
+        "title": "Hatua 2: Jaza maelezo",
+        "content": "Ipa mpango kichwa, aina (simu, mkutano, ujumbe), kiwango cha nishati, na tarehe. Pia unaweza kuongeza hatua ndogo ili ujue jinsi itakavyokwenda."
+      },
+      "list": {
+        "title": "Mipango yako ya kijamii",
+        "content": "Mwingiliano wako wote unaokuja unaishi hapa. Weka alama hatua zimekamilika unavyoendelea, na usomee tafakuri ili kuimarisha tabia ya kuwasiliana."
+      },
+      "done": {
+        "title": "Kijamii kimeshughulikiwa!",
+        "content": "Unajua jinsi ya kupanga, kutekeleza, na kutafakuri mwingiliano wa kijamii. Hata uhusiano mmoja uliopangwa kwa wiki moja hukusanyika katika uhusiano thabiti zaidi."
+      }
+    },
+    "routinesFlow": {
+      "welcome": {
+        "title": "Ratiba — maelezo ya maingiliano",
+        "content": "Ratiba ni mfululizo unaofanya kwa otomatiki. Tutajenga moja pamoja — mpe wakati wa kuchochea, hatua ndogo, na mzunguko."
+      },
+      "gallery": {
+        "title": "Itifaki zilizothibitishwa na utafiti",
+        "content": "Vinjari violezo vya ratiba vilivyothibitishwa na sayansi — ratiba za asubuhi, mfululizo wa kupumzika, itifaki za kuzingatia, na zaidi. Gonga 'Vinjari itifaki' kuchunguza."
+      },
+      "form": {
+        "title": "Jenga ratiba yako",
+        "content": "Iite, weka wakati wa kuchochea (kama '07:30'), chagua mzunguko, na ongeza hatua 2–3. Kichocheo + hatua = ratiba unayoweza kuifuata kweli kweli."
+      },
+      "list": {
+        "title": "Ratiba zako zinazofanya kazi",
+        "content": "Ratiba zinazostahili zinaonyesha kitufe cha 'Kamilika'. Weka alama hatua unavyoendelea — nukta za mfululizo hufuatilia jinsi umekuwa thabiti kwa muda."
+      },
+      "done": {
+        "title": "Ratiba zimewekwa!",
+        "content": "Uthabiti unashinda nguvu. Hata ratiba ya dakika 10 iliyofanywa kila siku inashinda kipindi cha saa 2 kilichofanywa mara moja. Rudi kesho."
+      }
+    },
+    "rewardsFlow": {
+      "welcome": {
+        "title": "Zawadi — maelezo ya maingiliano",
+        "content": "Mchezo hufanya maendeleo yajulikane. Pata XP kutoka kwa kazi na mapitio ya bajeti, dumisha mfululizo, na fungua zawadi unazofafanua mwenyewe."
+      },
+      "toggle": {
+        "title": "Wezesha michezo",
+        "content": "Zima au wezesha XP, mfululizo, na zawadi. Data yako inabaki ya ndani. Iwashe kujaribu — unaweza kuizima baadaye."
+      },
+      "progress": {
+        "title": "XP yako na mfululizo",
+        "content": "Panda kiwango kwa kukamilisha kazi na kukagua bajeti yako. Mfululizo wa kazi ni mfululizo wako wa msingi — hata kazi moja iliyokamilika kwa siku moja huweka hai."
+      },
+      "form": {
+        "title": "Unda zawadi",
+        "content": "Ongeza zawadi unayotaka kweli kweli — chakula nje, kitabu kipya, siku ya bure. Weka kizingiti cha XP na itafunguliwa kiotomatiki unapoifikia."
+      },
+      "done": {
+        "title": "Zawadi zimeamilishwa!",
+        "content": "Maendeleo yako yanafuatiliwa sasa. Kamilisha kazi, kagua bajeti yako kila wiki, na uangalie mfululizo wako ukikua. Umestahili."
+      }
+    }
+  }
 }

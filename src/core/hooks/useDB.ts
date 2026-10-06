@@ -509,7 +509,7 @@ const useDB = () => {
       insertRewardsProgress:
         'INSERT OR IGNORE INTO rewards_progress (id, points, level, focusStreakDays, lastFocusDate, taskStreakDays, lastTaskCompletionDate, budgetStreakWeeks, lastBudgetReviewWeek, skipTokens) VALUES (1, 0, 1, 0, NULL, 0, NULL, 0, NULL, 0);',
       updateRewardsProgress:
-        'UPDATE rewards_progress SET points = ?, level = ?, focusStreakDays = ?, lastFocusDate = ?, taskStreakDays = ?, lastTaskCompletionDate = ?, budgetStreakWeeks = ?, lastBudgetReviewWeek = ?, skipTokens = ? WHERE id = 1;',
+        'UPDATE rewards_progress SET points = ?, level = ?, focusStreakDays = ?, lastFocusDate = ?, taskStreakDays = ?, lastTaskCompletionDate = ?, budgetStreakWeeks = ?, lastBudgetReviewWeek = ?, skipTokens = ? WHERE id = ?;',
       selectRewardsProgress: 'SELECT * FROM rewards_progress WHERE id = ?;',
       insertRoutine:
         'INSERT INTO routines (title, description, frequency, triggerTime, steps, lastCompletedAt, anchorHabit, completionLog) VALUES (?, ?, ?, ?, ?, ?, ?, ?);',
@@ -1463,6 +1463,7 @@ const useDB = () => {
                   next.budgetStreakWeeks,
                   next.lastBudgetReviewWeek,
                   next.skipTokens,
+                  1,
                 ],
                 () => {
                   resolve(next);

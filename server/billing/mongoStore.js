@@ -1,0 +1,339 @@
+/**
+ * mongoStore.js — billing, gift and feedback persistence on MongoDB (production).
+ *
+ * Same contract as sqliteStore.js, verified by storeContract.test.js against an
+ * in-memory mongod. Timestamps are stored as ISO strings, matching SQLite, so
+ * lexical comparison of `trialEndsAt > now` means the same thing in both.
+ */
+
+'use strict';
+
+const crypto = require('node:crypto');
+const mongoose = require('mongoose');
+const { toIsoOrNull } = require('./sqliteStore');
+
+const { Schema } = mongoose;
+const opts = { versionKey: false };
+
+const AccountSchema = new Schema({
+  userId: { type: String, required: true, unique: true },
+  email: { type: String, default: null },
+  trialStartedAt: { type: String, default: null },
+  trialEndsAt: { type: String, default: null, index: true },
+  createdAt: String,
+  updatedAt: String,
+}, opts);
+
+const SubscriptionSchema = new Schema({
+  userId: { type: String, required: true, index: true },
+  provider: { type: String, required: true },
+  providerRef: { type: String, required: true },
+  status: { type: String, required: true },
+  interval: { type: String, default: null },
+  currency: { type: String, default: null },
+  amountMinor: { type: Number, default: null },
+  currentPeriodEnd: { type: String, default: null },
+  cancelAtPeriodEnd: { type: Boolean, default: false },
+  customerRef: { type: String, default: null },
+  manageUrl: { type: String, default: null },
+  providerUpdatedAt: { type: String, default: null },
+  createdAt: String,
+  updatedAt: String,
+}, opts);
+SubscriptionSchema.index({ provider: 1, providerRef: 1 }, { unique: true });
+
+const GiftSchema = new Schema({
+  userId: { type: String, default: null, index: true },
+  email: { type: String, default: null, index: true },
+  startsAt: { type: String, required: true },
+  endsAt: { type: String, default: null },
+  reason: { type: String, required: true },
+  note: { type: String, default: null },
+  grantedBy: { type: String, required: true },
+  grantedAt: { type: String, required: true },
+  revokedAt: { type: String, default: null },
+  revokedBy: { type: String, default: null },
+  claimedAt: { type: String, default: null },
+}, opts);
+
+const WebhookEventSchema = new Schema({
+  provider: { type: String, required: true },
+  eventId: { type: String, required: true },
+  receivedAt: String,
+}, opts);
+WebhookEventSchema.index({ provider: 1, eventId: 1 }, { unique: true });
+
+const FeedbackSchema = new Schema({
+  userId: { type: String, default: null, index: true },
+  kind: { type: String, required: true },
+  title: { type: String, required: true },
+  description: { type: String, required: true },
+  stepsToReproduce: { type: String, default: null },
+  expected: { type: String, default: null },
+  actual: { type: String, default: null },
+  severity: { type: String, default: null },
+  route: { type: String, default: null },
+  context: { type: Schema.Types.Mixed, default: {} },
+  status: { type: String, default: 'new' },
+  adminNote: { type: String, default: null },
+  createdAt: String,
+  updatedAt: String,
+}, opts);
+FeedbackSchema.index({ status: 1, createdAt: -1 });
+
+const UserStateSchema = new Schema({
+  userId: { type: String, required: true, unique: true },
+  data: { type: String, required: true },
+  version: { type: Number, required: true },
+  updatedAt: { type: String, required: true },
+}, opts);
+
+const AnalyticsEventSchema = new Schema({
+  eventId: { type: String, required: true },
+  name: { type: String, required: true },
+  sessionId: { type: String, required: true },
+  signedIn: { type: Boolean, default: false },
+  props: { type: Schema.Types.Mixed, default: {} },
+  receivedAt: { type: String, required: true, index: true },
+}, opts);
+AnalyticsEventSchema.index({ eventId: 1 }, { unique: true });
+
+const model = (connection, name, schema, collection) =>
+  connection.models[name] || connection.model(name, schema, collection);
+
+const clean = (doc) => {
+  if (!doc) return null;
+  const { _id, ...rest } = doc;
+  return { id: String(_id), ...rest };
+};
+
+const cleanAccount = (doc) => {
+  if (!doc) return null;
+  const { _id, ...rest } = doc;
+  return rest;
+};
+
+const isObjectId = (id) => mongoose.isValidObjectId(id) && String(id).length === 24;
+const DUPLICATE_KEY = 11000;
+
+const OPTIONAL_SUBSCRIPTION_FIELDS = ['interval', 'currency', 'amountMinor', 'currentPeriodEnd', 'customerRef', 'manageUrl'];
+
+function subscriptionFields(record) {
+  const fields = { userId: record.userId, status: record.status, cancelAtPeriodEnd: Boolean(record.cancelAtPeriodEnd) };
+  for (const key of OPTIONAL_SUBSCRIPTION_FIELDS) fields[key] = record[key] ?? null;
+  return fields;
+}
+
+/** True when a bulk insert failed only because some documents already existed. */
+function isOnlyDuplicateKeys(error) {
+  if (error && error.code === DUPLICATE_KEY) return true;
+  const writeErrors = (error && (error.writeErrors || (error.result && error.result.writeErrors))) || [];
+  return writeErrors.length > 0 && writeErrors.every((w) => (w.code || (w.err && w.err.code)) === DUPLICATE_KEY);
+}
+
+function createMongoStore(connection = mongoose.connection) {
+  const Account = model(connection, 'BillingAccount', AccountSchema, 'billing_accounts');
+  const Subscription = model(connection, 'BillingSubscription', SubscriptionSchema, 'billing_subscriptions');
+  const Gift = model(connection, 'BillingGift', GiftSchema, 'billing_gifts');
+  const WebhookEvent = model(connection, 'BillingWebhookEvent', WebhookEventSchema, 'billing_webhook_events');
+  const Feedback = model(connection, 'FeedbackReport', FeedbackSchema, 'feedback_reports');
+  const UserState = model(connection, 'UserState', UserStateSchema, 'user_state');
+  const AnalyticsEvent = model(connection, 'AnalyticsEvent', AnalyticsEventSchema, 'analytics_events');
+
+  const store = {
+    kind: 'mongodb',
+
+    async init() {
+      await Promise.all([Account, Subscription, Gift, WebhookEvent, Feedback, UserState, AnalyticsEvent].map((m) => m.init()));
+    },
+
+    getAccount: async (userId) => cleanAccount(await Account.findOne({ userId }).lean()),
+
+    async ensureAccount(userId, { email = null, now }) {
+      const update = { $setOnInsert: { userId, createdAt: now, updatedAt: now } };
+      if (email) update.$set = { email };
+      await Account.updateOne({ userId }, update, { upsert: true });
+      return store.getAccount(userId);
+    },
+
+    async startTrial(userId, { startedAt, endsAt }) {
+      await store.ensureAccount(userId, { now: startedAt });
+      const doc = await Account.findOneAndUpdate(
+        { userId, trialStartedAt: null },
+        { $set: { trialStartedAt: startedAt, trialEndsAt: endsAt, updatedAt: startedAt } },
+        { new: true }
+      ).lean();
+      return cleanAccount(doc);
+    },
+
+    listActiveTrialAccounts: async (now) =>
+      (await Account.find({ trialEndsAt: { $gt: now } }).sort({ trialEndsAt: 1 }).lean()).map(cleanAccount),
+
+    listSubscriptions: async (userId) =>
+      (await Subscription.find({ userId }).sort({ createdAt: 1 }).lean()).map(clean),
+
+    listAllSubscriptions: async () =>
+      (await Subscription.find({}).sort({ updatedAt: -1 }).lean()).map(clean),
+
+    getSubscriptionByRef: async (provider, providerRef) =>
+      clean(await Subscription.findOne({ provider, providerRef }).lean()),
+
+    /** Same contract as SQLite: one conditional write, so a racing older event can't win. */
+    async upsertSubscription(record, { now }) {
+      const incoming = toIsoOrNull(record.providerUpdatedAt);
+      const fields = { ...subscriptionFields(record), providerUpdatedAt: incoming, updatedAt: now };
+      const filter = { provider: record.provider, providerRef: record.providerRef };
+      if (incoming) filter.$or = [{ providerUpdatedAt: null }, { providerUpdatedAt: { $lte: incoming } }];
+      let applied = true;
+      try {
+        await Subscription.updateOne(filter, { $set: fields, $setOnInsert: { createdAt: now } }, { upsert: true });
+      } catch (error) {
+        // The filter didn't match because a newer event is stored, so the upsert tried to insert a duplicate.
+        if (error?.code !== DUPLICATE_KEY) throw error;
+        applied = false;
+      }
+      return { applied, subscription: await store.getSubscriptionByRef(record.provider, record.providerRef) };
+    },
+
+    listGifts: async ({ userId } = {}) =>
+      (userId
+        ? await Gift.find({ userId }).sort({ startsAt: 1 }).lean()
+        : await Gift.find({}).sort({ grantedAt: -1 }).lean()
+      ).map(clean),
+
+    getGift: async (id) => (isObjectId(id) ? clean(await Gift.findById(id).lean()) : null),
+
+    async createGift(gift) {
+      const created = await Gift.create({
+        userId: gift.userId || null,
+        email: gift.email || null,
+        startsAt: gift.startsAt,
+        endsAt: gift.endsAt ?? null,
+        reason: gift.reason,
+        note: gift.note || null,
+        grantedBy: gift.grantedBy,
+        grantedAt: gift.grantedAt,
+      });
+      return clean(created.toObject());
+    },
+
+    async revokeGift(id, { revokedAt, revokedBy }) {
+      if (!isObjectId(id)) return null;
+      const doc = await Gift.findOneAndUpdate(
+        { _id: id, revokedAt: null },
+        { $set: { revokedAt, revokedBy } },
+        { new: true }
+      ).lean();
+      return clean(doc);
+    },
+
+    hasUnclaimedGifts: async () => Boolean(await Gift.exists({ userId: null, revokedAt: null })),
+
+    async claimGiftsByEmail(emails, userId, { now }) {
+      const normalized = [...new Set(emails.map((e) => String(e).trim().toLowerCase()).filter(Boolean))];
+      if (!normalized.length) return 0;
+      const result = await Gift.updateMany(
+        { userId: null, email: { $in: normalized } },
+        { $set: { userId, claimedAt: now } }
+      );
+      return result.modifiedCount;
+    },
+
+    async recordWebhookEvent(provider, eventId, { now }) {
+      try {
+        await WebhookEvent.create({ provider, eventId: String(eventId), receivedAt: now });
+        return true;
+      } catch (error) {
+        if (error?.code === DUPLICATE_KEY) return false;
+        throw error;
+      }
+    },
+
+    hasWebhookEvent: async (provider, eventId) =>
+      Boolean(await WebhookEvent.exists({ provider, eventId: String(eventId) })),
+
+    async createFeedback(report) {
+      const created = await Feedback.create({
+        userId: report.userId || null,
+        kind: report.kind,
+        title: report.title,
+        description: report.description,
+        stepsToReproduce: report.stepsToReproduce || null,
+        expected: report.expected || null,
+        actual: report.actual || null,
+        severity: report.severity || null,
+        route: report.route || null,
+        context: report.context || {},
+        status: 'new',
+        createdAt: report.createdAt,
+        updatedAt: report.createdAt,
+      });
+      return clean(created.toObject());
+    },
+
+    getFeedback: async (id) => (isObjectId(id) ? clean(await Feedback.findById(id).lean()) : null),
+
+    async listFeedback({ status, kind, userId, limit = 200 } = {}) {
+      const filter = {};
+      if (status) filter.status = status;
+      if (kind) filter.kind = kind;
+      if (userId) filter.userId = userId;
+      const docs = await Feedback.find(filter)
+        .sort({ createdAt: -1, _id: -1 })
+        .limit(Math.min(Math.max(1, limit), 500))
+        .lean();
+      return docs.map(clean);
+    },
+
+    async insertAnalyticsEvents(events) {
+      if (!events.length) return 0;
+      const docs = events.map((e) => ({ ...e, eventId: e.eventId || `srv-${crypto.randomUUID()}` }));
+      try {
+        await AnalyticsEvent.insertMany(docs, { ordered: false });
+      } catch (error) {
+        // Re-sent events hit the unique eventId index; everything else still went in.
+        if (!isOnlyDuplicateKeys(error)) throw error;
+      }
+      return events.length;
+    },
+
+    async listAnalyticsEvents({ from, to, limit = 50000 }) {
+      const docs = await AnalyticsEvent.find({ receivedAt: { $gte: from, $lt: to } }, { _id: 0 })
+        .sort({ receivedAt: 1 }).limit(limit).lean();
+      return docs.map((d) => ({ name: d.name, sessionId: d.sessionId, signedIn: Boolean(d.signedIn), props: d.props || {}, receivedAt: d.receivedAt }));
+    },
+
+    async getUserState(userId) {
+      const doc = await UserState.findOne({ userId }, { _id: 0, data: 1, version: 1, updatedAt: 1 }).lean();
+      return doc || null;
+    },
+
+    async putUserState(userId, { data, baseVersion, now }) {
+      try {
+        const written = baseVersion === 0
+          ? await UserState.create({ userId, data, version: 1, updatedAt: now })
+          : await UserState.findOneAndUpdate(
+            { userId, version: baseVersion },
+            { $set: { data, updatedAt: now }, $inc: { version: 1 } },
+            { new: true }
+          );
+        return { ok: Boolean(written), state: await store.getUserState(userId) };
+      } catch (error) {
+        if (error?.code === DUPLICATE_KEY) return { ok: false, state: await store.getUserState(userId) };
+        throw error;
+      }
+    },
+
+    async updateFeedback(id, patch, { now }) {
+      if (!isObjectId(id)) return null;
+      const set = { updatedAt: now };
+      for (const field of ['status', 'adminNote', 'severity']) {
+        if (patch[field] !== undefined) set[field] = patch[field];
+      }
+      return clean(await Feedback.findByIdAndUpdate(id, { $set: set }, { new: true }).lean());
+    },
+  };
+  return store;
+}
+
+module.exports = { createMongoStore };

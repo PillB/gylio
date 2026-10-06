@@ -6,19 +6,24 @@ import React, {
   useState,
 } from 'react';
 import type { ReactNode } from 'react';
-import { TOUR_STEPS } from '../../features/tour/tourSteps';
+import { ALL_FLOWS, FLOW_MAP, OVERVIEW_FLOW } from '../../features/tour/tourSteps';
+import type { TourStep } from '../../features/tour/tourSteps';
 
 const STORAGE_KEY = 'gylio_tour';
-
-export const TOTAL_TOUR_STEPS = TOUR_STEPS.length;
 
 export interface TourState {
   active: boolean;
   stepIndex: number;
   completed: boolean;
+  flowId: string;
 }
 
-const DEFAULT_STATE: TourState = { active: false, stepIndex: 0, completed: false };
+const DEFAULT_STATE: TourState = {
+  active: false,
+  stepIndex: 0,
+  completed: false,
+  flowId: 'overview',
+};
 
 function loadState(): TourState {
   try {
@@ -43,6 +48,11 @@ function saveState(s: TourState): void {
 
 export interface GuidedTourContextValue {
   tourState: TourState;
+  showSelector: boolean;
+  currentSteps: TourStep[];
+  openSelector: () => void;
+  closeSelector: () => void;
+  startFlow: (flowId: string) => void;
   startTour: () => void;
   pauseTour: () => void;
   nextStep: () => void;
@@ -57,6 +67,7 @@ const GuidedTourContext = createContext<GuidedTourContextValue | null>(null);
 
 export function GuidedTourProvider({ children }: { children: ReactNode }) {
   const [tourState, setTourState] = useState<TourState>(loadState);
+  const [showSelector, setShowSelector] = useState(false);
 
   const update = useCallback((patch: Partial<TourState>) => {
     setTourState((prev) => {
@@ -66,12 +77,49 @@ export function GuidedTourProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const startTour = useCallback(() => update({ active: true }), [update]);
+  const currentSteps = useMemo(
+    () => FLOW_MAP[tourState.flowId]?.steps ?? OVERVIEW_FLOW.steps,
+    [tourState.flowId]
+  );
+
+  const totalSteps = currentSteps.length;
+
+  const openSelector = useCallback(() => {
+    setShowSelector(true);
+    update({ active: false });
+  }, [update]);
+
+  const closeSelector = useCallback(() => {
+    setShowSelector(false);
+  }, []);
+
+  const startFlow = useCallback(
+    (flowId: string) => {
+      const validId = FLOW_MAP[flowId] ? flowId : 'overview';
+      const next: TourState = {
+        active: true,
+        stepIndex: 0,
+        completed: false,
+        flowId: validId,
+      };
+      saveState(next);
+      setTourState(next);
+      setShowSelector(false);
+    },
+    []
+  );
+
+  const startTour = useCallback(
+    () => update({ active: true }),
+    [update]
+  );
+
   const pauseTour = useCallback(() => update({ active: false }), [update]);
 
   const nextStep = useCallback(() => {
     setTourState((prev) => {
-      const next = { ...prev, stepIndex: Math.min(prev.stepIndex + 1, TOTAL_TOUR_STEPS - 1) };
+      const steps = FLOW_MAP[prev.flowId]?.steps ?? OVERVIEW_FLOW.steps;
+      const next = { ...prev, stepIndex: Math.min(prev.stepIndex + 1, steps.length - 1) };
       saveState(next);
       return next;
     });
@@ -85,23 +133,30 @@ export function GuidedTourProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const goToStep = useCallback((index: number) => {
-    update({ stepIndex: Math.max(0, Math.min(index, TOTAL_TOUR_STEPS - 1)) });
-  }, [update]);
+  const goToStep = useCallback(
+    (index: number) => {
+      update({ stepIndex: Math.max(0, Math.min(index, totalSteps - 1)) });
+    },
+    [update, totalSteps]
+  );
 
   const completeTour = useCallback(() => {
     update({ active: false, completed: true });
   }, [update]);
 
+  /** Opens the flow selector so the user can choose which guide to run. */
   const resetTour = useCallback(() => {
-    const next: TourState = { active: true, stepIndex: 0, completed: false };
-    saveState(next);
-    setTourState(next);
-  }, []);
+    openSelector();
+  }, [openSelector]);
 
   const value = useMemo<GuidedTourContextValue>(
     () => ({
       tourState,
+      showSelector,
+      currentSteps,
+      openSelector,
+      closeSelector,
+      startFlow,
       startTour,
       pauseTour,
       nextStep,
@@ -109,12 +164,31 @@ export function GuidedTourProvider({ children }: { children: ReactNode }) {
       goToStep,
       completeTour,
       resetTour,
-      totalSteps: TOTAL_TOUR_STEPS,
+      totalSteps,
     }),
-    [tourState, startTour, pauseTour, nextStep, prevStep, goToStep, completeTour, resetTour]
+    [
+      tourState,
+      showSelector,
+      currentSteps,
+      openSelector,
+      closeSelector,
+      startFlow,
+      startTour,
+      pauseTour,
+      nextStep,
+      prevStep,
+      goToStep,
+      completeTour,
+      resetTour,
+      totalSteps,
+    ]
   );
 
-  return <GuidedTourContext.Provider value={value}>{children}</GuidedTourContext.Provider>;
+  return (
+    <GuidedTourContext.Provider value={value}>
+      {children}
+    </GuidedTourContext.Provider>
+  );
 }
 
 export function useGuidedTour(): GuidedTourContextValue {
@@ -122,3 +196,9 @@ export function useGuidedTour(): GuidedTourContextValue {
   if (!ctx) throw new Error('useGuidedTour must be used inside GuidedTourProvider');
   return ctx;
 }
+
+/** Total steps in the overview flow — kept for backward compat */
+export const TOTAL_TOUR_STEPS = OVERVIEW_FLOW.steps.length;
+
+/** All available flows — for display in the selector */
+export { ALL_FLOWS };

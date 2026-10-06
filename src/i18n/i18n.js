@@ -11,6 +11,14 @@ import shellEn from './shell.en.json';
 import shellEsPE from './shell.es-PE.json';
 import onboardingEn from './onboarding.en.json';
 import onboardingEsPE from './onboarding.es-PE.json';
+import billingEn from './billing.en.json';
+import billingEsPE from './billing.es-PE.json';
+import feedbackEn from './feedback.en.json';
+import feedbackEsPE from './feedback.es-PE.json';
+import adminEn from './admin.en.json';
+import adminEsPE from './admin.es-PE.json';
+import accountEn from './account.en.json';
+import accountEsPE from './account.es-PE.json';
 
 /**
  * Production localization configuration.
@@ -47,6 +55,10 @@ const enCatalog = {
     ...(en.onboarding || {}),
     ...onboardingEn,
   },
+  billing: billingEn,
+  feedback: feedbackEn,
+  admin: adminEn,
+  account: accountEn,
 };
 
 const esPECatalog = {
@@ -67,6 +79,10 @@ const esPECatalog = {
     ...(esPE.onboarding || {}),
     ...onboardingEsPE,
   },
+  billing: billingEsPE,
+  feedback: feedbackEsPE,
+  admin: adminEsPE,
+  account: accountEsPE,
 };
 
 const resources = {

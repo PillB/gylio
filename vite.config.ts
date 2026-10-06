@@ -3,6 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { buildCsp } from './csp.config.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -35,6 +36,25 @@ const applyDeploymentGuideShippingFixes = (html) => {
  * After build, apply the identical mobile-containment fix to the standalone
  * copied HTML in dist/ so the exact artifact deployed by Pages is validated.
  */
+/** Fills the CSP meta tag from the build's own environment (see csp.config.js). */
+const contentSecurityPolicy = () => {
+  let env: Record<string, string> = {};
+  return {
+    name: 'gylio-content-security-policy',
+    configResolved(config) {
+      env = config.env;
+    },
+    transformIndexHtml(html: string) {
+      const csp = buildCsp({
+        apiBaseUrl: env.VITE_API_BASE_URL,
+        clerkPublishableKey: env.VITE_CLERK_PUBLISHABLE_KEY,
+        adsense: env.VITE_ADS_PROVIDER === 'adsense',
+      });
+      return html.replace('__GYLIO_CSP__', csp);
+    },
+  };
+};
+
 const deploymentGuidePublicBaseBridge = () => ({
   name: 'deployment-guide-public-base-bridge',
   configureServer(server) {
@@ -72,9 +92,26 @@ const deploymentGuidePublicBaseBridge = () => ({
 // - Maps react-native imports to react-native-web
 // - Uses VITE_BASE_PATH so the same build can target GitHub Pages (/gylio/)
 //   or a root-hosted production SPA (/)
-export default defineConfig({
+// - Fails a production build when the Clerk publishable key is missing
+export default defineConfig(({ mode }) => {
+  // The Clerk key is mandatory for the root-hosted production SPA, but the
+  // GitHub Pages build is a deliberately keyless static preview (pages.yml sets
+  // only VITE_BASE_PATH), so requiring it there would break that deployment.
+  if (mode === 'production' && base === '/' && !process.env.VITE_CLERK_PUBLISHABLE_KEY) {
+    throw new Error(
+      '[build] VITE_CLERK_PUBLISHABLE_KEY is required for root-hosted production builds. ' +
+      'Set it in your CI environment or .env.local file.'
+    );
+  }
+  if (mode === 'production' && !process.env.VITE_CLERK_PUBLISHABLE_KEY) {
+    console.warn(
+      `[build] VITE_CLERK_PUBLISHABLE_KEY is not set; building ${base} without authentication.`
+    );
+  }
+
+  return {
   base,
-  plugins: [react(), deploymentGuidePublicBaseBridge()],
+  plugins: [react(), contentSecurityPolicy(), deploymentGuidePublicBaseBridge()],
   build: {
     manifest: true,
     rollupOptions: {
@@ -183,4 +220,5 @@ export default defineConfig({
       },
     },
   },
+  };
 });

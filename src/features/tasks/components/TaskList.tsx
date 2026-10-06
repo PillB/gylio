@@ -13,7 +13,10 @@ import { TaskTemplateGallery } from './TaskTemplateGallery';
 import type { TaskTemplate } from '../data/taskTemplateLibrary';
 import WinCard from '../../../components/WinCard';
 import EmptyStateAction from '../../../components/EmptyStateAction';
+import BudgetTooltip from '../../../components/atoms/BudgetTooltip';
 import { track, Events } from '../../../core/analytics';
+import { useRecurringReliability } from '../../recurring/useRecurringReliability';
+import RecurringReliabilityPanel from '../../recurring/RecurringReliabilityPanel';
 import {
   MAX_SUBTASKS,
   chunkTasks,
@@ -43,6 +46,7 @@ type SubtaskEditorProps = {
   error?: string | null;
   theme: ThemeTokens;
   idPrefix: string;
+  tooltip?: React.ReactNode;
 };
 
 const SubtaskEditor: React.FC<SubtaskEditorProps> = ({
@@ -57,6 +61,7 @@ const SubtaskEditor: React.FC<SubtaskEditorProps> = ({
   error,
   theme,
   idPrefix,
+  tooltip,
 }) => (
   <fieldset
     style={{
@@ -64,11 +69,13 @@ const SubtaskEditor: React.FC<SubtaskEditorProps> = ({
       borderRadius: theme.shape.radiusMd,
       padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
       margin: 0,
+      // Fieldsets default to min-inline-size: min-content, which overflows 320px screens.
+      minWidth: 0,
     }}
   >
-    <legend style={{ padding: `0 ${theme.spacing.xs}px`, fontWeight: 600 }}>{label}</legend>
+    <legend style={{ padding: `0 ${theme.spacing.xs}px`, fontWeight: 600, display: 'flex', alignItems: 'center' }}>{label}{tooltip}</legend>
     <p style={{ margin: '0 0 0.5rem', color: theme.colors.muted }}>{helper}</p>
-    <div style={{ display: 'grid', gap: '0.5rem' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: '0.5rem' }}>
       {subtasks.map((subtask, index) => (
         <div key={`${idPrefix}-subtask-${index.toString()}`} style={{ display: 'flex', gap: '0.5rem' }}>
           <input
@@ -85,6 +92,9 @@ const SubtaskEditor: React.FC<SubtaskEditorProps> = ({
             }}
             style={{
               flex: 1,
+              // Flex items default to min-width: auto (the input's intrinsic width),
+              // which pushed the Remove button off 320px screens.
+              minWidth: 0,
               minHeight: '44px',
               padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
               borderRadius: theme.shape.radiusMd,
@@ -191,6 +201,8 @@ const TaskList: React.FC = () => {
   const [editEnergy, setEditEnergy] = useState<EnergyLevel>('medium');
   const [editIntention, setEditIntention] = useState('');
   const [showTemplateGallery, setShowTemplateGallery] = useState(false);
+  const [showReliabilityPanel, setShowReliabilityPanel] = useState(false);
+  const reliability = useRecurringReliability();
   const [showWinCard, setShowWinCard] = useState(false);
   const [focusModeExpanded, setFocusModeExpanded] = useState(false);
 
@@ -199,13 +211,18 @@ const TaskList: React.FC = () => {
     const segment = keyParts[keyParts.length - 2] ?? template.id;
     const fallbackTitle = segment.replace(/([A-Z])/g, ' $1').trim();
     setNewTaskTitle(t(template.titleKey, fallbackTitle));
-    setNewTaskSubtasks(template.subtasks.map((label) => ({ label, done: false })));
+    setNewTaskSubtasks(template.subtaskKeys.map((key) => ({ label: t(key), done: false })));
     setNewTaskEnergy(template.energyRequired);
-    setShowSubtaskEditor(template.subtasks.length > 0);
+    setShowSubtaskEditor(template.subtaskKeys.length > 0);
     setShowTaskDetails(true);
     setShowTemplateGallery(false);
     setFormErrors(null);
     setTitleTouched(false);
+    // Scroll form into view so user sees the populated title + steps without hunting
+    setTimeout(() => {
+      taskTitleRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      taskTitleRef.current?.focus();
+    }, 80);
   }, [t]);
   const { dateKey: todayKey } = useClock(i18n.language);
   const tomorrowKey = useMemo(() => {
@@ -493,10 +510,12 @@ const TaskList: React.FC = () => {
       ariaLabel={`${t('tasks.title')} module`}
       title={t('tasks.title')}
       subtitle={t('tasks.description') || ''}
+      badge={<BudgetTooltip content={t('tooltips.tasks.section', 'Your task hub — add, prioritize, and complete tasks broken into manageable steps. Match tasks to your current energy level so progress feels possible every day.')} />}
     >
       <div style={{ marginBottom: `${theme.spacing.md}px` }}>
         <button
           type="button"
+          data-tour="task-template-btn"
           onClick={() => setShowTemplateGallery((prev) => !prev)}
           style={{
             display: 'flex',
@@ -525,12 +544,71 @@ const TaskList: React.FC = () => {
         )}
       </div>
 
+      {/* ── Recurring reliability status ── */}
+      <div style={{ marginBottom: `${theme.spacing.md}px` }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+          <button
+            type="button"
+            onClick={() => {
+              const next = !showReliabilityPanel;
+              setShowReliabilityPanel(next);
+              if (next) track(Events.RECURRING_RELIABILITY_VIEWED);
+            }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
+              minHeight: 44,
+              borderRadius: theme.shape.radiusFull,
+              border: `1.5px solid ${showReliabilityPanel ? theme.colors.primary : theme.colors.border}`,
+              background: showReliabilityPanel ? `${theme.colors.primary}12` : 'transparent',
+              color: showReliabilityPanel ? theme.colors.primary : theme.colors.muted,
+              cursor: 'pointer',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              fontFamily: theme.typography.body.family,
+            }}
+          >
+            <span>🔁</span>
+            {showReliabilityPanel
+              ? t('recurring.hidePanel', 'Hide reliability status')
+              : t('recurring.showPanel', 'Reliability status')}
+          </button>
+          <BudgetTooltip content={t('tooltips.tasks.reliability', 'Tracks how consistently you complete recurring tasks. Use this to spot patterns, identify what is stalling, and build a more reliable routine over time.')} />
+        </span>
+        {showReliabilityPanel && (
+          <div
+            style={{
+              marginTop: `${theme.spacing.sm}px`,
+              border: `1px solid ${theme.colors.border}`,
+              borderRadius: theme.shape.radiusMd,
+              padding: `${theme.spacing.sm}px`,
+              background: theme.colors.surface,
+            }}
+          >
+            <RecurringReliabilityPanel
+              rows={reliability.rows}
+              lastGlobalCheckAt={reliability.lastGlobalCheckAt}
+              isChecking={reliability.isChecking}
+              isRepairing={reliability.isRepairing}
+              onManualCheck={reliability.runCheck}
+              onRepair={reliability.repair}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* An implicit `auto` grid column cannot shrink below a child's intrinsic
+          width. #new-task (size=20 at the 16px iOS no-zoom font size) is ~268px,
+          wider than the card at 320px, so the column is pinned to minmax(0, 1fr). */}
       <form
         onSubmit={handleAddTask}
-        style={{ marginBottom: '1rem', display: 'grid', gap: `${theme.spacing.sm}px` }}
+        style={{ marginBottom: '1rem', display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: `${theme.spacing.sm}px` }}
       >
-        <label htmlFor="new-task" style={{ display: 'none' }}>
+        <label htmlFor="new-task" style={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
           {t('addTask')}
+          <BudgetTooltip content={t('tooltips.tasks.title', "Name your task concisely but specifically. 'Reply to Maria's project email' beats 'emails'. Specific tasks are easier to start.")} />
         </label>
         <input
           id="new-task"
@@ -583,6 +661,7 @@ const TaskList: React.FC = () => {
           </button>
           <button
             type="submit"
+            data-tour="task-submit"
             aria-label={t('addTask')}
             style={{
               minHeight: '44px',
@@ -607,6 +686,7 @@ const TaskList: React.FC = () => {
               aria-label={t('tasks.scheduleTask', 'Schedule task')}
               style={{
                 margin: 0,
+                minWidth: 0,
                 padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
                 borderRadius: theme.shape.radiusMd,
                 border: `1px solid ${theme.colors.border}`,
@@ -660,11 +740,13 @@ const TaskList: React.FC = () => {
                   {t('tasks.pickDate', 'Pick date')}
                 </button>
               </div>
-              <label htmlFor="planned-date" style={{ display: 'block', marginTop: `${theme.spacing.sm}px`, fontWeight: 600 }}>
+              <label htmlFor="planned-date" style={{ display: 'flex', alignItems: 'center', marginTop: `${theme.spacing.sm}px`, fontWeight: 600 }}>
                 {t('tasks.plannedDateLabel')}
+                <BudgetTooltip content={t('tooltips.tasks.plannedDate', 'Pick a date to schedule this task. Tasks with a date appear in your calendar and daily view — helps you plan ahead and reduce last-minute stress.')} />
               </label>
               <input
                 id="planned-date"
+                data-tour="task-date"
                 type="date"
                 value={plannedDate}
                 onChange={(event) => {
@@ -689,8 +771,9 @@ const TaskList: React.FC = () => {
             </fieldset>
 
             <div data-tour="task-energy">
-              <p style={{ margin: '0 0 0.5rem', fontWeight: 600, fontSize: '0.875rem' }}>
+              <p style={{ margin: '0 0 0.5rem', fontWeight: 600, fontSize: '0.875rem', display: 'flex', alignItems: 'center' }}>
                 {t('tasks.energyLabel', 'Energy required')}
+                <BudgetTooltip content={t('tooltips.tasks.energy', 'Rate how much mental/physical energy this task needs. Filter by energy to find tasks that match how you feel right now — great for low-energy days.')} />
               </p>
               <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                 {ENERGY_LEVELS.map((level) => (
@@ -718,8 +801,9 @@ const TaskList: React.FC = () => {
             </div>
             {newTaskTitle.trim() && !plannedDate && (
               <div>
-                <label htmlFor="new-task-intention" style={{ fontWeight: 600, fontSize: '0.875rem', display: 'block', marginBottom: 4 }}>
+                <label htmlFor="new-task-intention" style={{ fontWeight: 600, fontSize: '0.875rem', display: 'flex', alignItems: 'center', marginBottom: 4 }}>
                   {t('tasks.intentionLabel', 'When / where')}
+                  <BudgetTooltip content={t('tooltips.tasks.intention', 'Write a specific when/where implementation intention (e.g. "After lunch I will…"). Research shows this doubles follow-through on intentions.')} />
                 </label>
                 <textarea
                   id="new-task-intention"
@@ -777,6 +861,7 @@ const TaskList: React.FC = () => {
                 error={newSubtaskError}
                 theme={theme}
                 idPrefix="new-task"
+                tooltip={<BudgetTooltip content={t('tooltips.tasks.subtasks', 'Break your task into small, concrete steps. Each step should take under 10 minutes — this makes starting easier and tracks your real progress.')} />}
               />
             ) : null}
           </>
@@ -785,8 +870,8 @@ const TaskList: React.FC = () => {
       {formErrors ? (
         <p style={{ color: theme.colors.accent, marginTop: 0 }}>{formErrors}</p>
       ) : null}
-      <div style={{ display: 'grid', gap: `${theme.spacing.lg}px` }}>
-        <div role="tablist" aria-label={t('tasks.viewLabel')} style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: `${theme.spacing.lg}px` }}>
+        <div data-tour="task-tabs" className="app-tabs" role="tablist" aria-label={t('tasks.viewLabel')} style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
           {viewOptions.map((option) => (
             <button
               key={option.id}
@@ -794,6 +879,7 @@ const TaskList: React.FC = () => {
               type="button"
               aria-selected={viewFilter === option.id}
               onClick={() => setViewFilter(option.id)}
+              className="app-tabs__item"
               style={{
                 minHeight: '44px',
                 padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
@@ -802,13 +888,15 @@ const TaskList: React.FC = () => {
                 backgroundColor: viewFilter === option.id ? theme.colors.background : theme.colors.surface,
                 color: theme.colors.text,
                 fontFamily: theme.typography.body.family,
+                flexShrink: 0,
+                whiteSpace: 'nowrap',
               }}
             >
               {option.label}
             </button>
           ))}
         </div>
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+        <div className="app-tabs" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
           <span style={{ fontSize: '0.8125rem', color: theme.colors.muted, fontWeight: 600 }}>
             {t('tasks.filterByEnergy', 'Energy:')}
           </span>
@@ -816,8 +904,10 @@ const TaskList: React.FC = () => {
             type="button"
             aria-pressed={energyFilter === 'all'}
             onClick={() => setEnergyFilter('all')}
+            className="app-tabs__item"
             style={{
-              padding: '2px 10px',
+              padding: '8px 10px',
+              minHeight: 44,
               borderRadius: theme.shape.radiusFull,
               border: `1.5px solid ${energyFilter === 'all' ? theme.colors.primary : theme.colors.border}`,
               background: energyFilter === 'all' ? theme.colors.primary : 'transparent',
@@ -825,6 +915,8 @@ const TaskList: React.FC = () => {
               cursor: 'pointer',
               fontSize: '0.75rem',
               fontFamily: theme.typography.body.family,
+              flexShrink: 0,
+              whiteSpace: 'nowrap',
             }}
           >
             {t('tasks.energyFilterAll', 'All')}
@@ -835,8 +927,10 @@ const TaskList: React.FC = () => {
               type="button"
               aria-pressed={energyFilter === level}
               onClick={() => setEnergyFilter(level)}
+              className="app-tabs__item"
               style={{
-                padding: '2px 10px',
+                padding: '8px 10px',
+                minHeight: 44,
                 borderRadius: theme.shape.radiusFull,
                 border: `1.5px solid ${energyFilter === level ? energyTone(theme, level).fill : theme.colors.border}`,
                 background: energyFilter === level ? energyTone(theme, level).fill : 'transparent',
@@ -844,6 +938,8 @@ const TaskList: React.FC = () => {
                 cursor: 'pointer',
                 fontSize: '0.75rem',
                 fontFamily: theme.typography.body.family,
+                flexShrink: 0,
+                whiteSpace: 'nowrap',
               }}
             >
               {t(`tasks.energy${level.charAt(0).toUpperCase()}${level.slice(1)}`, level)}
@@ -891,7 +987,7 @@ const TaskList: React.FC = () => {
             </button>
           </div>
         )}
-        <div role="list" aria-label={t('tasks.chunkedListAria')} style={{ display: 'grid', gap: '1rem' }}>
+        <div role="list" aria-label={t('tasks.chunkedListAria')} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: '1rem' }}>
           {loading ? (
             <p>{t('loading')}</p>
           ) : filteredTasks.length === 0 ? (
@@ -1026,6 +1122,11 @@ const TaskList: React.FC = () => {
                                     fontSize: '0.75rem',
                                     cursor: 'pointer',
                                     fontFamily: theme.typography.body.family,
+                                    minHeight: 44,
+                                    minWidth: 44,
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
                                   }}
                                 >
                                   {t('editLabel')}
@@ -1076,7 +1177,7 @@ const TaskList: React.FC = () => {
                 <p style={{ margin: '0 0 0.5rem', color: theme.colors.muted, fontWeight: 600 }}>
                   {t('tasks.chunkLabel', { index: index + 1 })}
                 </p>
-                <div style={{ display: 'grid', gap: '0.75rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: '0.75rem' }}>
                   {group.map((task) => {
                     const isCompleted = task.status === 'completed';
                     const actionLabel = isCompleted
@@ -1089,9 +1190,10 @@ const TaskList: React.FC = () => {
                     return (
                       <div key={task.id} role="listitem">
                         {editingTaskId === task.id ? (
-                          <div style={{ display: 'grid', gap: '0.75rem' }}>
-                            <label htmlFor={`edit-title-${task.id}`} style={{ fontWeight: 600 }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: '0.75rem' }}>
+                            <label htmlFor={`edit-title-${task.id}`} style={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
                               {t('titleLabel')}
+                              <BudgetTooltip content={t('tooltips.tasks.title', "Name your task concisely but specifically. 'Reply to Maria's project email' beats 'emails'. Specific tasks are easier to start.")} />
                             </label>
                             <input
                               id={`edit-title-${task.id}`}
@@ -1115,8 +1217,9 @@ const TaskList: React.FC = () => {
                             {editTouched.title && !editTitle.trim() ? (
                               <span style={{ color: theme.colors.primary }}>{t('validation.titleRequired')}</span>
                             ) : null}
-                            <label htmlFor={`edit-planned-${task.id}`} style={{ fontWeight: 600 }}>
+                            <label htmlFor={`edit-planned-${task.id}`} style={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
                               {t('tasks.plannedDateLabel')}
+                              <BudgetTooltip content={t('tooltips.tasks.plannedDate', 'Pick a date to schedule this task. Tasks with a date appear in your calendar and daily view — helps you plan ahead and reduce last-minute stress.')} />
                             </label>
                             <input
                               id={`edit-planned-${task.id}`}
@@ -1137,8 +1240,9 @@ const TaskList: React.FC = () => {
                               }}
                             />
                             <div>
-                              <p style={{ margin: '0 0 0.5rem', fontWeight: 600, fontSize: '0.875rem' }}>
+                              <p style={{ margin: '0 0 0.5rem', fontWeight: 600, fontSize: '0.875rem', display: 'flex', alignItems: 'center' }}>
                                 {t('tasks.energyLabel', 'Energy required')}
+                                <BudgetTooltip content={t('tooltips.tasks.energy', 'Rate how much mental/physical energy this task needs. Filter by energy to find tasks that match how you feel right now — great for low-energy days.')} />
                               </p>
                               <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                                 {ENERGY_LEVELS.map((level) => (
@@ -1176,6 +1280,7 @@ const TaskList: React.FC = () => {
                               error={editSubtaskError}
                               theme={theme}
                               idPrefix={`edit-task-${task.id}`}
+                              tooltip={<BudgetTooltip content={t('tooltips.tasks.subtasks', 'Break your task into small, concrete steps. Each step should take under 10 minutes — this makes starting easier and tracks your real progress.')} />}
                             />
                             {editErrors ? <p style={{ color: theme.colors.accent }}>{editErrors}</p> : null}
                             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
@@ -1249,7 +1354,7 @@ const TaskList: React.FC = () => {
                                 type="button"
                                 onClick={() => startEditingTask(task.id)}
                                 style={{
-                                  minHeight: '40px',
+                                  minHeight: '44px',
                                   padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
                                   borderRadius: theme.shape.radiusMd,
                                   border: `1px solid ${theme.colors.border}`,
@@ -1264,7 +1369,7 @@ const TaskList: React.FC = () => {
                                 type="button"
                                 onClick={() => handleDeleteTask(task.id, task.title)}
                                 style={{
-                                  minHeight: '40px',
+                                  minHeight: '44px',
                                   padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
                                   borderRadius: theme.shape.radiusMd,
                                   border: `1px solid ${theme.colors.border}`,
@@ -1397,7 +1502,10 @@ const TaskList: React.FC = () => {
               backgroundColor: theme.colors.surface,
             }}
           >
-            <p style={{ margin: '0 0 0.5rem', fontWeight: 700 }}>{t('tasks.focusHeading')}</p>
+            <p style={{ margin: '0 0 0.5rem', fontWeight: 700, display: 'flex', alignItems: 'center' }}>
+              {t('tasks.focusHeading')}
+              <BudgetTooltip content={t('tooltips.tasks.timer', 'The Pomodoro technique uses focused 25-minute sprints with short breaks to protect your concentration and build a sustainable work rhythm.')} />
+            </p>
             <p style={{ margin: '0 0 0.75rem', color: theme.colors.muted, fontSize: '0.875rem' }}>{t('tasks.focusHelper')}</p>
             <p style={{ margin: 0, color: theme.colors.muted, fontSize: '0.8125rem' }}>
               {t('tasks.timerStartHint', '▶ Tap "🍅 {{minutes}} min" on any task above to start a focused Pomodoro session.', { minutes: timerSettings.focusMinutes })}
