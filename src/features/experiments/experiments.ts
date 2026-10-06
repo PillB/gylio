@@ -19,6 +19,13 @@ export const EXPERIMENTS = {
   paywall_default_interval: { variants: ['yearly', 'monthly'] },
   // Wording of the trial button: benefit-first vs. risk-reduction framing.
   trial_cta_copy: { variants: ['start_trial', 'try_free_no_card'] },
+  // Layout review 2026-10-06 (docs/wiki/layout-review-2026-10-06.md). The first variant is the control.
+  // Length of the Quick overview tour: all nine steps vs the five-step free core.
+  tour_length: { variants: ['overview9', 'overview5'] },
+  // Whether Transactions is the first Budget section (quick add) or stays after Categories.
+  budget_quick_add: { variants: ['none', 'top'] },
+  // Calendar view phones open on: Day vs the cut-off seven-day Week.
+  calendar_default_phone: { variants: ['day', 'week'] },
 } as const satisfies Record<string, ExperimentDefinition>;
 
 export type ExperimentKey = keyof typeof EXPERIMENTS;

@@ -11,6 +11,9 @@
 
 ---
 
+## Reviews
+- [Layout, structure and tour review, 2026-10-06](layout-review-2026-10-06.md): ratings, layout proxy, trade-offs, experiment designs (PR #95).
+
 ## Findings Log
 
 ### R0-5 · FIXED+VERIFIED · XP/streaks never persisted on web (silent data loss in SQLite shim)
