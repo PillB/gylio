@@ -27,6 +27,14 @@ import {
 
 const NO_ENTRIES = [];
 
+/** Two columns when there is room (≈ 2 × 380px), one column on phones; DOM order is the reading and tab order. */
+const columnsStyle = {
+  display: 'grid',
+  gap: '24px',
+  alignItems: 'start',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 380px), 1fr))',
+};
+
 /** Month-level totals derived from the open budget and its transactions. */
 const useBudgetSummary = (activeBudget, transactions) =>
   useMemo(() => {
@@ -109,38 +117,38 @@ const BudgetView = () => {
             onRevealErrors={() => data.setMonthTouched(true)}
             onDelete={data.deleteActiveBudget}
           />
-          <IncomeSection
-            income={activeBudget?.income ?? NO_ENTRIES}
-            remaining={summary.remaining}
-            onAdd={data.addIncome}
-            onRemove={data.removeIncome}
-          />
-          {activeBudget && (
-            <div style={{ margin: `${theme.spacing.md}px 0` }}>
-              <SpendingChart bars={chartBars} theme={theme} />
+          <div style={columnsStyle}>
+            <IncomeSection
+              income={activeBudget?.income ?? NO_ENTRIES}
+              remaining={summary.remaining}
+              onAdd={data.addIncome}
+              onRemove={data.removeIncome}
+            />
+            <div data-tour="budget-summary" style={{ display: 'grid', gap: `${theme.spacing.lg}px`, alignContent: 'start', minWidth: 0 }}>
+              {activeBudget && <SpendingChart bars={chartBars} theme={theme} />}
+              <PlannedActualSection planned={summary.plannedTotals} actual={summary.actualTotals} />
             </div>
-          )}
-          <CategorySection
-            categories={activeBudget?.categories ?? NO_ENTRIES}
-            spentByCategory={summary.spentByCategory}
-            onAdd={data.addCategory}
-            onAddMany={data.addCategories}
-            onRemove={data.removeCategory}
-          />
-          <TransactionSection
-            activeBudget={activeBudget}
-            monthTransactions={summary.monthTransactions}
-            onMissingBudget={() => data.setMonthTouched(true)}
-            onAdd={data.addTransaction}
-            onRemove={data.removeTransaction}
-          />
-          <PlannedActualSection planned={summary.plannedTotals} actual={summary.actualTotals} />
-          <DebtSection
-            debts={data.debts}
-            extraPayment={Math.max(0, summary.remaining)}
-            onAdd={data.addDebt}
-            onRemove={data.removeDebt}
-          />
+            <CategorySection
+              categories={activeBudget?.categories ?? NO_ENTRIES}
+              spentByCategory={summary.spentByCategory}
+              onAdd={data.addCategory}
+              onAddMany={data.addCategories}
+              onRemove={data.removeCategory}
+            />
+            <TransactionSection
+              activeBudget={activeBudget}
+              monthTransactions={summary.monthTransactions}
+              onMissingBudget={() => data.setMonthTouched(true)}
+              onAdd={data.addTransaction}
+              onRemove={data.removeTransaction}
+            />
+            <DebtSection
+              debts={data.debts}
+              extraPayment={Math.max(0, summary.remaining)}
+              onAdd={data.addDebt}
+              onRemove={data.removeDebt}
+            />
+          </div>
         </div>
       )}
     </SectionCard>

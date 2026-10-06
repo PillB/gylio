@@ -63,7 +63,7 @@ export const OVERVIEW_FLOW: TourFlow = {
     },
     {
       id: 'overview-budget',
-      target: '[data-tour="budget-month"]',
+      target: '[data-tour="budget-summary"]',
       tab: 'budget',
       titleKey: 'tour.budget.title',
       contentKey: 'tour.budget.content',

@@ -16,6 +16,8 @@ import { useCalendarFormat } from '../features/calendar/hooks/useCalendarFormat'
 import { buildScheduleSuggestions } from '../features/calendar/utils/scheduleSuggestions';
 import { buildQuickTaskEventInput, buildSuggestedEventInput } from '../features/calendar/utils/eventConversions';
 import {
+  WEEK_VIEW_MIN_WIDTH,
+  defaultCalendarView,
   groupByDay,
   parseDateKey,
   sortByStart,
@@ -32,7 +34,7 @@ const CalendarView = () => {
   const { theme } = useTheme();
   const data = useCalendarData();
   const format = useCalendarFormat(i18n.language, t('calendarTimeUnknown'));
-  const [viewMode, setViewMode] = useState('week');
+  const [viewMode, setViewMode] = useState(() => defaultCalendarView(typeof window === 'undefined' ? WEEK_VIEW_MIN_WIDTH : window.innerWidth));
   const [selectedDate, setSelectedDate] = useState(() => toDateKey(new Date()));
   const [editingId, setEditingId] = useState(null);
 

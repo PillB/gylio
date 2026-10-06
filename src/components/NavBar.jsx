@@ -65,12 +65,12 @@ const NavBar = ({ items, activeKey, onNavigate, languageToggle }) => {
                 aria-hidden="true"
                 style={{
                   fontSize: '0.65rem',
-                  background: theme.colors.overlay,
-                  color: theme.colors.primary,
+                  background: isActive ? 'transparent' : theme.colors.overlay,
+                  color: isActive ? theme.colors.primaryForeground : theme.colors.primary,
                   borderRadius: theme.shape.radiusFull,
                   padding: '1px 5px',
                   fontWeight: 700,
-                  border: `1px solid ${theme.colors.primary}`,
+                  border: `1px solid ${isActive ? theme.colors.primaryForeground : theme.colors.primary}`,
                   lineHeight: 1.4,
                 }}
               >
