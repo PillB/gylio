@@ -12,6 +12,7 @@ import ConvertTaskList from '../features/calendar/components/ConvertTaskList';
 import EventList from '../features/calendar/components/EventList';
 import CalendarHelp from '../features/calendar/components/CalendarHelp';
 import { useCalendarData } from '../features/calendar/hooks/useCalendarData';
+import { useLayoutVariant } from '../features/layoutVariants';
 import { useCalendarFormat } from '../features/calendar/hooks/useCalendarFormat';
 import { buildScheduleSuggestions } from '../features/calendar/utils/scheduleSuggestions';
 import { buildQuickTaskEventInput, buildSuggestedEventInput } from '../features/calendar/utils/eventConversions';
@@ -33,8 +34,11 @@ const CalendarView = () => {
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   const data = useCalendarData();
+  const phoneDefault = useLayoutVariant('calendar_default_phone', {
+    shown: typeof window !== 'undefined' && window.innerWidth < WEEK_VIEW_MIN_WIDTH,
+  });
   const format = useCalendarFormat(i18n.language, t('calendarTimeUnknown'));
-  const [viewMode, setViewMode] = useState(() => defaultCalendarView(typeof window === 'undefined' ? WEEK_VIEW_MIN_WIDTH : window.innerWidth));
+  const [viewMode, setViewMode] = useState(() => defaultCalendarView(typeof window === 'undefined' ? WEEK_VIEW_MIN_WIDTH : window.innerWidth, phoneDefault));
   const [selectedDate, setSelectedDate] = useState(() => toDateKey(new Date()));
   const [editingId, setEditingId] = useState(null);
 

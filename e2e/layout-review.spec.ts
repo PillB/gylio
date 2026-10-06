@@ -105,4 +105,34 @@ test.describe('layout review', () => {
     }
     expect(checked, 'spotlight was not detected on enough steps').toBeGreaterThanOrEqual(4);
   });
+
+  test('debt payoff is collapsed until wanted, and the quick-add experiment moves Add transaction to the top', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await seedOnboarded(page);
+    await page.goto('./budget');
+    await expect(page.getByRole('button', { name: 'Add debt' })).toBeHidden();
+    await page.getByText('Debt payoff (optional)').click();
+    await expect(page.getByRole('button', { name: 'Add debt' })).toBeVisible();
+
+    const headingY = async (name: string) => (await page.getByRole('heading', { name: new RegExp(`^${name}`) }).first().boundingBox())!.y;
+    const incomeFirst = (await headingY('Income')) < (await headingY('Transactions')) || (await headingY('Income')) === (await headingY('Transactions'));
+    expect(incomeFirst).toBe(true);
+    await page.goto('./budget?exp_budget_quick_add=top');
+    // In the experiment, Transactions is the first section: it is above, or level with, Income.
+    expect(await headingY('Transactions')).toBeLessThanOrEqual(await headingY('Income'));
+  });
+
+  test('the short-tour experiment shows five steps; the default shows nine', async ({ browser }) => {
+    for (const [query, total] of [['', 9], ['?exp_tour_length=overview5', 5]] as const) {
+      // A fresh context each time: an unfinished tour is restored on reload.
+      const context = await browser.newContext();
+      const page = await context.newPage();
+      await seedOnboarded(page);
+      await page.goto(`./tasks${query}`);
+      await page.getByRole('button', { name: /guide/i }).first().click();
+      await page.getByRole('dialog').getByRole('button', { name: /Quick overview/i }).click();
+      await expect(page.getByText(`Step 1 of ${total}`)).toBeVisible();
+      await context.close();
+    }
+  });
 });

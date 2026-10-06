@@ -360,6 +360,7 @@
     "monthHeading": "Budget month",
     "openBudget": "Open budget",
     "incomeHeading": "Income",
+    "debtsOptional": "Debt payoff (optional)",
     "remainingLabel": "Remaining",
     "remainingHint": "Zero-based budgeting: give every dollar a job before the month starts. When this hits 0, every cent is intentional — that's the whole point.",
     "incomeSourceLabel": "Income source",

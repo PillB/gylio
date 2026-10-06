@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../core/context/ThemeContext';
 import SectionCard from './SectionCard.jsx';
@@ -13,6 +13,7 @@ import PlannedActualSection from '../features/budget/components/PlannedActualSec
 import DebtSection from '../features/budget/components/DebtSection';
 import DataFreshnessBanner from '../features/budget/components/DataFreshnessBanner';
 import ReconciliationChecklist from '../features/budget/components/ReconciliationChecklist';
+import { useLayoutVariant } from '../features/layoutVariants';
 import { useBudgetData } from '../features/budget/hooks/useBudgetData';
 import {
   actualByCategory,
@@ -71,12 +72,42 @@ const MonthHealth = ({ budget, monthTransactions, lastTransactionDate }) => {
   );
 };
 
+/** A collapsed-by-default group for features most people reach later; the summary line says it is optional. */
+const OptionalSection = ({ summary, startOpen, children }) => {
+  const { theme } = useTheme();
+  const [open, setOpen] = useState(startOpen);
+  return (
+    <details open={open} onToggle={(event) => setOpen(event.currentTarget.open)} style={{ gridColumn: '1 / -1', minWidth: 0 }}>
+      <summary
+        style={{
+          cursor: 'pointer',
+          minHeight: 44,
+          display: 'flex',
+          alignItems: 'center',
+          gap: theme.spacing.sm,
+          padding: `0 ${theme.spacing.md}px`,
+          fontWeight: 600,
+          color: theme.colors.text,
+          border: `1px solid ${theme.colors.border}`,
+          borderRadius: theme.shape.radiusMd,
+          listStyle: 'none',
+        }}
+      >
+        <span aria-hidden="true" style={{ color: theme.colors.primary }}>{open ? '▾' : '▸'}</span>
+        {summary}
+      </summary>
+      <div style={{ paddingTop: theme.spacing.md }}>{children}</div>
+    </details>
+  );
+};
+
 const BudgetView = () => {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const data = useBudgetData();
   const { activeBudget } = data;
   const summary = useBudgetSummary(activeBudget, data.transactions);
+  const quickAddFirst = useLayoutVariant('budget_quick_add') === 'top';
 
   const applyDiagnostic = (items, monthlyIncome) =>
     data.applyDiagnostic(
@@ -90,6 +121,16 @@ const BudgetView = () => {
     planned: bar.planned,
     actual: bar.actual,
   }));
+
+  const transactionSection = (
+    <TransactionSection
+      activeBudget={activeBudget}
+      monthTransactions={summary.monthTransactions}
+      onMissingBudget={() => data.setMonthTouched(true)}
+      onAdd={data.addTransaction}
+      onRemove={data.removeTransaction}
+    />
+  );
 
   return (
     <SectionCard ariaLabel={`${t('budget.title')} module`} title={t('budget.title')} subtitle={t('budget.placeholder')}>
@@ -118,6 +159,7 @@ const BudgetView = () => {
             onDelete={data.deleteActiveBudget}
           />
           <div style={columnsStyle}>
+            {quickAddFirst && transactionSection}
             <IncomeSection
               income={activeBudget?.income ?? NO_ENTRIES}
               remaining={summary.remaining}
@@ -135,19 +177,15 @@ const BudgetView = () => {
               onAddMany={data.addCategories}
               onRemove={data.removeCategory}
             />
-            <TransactionSection
-              activeBudget={activeBudget}
-              monthTransactions={summary.monthTransactions}
-              onMissingBudget={() => data.setMonthTouched(true)}
-              onAdd={data.addTransaction}
-              onRemove={data.removeTransaction}
-            />
-            <DebtSection
-              debts={data.debts}
-              extraPayment={Math.max(0, summary.remaining)}
-              onAdd={data.addDebt}
-              onRemove={data.removeDebt}
-            />
+            {!quickAddFirst && transactionSection}
+            <OptionalSection summary={t('budget.debtsOptional', 'Debt payoff (optional)')} startOpen={data.debts.length > 0}>
+              <DebtSection
+                debts={data.debts}
+                extraPayment={Math.max(0, summary.remaining)}
+                onAdd={data.addDebt}
+                onRemove={data.removeDebt}
+              />
+            </OptionalSection>
           </div>
         </div>
       )}

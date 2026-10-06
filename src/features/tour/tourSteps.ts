@@ -530,3 +530,15 @@ export const FLOW_MAP: Record<string, TourFlow> = Object.fromEntries(
 
 /** Backward-compat: points at the overview steps */
 export const TOUR_STEPS = OVERVIEW_FLOW.steps;
+
+/** The five steps kept by the `overview5` experiment: the free core (tasks, calendar, budget). */
+const OVERVIEW_SHORT_IDS = ['overview-welcome', 'overview-tasks', 'overview-calendar', 'overview-budget', 'overview-done'];
+
+export type TourLength = 'overview9' | 'overview5';
+
+/** Steps for a flow; only the overview flow has a short variant. */
+export function stepsForFlow(flowId: string, length: TourLength = 'overview9'): TourStep[] {
+  const flow = FLOW_MAP[flowId] ?? OVERVIEW_FLOW;
+  if (flow.id !== 'overview' || length !== 'overview5') return flow.steps;
+  return flow.steps.filter((step) => OVERVIEW_SHORT_IDS.includes(step.id));
+}

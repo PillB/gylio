@@ -90,6 +90,6 @@ export const groupByDay = <T extends Dated>(sortedEvents: T[], palette: string[]
 /** A seven-column week needs about 480px; phones open on the day view so no day is cut off. */
 export const WEEK_VIEW_MIN_WIDTH = 640;
 
-export function defaultCalendarView(viewportWidth: number): CalendarViewMode {
-  return viewportWidth < WEEK_VIEW_MIN_WIDTH ? 'day' : 'week';
+export function defaultCalendarView(viewportWidth: number, phoneDefault: 'day' | 'week' = 'day'): CalendarViewMode {
+  return viewportWidth < WEEK_VIEW_MIN_WIDTH ? phoneDefault : 'week';
 }

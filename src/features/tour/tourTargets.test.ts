@@ -32,3 +32,18 @@ describe('tour step targets', () => {
     expect(missing).toEqual([]);
   });
 });
+
+import { stepsForFlow, OVERVIEW_FLOW } from './tourSteps';
+
+describe('stepsForFlow', () => {
+  it('keeps all overview steps by default', () => {
+    expect(stepsForFlow('overview')).toHaveLength(OVERVIEW_FLOW.steps.length);
+  });
+  it('the short overview keeps welcome and done, and the free core in order', () => {
+    const ids = stepsForFlow('overview', 'overview5').map((s) => s.id);
+    expect(ids).toEqual(['overview-welcome', 'overview-tasks', 'overview-calendar', 'overview-budget', 'overview-done']);
+  });
+  it('never shortens a section walkthrough', () => {
+    expect(stepsForFlow('budget', 'overview5')).toHaveLength(stepsForFlow('budget').length);
+  });
+});

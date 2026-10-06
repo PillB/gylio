@@ -36,4 +36,10 @@ describe('NavBar locked badge', () => {
     renderNav('tasks');
     expect(badge().style.color).toBe(asRgb(themes.light.colors.primary));
   });
+
+  it('tells screen-reader users which tabs are premium (the ✦ alone is aria-hidden)', () => {
+    renderNav('tasks');
+    expect(screen.getByRole('button', { name: /Social.*premiumTab/ })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Tasks' })).toBeTruthy();
+  });
 });
