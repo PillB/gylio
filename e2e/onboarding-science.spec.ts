@@ -60,6 +60,12 @@ test.describe('evidence-calibrated onboarding', () => {
     await expect(page.getByRole('button', { name: /next/i })).toBeEnabled();
   });
 
+  test('says each reassurance once on the first step (no repeated "neutral defaults" or "change later" lines)', async ({ page }) => {
+    await startFreshOnboarding(page);
+    await expect(page.getByText(/Neutral defaults/)).toHaveCount(1);
+    await expect(page.getByText(/later in Settings/)).toHaveCount(1);
+  });
+
   test('keeps onboarding focused by hiding duplicate Guide and header TTS controls', async ({ page }) => {
     await startFreshOnboarding(page);
     const header = page.locator('.app-container > header');

@@ -948,3 +948,15 @@ Numbered after #82's CHG-046 to keep IDs unique; #82 stacks on this branch.
   - add a `useAccessibility` mock to #82's `DailyCommandCenter.test.tsx`. It fails to load once DCC imports useTasks ("Failed to resolve import expo-av"; aliasing expo-av only moves the failure to "must be used within an AccessibilityProvider"). With that one mock its 2 tests pass against this branch;
   - move the reliability gate into `RecurringStatusToggle.tsx`.
 - When #89 next merges #88: `server/server.js` conflicts on two adjacent lines of `/api/health`. #89 already has the same `aiConfigured` line, so keep its `paddleConfigured` and `mercadoPagoConfigured` lines.
+
+---
+
+### CHG-049 – 2026-10-02 (Onboarding step 1: say each reassurance once)
+
+**Why:** Step 1 showed "Neutral defaults are already selected" twice and "change later in Settings" twice (page intro plus the saved-on-device line). For users prone to overload, repeated copy adds reading cost without information.
+
+**Files changed:**
+- `src/i18n/onboarding.en.json`, `src/i18n/onboarding.es-PE.json` — trimmed `intro` and `predictableSteps.accessibility`; the subtitle and saved-on-device line still carry both messages once.
+- `e2e/onboarding-science.spec.ts` — test that each line appears once (fails on the old copy).
+
+**Trade-off:** Other locales keep the longer copy until translated; parity checks pass because keys are unchanged.
