@@ -104,6 +104,16 @@ afterEach(() => {
 });
 
 describe('TaskList', () => {
+  it('keeps a task card compact: start, edit and delete share one row, and the energy badge shares a row with the date', () => {
+    state.tasks = [makeTask(1, 'Write report')];
+    render(<TaskList />);
+    const start = screen.getByRole('button', { name: /tasks\.startTwoAria/ });
+    expect(screen.getByRole('button', { name: 'editLabel' }).parentElement).toBe(start.parentElement);
+    expect(screen.getByRole('button', { name: 'deleteLabel' }).parentElement).toBe(start.parentElement);
+    const date = screen.getByText(/tasks\.plannedDateLabel/);
+    expect(date.parentElement?.textContent).toMatch(/medium|energy/i);
+  });
+
   it('keeps list semantics valid: every list item sits directly in a list, and lists hold only items', () => {
     state.tasks = [makeTask(1, 'Today task'), makeTask(2, 'Second task')];
     const { container } = render(<TaskList />);

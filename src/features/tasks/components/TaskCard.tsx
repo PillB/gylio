@@ -84,12 +84,23 @@ const TimerButton: React.FC<{ onClick: () => void; ariaLabel: string; children: 
 /** A tiny first step lowers the cost of starting; the full focus block stays one tap away. */
 const QUICK_START_MINUTES = 2;
 
-const TimerRow: React.FC<Props> = ({ task, actions }) => {
+type TimerRowProps = Props & { trailing: React.ReactNode };
+
+/** Start buttons and the card's own actions share one wrapping row, so a card stays compact. */
+const TimerRow: React.FC<TimerRowProps> = ({ task, actions, trailing }) => {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  if (actions.activeTimerTaskId === task.id) return <TaskTimerInline taskId={task.id} />;
+  const rowStyle: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: theme.spacing.sm, flexWrap: 'wrap' };
+  if (actions.activeTimerTaskId === task.id) {
+    return (
+      <>
+        <TaskTimerInline taskId={task.id} />
+        <div style={rowStyle}>{trailing}</div>
+      </>
+    );
+  }
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm, marginTop: theme.spacing.xs, flexWrap: 'wrap' }}>
+    <div style={rowStyle}>
       <TimerButton
         onClick={() => actions.startTimer(task.id, QUICK_START_MINUTES)}
         ariaLabel={t('tasks.startTwoAria', { title: task.title })}
@@ -102,6 +113,7 @@ const TimerRow: React.FC<Props> = ({ task, actions }) => {
       >
         🍅 {t('tasks.startTimerBtn', { minutes: actions.focusMinutes })}
       </TimerButton>
+      {trailing}
       <FocusSummary task={task} />
     </div>
   );
@@ -172,21 +184,28 @@ const TaskCard: React.FC<Props> = ({ task, actions }) => {
         uncheckedAnnouncement={uncompleteLabel}
         onChange={() => actions.toggle(task.id)}
       />
-      <EnergyBadge task={task} />
-      {planned ? (
-        <p style={{ margin: 0, color: theme.colors.muted }}>
-          {t('tasks.plannedDateLabel')}: {actions.formatDate(planned)}
-        </p>
-      ) : null}
-      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-        <button type="button" onClick={() => actions.startEditing(task.id)} style={cardButton}>
-          {t('editLabel')}
-        </button>
-        <button type="button" onClick={() => actions.remove(task.id, task.title)} style={cardButton}>
-          {t('deleteLabel')}
-        </button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+        <EnergyBadge task={task} />
+        {planned ? (
+          <p style={{ margin: 0, color: theme.colors.muted }}>
+            {t('tasks.plannedDateLabel')}: {actions.formatDate(planned)}
+          </p>
+        ) : null}
       </div>
-      <TimerRow task={task} actions={actions} />
+      <TimerRow
+        task={task}
+        actions={actions}
+        trailing={
+          <>
+            <button type="button" onClick={() => actions.startEditing(task.id)} style={cardButton}>
+              {t('editLabel')}
+            </button>
+            <button type="button" onClick={() => actions.remove(task.id, task.title)} style={cardButton}>
+              {t('deleteLabel')}
+            </button>
+          </>
+        }
+      />
       <StepProgress task={task} />
       <SubtaskChecklist task={task} actions={actions} />
     </div>
