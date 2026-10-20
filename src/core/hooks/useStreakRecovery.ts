@@ -27,7 +27,8 @@ export function useStreakRecovery() {
         2,     // focusPresetMinutes: 2 minutes
         'tiny' // energyRequired: tiny
       ).then(() => {
-        track(Events.STREAK_RECOVERY_STARTED, { taskTitle: title });
+        // No title: analytics events are kept in localStorage and a title is text the user wrote.
+        track(Events.STREAK_RECOVERY_STARTED);
       });
     },
     [insertTask]

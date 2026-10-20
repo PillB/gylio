@@ -28,6 +28,8 @@ playwright-report/
 *.png
 *.jpeg
 *.jpg
+# ...except the app icons the PWA manifest ships (see scripts/make-pwa-icons.mjs)
+!public/icons/*.png
 
 # Build / cache
 .vite/

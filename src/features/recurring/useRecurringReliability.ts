@@ -230,9 +230,9 @@ export function useRecurringReliability(todayKey?: string) {
           if (!instanceExistsForToday(allTasks, row, today)) {
             missingIds.push(row.id);
             recordFailure(row.id);
+            // No title: analytics events are kept in localStorage and a title is text the user wrote.
             track(Events.RECURRING_EXPECTED_MISSING, {
               taskId: row.id,
-              title: row.title,
               expectedDate: expected,
             });
           } else {
