@@ -11,7 +11,8 @@ export type SocialPlanFormState = {
   reminderMinutesBefore: string;
   notes: string;
   steps: SocialStep[];
-  templateId: SocialTemplate['id'] | '';
+  /** Id of the legacy or library template the plan started from; '' when none. */
+  templateId: SocialTemplate['id'] | (string & {}) | '';
 };
 
 export type SocialPlanValidationState = {

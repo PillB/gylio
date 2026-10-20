@@ -767,6 +767,38 @@ es-PE.json: full Spanish translations for all step and starter keys.
 
 ---
 
+### CHG-043 – 2026-09-28 (Complexity ceiling, whole-src lint and typecheck, BudgetView split)
+
+**Why:** Nothing capped function complexity, `lint` only covered `src/features`, `typecheck` only a few util folders, and `BudgetView.jsx` was one component at complexity 115.
+
+**Files changed:**
+- `eslint.config.js`, `eslint.complexity.js` — core `complexity` rule at 10; 21 legacy files capped at their current worst score; react / react-hooks plugins so JSX usage and hook deps are checked; `lint` is now `eslint src --max-warnings 0`.
+- `tsconfig.json`, `tsconfig.sw.json` (replace `tsconfig.tasks.json`) — typecheck all of `src`; service worker checked against the WebWorker lib.
+- `src/test/complexityBaseline.test.ts` — fails if a baseline cap is looser than needed.
+- `src/components/BudgetView.jsx` → `src/features/budget/{components,hooks,utils}` — one component per section, `useBudgetData`, `useValidatedForm`, pure validation/totals helpers; characterization tests in `src/components/BudgetView.test.tsx`.
+- Bugs found by the wider checks: duplicate social reminders (web notification shim had no cancel/id), null rows resolved from inserts in `useDB`, undefined offline response in the service worker, spending chart summing every month.
+
+**Verified:** lint, typecheck, 100 unit tests, check:i18n, build. Playwright before/after budget flow screenshots match.
+
+---
+
+### CHG-044 – 2026-09-29 (#82 rebuilt on the WIP theme branch; TaskList and CalendarView split; raw hex banned)
+
+**Why:** Pablo chose the `wip/batch-agent-work` theme scheme (dataViz tokens, `readableTextOn`) and retired the earlier theme-tokens branch, so #82 was rebuilt on WIP (861a0d1) instead of that branch.
+
+**Files changed:**
+- WIP's Budget additions (tooltips, quick-start categories, freshness banner, reconciliation checklist, 44px targets) ported into the split `src/features/budget` components.
+- `src/features/tasks/**` — TaskList split into hooks, utils and one component per section; energy chips use `theme.dataViz.energy` with `readableTextOn` label text.
+- `src/features/calendar/**`, `src/components/CalendarView.jsx` — CalendarView split; event tints from `theme.dataViz.eventTints`; week start parsed as a local date (was UTC, one day off west of Greenwich).
+- `App.jsx`, `PricingPage.tsx`, `SpendingChart.tsx`, `ReconciliationChecklist.jsx` — remaining hex replaced by `primaryGradientEnd`, `primaryForeground`, `successStrong`, `errorStrong` and `readableTextOn`; the checklist's lookups of theme keys that don't exist (which pinned it to the light palette) now derive from real theme colours.
+- `eslint.config.js` — `no-restricted-syntax` bans raw hex colours in `src` outside `themes.ts`, `contrast.ts` and tests; `src/test/rawHexColors.test.ts`.
+- WIP bugs the wider lint/typecheck caught: guided tour crashed on open, dashboard "all done" used a status that never exists and shifted dates by UTC, recurring-reliability toast was empty.
+- `eslint.complexity.js` — caps for WIP files added at their current scores; TaskList, CalendarView and TemplateGallery removed; ReconciliationChecklist 46 → 30, DataFreshnessBanner 23 → 20.
+
+**Verified:** lint, typecheck, 212 unit tests, check:i18n, build.
+
+---
+
 ### CHG-045 – 2026-09-29 (WIP batch branch: dataViz theme tokens, WCAG contrast tests, nav reflow, e2e stabilization)
 
 Numbered after #82's CHG-043/044 to keep IDs unique; #82 stacks on this branch.
@@ -784,6 +816,20 @@ Numbered after #82's CHG-043/044 to keep IDs unique; #82 stacks on this branch.
 - Left for #82: hex in TaskList, CalendarView, BudgetView, App.jsx, PricingPage, SpendingChart and ReconciliationChecklist.
 
 **Verified:** lint, typecheck, check:i18n and build pass. Unit tests 112/112, server tests 102/102. Playwright (system Chrome, no Clerk key, as in CI): 114/114 on the second run. The first run had 1 failure in `onboarding-migration.spec.ts:80`, a spec this change did not touch.
+
+---
+
+### CHG-046 – 2026-09-29 (#82 follows #88 onto main's colour scheme)
+
+**Why:** Pablo kept main's colour scheme (#87), and #88 was rebuilt on it. #82 merges #88 and moves its own split views and hex cleanup onto the same tokens.
+
+**Files changed:**
+- `src/components/CalendarView.jsx` — event colours from `theme.eventTints`.
+- `src/features/subscription/PricingPage.tsx` — gradient end `colors.secondary`, success text `colors.onSuccess`.
+- `src/features/tasks/utils/energyTone.ts` (+test) — main's status-colour version.
+- `eslint.config.js`, `src/test/rawHexColors.test.ts`, `AGENTS.md` — `src/core/contrast.ts` no longer exists; `readableTextOn` lives in `themes.ts`.
+
+**Verified:** lint, typecheck, 234 unit tests, check:i18n, build.
 
 ---
 

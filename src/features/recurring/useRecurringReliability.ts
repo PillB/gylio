@@ -341,6 +341,8 @@ export function useRecurringReliability(todayKey?: string) {
     const lastGlobalCheckAt = deriveLastGlobalCheck(store);
     setState((s) => ({ ...s, lastGlobalCheckAt }));
     runCheck(false);
+    // Runs once when the database becomes ready; the midnight effect below handles later days.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dbReady]);
 
   // ---------------------------------------------------------------------------

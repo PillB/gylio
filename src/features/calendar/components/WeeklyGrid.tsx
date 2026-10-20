@@ -174,6 +174,7 @@ export const WeeklyGrid: React.FC<Props> = ({
       <div
         ref={containerRef}
         role="region"
+        tabIndex={0}
         aria-label={t('calendarWeeklyGridAria', 'Weekly calendar')}
         style={{ overflowX: 'auto', overflowY: 'auto', maxHeight: '70vh' }}
       >
