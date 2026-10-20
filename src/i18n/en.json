@@ -72,6 +72,8 @@
     "startHere": "Start here",
     "startTimerBtn": "🍅 {{minutes}} min",
     "startTimerAria": "Start {{minutes}} min focus for {{title}}",
+    "startTwoBtn": "Just 2 min",
+    "startTwoAria": "Start with just 2 minutes on {{title}}",
     "timerPhaseFocus": "Focus",
     "timerPhaseShortBreak": "Short break",
     "timerPhaseLongBreak": "Long break",

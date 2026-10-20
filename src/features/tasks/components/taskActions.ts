@@ -7,7 +7,8 @@ export type TaskActions = {
   toggleSubtask: (taskId: number, index: number) => void;
   startEditing: (taskId: number) => void;
   remove: (taskId: number, title: string) => void;
-  startTimer: (taskId: number) => void;
+  /** `minutes` starts a shorter first block than the saved focus length. */
+  startTimer: (taskId: number, minutes?: number) => void;
   /** Resolves true once saved, so the edit form can close. */
   saveEdit: (taskId: number, updates: Partial<Omit<Task, 'id'>>) => Promise<boolean>;
   cancelEdit: () => void;
