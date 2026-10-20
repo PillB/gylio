@@ -59,7 +59,11 @@ const MonthHealth = ({ budget, monthTransactions, lastTransactionDate }) => {
   const { theme } = useTheme();
   return (
     <>
-      <DataFreshnessBanner lastTransactionDate={lastTransactionDate} budgetMonthKey={budget.month} />
+      {/* With nothing recorded yet the empty-month line below says so; a red "Last updated: Never"
+          alert on a brand-new budget reads as a reprimand before the person has done anything. */}
+      {monthTransactions.length > 0 && (
+        <DataFreshnessBanner lastTransactionDate={lastTransactionDate} budgetMonthKey={budget.month} />
+      )}
       {monthTransactions.length === 0 && (
         <p role="status" style={{ margin: 0, color: theme.colors.muted, fontSize: '0.875rem' }}>
           {t('budget.noTransactionsYet', 'No transactions recorded for {{month}} yet. Add your first expense below.', {
