@@ -28,6 +28,8 @@ Scope: every tab (Tasks, Calendar, Budget, Social, Routines, Rewards, Settings),
 4. **Round 4, experiments and optional content.** Switch points for three experiments (`src/features/layoutVariants.ts`; QA forces a variant with `?exp_<key>=<variant>`; unknown values are ignored). Debt payoff is collapsed unless the person already has debts, with a visible chevron and a 44 px target.
 5. **Round 5, accessibility.** Locked tabs are announced as premium to screen readers (the ✦ is decoration).
 
+6. **Round 6, populated screens (2026-10-20).** The first five rounds judged empty states. With five tasks added and a budget seeded: (a) five identical "Added to Today." toasts stacked into a 250 px column (a third of a phone screen); a repeat of the same message now replaces the earlier toast and restarts its timer (`ToastContext.tsx`). (b) A brand-new budget shows a red STALE banner ("Last updated: Never", "hasn't been updated in over a week") before any transaction exists, which contradicts the non-punitive rule in CLAUDE.md and repeats the empty-month line beneath it. It is in `DataFreshnessBanner`, which #93 also changes, so the fix waits for #93 and #82 to land. (c) Each task row is about 200 px tall (title, priority, date, Edit and Delete on their own row, timer chip); a denser row belongs with #97's Tasks work.
+
 ## Layout proxy (same checkout, with and without the changes)
 
 | Measure | Before | After |

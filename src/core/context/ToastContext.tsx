@@ -58,7 +58,17 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     (opts: Omit<ToastItem, 'id'>): string => {
       const id = `toast-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
       const item: ToastItem = { ...opts, id };
-      setToasts((prev) => [...prev.slice(-4), item]); // max 5 toasts at once
+      setToasts((prev) => {
+        // Adding five tasks in a row used to stack five identical "Added to Today."
+        // toasts, a 250px column over the page on a phone. A repeat of the same
+        // message replaces the earlier toast instead, and its timer restarts.
+        const repeats = (t: ToastItem) => t.message === item.message && t.type === item.type && !t.action && !item.action;
+        prev.filter(repeats).forEach((t) => {
+          clearTimeout(timers.current[t.id]);
+          delete timers.current[t.id];
+        });
+        return [...prev.filter((t) => !repeats(t)).slice(-4), item]; // max 5 toasts at once
+      });
 
       timers.current[id] = setTimeout(() => {
         setToasts((prev) => prev.filter((t) => t.id !== id));
