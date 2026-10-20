@@ -948,3 +948,13 @@ Numbered after #82's CHG-046 to keep IDs unique; #82 stacks on this branch.
   - add a `useAccessibility` mock to #82's `DailyCommandCenter.test.tsx`. It fails to load once DCC imports useTasks ("Failed to resolve import expo-av"; aliasing expo-av only moves the failure to "must be used within an AccessibilityProvider"). With that one mock its 2 tests pass against this branch;
   - move the reliability gate into `RecurringStatusToggle.tsx`.
 - When #89 next merges #88: `server/server.js` conflicts on two adjacent lines of `/api/health`. #89 already has the same `aiConfigured` line, so keep its `paddleConfigured` and `mercadoPagoConfigured` lines.
+
+### CHG-049 – 2026-10-06 UTC
+**Type:** [CHANGE]
+**Files changed:** `src/components/NavBar.jsx`, `src/components/BudgetView.jsx`, `src/components/CalendarView.jsx`, `src/components/GuidedTourOverlay.tsx`, `src/features/tour/placeTooltip.ts`, `src/features/tour/tourSteps.ts`, `src/features/calendar/components/WeeklyGrid.tsx`, `src/features/calendar/utils/gridScroll.ts`, `src/features/calendar/utils/calendarDates.ts`, `src/onboarding/steps/AccessibilityPrefs.jsx`, `index.html`, tests, `e2e/layout-review.spec.ts`, `docs/wiki/layout-review-2026-10-06.md`
+**Reasoning:** Layout and tour review across all tabs at 1280 and 390 px. Fixes an invisible locked-tab badge, tour cards that covered their target (card height underestimated, clamped onto the target), a tour step that never scrolled on tabs that render after loading, an orphaned onboarding option button, a Budget tab that was one 3,400 px column, a Calendar that hid the current time, and a week grid cut off on phones.
+**Expected result:** Budget is 20% shorter on desktop with its summary beside Income; the tour card never covers a target that has room beside or around it; Calendar opens near now (Day view below 640 px).
+**Trade-off:** On phones, Add transaction is about 0.3 screens further down because the summary moved ahead of it in the single column (DOM and keyboard order kept).
+**Also:** experiment switch points (`layoutVariants.ts`: tour_length, budget_quick_add, calendar_default_phone; control until #89's `useExperiment` backs it), Debt payoff collapsed by default on Budget, locked tabs announced to screen readers, `GuidedTourOverlay` complexity cap 43 → 41, repeated toasts replace each other, and no stale-data alert on a budget with no transactions.
+**Future considerations:** header trim after #89; Settings duplicates after #89; onboarding copy is #92's. Experiments are wired but cannot produce data until the app is live.
+**References:** docs/wiki/layout-review-2026-10-06.md

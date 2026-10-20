@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next';
 import type { Event } from '../../../core/hooks/useDB';
 import type { ThemeTokens } from '../../../core/themes';
+import { initialGridScrollTop } from '../utils/gridScroll';
 
 type Props = {
   events: Event[];
@@ -117,6 +118,15 @@ export const WeeklyGrid: React.FC<Props> = ({
     const now = new Date();
     return (now.getHours() + now.getMinutes() / 60 - HOUR_START) * hourHeight;
   }, [hourHeight]);
+
+  // Open the grid near the current time rather than at the earliest hour.
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    el.scrollTop = initialGridScrollTop(nowMinutes, el.clientHeight, totalHours * hourHeight);
+    // Only on first paint: later zoom or navigation must not yank the scroll position.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const eventsByDay = useMemo(() => {
     const map: Event[][] = days.map(() => []);

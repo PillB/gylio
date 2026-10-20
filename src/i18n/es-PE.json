@@ -360,6 +360,7 @@
     "monthHeading": "Mes de presupuesto",
     "openBudget": "Abrir presupuesto",
     "incomeHeading": "Ingresos",
+    "debtsOptional": "Plan de pago de deudas (opcional)",
     "remainingLabel": "Restante",
     "remainingHint": "Presupuesto de base cero: asigna un trabajo a cada sol antes de que empiece el mes. Cuando llega a 0, cada centavo es intencional — ese es todo el punto.",
     "incomeSourceLabel": "Fuente de ingreso",

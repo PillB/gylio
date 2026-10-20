@@ -6,7 +6,8 @@ import React, {
   useState,
 } from 'react';
 import type { ReactNode } from 'react';
-import { ALL_FLOWS, FLOW_MAP, OVERVIEW_FLOW } from '../../features/tour/tourSteps';
+import { ALL_FLOWS, FLOW_MAP, OVERVIEW_FLOW, stepsForFlow } from '../../features/tour/tourSteps';
+import { useLayoutVariant } from '../../features/layoutVariants';
 import type { TourStep } from '../../features/tour/tourSteps';
 
 const STORAGE_KEY = 'gylio_tour';
@@ -77,9 +78,10 @@ export function GuidedTourProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const tourLength = useLayoutVariant('tour_length', { shown: tourState.active });
   const currentSteps = useMemo(
-    () => FLOW_MAP[tourState.flowId]?.steps ?? OVERVIEW_FLOW.steps,
-    [tourState.flowId]
+    () => stepsForFlow(tourState.flowId, tourLength),
+    [tourState.flowId, tourLength]
   );
 
   const totalSteps = currentSteps.length;
@@ -118,12 +120,12 @@ export function GuidedTourProvider({ children }: { children: ReactNode }) {
 
   const nextStep = useCallback(() => {
     setTourState((prev) => {
-      const steps = FLOW_MAP[prev.flowId]?.steps ?? OVERVIEW_FLOW.steps;
+      const steps = stepsForFlow(prev.flowId, tourLength);
       const next = { ...prev, stepIndex: Math.min(prev.stepIndex + 1, steps.length - 1) };
       saveState(next);
       return next;
     });
-  }, []);
+  }, [tourLength]);
 
   const prevStep = useCallback(() => {
     setTourState((prev) => {

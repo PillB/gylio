@@ -7,12 +7,17 @@ import { useGuidedTour } from '../core/context/GuidedTourContext';
 import { useAppAuth } from '../core/context/AuthContext';
 import useDialogFocus from '../core/hooks/useDialogFocus';
 import type { TourStep } from '../features/tour/tourSteps';
+import { placeTooltip } from '../features/tour/placeTooltip';
 
 const TOOLTIP_WIDTH = 320;
 const TOOLTIP_GAP = 14;
 const SPOTLIGHT_PAD = 8;
+const LOCATE_RETRIES = 20;
+const LOCATE_RETRY_MS = 100;
 const VIEWPORT_PAD = 12;
-const ESTIMATED_TOOLTIP_HEIGHT = 230;
+// Measured card heights run 290-350px (title, 4 lines of copy, progress, buttons);
+// the old 230px estimate let the card slide onto the element it was explaining.
+const ESTIMATED_TOOLTIP_HEIGHT = 340;
 
 /**
  * Modal (aria-modal, Tab trapped) only when the step is designed as a centred card.
@@ -66,7 +71,11 @@ export default function GuidedTourOverlay() {
 
     let cancelled = false;
 
-    const locate = () => {
+    // Tabs such as Budget render a loading state first and mount their sections
+    // after the local database answers, so a missing target is retried briefly
+    // instead of leaving the step unscrolled and its card on the wrong part of the page.
+    let retryTimer: ReturnType<typeof setTimeout> | undefined;
+    const locate = (attempt = 0) => {
       if (cancelled) return;
       if (!currentStep.target) {
         setTargetRect(null);
@@ -77,6 +86,7 @@ export default function GuidedTourOverlay() {
       if (!el) {
         setTargetRect(null);
         setIsPremiumGated(false);
+        if (attempt < LOCATE_RETRIES) retryTimer = setTimeout(() => locate(attempt + 1), LOCATE_RETRY_MS);
         return;
       }
       const gated = el.getAttribute('data-tour') === 'premium-gate';
@@ -103,6 +113,7 @@ export default function GuidedTourOverlay() {
         return () => {
           cancelled = true;
           clearTimeout(timer);
+          clearTimeout(retryTimer);
           pendingNav.current = false;
         };
       }
@@ -111,6 +122,7 @@ export default function GuidedTourOverlay() {
     const cleanupLocate = locate();
     return () => {
       cancelled = true;
+      clearTimeout(retryTimer);
       cleanupLocate?.();
     };
   }, [currentStep, isActive, location.pathname, navigate, shouldAnimate, stepIndex]);
@@ -174,6 +186,8 @@ export default function GuidedTourOverlay() {
   const isCenter = currentStep.placement === 'center' || !targetRect;
 
   let tooltipStyle: React.CSSProperties;
+  let top = 0;
+  let left = 0;
 
   if (isCenter) {
     tooltipStyle = {
@@ -188,23 +202,16 @@ export default function GuidedTourOverlay() {
       zIndex: theme.zIndex.tour + 1,
     };
   } else {
-    const spaceBelow = vh - targetRect.bottom;
-    const useBottom =
-      currentStep.placement !== 'top' ? spaceBelow >= 180 : targetRect.top < 180;
-
-    let top = useBottom
-      ? targetRect.bottom + TOOLTIP_GAP
-      : targetRect.top - TOOLTIP_GAP - ESTIMATED_TOOLTIP_HEIGHT;
-
-    let left = targetRect.left + targetRect.width / 2 - tooltipWidth / 2;
-    left = Math.max(
-      VIEWPORT_PAD,
-      Math.min(left, Math.max(VIEWPORT_PAD, vw - tooltipWidth - VIEWPORT_PAD))
-    );
-    top = Math.max(
-      VIEWPORT_PAD,
-      Math.min(top, Math.max(VIEWPORT_PAD, vh - ESTIMATED_TOOLTIP_HEIGHT - VIEWPORT_PAD))
-    );
+    ({ top, left } = placeTooltip({
+      target: targetRect,
+      viewportW: vw,
+      viewportH: vh,
+      tipW: tooltipWidth,
+      tipH: ESTIMATED_TOOLTIP_HEIGHT,
+      gap: TOOLTIP_GAP,
+      pad: VIEWPORT_PAD,
+      prefer: currentStep.placement,
+    }));
 
     tooltipStyle = {
       position: 'fixed',
@@ -225,6 +232,7 @@ export default function GuidedTourOverlay() {
           const tipLeft = (tooltipStyle.left as number) ?? 0;
           const tipTop = (tooltipStyle.top as number) ?? 0;
           const isBelow = tipTop > targetRect.bottom;
+          if (tipTop + ESTIMATED_TOOLTIP_HEIGHT > targetRect.top && tipTop < targetRect.bottom) return null; // beside or docked: no pointer
           const arrowLeft = Math.max(
             16,
             Math.min(
