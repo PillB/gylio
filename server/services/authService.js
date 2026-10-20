@@ -23,8 +23,8 @@ const buildAuthResponse = (user, accessToken, refreshToken) => ({
 const createAuthService = (authRepository) => ({
   async signup({ email, password }) {
     const normalizedEmail = sanitizeEmail(email);
-    if (!normalizedEmail || typeof password !== 'string' || password.length < 8) {
-      throw new ApiError(400, 'VALIDATION_ERROR', 'Email and password (min 8 chars) are required');
+    if (!normalizedEmail || typeof password !== 'string' || password.length < 8 || password.length > 72) {
+      throw new ApiError(400, 'VALIDATION_ERROR', 'Email and password (8–72 characters) are required');
     }
 
     const existing = await authRepository.findByEmail(normalizedEmail);
@@ -51,6 +51,9 @@ const createAuthService = (authRepository) => ({
     const normalizedEmail = sanitizeEmail(email);
     if (!normalizedEmail || typeof password !== 'string' || !password) {
       throw new ApiError(400, 'VALIDATION_ERROR', 'Email and password are required');
+    }
+    if (password.length > 72) {
+      throw new ApiError(401, 'INVALID_CREDENTIALS', 'Invalid email or password');
     }
 
     const user = await authRepository.findByEmail(normalizedEmail);

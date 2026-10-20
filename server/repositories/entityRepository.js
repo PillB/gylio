@@ -169,7 +169,7 @@ const createEntityRepository = (models, sqlite, config) => {
 
       await run(
         sqlite,
-        `UPDATE ${config.tableName} SET ${assignments}${config.tableName === 'tasks' ? ', updatedAt = CURRENT_TIMESTAMP' : ''} WHERE id = ? AND userId = ?`,
+        `UPDATE ${config.tableName} SET ${assignments}${config.hasUpdatedAt ? ', updatedAt = CURRENT_TIMESTAMP' : ''} WHERE id = ? AND userId = ?`,
         [...values, sqliteId, userId]
       );
       return this.getById(sqliteId, userId);
@@ -202,7 +202,7 @@ const createEntityRepository = (models, sqlite, config) => {
 
       await run(
         sqlite,
-        `UPDATE ${config.tableName} SET ${assignments}${config.tableName === 'tasks' ? ', updatedAt = CURRENT_TIMESTAMP' : ''} WHERE id = ? AND userId = ?`,
+        `UPDATE ${config.tableName} SET ${assignments}${config.hasUpdatedAt ? ', updatedAt = CURRENT_TIMESTAMP' : ''} WHERE id = ? AND userId = ?`,
         [...values, sqliteId, userId]
       );
       return this.getById(sqliteId, userId);

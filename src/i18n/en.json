@@ -311,7 +311,7 @@
         "step3": "Call and say you're considering switching — ask for a better rate",
         "step4": "Document the outcome and time saved vs money saved"
       },
-      "showGallery": "⚡ Quick-start from proven tasks",
+      "showGallery": "Quick-start from proven tasks",
       "hideGallery": "Hide quick-start tasks"
     }
   },
@@ -419,10 +419,38 @@
     "chartPlanned": "Planned",
     "chartActual": "Actual",
     "chartOverBudget": "Over budget",
+    "chartTapHint": "Tap or hover a bar for details",
+    "chartEmpty": "Add budget categories to see planned vs actual spending.",
+    "chartUnderBudget": "Within budget",
     "showDiagnostic": "🩺 Run financial health check",
     "hideDiagnostic": "Hide diagnostic",
     "currencySymbol": "$",
+    "noTransactionsYet": "No transactions recorded for {{month}} yet. Add your first expense below.",
     "monthlyTakeHome": "Monthly take-home",
+    "freshness": {
+      "never": "Never",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "upToDate": "Up to date",
+      "reviewSuggested": "Review suggested",
+      "dataStale": "Data may be stale",
+      "pillFresh": "Fresh",
+      "pillReview": "Review",
+      "pillStale": "Stale",
+      "lastUpdated": "Last updated",
+      "dataFreshnessLabel": "Data freshness",
+      "staleHelp": "Your transaction data hasn't been updated in over a week. Please review and add any missing entries.",
+      "reconcile": {
+        "sectionLabel": "Reconciliation checklist",
+        "title": "Reconciliation Checklist",
+        "description": "Confirm each item to mark this month's budget as reconciled.",
+        "progressLabel": "{{completed}} of {{total}} completed",
+        "income": "Income recorded",
+        "expenses": "All expenses entered",
+        "balances": "Balances match",
+        "allDone": "All items confirmed — your budget is reconciled for this month."
+      }
+    },
     "diagnostic": {
       "title": "Financial Diagnostic",
       "subtitle": "Enter your monthly numbers to get an honest picture of your finances.",
@@ -484,6 +512,19 @@
       "prefillClothing": "Clothing",
       "prefillPersonalCare": "Personal care",
       "prefillSavings": "Savings / Investments"
+    },
+    "quickStart": {
+      "btn": "⚡ Quick-start with 8 suggested categories (YNAB method)"
+    },
+    "starter": {
+      "housing": "Housing",
+      "food": "Food & Groceries",
+      "transport": "Transport",
+      "health": "Health",
+      "entertainment": "Entertainment",
+      "dining": "Dining Out",
+      "savings": "Savings",
+      "emergency": "Emergency Fund"
     }
   },
   "rewards": {
@@ -507,7 +548,16 @@
     "locked": "Locked",
     "nearestHeading": "You're almost there!",
     "progressLabel": "{{current}} / {{target}} points ({{pct}}% there!)",
-    "progressBarAria": "Progress toward {{title}}: {{pct}} percent"
+    "progressBarAria": "Progress toward {{title}}: {{pct}} percent",
+    "starterHint": "Not sure what to add? Start with these:",
+    "starter": {
+      "coffee": "Coffee break",
+      "episode": "Watch an episode",
+      "walk": "15-min walk outside",
+      "snack": "Favourite snack",
+      "nap": "Power nap",
+      "game": "20 min of gaming"
+    }
   },
   "rewardsPlaceholder": "Points and streaks will appear here. Gamification is optional.",
   "social": {
@@ -1351,6 +1401,21 @@
       "daily": "Daily",
       "weekly": "Weekly",
       "addAria": "Add routine: {{title}}"
+    },
+    "anchor": {
+      "afterWaking": "After waking",
+      "afterCoffee": "After coffee",
+      "beforeEmail": "Before opening email",
+      "afterSunset": "After sunset",
+      "afterDinner": "After dinner",
+      "beforeBed": "Before getting into bed",
+      "beforeShutdown": "Before shutdown ritual",
+      "sundayAfternoon": "Sunday afternoon",
+      "sundayMorning": "Sunday morning",
+      "beforeWork": "Before starting work",
+      "immediatelyOnWaking": "Immediately on waking",
+      "afterWork": "After work",
+      "afterMorningLight": "After morning light"
     }
   },
   "win": {
@@ -1388,6 +1453,11 @@
       "sub": "Growth is not linear — but you are moving forward."
     }
   },
+  "streakRecovery": {
+    "gapBadge": "{{days}} days since last activity",
+    "bestStreak": "Best: {{count}} days",
+    "bestStreakAriaLabel": "Best streak: {{count}} days"
+  },
   "welcomeBack": {
     "title": "Welcome back — you were away for {{days}}.",
     "daysSingular": "1 day",
@@ -1397,18 +1467,70 @@
     "message2": "The hardest part is coming back. You just did it.",
     "message3": "Every restart counts. Welcome back.",
     "continueCta": "Pick up where I left off",
-    "freshStartCta": "Start fresh today"
+    "freshStartCta": "Start fresh today",
+    "bannerAriaLabel": "Welcome back message",
+    "heading": "Every restart counts.",
+    "gapAriaLabel": "You've been away for {{days}} days",
+    "gapNote": "{{days}} days since your last activity — no pressure.",
+    "lastStreakRecovery": "You had a {{count}}-day streak — pick up where you left off.",
+    "tinyStepAriaLabel": "Start with one tiny step",
+    "tinyStep": "Start with one tiny step",
+    "continueAriaLabel": "Pick up where you left off",
+    "continue": "Pick up where I left off",
+    "freshStartAriaLabel": "Start fresh today",
+    "freshStart": "Start fresh today"
+  },
+  "recurring": {
+    "showPanel": "Reliability status",
+    "hidePanel": "Hide reliability status",
+    "panelTitle": "Recurring task reliability",
+    "noRecurringTasks": "No recurring tasks configured.",
+    "colTask": "Task",
+    "colLastGen": "Last gen.",
+    "colNextExp": "Next exp.",
+    "colFailures": "Fails",
+    "lastGenerated": "Last generated",
+    "neverGenerated": "Never",
+    "nextExpected": "Next expected",
+    "failureBadgeLabel": "{{count}} missed instances",
+    "checkNow": "Check now",
+    "checking": "Checking…",
+    "repair": "Rebuild recurring instances",
+    "repairing": "Rebuilding…",
+    "lastChecked": "Last checked at {{time}}"
   },
   "upgrade": {
     "premiumBadge": "✦ Premium",
-    "upgradeCta": "Upgrade",
-    "tryFree": "Try free",
+    "premiumBadgeAria": "Premium feature",
     "regionAria": "Upgrade to access this feature",
+    "iconAria": "Sparkles",
     "title": "{{feature}} is a premium feature",
-    "subtitle": "Start your 10-day free trial — no credit card required.",
+    "subtitle": "This feature is part of Gylio Premium. Start a 10-day free trial — no pressure, cancel any time.",
     "startTrial": "Start 10-day free trial",
     "seePlans": "See plans",
-    "pricing": "$12/month · or $10/month billed yearly"
+    "tryFree": "Try free",
+    "tryOnce": "Try this once, free",
+    "tryOnceAria": "Try this once, free — {{featureName}}",
+    "outcomesHeading": "What you'll be able to do",
+    "outcomesListAria": "What you gain with premium",
+    "freeAlternativePrefix": "You can still",
+    "pricing": "$12/month · or $10/month billed yearly",
+    "social": {
+      "outcome1": "Share your streaks and wins with friends",
+      "outcome2": "Join accountability groups and group challenges",
+      "freeAlt": "track your own progress privately"
+    },
+    "routines": {
+      "outcome1": "Build unlimited morning, evening, and custom routines",
+      "outcome2": "Get gentle nudges timed to your energy levels",
+      "freeAlt": "add up to 3 tasks to your daily routine"
+    },
+    "rewards": {
+      "outcome1": "Create your own custom rewards and milestones",
+      "outcome2": "Unlock animated celebrations for big achievements",
+      "freeAlt": "earn the three built-in milestone badges"
+    },
+    "upgradeCta": "✦ Upgrade"
   },
   "pricing": {
     "heading": "Simple, honest pricing",
@@ -1429,6 +1551,7 @@
     "activating": "Activating…",
     "activated": "✓ Premium activated!",
     "trialError": "Could not activate trial",
+    "noAuthError": "Sign in to activate your trial",
     "tryAgain": "Try again",
     "redirecting": "Unlocking premium features…",
     "currentPlan": "Current plan",
@@ -1450,25 +1573,134 @@
     }
   },
   "calendarWeeklyGridAria": "Weekly calendar",
-  "settingsPanel": {
-    "shortcutsHeading": "Keyboard shortcuts",
-    "shortcutAddTask": "Focus \"Add task\" input",
-    "shortcutDismiss": "Dismiss notification / close overlay",
-    "aboutHeading": "About",
-    "appVersion": "Version",
-    "buildDate": "Build",
-    "stack": "Stack",
-    "aboutDescription": "GYLIO is a neurodivergent-friendly productivity app built with accessibility, low cognitive load, and gentle UX at its core.",
-    "tourDescription": "Take the interactive tour again to rediscover features or show the app to someone new.",
-    "timerHeading": "Focus timer",
-    "timerFocusLabel": "Focus duration",
-    "timerShortBreakLabel": "Short break",
-    "timerLongBreakLabel": "Long break",
-    "timerSessionsLabel": "Sessions before long break",
-    "timerAutoBreak": "Auto-start breaks when focus ends",
-    "timerInsight": "Research shows the brain works in ~90-minute ultradian cycles. Shorter sprints (25 min) suit most tasks; longer sprints (45–90 min) require proportionally longer breaks to avoid cognitive fatigue. Find your window.",
-    "timerBreakInsight": "Longer focus sprints need longer breaks: 45 min → 15 min break; 90 min → 20 min break. Skipping breaks compounds mental fatigue."
+  "calendarZoomHint": "Ctrl+scroll or pinch to zoom",
+  "tooltips": {
+    "tasks": {
+      "section": "Your central task hub — everything you need to do, broken into steps you can actually start. Add anything here, then check it off when done.",
+      "energy": "Filter tasks by the mental fuel they need right now. Tiny/Low for rough days. Medium/High when you're in the zone. Match effort to capacity.",
+      "quickStart": "Research-backed task templates you can add in one tap. Customise the title to fit your situation — the structure is already done for you.",
+      "reliability": "Tracks how consistently your recurring tasks are being auto-generated. If instances are being missed, you can rebuild them here.",
+      "subtasks": "Break a big task into tiny steps. Research shows task initiation — not execution — is the hardest part. Starting the first micro-step is 80% of the work.",
+      "plannedDate": "Scheduling a task makes you 2–3× more likely to do it. Even pinning it to 'today' works — specificity is the whole point.",
+      "intention": "An implementation intention (when + where) doubles follow-through — proven across 94 studies. Your brain treats it as a pre-commitment.",
+      "timer": "Pomodoro sprints: focused work + short breaks. Timed urgency removes the 'I'll start in a minute' trap without adding pressure.",
+      "templates": "Ready-made task structures for common situations — study session, work block, self-care. Pick one and personalise the title to fit your context.",
+      "title": "Give your task a clear, specific name. The more concrete the title, the easier it is to start — 'Email Dr Santos' beats 'Emails' every time."
+    },
+    "calendar": {
+      "section": "Schedule events and block time for tasks. Putting something on the calendar makes it 2–3× more likely to actually happen.",
+      "suggestedFocus": "Based on your open tasks and free time today, these slots are your best windows for focused work. Schedule them now while your intentions are fresh.",
+      "tasksToConvert": "Tasks without a time slot yet. 'Convert to event' gives each task a specific time — turning an intention into a commitment.",
+      "events": "All your scheduled events. Click any event to edit, add a reminder, or link it to a task. Deleting an event never deletes the linked task.",
+      "title": "Give your event a clear name. Include who or what it's for: 'Team standup' or 'Dentist — Dr. Smith'. This appears in your calendar grid.",
+      "startDate": "When does this event begin? Setting an exact time blocks it in your calendar and prevents scheduling conflicts.",
+      "endDate": "When does this event end? Accurate end times help you see free windows for tasks and avoid back-to-back overload.",
+      "location": "Where is this happening? Optional, but useful for travel time reminders and context.",
+      "description": "Optional details — agenda items, prep notes, access codes. You will see this when you click the event.",
+      "taskLink": "Connect this event to an existing task. When you complete the event, it can mark the task done too — keeping both lists in sync.",
+      "reminder": "Get a notification before the event starts. Especially helpful for appointments that need travel time or preparation.",
+      "addEvent": "Create a new calendar event. Putting tasks on the calendar makes them 3x more likely to happen — this is the step between planning and doing."
+    },
+    "budget": {
+      "section": "Zero-based budgeting: every dollar gets a job before you spend it. Income minus all allocations should equal zero — intentional, not accidental.",
+      "review": "A 5-minute weekly check-in is the single highest-leverage budget habit. Glancing at the numbers prevents small leaks from becoming big holes.",
+      "month": "Each budget is scoped to a calendar month (YYYY-MM format). Create a fresh one at the start of each period — or switch to past months to review history.",
+      "categories": "Named spending buckets. Every transaction must belong to a category — this is how you track where your money really goes vs. where you planned it to go.",
+      "categoryType": "Need: essentials you can't skip — rent, food, utilities, transport, medication.\nWant: lifestyle choices — dining out, streaming, hobbies, extras.\nGoal: future you — savings, investments, emergency fund, big purchases.\nDebt: repayments — loans, credit cards, anything carrying interest.",
+      "chart": "Pale bar = planned. Solid bar = actual spent. Red means over budget. Hover each bar for the exact figures and what that category covers.",
+      "chartBar": {
+        "NEED": "Essential expenses — rent, food, utilities, transport. The floor below which life stops working.",
+        "WANT": "Lifestyle choices — dining out, streaming, hobbies. Not bad money, just honest about what it is.",
+        "GOAL": "Future building — savings, investments, emergency fund. Pay yourself first.",
+        "DEBT": "Repayments — loans, credit cards, anything with interest. Every extra dollar here shortens your debt-free date."
+      },
+      "transactions": "Log every expense or payment here. Each entry updates the category's actual total and keeps the chart in real time.",
+      "plannedActual": "How close did reality match your plan? Use this to calibrate next month's budget — over on Wants? Shift the budget there deliberately.",
+      "debts": "Track every loan and credit card. Knowing balance, interest rate, and minimum payment lets you build a real exit plan instead of guessing.",
+      "annualRate": "The yearly interest rate (APR) on this debt. Higher rates cost more over time. These are the ones to attack first if you use the Avalanche strategy.",
+      "minPayment": "The minimum monthly payment to keep this account current. Always pay at least this. Your payoff strategy stacks extra on top.",
+      "categoryName": "A short, recognisable label for this spending bucket — e.g. 'Rent', 'Groceries', 'Netflix'. Clear names make it faster to categorise transactions later.",
+      "incomeSource": "Where this money comes from — salary, freelance, transfer, etc. Labelling income sources helps you see which streams are reliable.",
+      "incomeAmount": "The amount you received or expect to receive from this source. Accurate figures here set the ceiling for your whole month's plan.",
+      "plannedAmount": "How much you intend to spend in this category this month. Set a realistic number — you can always adjust as the month unfolds.",
+      "transactionDate": "When the expense or payment happened. Logging the real date keeps your timeline accurate for end-of-month reviews.",
+      "transactionAmount": "The exact amount spent or paid. Enter what actually left your account — no rounding. Small differences add up fast.",
+      "transactionCategory": "Which budget category this expense belongs to. Assigning every transaction to a category is what makes the chart reflect reality.",
+      "transactionNote": "Optional context for this entry — e.g. 'lunch with team' or 'annual renewal'. Notes make future you grateful during reviews.",
+      "period": "Enter the month you want to budget for in YYYY-MM format (e.g. 2026-04 for April 2026). Each month is a fresh zero-based plan — your income and categories carry meaning within that window.",
+      "debtName": "Name this debt clearly so you can identify it at a glance — e.g. 'Chase Visa', 'Student Loan', 'Car Finance'. Use the lender name + account type for easy matching with your bank statements.",
+      "debtBalance": "Your current outstanding balance — not the original loan amount. Check your latest statement for the exact figure. This is the number the payoff calculator works from, so accuracy matters.",
+      "debtCategory": "Optionally link this debt to a DEBT-type budget category. This lets your transaction log flow into the payoff tracker automatically. Leave blank if you prefer to track debt separately."
+    },
+    "rewards": {
+      "section": "Turn daily habits into a progress game. Earn XP by completing tasks, maintain streaks for consistency, and set rewards you actually want to earn.",
+      "gamification": "Variable reward schedules keep motivation high over time. XP and streaks here follow that model. All data stays private and local — nothing is shared.",
+      "streak": "A streak counts consecutive days you've been consistent. Task, focus, and budget streaks are tracked separately — breaking one doesn't break them all.",
+      "skipTokens": "Use a skip token to take a guilt-free rest day without breaking your streak. Tokens are earned by staying consistent. Skipping strategically is planning, not failing.",
+      "rewardsList": "Personal treats you've committed to earning. Set a point target, name your reward, and redeem it guilt-free when you hit the goal. Make rewards you actually want.",
+      "level": "Your current XP level. Each level represents consistent effort over time — not perfection, just persistence. Level up by completing tasks and maintaining streaks.",
+      "rewardTitle": "What reward do you want to unlock? Make it something you genuinely look forward to — a meal out, a new book, a guilt-free lazy day.",
+      "pointsRequired": "How much XP to unlock this reward? You earn XP by completing tasks (10 pts each) and reviewing your budget weekly. Set thresholds you can realistically hit.",
+      "rewardDescription": "Optional notes about the reward — where to go, what to order, what it costs."
+    },
+    "social": {
+      "section": "Relationships drift without intentional effort. This tab helps you plan regular check-ins and activities with people who matter — before distance sets in.",
+      "relationshipType": "Choose who this plan is for. Different relationships need different kinds of attention — this shapes the frequency and type of activities you plan.",
+      "addPlan": "Create a social action: name an activity (call, visit, send a note), link it to a person, and set how often you want to do it. Checking it off keeps the habit alive.",
+      "plansList": "Your relationship calendar. Each entry is a commitment to invest in someone. Small consistent actions over time prevent the drift that slowly erodes close relationships.",
+      "planTitle": "Give this connection plan a name. Keep it simple: 'Brunch with Sofia' or 'Call Mom weekly'. The clearer the plan, the easier it is to actually follow through.",
+      "planType": "What kind of interaction is this? Call = phone/video; Meetup = in-person; Message = text/email; Event = shared experience. Each type has different friction — start with the lowest friction option.",
+      "energyLevel": "How much social energy does this interaction require? Match this to your available energy — low-energy days are perfect for a quick message, high-energy days for a real meetup.",
+      "dateTime": "When do you want this to happen? Scheduling a specific date makes it 10x more likely to occur vs. 'sometime soon'.",
+      "steps": "Break the connection plan into small actions: 'text to suggest a date', 'book the restaurant', 'confirm the day before'. Each step removes a reason to postpone."
+    },
+    "routines": {
+      "section": "Routines are pre-sequenced steps tied to a time of day. Instead of deciding what to do next, you follow the steps — removing decision fatigue from the equation.",
+      "addRoutine": "Build a new routine: name it, pick an anchor (morning/work/evening), set a start time, and list the steps. Keep each step tiny — 5 minutes or less each.",
+      "steps": "One specific, concrete action per step. 'Get ready' is too vague. 'Brush teeth, wash face, take meds' is actionable. Tiny steps remove the starting barrier.",
+      "anchor": "Habit stacking: link a new behaviour to one you already do automatically. BJ Fogg's research shows this doubles implementation success vs. starting cold.",
+      "title": "Name your routine clearly: 'Morning wind-down' or 'Pre-work focus ritual'. A good name makes it feel intentional and worth protecting in your schedule.",
+      "description": "Optional context — what this routine is for, when you do it, or how it makes you feel. Useful when you revisit it weeks later.",
+      "frequency": "How often should this routine run? Daily routines build automaticity faster; weekly ones suit habits that need more recovery time between.",
+      "triggerTime": "Set a time that reliably triggers this routine. Pairing with an existing time anchor (e.g., 7:00 AM right after waking) strengthens the habit loop."
+    },
+    "settings": {
+      "section": "Personalise the app for your brain, sensory preferences, and workflow. All settings apply everywhere and persist between sessions.",
+      "theme": "Light for bright spaces, Dark for dim environments, High Contrast for vision sensitivity or outdoor use. Pick what keeps your eyes comfortable longest.",
+      "screenTint": "Adds a warm amber overlay to reduce blue light in the evening. Helps signal wind-down time to your brain without changing system display settings.",
+      "tts": "Reads settings changes and alerts aloud — useful for eyes-free situations, managing distractions, or confirming changes without looking at the screen.",
+      "announce": "Announces each change you make in Settings aloud as it happens — good for double-checking choices without re-reading the screen.",
+      "timer": "Pomodoro: timed work sprints followed by short breaks. Research shows timed urgency reduces avoidance without adding stress — especially effective for ADHD brains.",
+      "shortcuts": "Keyboard shortcuts let you navigate the whole app without the mouse. Learn 1–2 at a time — muscle memory compounds quickly.",
+      "restartGuide": "Replays the interactive app tour from the beginning. Useful if you want to re-explore a skipped feature, or when introducing the app to someone new.",
+      "dailyView": "Shows a simplified Daily Command Centre on the Tasks tab: just your top 3 tasks, next event, and a budget nudge. Good for days when the full view feels overwhelming.",
+      "tint": "Applies a warm color overlay to reduce blue light and harsh contrast. Many neurodivergent users find this reduces eye strain and sensory overwhelm during long sessions.",
+      "font": "Larger text reduces cognitive load when scanning long lists. The default size is designed for readability; increase it if you find yourself squinting or losing your place.",
+      "motion": "Disabling animations removes all sliding, fading, and bouncing effects. Essential if motion causes distraction, dizziness, or sensory overload.",
+      "gamification": "Turns XP, levels, and streaks on or off globally. Your progress data is preserved either way — you can re-enable anytime.",
+      "announceSettings": "Reads your current settings aloud so you can confirm everything is configured as expected without reading through the list."
+    }
   },
+  "shortcutsHeading": "Keyboard shortcuts",
+  "shortcutAddTask": "Focus \"Add task\" input",
+  "shortcutDismiss": "Dismiss notification / close overlay",
+  "aboutHeading": "About",
+  "appVersion": "Version",
+  "buildDate": "Build",
+  "stack": "Stack",
+  "aboutDescription": "GYLIO is a neurodivergent-friendly productivity app built with accessibility, low cognitive load, and gentle UX at its core.",
+  "tourDescription": "Take the interactive tour again to rediscover features or show the app to someone new.",
+  "timerHeading": "Focus timer",
+  "timerFocusLabel": "Focus duration",
+  "timerShortBreakLabel": "Short break",
+  "timerLongBreakLabel": "Long break",
+  "timerSessionsLabel": "Sessions before long break",
+  "timerAutoBreak": "Auto-start breaks when focus ends",
+  "timerInsight": "Research shows the brain works in ~90-minute ultradian cycles. Shorter sprints (25 min) suit most tasks; longer sprints (45–90 min) require proportionally longer breaks to avoid cognitive fatigue. Find your window.",
+  "timerBreakInsight": "Longer focus sprints need longer breaks: 45 min → 15 min break; 90 min → 20 min break. Skipping breaks compounds mental fatigue.",
+  "dailyViewHeading": "Daily view",
+  "dailyViewToggle": "Enable daily view",
+  "dailyViewDescription": "Show a simplified Daily Command Center on the Tasks tab — just your top 3 tasks, next event, and a budget nudge.",
   "clock": {
     "about": "about {{time}}",
     "around": "around {{time}}",
@@ -1491,6 +1723,8 @@
     "next": "Next",
     "finish": "Done!",
     "keyboardHint": "← → navigate · Esc pause",
+    "unlockCta": "Start 10-day free trial to unlock →",
+    "signInCta": "Sign in to see this feature live →",
     "startButton": "Guide",
     "startAria": "Start interactive guide",
     "activeLabel": "Guide on",
@@ -1529,9 +1763,248 @@
       "title": "Budget tracker",
       "content": "Track income and spending by category. The progress bars show exactly how much of each budget you've used this month — no surprises."
     },
+    "social": {
+      "title": "Social plans",
+      "content": "Plan calls, meetups, and messages with the people who matter. Pick a relationship type, choose a template, and add your plan."
+    },
+    "routines": {
+      "title": "Routines",
+      "content": "Build daily habits that stick. Create routines with trigger times and micro-steps — consistency beats intensity every time."
+    },
+    "rewards": {
+      "title": "Rewards & streaks",
+      "content": "Earn XP for completing tasks, maintaining streaks, and reviewing your budget. Set up custom rewards to keep yourself motivated."
+    },
     "done": {
       "title": "You're all set!",
       "content": "You know the essentials. Explore at your own pace — and restart this guide anytime from Settings or the Guide button in the header."
+    },
+    "interactive": "Try it",
+    "selector": {
+      "title": "Choose your guide",
+      "subtitle": "Start the quick overview or go deep on any section",
+      "close": "Close",
+      "start": "Start",
+      "hint": "Press Esc to close · You can restart any guide from Settings"
+    },
+    "flows": {
+      "overview": {
+        "name": "Quick overview",
+        "desc": "All features at a glance",
+        "duration": "~2 min"
+      },
+      "tasks": {
+        "name": "Tasks walkthrough",
+        "desc": "Create, organize & complete tasks step by step",
+        "duration": "~2 min"
+      },
+      "calendar": {
+        "name": "Calendar walkthrough",
+        "desc": "Schedule events & plan your week",
+        "duration": "~2 min"
+      },
+      "budget": {
+        "name": "Budget walkthrough",
+        "desc": "Set up income, categories & transactions",
+        "duration": "~4 min"
+      },
+      "social": {
+        "name": "Social walkthrough",
+        "desc": "Plan social interactions & stay connected",
+        "duration": "~2 min"
+      },
+      "routines": {
+        "name": "Routines walkthrough",
+        "desc": "Build consistent daily habits step by step",
+        "duration": "~2 min"
+      },
+      "rewards": {
+        "name": "Rewards walkthrough",
+        "desc": "Track XP, streaks & unlock custom rewards",
+        "duration": "~2 min"
+      },
+      "settings": {
+        "name": "Settings walkthrough",
+        "desc": "Personalise your experience",
+        "duration": "~1 min"
+      }
+    },
+    "premium": {
+      "title": "Premium features",
+      "content": "Social Plans, Routines, and Rewards unlock on the Premium plan. Each tab marked ✦ lets you try once free — look for the banner when you visit them."
+    },
+    "tasksFlow": {
+      "welcome": {
+        "title": "Tasks — interactive walkthrough",
+        "content": "We'll build a real task together. Follow each step — the fields are live so you can fill them in as we go."
+      },
+      "title": {
+        "title": "Step 1: Name your task",
+        "content": "Type something specific — 'Email Dr. García before noon' beats 'emails'. Press N anytime to jump here."
+      },
+      "date": {
+        "title": "Step 2: Schedule it",
+        "content": "Pick today or a future date. Scheduling a task makes you 2–3× more likely to do it."
+      },
+      "energy": {
+        "content": "Choose how much energy this takes. Low battery? Filter for Tiny tasks. Feeling sharp? Take on a High.",
+        "title": "Step 3: Match your energy"
+      },
+      "steps": {
+        "content": "Click 'Break into steps' and add 2–3 micro-steps. Starting small beats perfect every time."
+      },
+      "submit": {
+        "title": "Step 4: Add the task",
+        "content": "Hit 'Add task'. It'll appear in the Today tab — check it off when you're done."
+      },
+      "tabs": {
+        "title": "Your task views",
+        "content": "Today shows tasks scheduled now. Week shows the full 7 days. Backlog holds everything unscheduled — no rush."
+      },
+      "done": {
+        "title": "Tasks mastered!",
+        "content": "You know how to capture, schedule, break down, and complete tasks. Open the Pomodoro timer to run a focused sprint."
+      },
+      "templates": {
+        "title": "Start with a proven task",
+        "content": "Tap here to browse 28 research-backed templates across 7 life areas. Select one and your title, energy level, and micro-steps are filled in instantly."
+      }
+    },
+    "calendarFlow": {
+      "welcome": {
+        "title": "Calendar — interactive walkthrough",
+        "content": "See your full schedule and create events. We'll navigate the week view and add an event together."
+      },
+      "grid": {
+        "title": "Your weekly view",
+        "content": "Each column is a day. Click any event to edit it. You can link calendar events to tasks so nothing falls through the cracks."
+      },
+      "add": {
+        "title": "Add an event",
+        "content": "Click '+ Add event' to open the form. Try it now — the form will appear right below the button."
+      },
+      "form": {
+        "title": "Fill in the details",
+        "content": "Enter a title, start time, and end time. You can also link this event to a task, add a location, or set a reminder."
+      },
+      "done": {
+        "title": "Calendar ready!",
+        "content": "Events sit alongside your tasks so you always know what is committed and what has breathing room."
+      }
+    },
+    "budgetFlow": {
+      "welcome": {
+        "title": "Budget — interactive walkthrough",
+        "content": "Set up zero-based budgeting in four steps: create a month, add income, define categories, then log transactions."
+      },
+      "month": {
+        "title": "Step 1: Pick your budget month",
+        "content": "Type a month (e.g. 2026-04) or use the current default. Click 'Open budget' to create it. Each month starts fresh."
+      },
+      "income": {
+        "title": "Step 2: Add your income",
+        "content": "Enter each income source and its amount. The 'Remaining' counter ticks down as you assign categories — zero means every sol has a job."
+      },
+      "categories": {
+        "title": "Step 3: Create spending categories",
+        "content": "Add categories like 'Rent' (Need), 'Restaurants' (Want), or 'Emergency fund' (Goal) with planned amounts."
+      },
+      "transactions": {
+        "title": "Step 4: Log a transaction",
+        "content": "Record an actual expense: enter the amount, pick a category, and set the date. The progress bars update in real time."
+      },
+      "done": {
+        "title": "Budget set up!",
+        "content": "Check back weekly — even a 5-minute review of your numbers is what keeps you on track."
+      }
+    },
+    "settingsFlow": {
+      "welcome": {
+        "title": "Settings — interactive walkthrough",
+        "content": "GYLIO adapts to how your brain works. Let’s set up theme, accessibility, and a few power features."
+      },
+      "theme": {
+        "title": "Choose your theme",
+        "content": "Light, Dark, or High-contrast — pick what is easiest on your eyes. The change applies instantly everywhere."
+      },
+      "gamification": {
+        "title": "Gamification",
+        "content": "Earn points for completing tasks, logging budget reviews, and keeping streaks. Toggle it off anytime for a distraction-free experience."
+      },
+      "tour": {
+        "title": "Restart this guide",
+        "content": "You can relaunch any guide from here — useful when sharing the app or rediscovering a feature."
+      },
+      "done": {
+        "title": "All set!",
+        "content": "Your settings are saved instantly. Head to Tasks to start your first productive session."
+      }
+    },
+    "socialFlow": {
+      "welcome": {
+        "title": "Social — interactive walkthrough",
+        "content": "Plan social interactions without the anxiety of figuring out what to do. We'll create a plan together using a relationship type and template."
+      },
+      "relationship": {
+        "title": "Step 1: Who is this for?",
+        "content": "Pick a relationship type — Family, Friend, Colleague, or Romantic. This filters the templates to ones that actually fit the context."
+      },
+      "form": {
+        "title": "Step 2: Fill in the details",
+        "content": "Give the plan a title, type (call, meetup, message), energy level, and a date. You can also add micro-steps so you know exactly how it'll go."
+      },
+      "list": {
+        "title": "Your social plans",
+        "content": "All your upcoming interactions live here. Mark steps done as you go, and read back reflections to reinforce the habit of reaching out."
+      },
+      "done": {
+        "title": "Social mastered!",
+        "content": "You know how to plan, execute, and reflect on social interactions. Even one scheduled connection a week compounds into stronger relationships."
+      }
+    },
+    "routinesFlow": {
+      "welcome": {
+        "title": "Routines — interactive walkthrough",
+        "content": "A routine is a sequence you run on autopilot. We'll build one together — give it a trigger time, micro-steps, and a frequency."
+      },
+      "gallery": {
+        "title": "Research-backed protocols",
+        "content": "Browse science-backed routine templates — morning routines, wind-down sequences, focus protocols, and more. Click 'Browse protocols' to explore."
+      },
+      "form": {
+        "title": "Build your routine",
+        "content": "Name it, set a trigger time (like '07:30'), pick a frequency, and add 2–3 steps. A trigger + steps = a routine you can actually follow."
+      },
+      "list": {
+        "title": "Your active routines",
+        "content": "Due routines show a 'Complete' button. Check off steps as you go — the streak dots track how consistent you've been over time."
+      },
+      "done": {
+        "title": "Routines set up!",
+        "content": "Consistency beats intensity. Even a 10-minute routine done daily outperforms a 2-hour session done once. Check back tomorrow."
+      }
+    },
+    "rewardsFlow": {
+      "welcome": {
+        "title": "Rewards — interactive walkthrough",
+        "content": "Gamification makes progress visible. Earn XP from tasks and budget reviews, maintain streaks, and unlock rewards you define yourself."
+      },
+      "toggle": {
+        "title": "Enable gamification",
+        "content": "Toggle XP, streaks, and rewards on or off. Your data stays local. Turn it on to try it — you can always disable it later."
+      },
+      "progress": {
+        "title": "Your XP & streaks",
+        "content": "Level up by completing tasks and reviewing your budget. The task streak is your primary streak — even one completed task per day keeps it alive."
+      },
+      "form": {
+        "title": "Create a reward",
+        "content": "Add a reward you actually want — a meal out, a new book, a day off. Set the XP threshold and it'll unlock automatically when you reach it."
+      },
+      "done": {
+        "title": "Rewards activated!",
+        "content": "Your progress is now tracked. Complete tasks, review your budget weekly, and watch your streak grow. You've earned it."
+      }
     }
   }
 }

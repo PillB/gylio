@@ -128,7 +128,7 @@ const ensureColumns = (tx: SQLite.SQLTransaction, table: string, columns: Column
       const existing = new Set<string>();
       for (let i = 0; i < result.rows.length; i += 1) {
         const name = result.rows.item(i)?.name;
-        if (name) {
+        if (typeof name === 'string' && name) {
           existing.add(name);
         }
       }

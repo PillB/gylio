@@ -2,8 +2,6 @@ const jwt = require('jsonwebtoken');
 const jwksClient = require('jwks-rsa');
 const { ApiError } = require('../lib/errors');
 
-// Load server .env if dotenv is available (dev convenience).
-try { require('dotenv').config({ path: require('path').join(__dirname, '../.env') }); } catch (_) {}
 
 let cachedClient = null;
 let cachedJwksUri = null;
@@ -118,6 +116,7 @@ const requireAuth = async (req, _res, next) => {
     req.user = {
       id: String(payload.sub),
       email: typeof payload.email === 'string' ? payload.email : null,
+      plan: payload.public_metadata?.plan || payload.publicMetadata?.plan || 'free_user',
     };
 
     return next();
@@ -126,9 +125,17 @@ const requireAuth = async (req, _res, next) => {
   }
 };
 
+const requirePlan = (plan) => (req, _res, next) => {
+  if (req.user?.plan !== plan) {
+    return next(new ApiError(403, 'FORBIDDEN', 'This feature requires an active subscription'));
+  }
+  return next();
+};
+
 module.exports = {
   requireAuth,
   parseAuthHeader,
+  requirePlan,
   verifyClerkToken,
   getAuthConfig,
 };

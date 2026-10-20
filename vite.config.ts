@@ -72,7 +72,24 @@ const deploymentGuidePublicBaseBridge = () => ({
 // - Maps react-native imports to react-native-web
 // - Uses VITE_BASE_PATH so the same build can target GitHub Pages (/gylio/)
 //   or a root-hosted production SPA (/)
-export default defineConfig({
+// - Fails a production build when the Clerk publishable key is missing
+export default defineConfig(({ mode }) => {
+  // The Clerk key is mandatory for the root-hosted production SPA, but the
+  // GitHub Pages build is a deliberately keyless static preview (pages.yml sets
+  // only VITE_BASE_PATH), so requiring it there would break that deployment.
+  if (mode === 'production' && base === '/' && !process.env.VITE_CLERK_PUBLISHABLE_KEY) {
+    throw new Error(
+      '[build] VITE_CLERK_PUBLISHABLE_KEY is required for root-hosted production builds. ' +
+      'Set it in your CI environment or .env.local file.'
+    );
+  }
+  if (mode === 'production' && !process.env.VITE_CLERK_PUBLISHABLE_KEY) {
+    console.warn(
+      `[build] VITE_CLERK_PUBLISHABLE_KEY is not set; building ${base} without authentication.`
+    );
+  }
+
+  return {
   base,
   plugins: [react(), deploymentGuidePublicBaseBridge()],
   build: {
@@ -183,4 +200,5 @@ export default defineConfig({
       },
     },
   },
+  };
 });

@@ -20,7 +20,6 @@ export function useSpeech() {
       try {
         // Lazy-load to avoid import errors in environments without Expo Speech
         // support (e.g., web). This keeps the API synchronous for consumers.
-        // eslint-disable-next-line global-require
         speechModule = require('expo-speech');
       } catch (error) {
         console.warn('TTS is not available in this environment');

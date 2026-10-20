@@ -5,6 +5,10 @@ export type NotificationPermissionsResponse = {
   granted: boolean;
 };
 
+// Web reminders are page-lifetime timers; ids let callers replace a reminder instead of stacking duplicates.
+const scheduledTimers = new Map<string, ReturnType<typeof setTimeout>>();
+let nextNotificationId = 0;
+
 export const AuthorizationStatus = {
   GRANTED: 'granted' as NotificationPermissionStatus,
   DENIED: 'denied' as NotificationPermissionStatus,
@@ -40,14 +44,25 @@ export const scheduleNotificationAsync = async ({
 }: {
   content: { title?: string; body?: string; sound?: boolean };
   trigger?: { seconds?: number } | null;
-}): Promise<void> => {
-  if (typeof Notification === 'undefined') return;
+}): Promise<string> => {
+  const id = `web-notification-${(nextNotificationId += 1)}`;
+  if (typeof Notification === 'undefined') return id;
 
   const delay = Math.max(0, Math.round((trigger?.seconds ?? 0) * 1000));
-  setTimeout(() => {
+  const timer = setTimeout(() => {
+    scheduledTimers.delete(id);
     if (Notification.permission === 'granted') {
-      // eslint-disable-next-line no-new
       new Notification(content.title ?? '', { body: content.body });
     }
   }, delay);
+  scheduledTimers.set(id, timer);
+  return id;
+};
+
+/** Cancels a reminder scheduled in this page session; unknown ids are ignored. */
+export const cancelScheduledNotificationAsync = async (id: string): Promise<void> => {
+  const timer = scheduledTimers.get(id);
+  if (timer === undefined) return;
+  clearTimeout(timer);
+  scheduledTimers.delete(id);
 };

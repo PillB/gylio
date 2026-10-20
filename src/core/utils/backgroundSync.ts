@@ -206,8 +206,10 @@ export const requestBackgroundSync = async () => {
   if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return;
   try {
     const registration = await navigator.serviceWorker.ready;
-    if ('sync' in registration) {
-      await registration.sync.register(SYNC_TAG);
+    // Background Sync is Chromium-only and absent from the DOM lib typings.
+    const { sync } = registration as ServiceWorkerRegistration & { sync?: { register: (tag: string) => Promise<void> } };
+    if (sync) {
+      await sync.register(SYNC_TAG);
     }
   } catch (error) {
     // Ignore registration errors and rely on online events.

@@ -44,7 +44,7 @@ export default function BudgetTooltip({ content, position = 'top' }: Props) {
 
   return (
     <span
-      style={{ position: 'relative', display: 'inline-flex', verticalAlign: 'middle', marginLeft: 5 }}
+      style={{ position: 'relative', display: 'inline-flex', verticalAlign: 'middle', marginLeft: 5, minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
     >
       <button
         type="button"
