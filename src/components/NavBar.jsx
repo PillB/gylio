@@ -15,6 +15,7 @@ const NavBar = ({ items, activeKey, onNavigate, languageToggle }) => {
     <nav
       aria-label={t('shell.primaryNavigation')}
       data-tour="nav-bar"
+      className="app-nav"
       style={{
         display: 'flex',
         flexWrap: 'wrap',
@@ -35,11 +36,13 @@ const NavBar = ({ items, activeKey, onNavigate, languageToggle }) => {
             key={key}
             type="button"
             data-tour={`nav-${key}`}
+            className="app-nav__item"
             onClick={() => onNavigate(key)}
             aria-pressed={isActive}
-            aria-label={label}
             style={{
               padding: `${theme.spacing.xs + 2}px ${theme.spacing.md}px`,
+              minHeight: '44px',
+              minWidth: '44px',
               borderRadius: theme.shape.radiusMd,
               border: 'none',
               backgroundColor: isActive ? theme.colors.primary : 'transparent',
@@ -53,6 +56,7 @@ const NavBar = ({ items, activeKey, onNavigate, languageToggle }) => {
               alignItems: 'center',
               gap: theme.spacing.xs,
               whiteSpace: 'nowrap',
+              flexShrink: 0,
             }}
           >
             {label}

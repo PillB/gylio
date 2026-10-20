@@ -11,7 +11,7 @@ const errorHandler = (err, _req, res, _next) => {
   const payload = {
     error: {
       code: err.code || 'INTERNAL_ERROR',
-      message: err.message || 'Unexpected server error',
+      message: status >= 500 ? 'An unexpected error occurred. Please try again.' : (err.message || 'Unexpected server error'),
       details: err.details || null
     }
   };

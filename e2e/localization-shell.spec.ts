@@ -1,7 +1,9 @@
 import { expect, test, type Page } from '@playwright/test';
 
 async function seedCompletedOnboarding(page: Page) {
-  await page.goto('.');
+  // Seed from the static guide page, like the other specs. Loading the app to
+  // seed let its onboarding provider persist its own state over the fixture.
+  await page.goto('deployment-guide.html', { waitUntil: 'domcontentloaded' });
   await page.evaluate(() => {
     localStorage.setItem('onboardingFlowState', JSON.stringify({
       isOnboardingComplete: true,

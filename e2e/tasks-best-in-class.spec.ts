@@ -90,8 +90,24 @@ test.describe('best-in-class Tasks critical path', () => {
     await page.reload({ waitUntil: 'networkidle' });
     await expectNoHorizontalOverflow(page);
 
+    // Baseline note: this budget was 1900 while the primary nav was a
+    // `nowrap` strip with its scrollbar hidden, which kept the nav to one row
+    // by pushing 4 of 7 destinations off-screen and unreachable — a WCAG 2.2
+    // SC 1.4.10 (Reflow) violation. Making the nav wrap restored those
+    // destinations and cost ~144px. Compacting the nav (198->146px) and the
+    // view/energy strips (148->92px) returned ~112px of that, leaving a net
+    // +32px against the old figure. 1950 is still far below the ~2272px
+    // (four-screen) baseline this test exists to guard.
     const height = await page.evaluate(() => document.documentElement.scrollHeight);
-    expect(height).toBeLessThanOrEqual(1900);
+    expect(height).toBeLessThanOrEqual(1950);
+
+    // Guard the compaction itself, so the nav cannot silently re-inflate:
+    // seven wrapped destinations must stay within three rows at 320px.
+    const navHeight = await page
+      .locator('[data-tour="nav-bar"]')
+      .evaluate((el) => Math.round(el.getBoundingClientRect().height));
+    expect(navHeight, 'primary navigation must stay compact at 320px').toBeLessThanOrEqual(160);
+
     await page.screenshot({ path: 'e2e/screenshots/tasks-best-in-class-320.png', fullPage: true });
   });
 

@@ -38,7 +38,10 @@ import { useAppAuth } from './core/context/AuthContext';
 import WelcomeBackBanner from './components/WelcomeBackBanner';
 import { track, Events } from './core/analytics';
 import GuidedTourOverlay from './components/GuidedTourOverlay';
+import TourFlowSelector from './components/TourFlowSelector';
 import { useGuidedTour } from './core/context/GuidedTourContext';
+import { useDailyMode } from './features/dashboard/useDailyMode';
+import DailyCommandCenter from './features/dashboard/DailyCommandCenter';
 
 function AppHeader({ clerkEnabled }) {
   const { t } = useTranslation();
@@ -46,8 +49,9 @@ function AppHeader({ clerkEnabled }) {
   const { theme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
-  const { tourState, startTour } = useGuidedTour();
+  const { tourState, openSelector } = useGuidedTour();
   const isOnboarding = location.pathname === '/onboarding';
+  const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 520px)').matches;
 
   const ttsEnabled = selections?.accessibility?.tts ?? false;
   const toggleTts = () => updateSelections('accessibility', { tts: !ttsEnabled });
@@ -99,15 +103,17 @@ function AppHeader({ clerkEnabled }) {
       </div>
 
       <div style={{ display: 'flex', gap: theme.spacing.sm, alignItems: 'center', flexWrap: 'wrap' }}>
-        {!isOnboarding && <DateTimeWidget />}
+        {/* Hidden on mobile — system status bar shows time */}
+        {!isOnboarding && <span className="header-dt"><DateTimeWidget /></span>}
         {!isOnboarding && (
           <button
             type="button"
-            onClick={startTour}
+            onClick={openSelector}
             aria-label={tourState.active ? t('tour.activeAria', 'Tour active') : tourState.completed ? t('tour.restartAria', 'Restart guide') : t('tour.startAria', 'Start interactive guide')}
             title={tourState.completed ? t('tour.restartButton', 'Restart guide') : t('tour.startButton', 'Start guide')}
             style={{
               padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
+              minHeight: '44px',
               border: `1px solid ${tourState.active ? theme.colors.primary : theme.colors.border}`,
               borderRadius: theme.shape.radiusFull,
               cursor: 'pointer',
@@ -123,13 +129,16 @@ function AppHeader({ clerkEnabled }) {
           </button>
         )}
         <LanguageToggle placement="header" />
+        {/* Hidden on mobile — accessible from Settings */}
         {!isOnboarding && (
           <button
             type="button"
             onClick={toggleTts}
             aria-label={t('onboarding.ttsToggle.aria')}
+            className="header-tts"
             style={{
               padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
+              minHeight: '36px',
               border: `1px solid ${theme.colors.border}`,
               borderRadius: theme.shape.radiusFull,
               cursor: 'pointer',
@@ -145,8 +154,10 @@ function AppHeader({ clerkEnabled }) {
         )}
         {clerkEnabled && !isOnboarding && (
           <>
-            <SubscriptionBadge />
-            <UserButton afterSignOutUrl={`${import.meta.env.BASE_URL}sign-in`} />
+            {!isMobile && <SubscriptionBadge />}
+            <div style={{ minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <UserButton afterSignOutUrl={`${import.meta.env.BASE_URL}sign-in`} />
+            </div>
           </>
         )}
       </div>
@@ -176,7 +187,7 @@ function SubscriptionBadge() {
           letterSpacing: '0.02em',
         }}
       >
-        ✦ {t('upgrade.premiumBadge', 'Premium')}
+        {t('upgrade.premiumBadge', '✦ Premium')}
       </span>
     );
   }
@@ -197,7 +208,7 @@ function SubscriptionBadge() {
         letterSpacing: '0.01em',
       }}
     >
-      ✦ {t('upgrade.upgradeCta', 'Upgrade')}
+      {t('upgrade.upgradeCta', '✦ Upgrade')}
     </button>
   );
 }
@@ -206,7 +217,16 @@ function AppLayout({ clerkEnabled }) {
   const { theme } = useTheme();
 
   return (
-    <div style={{ position: 'relative', minHeight: '100vh', backgroundColor: theme.colors.background }}>
+    <div style={{
+      position: 'relative',
+      minHeight: '100dvh',
+      backgroundColor: theme.colors.background,
+      // Safe area: push content away from notch (top) and home indicator (bottom)
+      paddingTop: 'env(safe-area-inset-top, 0px)',
+      paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+      paddingLeft: 'env(safe-area-inset-left, 0px)',
+      paddingRight: 'env(safe-area-inset-right, 0px)',
+    }}>
       <TintLayer />
       <div
         className="app-container"
@@ -224,6 +244,7 @@ function AppLayout({ clerkEnabled }) {
         <Outlet />
       </div>
       <GuidedTourOverlay />
+      <TourFlowSelector />
     </div>
   );
 }
@@ -380,28 +401,72 @@ function ClerkSetupScreen() {
   );
 }
 
-function PremiumGate({ feature, featureI18nKey }) {
+// --- Premium gate ---
+
+const PREMIUM_GATE_CONFIG = {
+  social: (t) => ({
+    featureName: t('social.title'),
+    outcomes: [
+      t('upgrade.social.outcome1', 'Share your streaks and wins with friends'),
+      t('upgrade.social.outcome2', 'Join accountability groups and group challenges'),
+    ],
+    freeAlternative: t('upgrade.social.freeAlt', 'track your own progress privately'),
+  }),
+  routines: (t) => ({
+    featureName: t('routines.title'),
+    outcomes: [
+      t('upgrade.routines.outcome1', 'Build unlimited morning, evening, and custom routines'),
+      t('upgrade.routines.outcome2', 'Get gentle nudges timed to your energy levels'),
+    ],
+    freeAlternative: t('upgrade.routines.freeAlt', 'add up to 3 tasks to your daily routine'),
+  }),
+  rewards: (t) => ({
+    featureName: t('rewards.title'),
+    outcomes: [
+      t('upgrade.rewards.outcome1', 'Create your own custom rewards and milestones'),
+      t('upgrade.rewards.outcome2', 'Unlock animated celebrations for big achievements'),
+    ],
+    freeAlternative: t('upgrade.rewards.freeAlt', 'earn the three built-in milestone badges'),
+  }),
+};
+
+function PremiumGate({ feature }) {
   const { hasFeature } = useSubscription();
   const { t } = useTranslation();
-  if (!hasFeature(feature)) return <UpgradePrompt featureName={t(featureI18nKey)} />;
+  if (!hasFeature(feature)) {
+    const config = PREMIUM_GATE_CONFIG[feature]?.(t) ?? { featureName: feature };
+    return <UpgradePrompt {...config} />;
+  }
   return <Outlet />;
 }
+
+// --- Daily Mode task route ---
+
+function TasksRoute() {
+  const { dailyMode, setDailyMode } = useDailyMode();
+  if (dailyMode) {
+    return <DailyCommandCenter onExitSimplified={() => setDailyMode(false)} />;
+  }
+  return <TaskList />;
+}
+
+// --- Router builders ---
 
 function buildAuthRouter(clerkEnabled) {
   const premiumRoutes = [
     {
       path: 'social',
-      element: <PremiumGate feature="social" featureI18nKey="social.title" />,
+      element: <PremiumGate feature="social" />,
       children: [{ index: true, element: <SocialPlansView /> }],
     },
     {
       path: 'routines',
-      element: <PremiumGate feature="routines" featureI18nKey="routines.title" />,
+      element: <PremiumGate feature="routines" />,
       children: [{ index: true, element: <RoutinesView /> }],
     },
     {
       path: 'rewards',
-      element: <PremiumGate feature="rewards" featureI18nKey="rewards.title" />,
+      element: <PremiumGate feature="rewards" />,
       children: [{ index: true, element: <RewardsView /> }],
     },
   ];
@@ -423,7 +488,7 @@ function buildAuthRouter(clerkEnabled) {
               {
                 element: <TabsLayout />,
                 children: [
-                  { path: 'tasks', element: <TaskList /> },
+                  { path: 'tasks', element: <TasksRoute /> },
                   { path: 'calendar', element: <CalendarView /> },
                   { path: 'budget', element: <BudgetView /> },
                   ...premiumRoutes,
@@ -435,7 +500,7 @@ function buildAuthRouter(clerkEnabled) {
         ],
       },
     ],
-    { basename: import.meta.env.BASE_URL }
+    { basename: import.meta.env.BASE_URL, future: { v7_startTransition: true } }
   );
 }
 
@@ -445,7 +510,7 @@ function AppRouterAuthed() {
   if (!hydrated) return null;
   return (
     <AuthProvider clerkEnabled={true}>
-      <RouterProvider router={router} />
+      <RouterProvider router={router} future={{ v7_startTransition: true }} />
     </AuthProvider>
   );
 }
@@ -456,7 +521,7 @@ function AppRouterNoAuth() {
   if (!hydrated) return null;
   return (
     <AuthProvider clerkEnabled={false}>
-      <RouterProvider router={router} />
+      <RouterProvider router={router} future={{ v7_startTransition: true }} />
     </AuthProvider>
   );
 }
@@ -467,7 +532,7 @@ export default function App({ clerkEnabled = false }) {
 
   React.useEffect(() => {
     track(Events.APP_OPEN, { clerkEnabled });
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   if (!clerkEnabled) {
     return (

@@ -1,0 +1,127 @@
+- generic [ref=e2]:
+  - generic [ref=e5]:
+    - banner [ref=e6]:
+      - generic [ref=e7]:
+        - generic [ref=e8]: G
+        - heading "GYLIO" [level=1] [ref=e9]
+      - generic [ref=e10]:
+        - generic [ref=e11]:
+          - generic [ref=e12]:
+            - text: 3:01 p. m.
+            - strong [ref=e13]: PET
+            - text: ·vie, 3 abr.
+          - button "Cambiar vista de hora" [ref=e14] [cursor=pointer]: ⏱
+        - button "Iniciar guía interactiva" [ref=e15] [cursor=pointer]: "? Guía"
+        - combobox "Select language" [ref=e16] [cursor=pointer]:
+          - option "🇬🇧 English"
+          - option "🇵🇪 Español (PE)" [selected]
+          - option "🇩🇪 Deutsch"
+          - option "🇫🇷 Français"
+          - option "🇮🇹 Italiano"
+          - option "🇨🇳 中文"
+          - option "🌍 Kiswahili"
+          - option "🇮🇳 हिन्दी"
+          - option "🇮🇩 Bahasa Indonesia"
+        - button "Activar o desactivar recordatorios de texto a voz para alertas accesibles." [ref=e17] [cursor=pointer]: 🔇 Activar recordatorios de texto a voz
+        - generic [ref=e18]: ✦ ✦ Premium
+        - button "Open user menu" [ref=e20] [cursor=pointer]:
+          - img "admino testerino's logo" [ref=e23]
+    - generic [ref=e25]:
+      - navigation "Primary navigation" [ref=e26]:
+        - button "Tareas" [ref=e27] [cursor=pointer]
+        - button "Calendario" [ref=e28] [cursor=pointer]
+        - button "Presupuesto" [ref=e29] [cursor=pointer]
+        - button "Social" [pressed] [ref=e30] [cursor=pointer]
+        - button "Rutinas" [ref=e31] [cursor=pointer]
+        - button "Recompensas" [ref=e32] [cursor=pointer]
+        - button "Configuración" [ref=e33] [cursor=pointer]
+      - main [ref=e34]:
+        - region "Social module" [ref=e84]:
+          - heading "Social" [level=2] [ref=e87]
+          - paragraph [ref=e88]: Planifica momentos sociales con prompts suaves y recordatorios.
+          - generic [ref=e89]:
+            - generic [ref=e90]:
+              - generic [ref=e91]:
+                - paragraph [ref=e92]: ¿Para quién es esto?
+                - generic [ref=e93]:
+                  - button "🤝 Amigo/a" [pressed] [ref=e94] [cursor=pointer]:
+                    - generic [ref=e95]: 🤝
+                    - generic [ref=e96]: Amigo/a
+                  - button "💕 Pareja" [ref=e97] [cursor=pointer]:
+                    - generic [ref=e98]: 💕
+                    - generic [ref=e99]: Pareja
+                  - button "👨‍👩‍👧 Familia" [ref=e100] [cursor=pointer]:
+                    - generic [ref=e101]: 👨‍👩‍👧
+                    - generic [ref=e102]: Familia
+                  - button "🙂 Conocido/a" [ref=e103] [cursor=pointer]:
+                    - generic [ref=e104]: 🙂
+                    - generic [ref=e105]: Conocido/a
+                  - button "💼 Compañero/a" [ref=e106] [cursor=pointer]:
+                    - generic [ref=e107]: 💼
+                    - generic [ref=e108]: Compañero/a
+                  - button "📊 Jefe/a" [ref=e109] [cursor=pointer]:
+                    - generic [ref=e110]: 📊
+                    - generic [ref=e111]: Jefe/a
+                  - button "🏠 Vecino/a" [ref=e112] [cursor=pointer]:
+                    - generic [ref=e113]: 🏠
+                    - generic [ref=e114]: Vecino/a
+                  - button "💻 Amigo/a virtual" [ref=e115] [cursor=pointer]:
+                    - generic [ref=e116]: 💻
+                    - generic [ref=e117]: Amigo/a virtual
+              - generic [ref=e201]:
+                - generic [ref=e202]:
+                  - paragraph [ref=e203]: "Elige un plan listo para usar:"
+                  - button "Saltar — empezar desde cero" [ref=e204] [cursor=pointer]
+                - generic [ref=e205]:
+                  - generic [ref=e206]:
+                    - button "Todos" [pressed] [ref=e207] [cursor=pointer]
+                    - button "☀️ Ligero" [ref=e208] [cursor=pointer]
+                    - button "🌤️ Medio" [ref=e209] [cursor=pointer]
+                    - button "🌊 Profundo" [ref=e210] [cursor=pointer]
+                  - generic [ref=e211]:
+                    - generic [ref=e212]
+                    - generic [ref=e234]
+                    - generic [ref=e253]
+                    - generic [ref=e275]
+                    - generic [ref=e297]
+                    - generic [ref=e319]
+                    - generic [ref=e341]
+                    - generic [ref=e363]
+                    - generic [ref=e382]
+                    - generic [ref=e404]
+            - generic [ref=e149]:
+              - heading "Tus planes sociales" [level=3] [ref=e150]
+              - list [ref=e151]:
+                - listitem [ref=e152]:
+                  - generic [ref=e153]:
+                    - generic [ref=e154]
+                    - generic [ref=e157]: "Tipo: Encuentro"
+                    - generic [ref=e158]: "Energía: Media"
+                    - generic [ref=e159]: vie, 3 abr., 12:30 p. m.
+                    - generic [ref=e160]: Recordatorio 60 minutos antes.
+                    - generic [ref=e161]: Want to grab lunch or coffee sometime this week? No work agenda — just actually talk.
+                  - list [ref=e162]:
+                    - listitem [ref=e163]
+                    - listitem [ref=e167]
+                    - listitem [ref=e171]
+                  - generic [ref=e175]:
+                    - paragraph [ref=e176]: ¿Cómo te fue?
+                    - generic [ref=e177]
+                    - textbox "¿Algo que anotar? (opcional)" [ref=e183]
+                    - button "Guardar reflexión" [disabled] [ref=e184]
+                  - generic [ref=e185]:
+                    - button "Leer plan" [disabled] [ref=e186] [cursor=pointer]
+                    - button "Editar" [ref=e187] [cursor=pointer]
+                    - button "Eliminar" [ref=e188] [cursor=pointer]
+                - listitem [ref=e189]:
+                  - generic [ref=e190]:
+                    - generic [ref=e192]: Coffee with friend
+                    - generic [ref=e193]: "Tipo: Llamada"
+                    - generic [ref=e194]: "Energía: Baja"
+                    - generic [ref=e195]: Sin fecha u hora
+                    - generic [ref=e196]: Sin recordatorio.
+                  - generic [ref=e197]:
+                    - button "Leer plan" [disabled] [ref=e198] [cursor=pointer]
+                    - button "Editar" [ref=e199] [cursor=pointer]
+                    - button "Eliminar" [ref=e200] [cursor=pointer]
+  - generic "Notifications"

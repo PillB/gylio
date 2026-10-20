@@ -252,6 +252,16 @@ If these conditions are not met, use neutral copy such as “suggested template,
 - Self-Determination Theory overview: https://selfdeterminationtheory.org/theory/
 - Ryan & Deci (2000): https://selfdeterminationtheory.org/SDT/documents/2000_RyanDeci_SDT.pdf
 
+### Body doubling
+
+Section 3 labels body doubling **[PREFERENCE]** pending direct evidence. These are the
+studies located so far; they are promising but small and self-reported, so they do not
+yet support a general performance claim in user-facing copy.
+
+- Branson, T. et al. (2024). "Proposing Body Doubling as a Continuum of Space/Time and Mutuality." *ACM TACCESS*. — 220 neurodivergent participants; 85% self-reported improved task completion.
+- Lott, S. et al. (2025). "You Are Not Alone: Designing Body Doubling for ADHD in Virtual Reality." arXiv:2509.12153. — Comparable reported benefit from human and AI body doubles.
+- "Toward Neurodivergent-Aware Productivity: A Systems and AI-Based Human-in-the-Loop Framework for ADHD-Affected Professionals." arXiv:2507.06864 (2025). — Argues rigid prescriptive workflows increase task paralysis; supports adaptive, reflective pacing.
+
 ### Visualization implementation
 
 - React Flow accessibility: https://reactflow.dev/learn/advanced-use/accessibility

@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import SectionCard from '../../../components/SectionCard.jsx';
+import BudgetTooltip from '../../../components/atoms/BudgetTooltip';
 import { useAppAuth } from '../../../core/context/AuthContext';
 import { useTheme } from '../../../core/context/ThemeContext';
 import type { SocialPlan, SocialStep } from '../../../core/hooks/useDB';
@@ -254,7 +255,10 @@ const SocialPlansView: React.FC = () => {
         margin: 0
       }}
     >
-      <legend style={{ padding: `0 ${theme.spacing.xs}px`, fontWeight: 600 }}>{t('social.stepsLabel')}</legend>
+      <legend style={{ padding: `0 ${theme.spacing.xs}px`, fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+        {t('social.stepsLabel')}
+        <BudgetTooltip content={t('tooltips.social.steps', "Break the connection plan into small actions: 'text to suggest a date', 'book the restaurant', 'confirm the day before'. Each step removes a reason to postpone.")} />
+      </legend>
       <p style={{ margin: '0 0 0.5rem', color: theme.colors.muted }}>{t('social.stepsHelper')}</p>
       <div style={{ display: 'grid', gap: '0.5rem' }}>
         {steps.map((step, index) => (
@@ -334,7 +338,10 @@ const SocialPlansView: React.FC = () => {
   ) => (
     <div style={{ display: 'grid', gap: `${theme.spacing.sm}px` }}>
       <label style={{ display: 'grid', gap: `${theme.spacing.xs}px` }}>
-        {t('titleLabel')}
+        <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+          {t('titleLabel')}
+          <BudgetTooltip content={t('tooltips.social.planTitle', "Give this connection plan a name. Keep it simple: 'Brunch with Sofia' or 'Call Mom weekly'. The clearer the plan, the easier it is to actually follow through.")} />
+        </span>
         <input
           type="text"
           value={fields.title}
@@ -357,7 +364,10 @@ const SocialPlansView: React.FC = () => {
       </label>
 
       <label style={{ display: 'grid', gap: `${theme.spacing.xs}px` }}>
-        {t('social.typeLabel')}
+        <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+          {t('social.typeLabel')}
+          <BudgetTooltip content={t('tooltips.social.planType', 'What kind of interaction is this? Call = phone/video; Meetup = in-person; Message = text/email; Event = shared experience. Each type has different friction — start with the lowest friction option.')} />
+        </span>
         <select
           value={fields.type}
           onChange={(event) => setFields((prev) => ({ ...prev, type: event.target.value as SocialPlan['type'] }))}
@@ -378,7 +388,10 @@ const SocialPlansView: React.FC = () => {
       </label>
 
       <label style={{ display: 'grid', gap: `${theme.spacing.xs}px` }}>
-        {t('social.energyLabel')}
+        <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+          {t('social.energyLabel')}
+          <BudgetTooltip content={t('tooltips.social.energyLevel', 'How much social energy does this interaction require? Match this to your available energy — low-energy days are perfect for a quick message, high-energy days for a real meetup.')} />
+        </span>
         <select
           value={fields.energyLevel}
           onChange={(event) =>
@@ -400,7 +413,10 @@ const SocialPlansView: React.FC = () => {
       </label>
 
       <label style={{ display: 'grid', gap: `${theme.spacing.xs}px` }}>
-        {t('social.dateTimeLabel')}
+        <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+          {t('social.dateTimeLabel')}
+          <BudgetTooltip content={t('tooltips.social.dateTime', "When do you want this to happen? Scheduling a specific date makes it 10× more likely to occur vs. 'sometime soon'.")} />
+        </span>
         <input
           type="datetime-local"
           value={fields.dateTime}
@@ -475,10 +491,11 @@ const SocialPlansView: React.FC = () => {
       ariaLabel={`${t('social.title')} module`}
       title={t('social.title')}
       subtitle={t('social.description')}
+      badge={<BudgetTooltip content={t('tooltips.social.section', 'Track and nurture your relationships with intentional plans. Research shows that social connection is one of the strongest predictors of wellbeing — schedule it like anything else that matters.')} />}
     >
-      <div style={{ display: 'grid', gap: `${theme.spacing.lg}px` }}>
+      <div style={{ display: 'grid', gap: `${theme.spacing.lg}px`, gridTemplateColumns: 'minmax(0, 1fr)' }}>
         {/* ── Step 1: Who is this for? ─────────────────────────────────── */}
-        <section style={{ display: 'grid', gap: `${theme.spacing.sm}px` }}>
+        <section data-tour="social-relationship" style={{ display: 'grid', gap: `${theme.spacing.sm}px` }}>
           <RelationshipTypePicker
             selected={selectedRelationshipType}
             onSelect={handleRelationshipSelect}
@@ -557,7 +574,7 @@ const SocialPlansView: React.FC = () => {
 
         {/* ── Step 3: Create plan form (always visible) ──────────────── */}
         {!showGallery && (
-          <section style={{ display: 'grid', gap: `${theme.spacing.sm}px` }}>
+          <section data-tour="social-form" style={{ display: 'grid', gap: `${theme.spacing.sm}px` }}>
             <h3 style={{ margin: 0 }}>{t('social.addHeading')}</h3>
             {renderPlanForm(form, setForm, addValidation, touched, setTouched)}
 
@@ -614,8 +631,11 @@ const SocialPlansView: React.FC = () => {
         )}
 
         {/* ── Plans list ─────────────────────────────────────────────── */}
-        <section>
-          <h3 style={{ marginTop: 0 }}>{t('social.plansHeading')}</h3>
+        <section data-tour="social-plans-list">
+          <h3 style={{ marginTop: 0, display: 'flex', alignItems: 'center' }}>
+            {t('social.plansHeading')}
+            <BudgetTooltip content={t('tooltips.social.plansList', 'Your saved connection plans. Edit or delete any plan, mark steps complete, and add reflection notes after the meetup — closing the loop makes future plans easier.')} />
+          </h3>
           {loading ? <p style={{ color: theme.colors.muted }}>{t('loading')}</p> : null}
           {!loading && plans.length === 0 ? (
             <p style={{ color: theme.colors.muted }}>{t('social.empty')}</p>
@@ -731,13 +751,14 @@ const SocialPlansView: React.FC = () => {
                     theme={theme}
                     onSubmit={(energy, note) => updatePlan(plan.id, { postReflection: { energy, note } })}
                   />
-                  <div style={{ display: 'flex', gap: `${theme.spacing.sm}px`, marginTop: `${theme.spacing.sm}px` }}>
+                  <div style={{ display: 'flex', gap: `${theme.spacing.sm}px`, marginTop: `${theme.spacing.sm}px`, flexWrap: 'wrap' }}>
                     <button
                       type="button"
                       onClick={() => readPlan(plan)}
                       disabled={!ttsEnabled}
                       style={{
                         padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
+                        minHeight: '44px',
                         borderRadius: theme.shape.radiusSm,
                         border: `1px solid ${theme.colors.border}`,
                         backgroundColor: theme.colors.surface,
@@ -752,6 +773,7 @@ const SocialPlansView: React.FC = () => {
                       onClick={() => startEdit(plan)}
                       style={{
                         padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
+                        minHeight: '44px',
                         borderRadius: theme.shape.radiusSm,
                         border: `1px solid ${theme.colors.border}`,
                         backgroundColor: theme.colors.surface,
@@ -765,6 +787,7 @@ const SocialPlansView: React.FC = () => {
                       onClick={() => handleDelete(plan)}
                       style={{
                         padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
+                        minHeight: '44px',
                         borderRadius: theme.shape.radiusSm,
                         border: `1px solid ${theme.colors.accent}`,
                         backgroundColor: theme.colors.surface,

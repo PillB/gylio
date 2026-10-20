@@ -4,7 +4,9 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '../core/context/ThemeContext';
 import useAccessibility from '../core/hooks/useAccessibility';
 import { useGuidedTour } from '../core/context/GuidedTourContext';
-import { TOUR_STEPS } from '../features/tour/tourSteps';
+import { useAppAuth } from '../core/context/AuthContext';
+import useDialogFocus from '../core/hooks/useDialogFocus';
+import type { TourStep } from '../features/tour/tourSteps';
 
 const TOOLTIP_WIDTH = 320;
 const TOOLTIP_GAP = 14;
@@ -12,23 +14,50 @@ const SPOTLIGHT_PAD = 8;
 const VIEWPORT_PAD = 12;
 const ESTIMATED_TOOLTIP_HEIGHT = 230;
 
+/**
+ * Modal (aria-modal, Tab trapped) only when the step is designed as a centred card.
+ * A targeted step whose element is not on screen yet (Tasks step 2: the date field
+ * behind "Add details") is centred as a fallback but must leave the page reachable.
+ */
+const isModalStep = (step: TourStep): boolean => step.placement === 'center' || !step.target;
+
 export default function GuidedTourOverlay() {
-  const { tourState, nextStep, prevStep, pauseTour, completeTour, totalSteps } = useGuidedTour();
+  const {
+    tourState,
+    currentSteps,
+    nextStep,
+    prevStep,
+    pauseTour,
+    completeTour,
+    totalSteps,
+  } = useGuidedTour();
   const { theme } = useTheme();
   const { reduceMotionEnabled, animationsEnabled } = useAccessibility();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
+  const { userId } = useAppAuth();
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
+  const [isPremiumGated, setIsPremiumGated] = useState(false);
   const pendingNav = useRef(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   const stepIndex = tourState.stepIndex;
   const isActive = tourState.active;
-  const currentStep = isActive ? (TOUR_STEPS[stepIndex] ?? null) : null;
+  const currentStep = isActive ? (currentSteps[stepIndex] ?? null) : null;
   const isLast = stepIndex === totalSteps - 1;
   const isFirst = stepIndex === 0;
   const shouldAnimate = animationsEnabled && !reduceMotionEnabled;
 
+  // True when user is on an auth page and the current step has a target element they can't visit
+  const needsSignIn =
+    !userId &&
+    !!currentStep?.tab &&
+    !!currentStep?.target &&
+    !targetRect &&
+    (location.pathname.includes('/sign-in') || location.pathname.includes('/sign-up'));
+
+  // Navigate to the correct tab then locate target element
   useEffect(() => {
     if (!isActive || !currentStep) {
       setTargetRect(null);
@@ -41,13 +70,17 @@ export default function GuidedTourOverlay() {
       if (cancelled) return;
       if (!currentStep.target) {
         setTargetRect(null);
+        setIsPremiumGated(false);
         return;
       }
       const el = document.querySelector<HTMLElement>(currentStep.target);
       if (!el) {
         setTargetRect(null);
+        setIsPremiumGated(false);
         return;
       }
+      const gated = el.getAttribute('data-tour') === 'premium-gate';
+      setIsPremiumGated(gated);
       el.scrollIntoView({ behavior: shouldAnimate ? 'smooth' : 'auto', block: 'center' });
       const settleDelay = shouldAnimate ? 280 : 0;
       const timer = setTimeout(() => {
@@ -70,6 +103,7 @@ export default function GuidedTourOverlay() {
         return () => {
           cancelled = true;
           clearTimeout(timer);
+          pendingNav.current = false;
         };
       }
     }
@@ -81,6 +115,7 @@ export default function GuidedTourOverlay() {
     };
   }, [currentStep, isActive, location.pathname, navigate, shouldAnimate, stepIndex]);
 
+  // Keep rect in sync on scroll / resize / visual viewport changes (mobile keyboard)
   useEffect(() => {
     if (!isActive || !currentStep?.target) return;
     const update = () => {
@@ -89,9 +124,14 @@ export default function GuidedTourOverlay() {
     };
     window.addEventListener('scroll', update, { passive: true });
     window.addEventListener('resize', update, { passive: true });
+    // Visual Viewport API — fires when mobile keyboard opens/closes
+    window.visualViewport?.addEventListener('resize', update);
+    window.visualViewport?.addEventListener('scroll', update);
     return () => {
       window.removeEventListener('scroll', update);
       window.removeEventListener('resize', update);
+      window.visualViewport?.removeEventListener('resize', update);
+      window.visualViewport?.removeEventListener('scroll', update);
     };
   }, [isActive, currentStep?.target]);
 
@@ -115,10 +155,21 @@ export default function GuidedTourOverlay() {
     return () => window.removeEventListener('keydown', handler, { capture: true });
   }, [isActive, isLast, isFirst, pauseTour, nextStep, prevStep]);
 
+  // Tab is trapped only on centred steps (aria-modal); spotlight steps keep the
+  // highlighted element reachable for "Try it". The step index lets a spotlight step that
+  // hands over to a centred card pull focus back in from the page.
+  useDialogFocus(dialogRef, currentStep !== null, stepIndex);
+
   if (!isActive || !currentStep) return null;
 
-  const vw = typeof window !== 'undefined' ? window.innerWidth : 800;
-  const vh = typeof window !== 'undefined' ? window.innerHeight : 600;
+  // ── Tooltip position ──────────────────────────────────────────────────────
+  // Use Visual Viewport API so tooltip stays visible when mobile keyboard is open
+  const vw = typeof window !== 'undefined'
+    ? (window.visualViewport?.width ?? window.innerWidth)
+    : 800;
+  const vh = typeof window !== 'undefined'
+    ? (window.visualViewport?.height ?? window.innerHeight)
+    : 600;
   const tooltipWidth = Math.min(TOOLTIP_WIDTH, Math.max(0, vw - VIEWPORT_PAD * 2));
   const isCenter = currentStep.placement === 'center' || !targetRect;
 
@@ -167,6 +218,7 @@ export default function GuidedTourOverlay() {
     };
   }
 
+  // ── Arrow pointer ─────────────────────────────────────────────────────────
   const arrowStyle: React.CSSProperties | null =
     !isCenter && targetRect
       ? (() => {
@@ -196,6 +248,7 @@ export default function GuidedTourOverlay() {
 
   return (
     <>
+      {/* Spotlight */}
       {targetRect && (
         <div
           aria-hidden="true"
@@ -230,8 +283,9 @@ export default function GuidedTourOverlay() {
       )}
 
       <div
+        ref={dialogRef}
         role="dialog"
-        aria-modal="false"
+        aria-modal={isModalStep(currentStep) ? 'true' : undefined}
         aria-label={t('tour.dialogAria', 'Feature tour')}
         style={{
           ...tooltipStyle,
@@ -254,9 +308,26 @@ export default function GuidedTourOverlay() {
             marginBottom: theme.spacing.sm,
           }}
         >
-          <span style={{ fontSize: '0.75rem', color: theme.colors.muted, fontWeight: 600 }}>
-            {t('tour.stepOf', { current: stepIndex + 1, total: totalSteps })}
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.xs }}>
+            <span style={{ fontSize: '0.75rem', color: theme.colors.muted, fontWeight: 600 }}>
+              {t('tour.stepOf', { current: stepIndex + 1, total: totalSteps })}
+            </span>
+            {currentStep.interactive && targetRect && (
+              <span
+                style={{
+                  fontSize: '0.68rem',
+                  fontWeight: 700,
+                  color: theme.colors.primary,
+                  background: `${theme.colors.primary}18`,
+                  borderRadius: theme.shape.radiusFull,
+                  padding: '1px 7px',
+                  letterSpacing: '0.02em',
+                }}
+              >
+                ✏ {t('tour.interactive', 'Try it')}
+              </span>
+            )}
+          </div>
           <button
             type="button"
             onClick={pauseTour}
@@ -287,7 +358,7 @@ export default function GuidedTourOverlay() {
           aria-label={t('tour.progressAria', 'Tour progress')}
           style={{ display: 'flex', gap: 4, marginBottom: theme.spacing.md }}
         >
-          {TOUR_STEPS.map((_, index) => (
+          {currentSteps.map((_, index) => (
             <div
               key={index}
               aria-hidden="true"
@@ -324,6 +395,63 @@ export default function GuidedTourOverlay() {
           {t(currentStep.contentKey)}
         </p>
 
+        {/* Sign-in nudge — shown when user is unauthenticated and tour can't reach a protected tab */}
+        {needsSignIn && (
+          <button
+            type="button"
+            onClick={() => { completeTour(); navigate('/sign-in'); }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              width: '100%',
+              marginBottom: theme.spacing.md,
+              padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
+              borderRadius: theme.shape.radiusMd,
+              border: `1.5px solid ${theme.colors.primary}`,
+              background: `${theme.colors.primary}12`,
+              color: theme.colors.primary,
+              fontSize: '0.8125rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              fontFamily: theme.typography.body.family,
+              textAlign: 'left',
+            }}
+          >
+            <span aria-hidden="true">→</span>
+            {t('tour.signInCta', 'Sign in to see this feature live →')}
+          </button>
+        )}
+
+        {/* Premium upgrade nudge — shown when the spotlight resolved to the premium gate */}
+        {isPremiumGated && !needsSignIn && (
+          <button
+            type="button"
+            onClick={() => { completeTour(); navigate('/pricing'); }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              width: '100%',
+              marginBottom: theme.spacing.md,
+              padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
+              borderRadius: theme.shape.radiusMd,
+              border: `1.5px solid ${theme.colors.primary}`,
+              background: `${theme.colors.primary}12`,
+              color: theme.colors.primary,
+              fontSize: '0.8125rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              fontFamily: theme.typography.body.family,
+              textAlign: 'left',
+            }}
+          >
+            <span aria-hidden="true">✦</span>
+            {t('tour.unlockCta', 'Start 10-day free trial to unlock →')}
+          </button>
+        )}
+
+        {/* Navigation buttons */}
         <div
           style={{
             display: 'flex',
@@ -350,6 +478,8 @@ export default function GuidedTourOverlay() {
               fontFamily: theme.typography.body.family,
               opacity: isFirst ? 0.4 : 1,
               transition: shouldAnimate ? 'opacity 150ms' : 'none',
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
             }}
           >
             ← {t('tour.prev', 'Back')}
@@ -358,6 +488,7 @@ export default function GuidedTourOverlay() {
           <button
             type="button"
             onClick={isLast ? completeTour : nextStep}
+            data-autofocus
             aria-label={isLast ? t('tour.finishAria', 'Finish tour') : t('tour.nextAria', 'Next step')}
             style={{
               minHeight: 44,
@@ -370,6 +501,8 @@ export default function GuidedTourOverlay() {
               fontSize: '0.875rem',
               fontWeight: 600,
               fontFamily: theme.typography.body.family,
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
             }}
           >
             {isLast ? `${t('tour.finish', 'Done!')} ✓` : `${t('tour.next', 'Next')} →`}

@@ -10,6 +10,8 @@ import { buildPayoffComparison } from '../features/budget/utils/debtPayoff';
 import SpendingChart from '../features/budget/components/SpendingChart';
 import FinancialDiagnostic from '../features/budget/components/FinancialDiagnostic';
 import BudgetTooltip from './atoms/BudgetTooltip';
+import DataFreshnessBanner from '../features/budget/components/DataFreshnessBanner';
+import ReconciliationChecklist from '../features/budget/components/ReconciliationChecklist';
 
 const DEFAULT_CATEGORY_TYPE = 'NEED';
 const CATEGORY_TYPES = ['NEED', 'WANT', 'GOAL', 'DEBT'];
@@ -114,7 +116,6 @@ const BudgetView = () => {
       .catch((error) => {
         console.error('Failed to apply diagnostic', error);
       });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [updateBudget]);
 
   useEffect(() => {
@@ -215,6 +216,23 @@ const BudgetView = () => {
     });
     return totals;
   }, [categoryLookup, monthTransactions]);
+
+  // ── Freshness: most-recent transaction date for the active month ───────────
+  const lastTransactionDate = useMemo(() => {
+    if (!monthTransactions.length) return null;
+    const dates = monthTransactions
+      .map((tx) => {
+        const d = tx.date ? new Date(tx.date) : null;
+        return d && !Number.isNaN(d.getTime()) ? d : null;
+      })
+      .filter(Boolean);
+    if (!dates.length) return null;
+    return new Date(Math.max(...dates.map((d) => d.getTime())));
+  }, [monthTransactions]);
+
+  // ── Proactive empty-month banner condition ─────────────────────────────────
+  const currentMonthHasNoTransactions =
+    activeBudget !== null && monthTransactions.length === 0 && !loading;
 
   const validateMonth = useCallback(
     (value) => (!value.trim() ? t('validation.periodRequired') : ''),
@@ -433,6 +451,29 @@ const BudgetView = () => {
       });
   };
 
+  const handleQuickStartCategories = () => {
+    const starterCategories = [
+      { name: t('budget.starter.housing', 'Housing'), type: 'NEED', plannedAmount: 800 },
+      { name: t('budget.starter.food', 'Food & Groceries'), type: 'NEED', plannedAmount: 300 },
+      { name: t('budget.starter.transport', 'Transport'), type: 'NEED', plannedAmount: 150 },
+      { name: t('budget.starter.health', 'Health'), type: 'NEED', plannedAmount: 100 },
+      { name: t('budget.starter.entertainment', 'Entertainment'), type: 'WANT', plannedAmount: 100 },
+      { name: t('budget.starter.dining', 'Dining Out'), type: 'WANT', plannedAmount: 100 },
+      { name: t('budget.starter.savings', 'Savings'), type: 'GOAL', plannedAmount: 200 },
+      { name: t('budget.starter.emergency', 'Emergency Fund'), type: 'GOAL', plannedAmount: 100 },
+    ];
+    ensureActiveBudget()
+      .then((budget) => {
+        const nextCategories = [...budget.categories, ...starterCategories];
+        return updateBudget(budget.id, { categories: nextCategories });
+      })
+      .then((updated) => {
+        if (!updated) return;
+        setBudgets((prev) => prev.map((entry) => (entry.id === updated.id ? updated : entry)));
+      })
+      .catch((error) => console.error('Failed to add starter categories', error));
+  };
+
   const handleRemoveCategory = (index) => {
     if (!activeBudget) return;
     const nextCategories = activeBudget.categories.filter((_, entryIndex) => entryIndex !== index);
@@ -576,7 +617,23 @@ const BudgetView = () => {
       {loading ? (
         <p>{t('loading') || 'Loading…'}</p>
       ) : (
-        <div style={{ display: 'grid', gap: `${theme.spacing.lg}px` }}>
+        <div style={{ display: 'grid', gap: `${theme.spacing.lg}px`, gridTemplateColumns: 'minmax(0, 1fr)' }}>
+          {/* ── Data freshness banner ────────────────────────────────── */}
+          {activeBudget && (
+            <>
+              <DataFreshnessBanner lastTransactionDate={lastTransactionDate} budgetMonthKey={activeBudget?.month} />
+              {currentMonthHasNoTransactions && (
+                <p
+                  role="status"
+                  style={{ margin: 0, color: theme.colors.muted, fontSize: '0.875rem' }}
+                >
+                  {t('budget.noTransactionsYet', 'No transactions recorded for {{month}} yet. Add your first expense below.', { month: activeBudget.month })}
+                </p>
+              )}
+              <ReconciliationChecklist budgetMonthKey={activeBudget.month} />
+            </>
+          )}
+
           {/* ── Financial diagnostic ─────────────────────────────────── */}
           <div>
             <button
@@ -626,7 +683,10 @@ const BudgetView = () => {
             }}
           >
             <div>
-              <p style={{ margin: 0, fontWeight: 600 }}>{t('budget.reviewHeading') || 'Weekly review'}</p>
+              <p style={{ margin: 0, fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+                {t('budget.reviewHeading') || 'Weekly review'}
+                <BudgetTooltip content={t('tooltips.budget.review', 'A 5-minute weekly check-in is the single highest-leverage budget habit. Glancing at the numbers prevents small leaks from becoming big holes.')} />
+              </p>
               <small style={{ color: theme.colors.muted }}>
                 {gamificationEnabled
                   ? t('budget.reviewHelper') || 'Log a gentle check-in to keep your budget streak steady.'
@@ -644,6 +704,7 @@ const BudgetView = () => {
               disabled={!gamificationEnabled}
               style={{
                 padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
+                minHeight: 44,
                 borderRadius: theme.shape.radiusSm,
                 border: `1px solid ${theme.colors.primary}`,
                 backgroundColor: gamificationEnabled ? theme.colors.primary : theme.colors.border,
@@ -655,10 +716,16 @@ const BudgetView = () => {
               {t('budget.logReview') || 'Log weekly review'}
             </button>
           </section>
-          <section style={{ display: 'grid', gap: `${theme.spacing.sm}px` }}>
-            <h3 style={{ margin: 0 }}>{t('budget.monthHeading') || 'Budget month'}</h3>
-            <label>
-              {t('periodLabel') || 'Period'}
+          <section data-tour="budget-month" style={{ display: 'grid', gap: `${theme.spacing.sm}px` }}>
+            <h3 style={{ margin: 0, display: 'flex', alignItems: 'center' }}>
+              {t('budget.monthHeading') || 'Budget month'}
+              <BudgetTooltip content={t('tooltips.budget.month', 'Each budget covers one calendar month (YYYY-MM format). Create a new one at the start of each period — or switch to past months to review history.')} />
+            </h3>
+            <label style={{ display: 'flex', flexDirection: 'column' }}>
+              <span style={{ display: 'flex', alignItems: 'center' }}>
+                {t('periodLabel') || 'Period'}
+                <BudgetTooltip content={t('tooltips.budget.period', 'Enter the month you want to budget for in YYYY-MM format (e.g. 2026-04 for April 2026). Each month is a fresh zero-based plan — your income and categories carry meaning within that window.')} />
+              </span>
               <input
                 type="text"
                 value={budgetMonthInput}
@@ -692,6 +759,7 @@ const BudgetView = () => {
                     }}
                     style={{
                       padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
+                      minHeight: 44,
                       borderRadius: theme.shape.radiusSm,
                       border:
                         budget.id === activeBudgetId
@@ -720,6 +788,7 @@ const BudgetView = () => {
                 }}
                 style={{
                   padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
+                  minHeight: 44,
                   borderRadius: theme.shape.radiusSm,
                   border: `1px solid ${theme.colors.primary}`,
                   backgroundColor: theme.colors.primary,
@@ -784,6 +853,7 @@ const BudgetView = () => {
                     onClick={() => setBudgetDeleteConfirm(true)}
                     style={{
                       padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
+                      minHeight: 44,
                       borderRadius: theme.shape.radiusSm,
                       border: `1px solid ${theme.colors.border}`,
                       backgroundColor: theme.colors.background,
@@ -799,7 +869,7 @@ const BudgetView = () => {
             </div>
           </section>
 
-          <section style={{ display: 'grid', gap: `${theme.spacing.sm}px` }}>
+          <section data-tour="budget-income" style={{ display: 'grid', gap: `${theme.spacing.sm}px` }}>
             <h3 style={{ margin: 0, display: 'flex', alignItems: 'center' }}>
               {t('budget.incomeHeading') || 'Income'}
               <BudgetTooltip content={t('budget.zeroBasedExplain', 'Zero-based budgeting: give every dollar a job. When Remaining hits zero, every cent is intentional — that\'s the whole point.')} />
@@ -822,8 +892,11 @@ const BudgetView = () => {
               <small>{t('budget.remainingHint') || 'Remaining should reach 0 for a zero-based budget.'}</small>
             </div>
             <div style={{ display: 'grid', gap: `${theme.spacing.sm}px` }}>
-              <label>
-                {t('budget.incomeSourceLabel') || 'Income source'}
+              <label style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ display: 'flex', alignItems: 'center' }}>
+                  {t('budget.incomeSourceLabel') || 'Income source'}
+                  <BudgetTooltip content={t('tooltips.budget.incomeSource', 'Name this income stream: e.g. "Main job", "Freelance", "Side hustle", "Rental income". Separate sources help you see which income is reliable and which is variable.')} />
+                </span>
                 <input
                   type="text"
                   value={incomeForm.source}
@@ -845,8 +918,11 @@ const BudgetView = () => {
                   <span style={{ color: theme.colors.accent }}>{incomeValidation.source}</span>
                 ) : null}
               </label>
-              <label>
-                {t('budget.incomeAmountLabel') || 'Amount'}
+              <label style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ display: 'flex', alignItems: 'center' }}>
+                  {t('budget.incomeAmountLabel') || 'Amount'}
+                  <BudgetTooltip content={t('tooltips.budget.incomeAmount', 'Enter your monthly take-home amount — after taxes and deductions. Use the actual number that hits your bank account, not the gross salary on your contract.')} />
+                </span>
                 <input
                   type="number"
                   value={incomeForm.amount}
@@ -873,6 +949,7 @@ const BudgetView = () => {
                 onClick={handleAddIncome}
                 style={{
                   padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
+                  minHeight: 44,
                   width: 'fit-content',
                   borderRadius: theme.shape.radiusSm,
                   border: `1px solid ${theme.colors.primary}`,
@@ -894,23 +971,32 @@ const BudgetView = () => {
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
+                      gap: theme.spacing.sm,
                       padding: `${theme.spacing.xs}px 0`,
                     }}
                   >
-                    <span>
-                      {entry.source}: {entry.amount.toFixed(2)}
-                    </span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: '0.875rem', wordBreak: 'break-word', overflowWrap: 'anywhere', color: theme.colors.text }}>
+                        {entry.source}
+                      </div>
+                      <div style={{ fontSize: '0.8rem', color: theme.colors.muted, marginTop: 2 }}>
+                        {entry.amount.toFixed(2)}
+                      </div>
+                    </div>
                     <button
                       type="button"
                       onClick={() => handleRemoveIncome(index)}
                       style={{
                         padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
+                        minHeight: 44,
                         borderRadius: theme.shape.radiusSm,
                         border: `1px solid ${theme.colors.border}`,
                         backgroundColor: theme.colors.background,
                         color: theme.colors.text,
                         cursor: 'pointer',
                         fontFamily: theme.typography.body.family,
+                        flexShrink: 0,
+                        whiteSpace: 'nowrap',
                       }}
                     >
                       {t('deleteLabel') || 'Delete'}
@@ -940,11 +1026,38 @@ const BudgetView = () => {
             </div>
           )}
 
-          <section style={{ display: 'grid', gap: `${theme.spacing.sm}px` }}>
-            <h3 style={{ margin: 0 }}>{t('budget.categoryHeading') || 'Categories'}</h3>
+          <section data-tour="budget-categories" style={{ display: 'grid', gap: `${theme.spacing.sm}px` }}>
+            <h3 style={{ margin: 0, display: 'flex', alignItems: 'center' }}>
+              {t('budget.categoryHeading') || 'Categories'}
+              <BudgetTooltip content={t('tooltips.budget.categories', 'Named spending buckets. Every transaction must belong to a category — this is how you track where your money really goes vs. where you planned it to go.')} />
+            </h3>
+            {(!activeBudget?.categories?.length) && (
+              <button
+                type="button"
+                onClick={handleQuickStartCategories}
+                style={{
+                  padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
+                  minHeight: 44,
+                  borderRadius: theme.shape.radiusMd,
+                  border: `1.5px dashed ${theme.colors.primary}`,
+                  background: `${theme.colors.primary}0d`,
+                  color: theme.colors.primary,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  fontSize: '0.9rem',
+                  fontFamily: theme.typography.body.family,
+                  textAlign: 'left',
+                }}
+              >
+                ⚡ {t('budget.quickStart.btn', 'Quick-start with 8 suggested categories (YNAB method)')}
+              </button>
+            )}
             <div style={{ display: 'grid', gap: `${theme.spacing.sm}px` }}>
-              <label>
-                {t('categoryLabel') || 'Category'}
+              <label style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ display: 'flex', alignItems: 'center' }}>
+                  {t('categoryLabel') || 'Category'}
+                  <BudgetTooltip content={t('tooltips.budget.categoryName', 'Give this spending bucket a clear, memorable name. Be specific: "Groceries" is better than "Food", "Netflix + Spotify" is better than "Subscriptions". You will see this name on every transaction you log.')} />
+                </span>
                 <input
                   type="text"
                   value={categoryForm.name}
@@ -970,9 +1083,8 @@ const BudgetView = () => {
                 <span style={{ display: 'flex', alignItems: 'center' }}>
                   {t('budget.categoryTypeLabel') || 'Type'}
                   <BudgetTooltip
-                    content={
-                      t('budget.needTooltip', 'Need: rent, food, transport. Want: dining, streaming, hobbies. Goal: savings, investments, emergency fund. Debt: loans and credit cards with interest.')
-                    }
+                    position="bottom"
+                    content={t('tooltips.budget.categoryType', 'NEED: Essential expenses (rent, utilities, groceries, transport) — the floor below which life stops working. WANT: Lifestyle choices (dining out, streaming, hobbies) — not bad money, just honest about what it is. GOAL: Future building (savings, investments, emergency fund) — pay yourself first. DEBT: Repayments (loans, credit cards, anything with interest) — every extra dollar here shortens your debt-free date.')}
                   />
                 </span>
                 <select
@@ -1001,8 +1113,11 @@ const BudgetView = () => {
                   <span style={{ color: theme.colors.accent }}>{categoryValidation.type}</span>
                 ) : null}
               </label>
-              <label>
-                {t('budget.plannedAmountLabel') || 'Planned amount'}
+              <label style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ display: 'flex', alignItems: 'center' }}>
+                  {t('budget.plannedAmountLabel') || 'Planned amount'}
+                  <BudgetTooltip content={t('tooltips.budget.plannedAmount', 'The maximum you intend to spend in this category for the month. Be realistic — set it based on recent history, not wishful thinking. You can always adjust it later as you learn your real patterns.')} />
+                </span>
                 <input
                   type="number"
                   value={categoryForm.plannedAmount}
@@ -1029,6 +1144,7 @@ const BudgetView = () => {
                 onClick={handleAddCategory}
                 style={{
                   padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
+                  minHeight: 44,
                   width: 'fit-content',
                   borderRadius: theme.shape.radiusSm,
                   border: `1px solid ${theme.colors.primary}`,
@@ -1065,9 +1181,9 @@ const BudgetView = () => {
                       }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: theme.spacing.sm }}>
-                        <span style={{ fontWeight: 600, color: theme.colors.text, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <span style={{ fontWeight: 600, color: theme.colors.text, minWidth: 0, wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
                           {entry.name}
-                          <span style={{ fontWeight: 400, color: theme.colors.muted, fontSize: '0.78rem', marginLeft: 6 }}>
+                          <span style={{ fontWeight: 400, color: theme.colors.muted, fontSize: '0.78rem', marginLeft: 6, whiteSpace: 'nowrap' }}>
                             {t(`budget.categoryType.${entry.type.toLowerCase()}`) || entry.type}
                           </span>
                         </span>
@@ -1112,11 +1228,17 @@ const BudgetView = () => {
             )}
           </section>
 
-          <section style={{ display: 'grid', gap: `${theme.spacing.sm}px` }}>
-            <h3 style={{ margin: 0 }}>{t('budget.transactionsHeading') || 'Transactions'}</h3>
+          <section data-tour="budget-transactions" style={{ display: 'grid', gap: `${theme.spacing.sm}px` }}>
+            <h3 style={{ margin: 0, display: 'flex', alignItems: 'center' }}>
+              {t('budget.transactionsHeading') || 'Transactions'}
+              <BudgetTooltip content={t('tooltips.budget.transactions', 'Log every expense or payment here. Each entry updates the category\'s actual total and keeps the spending chart in real time.')} />
+            </h3>
             <div style={{ display: 'grid', gap: `${theme.spacing.sm}px` }}>
-              <label>
-                {t('amountLabel') || 'Amount'}
+              <label style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ display: 'flex', alignItems: 'center' }}>
+                  {t('amountLabel') || 'Amount'}
+                  <BudgetTooltip content={t('tooltips.budget.transactionAmount', 'The actual amount you spent — not the planned budget. Enter what you really paid, to the cent. This is how the actual vs planned comparison stays honest.')} />
+                </span>
                 <input
                   type="number"
                   value={transactionForm.amount}
@@ -1138,8 +1260,11 @@ const BudgetView = () => {
                   <span style={{ color: theme.colors.accent }}>{transactionValidation.amount}</span>
                 ) : null}
               </label>
-              <label>
-                {t('categoryLabel') || 'Category'}
+              <label style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ display: 'flex', alignItems: 'center' }}>
+                  {t('categoryLabel') || 'Category'}
+                  <BudgetTooltip content={t('tooltips.budget.transactionCategory', 'Assign this expense to a budget category so it counts against that category\'s planned limit. If the right category does not exist yet, add it in the Categories section above first.')} />
+                </span>
                 <select
                   value={transactionForm.categoryName}
                   onChange={(event) => {
@@ -1167,8 +1292,11 @@ const BudgetView = () => {
                   <span style={{ color: theme.colors.accent }}>{transactionValidation.categoryName}</span>
                 ) : null}
               </label>
-              <label>
-                {t('budget.transactionDateLabel') || 'Date'}
+              <label style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ display: 'flex', alignItems: 'center' }}>
+                  {t('budget.transactionDateLabel') || 'Date'}
+                  <BudgetTooltip content={t('tooltips.budget.transactionDate', 'When did this transaction happen? Use the actual purchase date, not when you noticed it on your bank statement. Accurate dates let you spot spending patterns day-by-day within the month.')} />
+                </span>
                 <input
                   type="date"
                   value={transactionForm.date}
@@ -1190,8 +1318,11 @@ const BudgetView = () => {
                   <span style={{ color: theme.colors.accent }}>{transactionValidation.date}</span>
                 ) : null}
               </label>
-              <label>
-                {t('notesLabel') || 'Notes'}
+              <label style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ display: 'flex', alignItems: 'center' }}>
+                  {t('notesLabel') || 'Notes'}
+                  <BudgetTooltip content={t('tooltips.budget.transactionNote', 'Optional: a brief note about this purchase — e.g. "Dinner with family", "Amazon order #123", "Monthly gym fee". Helps you remember context when reviewing later. Leave blank if it is obvious.')} />
+                </span>
                 <input
                   type="text"
                   value={transactionForm.note}
@@ -1214,6 +1345,7 @@ const BudgetView = () => {
                 onClick={handleAddTransaction}
                 style={{
                   padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
+                  minHeight: 44,
                   width: 'fit-content',
                   borderRadius: theme.shape.radiusSm,
                   border: `1px solid ${theme.colors.primary}`,
@@ -1235,12 +1367,23 @@ const BudgetView = () => {
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
+                      gap: theme.spacing.sm,
                       padding: `${theme.spacing.xs}px 0`,
                     }}
                   >
-                    <span>
-                      {entry.amount.toFixed(2)} · {entry.categoryName} · {entry.date}
-                    </span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', gap: `${theme.spacing.sm}px`, flexWrap: 'wrap', alignItems: 'baseline' }}>
+                        <span style={{ fontWeight: 600, fontSize: '0.875rem', color: theme.colors.text, whiteSpace: 'nowrap' }}>
+                          {entry.amount.toFixed(2)}
+                        </span>
+                        <span style={{ fontSize: '0.8125rem', color: theme.colors.muted, wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
+                          {entry.categoryName}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: theme.colors.muted, marginTop: 2 }}>
+                        {entry.date}
+                      </div>
+                    </div>
                     <button
                       type="button"
                       onClick={() => handleRemoveTransaction(entry.id)}
@@ -1252,6 +1395,8 @@ const BudgetView = () => {
                         color: theme.colors.text,
                         cursor: 'pointer',
                         fontFamily: theme.typography.body.family,
+                        flexShrink: 0,
+                        whiteSpace: 'nowrap',
                       }}
                     >
                       {t('deleteLabel') || 'Delete'}
@@ -1265,12 +1410,15 @@ const BudgetView = () => {
           </section>
 
           <section style={{ display: 'grid', gap: `${theme.spacing.sm}px` }}>
-            <h3 style={{ margin: 0 }}>{t('budget.plannedActualHeading') || 'Planned vs actual'}</h3>
+            <h3 style={{ margin: 0, display: 'flex', alignItems: 'center' }}>
+              {t('budget.plannedActualHeading') || 'Planned vs actual'}
+              <BudgetTooltip content={t('tooltips.budget.plannedActual', 'How close did reality match your plan? Use this to calibrate next month — consistently over on Wants? Move budget there deliberately next time.')} />
+            </h3>
             <div style={{ display: 'grid', gap: `${theme.spacing.sm}px` }}>
               <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: theme.spacing.sm }}>
                   <span>{t('budget.needsLabel') || 'Needs'}</span>
-                  <span>
+                  <span style={{ flexShrink: 0, whiteSpace: 'nowrap' }}>
                     {plannedByType.NEED.toFixed(2)} / {actualByType.NEED.toFixed(2)}
                   </span>
                 </div>
@@ -1288,9 +1436,9 @@ const BudgetView = () => {
                 </div>
               </div>
               <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: theme.spacing.sm }}>
                   <span>{t('budget.wantsLabel') || 'Wants'}</span>
-                  <span>
+                  <span style={{ flexShrink: 0, whiteSpace: 'nowrap' }}>
                     {plannedByType.WANT.toFixed(2)} / {actualByType.WANT.toFixed(2)}
                   </span>
                 </div>
@@ -1312,10 +1460,16 @@ const BudgetView = () => {
           </section>
 
           <section style={{ display: 'grid', gap: `${theme.spacing.sm}px` }}>
-            <h3 style={{ margin: 0 }}>{t('budget.debtsHeading') || 'Debts'}</h3>
+            <h3 style={{ margin: 0, display: 'flex', alignItems: 'center' }}>
+              {t('budget.debtsHeading') || 'Debts'}
+              <BudgetTooltip content={t('tooltips.budget.debts', 'Track every loan and credit card. Knowing balance, interest rate, and minimum payment lets you build a real exit plan instead of just guessing.')} />
+            </h3>
             <div style={{ display: 'grid', gap: `${theme.spacing.sm}px` }}>
-              <label>
-                {t('titleLabel') || 'Title'}
+              <label style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ display: 'flex', alignItems: 'center' }}>
+                  {t('titleLabel') || 'Title'}
+                  <BudgetTooltip content={t('tooltips.budget.debtName', 'Name this debt clearly so you can identify it at a glance — e.g. "Chase Visa", "Student Loan", "Car Finance". Use the lender name + account type for easy matching with your bank statements.')} />
+                </span>
                 <input
                   type="text"
                   value={debtForm.name}
@@ -1337,8 +1491,11 @@ const BudgetView = () => {
                   <span style={{ color: theme.colors.accent }}>{debtValidation.name}</span>
                 ) : null}
               </label>
-              <label>
-                {t('budget.balanceLabel') || 'Balance'}
+              <label style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ display: 'flex', alignItems: 'center' }}>
+                  {t('budget.balanceLabel') || 'Balance'}
+                  <BudgetTooltip content={t('tooltips.budget.debtBalance', 'Your current outstanding balance — not the original loan amount. Check your latest statement for the exact figure. This is the number the payoff calculator works from, so accuracy matters.')} />
+                </span>
                 <input
                   type="number"
                   value={debtForm.balance}
@@ -1361,7 +1518,10 @@ const BudgetView = () => {
                 ) : null}
               </label>
               <label>
-                {t('budget.annualRateLabel') || 'Annual rate (%)'}
+                <span style={{ display: 'flex', alignItems: 'center' }}>
+                  {t('budget.annualRateLabel') || 'Annual rate (%)'}
+                  <BudgetTooltip position="bottom" content={t('tooltips.budget.annualRate', 'The yearly interest rate (APR) on this debt. Higher rates cost more over time — these are the debts to attack first if you use the Avalanche strategy.')} />
+                </span>
                 <input
                   type="number"
                   value={debtForm.annualRate}
@@ -1384,7 +1544,10 @@ const BudgetView = () => {
                 ) : null}
               </label>
               <label>
-                {t('budget.minPaymentLabel') || 'Minimum payment'}
+                <span style={{ display: 'flex', alignItems: 'center' }}>
+                  {t('budget.minPaymentLabel') || 'Minimum payment'}
+                  <BudgetTooltip position="bottom" content={t('tooltips.budget.minPayment', 'The minimum monthly payment to keep this account current. Always pay at least this. Your payoff strategy stacks extra on top.')} />
+                </span>
                 <input
                   type="number"
                   value={debtForm.minPayment}
@@ -1406,8 +1569,11 @@ const BudgetView = () => {
                   <span style={{ color: theme.colors.accent }}>{debtValidation.minPayment}</span>
                 ) : null}
               </label>
-              <label>
-                {t('budget.debtCategoryLabel') || 'Linked category (optional)'}
+              <label style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ display: 'flex', alignItems: 'center' }}>
+                  {t('budget.debtCategoryLabel') || 'Linked category (optional)'}
+                  <BudgetTooltip position="bottom" content={t('tooltips.budget.debtCategory', 'Optionally link this debt to a DEBT-type budget category (e.g. "Chase Visa" debt linked to a "Credit Cards" category). This lets your transaction log flow into the payoff tracker automatically. Leave blank if you prefer to track debt separately.')} />
+                </span>
                 <input
                   type="text"
                   value={debtForm.categoryName}
@@ -1430,6 +1596,7 @@ const BudgetView = () => {
                 onClick={handleAddDebt}
                 style={{
                   padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
+                  minHeight: 44,
                   width: 'fit-content',
                   borderRadius: theme.shape.radiusSm,
                   border: `1px solid ${theme.colors.primary}`,
@@ -1451,13 +1618,20 @@ const BudgetView = () => {
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
+                      gap: theme.spacing.sm,
                       padding: `${theme.spacing.xs}px 0`,
                     }}
                   >
-                    <span>
-                      {entry.name} · {entry.balance.toFixed(2)} · {entry.annualRate.toFixed(2)}% ·{' '}
-                      {entry.minPayment.toFixed(2)}
-                    </span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: 600, fontSize: '0.875rem', color: theme.colors.text, wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
+                        {entry.name}
+                      </div>
+                      <div style={{ fontSize: '0.8rem', color: theme.colors.muted, marginTop: 2, display: 'flex', gap: `${theme.spacing.sm}px`, flexWrap: 'wrap' }}>
+                        <span>{entry.balance.toFixed(2)}</span>
+                        <span>{entry.annualRate.toFixed(2)}%</span>
+                        <span>{entry.minPayment.toFixed(2)}</span>
+                      </div>
+                    </div>
                     <button
                       type="button"
                       onClick={() => handleRemoveDebt(entry.id)}
@@ -1469,6 +1643,8 @@ const BudgetView = () => {
                         color: theme.colors.text,
                         cursor: 'pointer',
                         fontFamily: theme.typography.body.family,
+                        flexShrink: 0,
+                        whiteSpace: 'nowrap',
                       }}
                     >
                       {t('deleteLabel') || 'Delete'}
@@ -1490,11 +1666,13 @@ const BudgetView = () => {
               }}
             >
               <div style={{ display: 'flex', gap: `${theme.spacing.sm}px`, flexWrap: 'wrap', alignItems: 'center' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center' }}>
                 <button
                   type="button"
                   onClick={() => setPayoffStrategy(PAYOFF_STRATEGIES.SNOWBALL)}
                   style={{
                     padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
+                    minHeight: 44,
                     borderRadius: theme.shape.radiusSm,
                     border:
                       payoffStrategy === PAYOFF_STRATEGIES.SNOWBALL
@@ -1518,11 +1696,14 @@ const BudgetView = () => {
                   content={t('budget.snowballExplain', 'Pay minimums on everything, throw every extra dollar at the smallest balance. Each debt cleared is a concrete win — and wins keep you going.')}
                   position="top"
                 />
+                </span>
+                <span style={{ display: 'inline-flex', alignItems: 'center' }}>
                 <button
                   type="button"
                   onClick={() => setPayoffStrategy(PAYOFF_STRATEGIES.AVALANCHE)}
                   style={{
                     padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
+                    minHeight: 44,
                     borderRadius: theme.shape.radiusSm,
                     border:
                       payoffStrategy === PAYOFF_STRATEGIES.AVALANCHE
@@ -1546,6 +1727,7 @@ const BudgetView = () => {
                   content={t('budget.avalancheExplain', 'Pay minimums on everything, attack the highest interest rate first. Mathematically optimal — saves the most money over time.')}
                   position="top"
                 />
+                </span>
               </div>
               {payoffResult ? (
                 <div style={{ display: 'grid', gap: `${theme.spacing.xs}px` }}>

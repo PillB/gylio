@@ -145,16 +145,26 @@ const EMPTY_INPUT: DiagnosticInput = {
   personalCare: '', transport: '', otherFixed: '', otherVariable: '',
 };
 
-function scoreColor(score: number): string {
-  if (score >= 70) return '#22C55E';
-  if (score >= 40) return '#F59E0B';
-  return '#EF4444';
+export function scoreColor(score: number, theme: ThemeTokens): string {
+  if (score >= 70) return theme.colors.successStrong;
+  if (score >= 40) return theme.colors.warningStrong;
+  return theme.colors.errorStrong;
 }
 
-function severityColor(severity: DiagnosticAlert['severity']): { bg: string; border: string; text: string } {
-  if (severity === 'critical') return { bg: '#FEF2F2', border: '#EF4444', text: '#B91C1C' };
-  if (severity === 'warning')  return { bg: '#FFFBEB', border: '#F59E0B', text: '#92400E' };
-  return { bg: '#F0FDF4', border: '#22C55E', text: '#15803D' };
+function severityColor(
+  severity: DiagnosticAlert['severity'],
+  theme: ThemeTokens,
+): { bg: string; border: string; text: string } {
+  // Tint the themed semantic colour for the background so the alert keeps its
+  // meaning in dark and high-contrast modes instead of staying pastel-light.
+  const tint = (c: string) => `color-mix(in srgb, ${c} 12%, ${theme.colors.surface})`;
+  if (severity === 'critical') {
+    return { bg: tint(theme.colors.error), border: theme.colors.error, text: theme.colors.text };
+  }
+  if (severity === 'warning') {
+    return { bg: tint(theme.colors.warning), border: theme.colors.warning, text: theme.colors.text };
+  }
+  return { bg: tint(theme.colors.success), border: theme.colors.success, text: theme.colors.text };
 }
 
 function severityIcon(severity: DiagnosticAlert['severity']): string {
@@ -332,7 +342,7 @@ export default function FinancialDiagnostic({ theme, onApply }: Props) {
             alignSelf: 'flex-end',
             padding: `${spacing.sm}px ${spacing.lg}px`,
             background: input.takeHome ? colors.primary : colors.border,
-            color: input.takeHome ? '#fff' : colors.muted,
+            color: input.takeHome ? colors.primaryForeground : colors.muted,
             border: 'none',
             borderRadius: shape.radiusMd,
             fontSize: 15,
@@ -353,7 +363,7 @@ export default function FinancialDiagnostic({ theme, onApply }: Props) {
 
   if (!result) return null;
 
-  const color     = scoreColor(result.score);
+  const color     = scoreColor(result.score, theme);
   const totalSafe = result.takeHome || 1;
   const fixedPct    = Math.min(100, (result.totalFixed    / totalSafe) * 100);
   const variablePct = Math.min(100, (result.totalVariable / totalSafe) * 100);
@@ -418,7 +428,7 @@ export default function FinancialDiagnostic({ theme, onApply }: Props) {
                 label: result.remainder >= 0 ? t('budget.diagnostic.remainingRow') : t('budget.diagnostic.deficitRow'),
                 value: `${currencySymbol}${formatAmount(Math.abs(result.remainder))}`,
                 emphasis: true,
-                color: result.remainder >= 0 ? '#22C55E' : '#EF4444',
+                color: result.remainder >= 0 ? theme.colors.successStrong : theme.colors.errorStrong,
               },
             ].map((row) => (
               <React.Fragment key={row.label}>
@@ -440,15 +450,15 @@ export default function FinancialDiagnostic({ theme, onApply }: Props) {
           role="img"
           aria-label={t('budget.diagnostic.breakdownAria', { fixed: Math.round(fixedPct), variable: Math.round(variablePct), savings: Math.round(savingsPct) })}
         >
-          <div style={{ width: `${fixedPct}%`,    background: '#5B5CF6', transition: 'width 0.4s' }} title={t('budget.diagnostic.fixedLegend',    { pct: Math.round(fixedPct) })} />
-          <div style={{ width: `${variablePct}%`, background: '#F59E0B', transition: 'width 0.4s' }} title={t('budget.diagnostic.variableLegend', { pct: Math.round(variablePct) })} />
-          <div style={{ width: `${savingsPct}%`,  background: '#22C55E', transition: 'width 0.4s' }} title={t('budget.diagnostic.savingsLegend',  { pct: Math.round(savingsPct) })} />
+          <div style={{ width: `${fixedPct}%`,    background: theme.colors.primary, transition: 'width 0.4s' }} title={t('budget.diagnostic.fixedLegend',    { pct: Math.round(fixedPct) })} />
+          <div style={{ width: `${variablePct}%`, background: theme.colors.warning, transition: 'width 0.4s' }} title={t('budget.diagnostic.variableLegend', { pct: Math.round(variablePct) })} />
+          <div style={{ width: `${savingsPct}%`,  background: theme.colors.success, transition: 'width 0.4s' }} title={t('budget.diagnostic.savingsLegend',  { pct: Math.round(savingsPct) })} />
         </div>
         <div style={{ display: 'flex', gap: spacing.md, marginTop: spacing.sm, flexWrap: 'wrap' }}>
           {[
-            { color: '#5B5CF6', label: t('budget.diagnostic.fixedLegend',    { pct: Math.round(fixedPct) }) },
-            { color: '#F59E0B', label: t('budget.diagnostic.variableLegend', { pct: Math.round(variablePct) }) },
-            { color: '#22C55E', label: t('budget.diagnostic.savingsLegend',  { pct: Math.round(savingsPct) }) },
+            { color: theme.colors.primary, label: t('budget.diagnostic.fixedLegend',    { pct: Math.round(fixedPct) }) },
+            { color: theme.colors.warning, label: t('budget.diagnostic.variableLegend', { pct: Math.round(variablePct) }) },
+            { color: theme.colors.success, label: t('budget.diagnostic.savingsLegend',  { pct: Math.round(savingsPct) }) },
           ].map((item) => (
             <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
               <div style={{ width: 10, height: 10, borderRadius: 2, background: item.color, flexShrink: 0 }} />
@@ -463,7 +473,7 @@ export default function FinancialDiagnostic({ theme, onApply }: Props) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.sm }}>
           <div style={sectionHeadingStyle}>{t('budget.diagnostic.callouts')}</div>
           {result.alerts.map((alert, i) => {
-            const sc = severityColor(alert.severity);
+            const sc = severityColor(alert.severity, theme);
             // Resolve symbol interpolation for currency alerts
             const params = { ...alert.params, symbol: currencySymbol };
             return (
@@ -507,7 +517,7 @@ export default function FinancialDiagnostic({ theme, onApply }: Props) {
           style={{
             padding: `${spacing.sm}px ${spacing.lg}px`,
             background: colors.primary,
-            color: '#fff',
+            color: colors.primaryForeground,
             border: 'none',
             borderRadius: shape.radiusMd,
             fontSize: 15,

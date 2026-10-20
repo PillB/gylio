@@ -29,7 +29,7 @@ const schemas = {
   },
   event: {
     title: { type: 'string', required: true, maxLength: 300 },
-    description: { type: 'string', required: false, nullable: true },
+    description: { type: 'string', required: false, nullable: true, maxLength: 2000 },
     startDate: {
       type: 'string',
       required: true,
@@ -46,33 +46,38 @@ const schemas = {
         return null;
       }
     },
-    location: { type: 'string', required: false, nullable: true },
+    location: { type: 'string', required: false, nullable: true, maxLength: 200 },
     taskId: { type: 'integer', required: false, nullable: true },
     reminderMinutesBefore: { type: 'integer', required: false, nullable: true, min: 0 }
   },
   budget: {
-    month: { type: 'string', required: true },
+    month: { type: 'string', required: true, maxLength: 7, custom: (value) => /^\d{4}-\d{2}$/.test(value) ? null : 'Expected YYYY-MM format' },
     income: { type: 'array', required: false, nullable: true },
     categories: { type: 'array', required: false, nullable: true }
   },
   transaction: {
-    budgetMonth: { type: 'string', required: true },
-    amount: { type: 'number', required: true },
-    categoryName: { type: 'string', required: true },
+    budgetMonth: {
+      type: 'string',
+      required: true,
+      maxLength: 7,
+      custom: (value) => /^\d{4}-\d{2}$/.test(value) ? null : 'Expected YYYY-MM format'
+    },
+    amount: { type: 'number', required: true, min: 0 },
+    categoryName: { type: 'string', required: true, maxLength: 200 },
     isNeed: { type: 'boolean', required: true },
     date: {
       type: 'string',
       required: true,
       custom: (value) => (isIsoDateLike(value) ? null : 'Expected a valid date string')
     },
-    note: { type: 'string', required: false, nullable: true }
+    note: { type: 'string', required: false, nullable: true, maxLength: 500 }
   },
   debt: {
-    name: { type: 'string', required: true },
+    name: { type: 'string', required: true, maxLength: 200 },
     balance: { type: 'number', required: true, min: 0 },
     annualRate: { type: 'number', required: true, min: 0 },
     minPayment: { type: 'number', required: true, min: 0 },
-    categoryName: { type: 'string', required: false, nullable: true }
+    categoryName: { type: 'string', required: false, nullable: true, maxLength: 200 }
   }
 };
 
