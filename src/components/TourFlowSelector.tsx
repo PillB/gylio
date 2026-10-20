@@ -1,12 +1,15 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../core/context/ThemeContext';
 import { useGuidedTour, ALL_FLOWS } from '../core/context/GuidedTourContext';
+import useDialogFocus from '../core/hooks/useDialogFocus';
 
 export default function TourFlowSelector() {
   const { showSelector, closeSelector, startFlow } = useGuidedTour();
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useDialogFocus(dialogRef, showSelector);
 
   // Close on Escape
   useEffect(() => {
@@ -36,6 +39,7 @@ export default function TourFlowSelector() {
 
       {/* Modal */}
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-label={t('tour.selector.title', 'Choose your guide')}

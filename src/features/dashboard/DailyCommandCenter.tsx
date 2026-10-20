@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../core/context/ThemeContext';
 import useDB from '../../core/hooks/useDB';
 import { track, Events } from '../../core/analytics';
+import useTasks from '../tasks/hooks/useTasks';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -46,6 +47,12 @@ function priorityScore(task: Task): number {
       ? new Date(task.plannedDate).getTime()
       : Infinity;
   return p * 1e15 + (due === Infinity ? 1e14 : due);
+}
+
+// A bare YYYY-MM-DD is a local day; new Date() alone would read it as UTC midnight,
+// which is the previous day west of Greenwich (e.g. Lima, UTC-5).
+function parseScheduled(value: string): Date {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value) ? new Date(`${value}T00:00`) : new Date(value);
 }
 
 function isTaskToday(task: Task, todayKey: string): boolean {
@@ -186,7 +193,7 @@ const TaskRow: React.FC<TaskRowProps> = ({ task, onComplete, theme }) => {
             fontFamily: theme.typography?.body?.family,
           }}
         >
-          {new Date((task.dueDate ?? task.plannedDate) as string).toLocaleDateString(undefined, {
+          {parseScheduled((task.dueDate ?? task.plannedDate) as string).toLocaleDateString(undefined, {
             month: 'short',
             day: 'numeric',
           })}
@@ -211,7 +218,9 @@ const DailyCommandCenter: React.FC<DailyCommandCenterProps> = ({ onExitSimplifie
   const now = new Date();
   const todayKey = getLocalDateKey(now);
 
-  const { ready, getTasks, updateTask, getEvents, getBudgets, getTransactions } = useDB();
+  const { ready, getTasks, getEvents, getBudgets, getTransactions } = useDB();
+  // Same completion path as the Tasks screen: writes 'completed', awards points and the task streak.
+  const { toggleTaskStatus } = useTasks();
 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [nextEvent, setNextEvent] = useState<CalendarEvent | null>(null);
@@ -251,30 +260,30 @@ const DailyCommandCenter: React.FC<DailyCommandCenterProps> = ({ onExitSimplifie
       );
       setNextEvent(todayEvents[0] ?? null);
 
-      // ── Budget nudge: category with highest (plannedAmount - spent)
+      // ── Budget nudge: this month's category with highest (plannedAmount - spent)
       const budgets = await getBudgets();
       const transactions = await getTransactions();
 
-      // Build spent map: budgetMonth → categoryName → total spent
-      const spentMap: Record<string, Record<string, number>> = {};
+      // Budgets and transactions are keyed by local "YYYY-MM" (see getDefaultBudgetMonth).
+      const monthKey = todayKey.slice(0, 7);
+      const currentBudget = budgets.find((budget) => budget.month === monthKey);
+
+      // Build spent map for this month: categoryName → total spent
+      const monthSpent: Record<string, number> = {};
       for (const tx of transactions) {
-        if (!spentMap[tx.budgetMonth]) spentMap[tx.budgetMonth] = {};
-        spentMap[tx.budgetMonth][tx.categoryName] =
-          (spentMap[tx.budgetMonth][tx.categoryName] ?? 0) + tx.amount;
+        if (tx.budgetMonth !== monthKey) continue;
+        monthSpent[tx.categoryName] = (monthSpent[tx.categoryName] ?? 0) + tx.amount;
       }
 
       let bestCategory: string | null = null;
       let bestRemaining = -Infinity;
 
-      for (const budget of budgets) {
-        const monthSpent = spentMap[budget.month] ?? {};
-        for (const cat of budget.categories ?? []) {
-          const spent = monthSpent[cat.name] ?? 0;
-          const remaining = (cat.plannedAmount ?? 0) - spent;
-          if (remaining > bestRemaining) {
-            bestRemaining = remaining;
-            bestCategory = cat.name;
-          }
+      for (const cat of currentBudget?.categories ?? []) {
+        const spent = monthSpent[cat.name] ?? 0;
+        const remaining = (cat.plannedAmount ?? 0) - spent;
+        if (remaining > bestRemaining) {
+          bestRemaining = remaining;
+          bestCategory = cat.name;
         }
       }
 
@@ -298,18 +307,21 @@ const DailyCommandCenter: React.FC<DailyCommandCenterProps> = ({ onExitSimplifie
 
   const handleComplete = useCallback(
     async (taskId: number) => {
-      try {
-        // 'completed' is the status the rest of the app (Tasks, rewards) recognises.
-        await updateTask(taskId, { status: 'completed' });
-        setTasks((prev) =>
-          prev.map((t) => (t.id === taskId ? { ...t, status: 'completed' } : t)),
-        );
-        track(Events.DAILY_MODE_TASK_COMPLETED, { taskId });
-      } catch (err) {
-        console.error('[DailyCommandCenter] handleComplete error', err);
+      // Daily Mode only completes: toggleTaskStatus would reopen an already-ticked task.
+      const current = tasks.find((t) => t.id === taskId);
+      if (!current || !isIncomplete(current)) return;
+      setTasks((prev) =>
+        prev.map((t) => (t.id === taskId ? { ...t, status: 'completed' } : t)),
+      );
+      const saved = await toggleTaskStatus(taskId);
+      if (!saved) {
+        // Nothing was stored: show the task as open again instead of a completion a reload would undo.
+        setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, status: current.status } : t)));
+        return;
       }
+      track(Events.DAILY_MODE_TASK_COMPLETED, { taskId });
     },
-    [updateTask],
+    [tasks, toggleTaskStatus],
   );
 
   // ── Exit ──────────────────────────────────────────────────────────────────

@@ -5,12 +5,21 @@ import { useTheme } from '../core/context/ThemeContext';
 import useAccessibility from '../core/hooks/useAccessibility';
 import { useGuidedTour } from '../core/context/GuidedTourContext';
 import { useAppAuth } from '../core/context/AuthContext';
+import useDialogFocus from '../core/hooks/useDialogFocus';
+import type { TourStep } from '../features/tour/tourSteps';
 
 const TOOLTIP_WIDTH = 320;
 const TOOLTIP_GAP = 14;
 const SPOTLIGHT_PAD = 8;
 const VIEWPORT_PAD = 12;
 const ESTIMATED_TOOLTIP_HEIGHT = 230;
+
+/**
+ * Modal (aria-modal, Tab trapped) only when the step is designed as a centred card.
+ * A targeted step whose element is not on screen yet (Tasks step 2: the date field
+ * behind "Add details") is centred as a fallback but must leave the page reachable.
+ */
+const isModalStep = (step: TourStep): boolean => step.placement === 'center' || !step.target;
 
 export default function GuidedTourOverlay() {
   const {
@@ -31,6 +40,7 @@ export default function GuidedTourOverlay() {
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
   const [isPremiumGated, setIsPremiumGated] = useState(false);
   const pendingNav = useRef(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   const stepIndex = tourState.stepIndex;
   const isActive = tourState.active;
@@ -144,6 +154,11 @@ export default function GuidedTourOverlay() {
     window.addEventListener('keydown', handler, { capture: true });
     return () => window.removeEventListener('keydown', handler, { capture: true });
   }, [isActive, isLast, isFirst, pauseTour, nextStep, prevStep]);
+
+  // Tab is trapped only on centred steps (aria-modal); spotlight steps keep the
+  // highlighted element reachable for "Try it". The step index lets a spotlight step that
+  // hands over to a centred card pull focus back in from the page.
+  useDialogFocus(dialogRef, currentStep !== null, stepIndex);
 
   if (!isActive || !currentStep) return null;
 
@@ -268,8 +283,9 @@ export default function GuidedTourOverlay() {
       )}
 
       <div
+        ref={dialogRef}
         role="dialog"
-        aria-modal={isCenter ? 'true' : undefined}
+        aria-modal={isModalStep(currentStep) ? 'true' : undefined}
         aria-label={t('tour.dialogAria', 'Feature tour')}
         style={{
           ...tooltipStyle,
@@ -472,6 +488,7 @@ export default function GuidedTourOverlay() {
           <button
             type="button"
             onClick={isLast ? completeTour : nextStep}
+            data-autofocus
             aria-label={isLast ? t('tour.finishAria', 'Finish tour') : t('tour.nextAria', 'Next step')}
             style={{
               minHeight: 44,
