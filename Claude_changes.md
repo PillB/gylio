@@ -920,3 +920,20 @@ Numbered after #82's CHG-046 to keep IDs unique; #82 stacks on this branch.
   - resolve `DailyCommandCenter.tsx` by taking #88's side of its two conflict hunks: the uncast `useDB()` without `updateTask` plus `useTasks`, and `handleComplete` through `toggleTaskStatus`, which now also puts the row back when the save fails. The `parseScheduled` hunk merges cleanly;
   - add a `useAccessibility` mock to #82's `DailyCommandCenter.test.tsx`. It fails to load once DCC imports useTasks ("Failed to resolve import expo-av"; aliasing expo-av only moves the failure to "must be used within an AccessibilityProvider"). With that one mock its 2 tests pass against this branch;
   - move the reliability gate into `RecurringStatusToggle.tsx`.
+
+---
+
+### CHG-050 – 2026-10-20 (2-minute start on tasks; valid list semantics on Tasks)
+
+**Why:** Competitor review (`docs/wiki/research-competitors-ideas.md` in #91) found that starting, not planning, is where task apps for ADHD help most (Goblin Tools, Tiimo). The only start action was a 25-minute block. Separately, a browser axe pass with a task present showed the Tasks list nested `role="group"` inside `role="list"` (critical; the earlier audit only covered the empty state).
+
+**Files changed:**
+- `src/core/context/TaskTimerContext.tsx` — `startTask(taskId, minutes?)`: an optional length for the first focus block only; saved settings and later blocks are unchanged.
+- `src/features/tasks/components/TaskCard.tsx`, `taskActions.ts` — "Just 2 min" button beside the full block (extracted a shared `TimerButton`).
+- `src/features/tasks/components/TaskList.tsx` — each chunk is now its own labelled list of items; the outer list role stays only for the Upcoming view.
+- `src/i18n/en.json`, `src/i18n/es-PE.json` — `tasks.startTwoBtn`, `tasks.startTwoAria`.
+- Tests: `TaskTimerContext.test.tsx`, plus two cases in `TaskList.test.tsx` (each fails without the change).
+
+**Verified in Chromium:** typing a task, then keyboard-activating "Just 2 min" shows a running 01:59 countdown at 1280 and 320 px with no horizontal overflow; axe (WCAG 2.2 AA) reports no violations before and during the timer.
+
+**Trade-offs:** The 2-minute length is fixed rather than a setting; a user who wants another length still uses the full block and Settings. The 2-minute block is logged in the task's time log like any focus block (reward rules were not changed or checked here; if focus blocks earn XP, a short block should not earn the same as a long one, to be settled with the XP rules from #88/#89). The evidence for "just start" micro-commitments is practitioner and small-study level, not a replicated trial; the copy makes no clinical claim.

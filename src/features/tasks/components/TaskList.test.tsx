@@ -104,6 +104,26 @@ afterEach(() => {
 });
 
 describe('TaskList', () => {
+  it('keeps list semantics valid: every list item sits directly in a list, and lists hold only items', () => {
+    state.tasks = [makeTask(1, 'Today task'), makeTask(2, 'Second task')];
+    const { container } = render(<TaskList />);
+    const items = container.querySelectorAll('[role="listitem"]');
+    expect(items.length).toBe(2);
+    items.forEach((item) => expect(item.parentElement?.getAttribute('role')).toBe('list'));
+    container.querySelectorAll('[role="list"]').forEach((list) => {
+      Array.from(list.children).forEach((child) => expect(child.getAttribute('role')).toBe('listitem'));
+    });
+  });
+
+  it('offers a 2-minute start next to the full focus block, and each starts the timer with its own length', () => {
+    state.tasks = [makeTask(1, 'Write report')];
+    render(<TaskList />);
+    fireEvent.click(screen.getByRole('button', { name: /tasks\.startTwoAria/ }));
+    expect(startTask).toHaveBeenLastCalledWith(1, 2);
+    fireEvent.click(screen.getByRole('button', { name: /tasks\.startTimerAria/ }));
+    expect(startTask).toHaveBeenLastCalledWith(1);
+  });
+
   it('filters tasks by the selected view', () => {
     state.tasks = [
       makeTask(1, 'Today task'),

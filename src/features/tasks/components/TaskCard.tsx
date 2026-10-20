@@ -51,32 +51,57 @@ const FocusSummary: React.FC<{ task: ChecklistTask }> = ({ task }) => {
   );
 };
 
+const TimerButton: React.FC<{ onClick: () => void; ariaLabel: string; children: React.ReactNode }> = ({
+  onClick,
+  ariaLabel,
+  children,
+}) => {
+  const { theme } = useTheme();
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={ariaLabel}
+      style={{
+        padding: `3px ${theme.spacing.sm}px`,
+        borderRadius: theme.shape.radiusMd,
+        border: `1px solid ${theme.colors.border}`,
+        background: 'transparent',
+        color: theme.colors.muted,
+        cursor: 'pointer',
+        fontSize: '0.75rem',
+        fontFamily: theme.typography.body.family,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 4,
+      }}
+    >
+      {children}
+    </button>
+  );
+};
+
+/** A tiny first step lowers the cost of starting; the full focus block stays one tap away. */
+const QUICK_START_MINUTES = 2;
+
 const TimerRow: React.FC<Props> = ({ task, actions }) => {
   const { t } = useTranslation();
   const { theme } = useTheme();
   if (actions.activeTimerTaskId === task.id) return <TaskTimerInline taskId={task.id} />;
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm, marginTop: theme.spacing.xs, flexWrap: 'wrap' }}>
-      <button
-        type="button"
+      <TimerButton
+        onClick={() => actions.startTimer(task.id, QUICK_START_MINUTES)}
+        ariaLabel={t('tasks.startTwoAria', { title: task.title })}
+      >
+        ▶ {t('tasks.startTwoBtn')}
+      </TimerButton>
+      <TimerButton
         onClick={() => actions.startTimer(task.id)}
-        aria-label={t('tasks.startTimerAria', { title: task.title, minutes: actions.focusMinutes })}
-        style={{
-          padding: `3px ${theme.spacing.sm}px`,
-          borderRadius: theme.shape.radiusMd,
-          border: `1px solid ${theme.colors.border}`,
-          background: 'transparent',
-          color: theme.colors.muted,
-          cursor: 'pointer',
-          fontSize: '0.75rem',
-          fontFamily: theme.typography.body.family,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 4,
-        }}
+        ariaLabel={t('tasks.startTimerAria', { title: task.title, minutes: actions.focusMinutes })}
       >
         🍅 {t('tasks.startTimerBtn', { minutes: actions.focusMinutes })}
-      </button>
+      </TimerButton>
       <FocusSummary task={task} />
     </div>
   );
