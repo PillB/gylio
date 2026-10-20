@@ -948,3 +948,21 @@ Numbered after #82's CHG-046 to keep IDs unique; #82 stacks on this branch.
   - add a `useAccessibility` mock to #82's `DailyCommandCenter.test.tsx`. It fails to load once DCC imports useTasks ("Failed to resolve import expo-av"; aliasing expo-av only moves the failure to "must be used within an AccessibilityProvider"). With that one mock its 2 tests pass against this branch;
   - move the reliability gate into `RecurringStatusToggle.tsx`.
 - When #89 next merges #88: `server/server.js` conflicts on two adjacent lines of `/api/health`. #89 already has the same `aiConfigured` line, so keep its `paddleConfigured` and `mercadoPagoConfigured` lines.
+
+---
+
+### CHG-048 – 2026-10-02 (Quality program: axe audit fixes, AGENTS.md rules, wiki)
+
+**Why:** A Chromium + axe-core pass over every tab found one critical and three serious accessibility defects plus a duplicated icon on main.
+
+**Files changed:**
+- `src/components/atoms/Toast.tsx` — notification stack now has `role="region"` so its `aria-label` is valid.
+- `src/features/tasks/components/TaskList.tsx` — `role="list"` only when the wrapper contains list items; removed duplicate ⚡ (the i18n string already has it).
+- `src/features/calendar/components/WeeklyGrid.tsx` — scrollable grid is keyboard focusable.
+- `src/components/SettingsView.jsx` — "Restart guide" button text uses `theme.colors.text` (contrast 4.5:1+).
+- `docs/wiki/audit-2026-10-02.md`, `browser-audit.md`, `research-competitors-ideas.md` — one round's findings, steps and retrospective, the audit how-to and the research. Agent rules and the wiki index/ledger come from #89, so this PR carries no AGENTS.md or CLAUDE.md change.
+- Tests: `Toast.a11y.test.tsx`, `WeeklyGrid.a11y.test.tsx` (both fail without the fixes).
+
+**Update 2026-10-20:** the source fixes above landed on main through #82 (the lint thread applied the ported patch), so this PR now carries only the docs and this entry.
+
+**Trade-offs:** Settings button loses its primary-colour text to meet contrast, keeping the primary border. Axe e2e is deferred to avoid touching package.json while the lint thread owns it. Q-006 (locked-tab heading order) is left to #89, which rewrites UpgradePrompt.
