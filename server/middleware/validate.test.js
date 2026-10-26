@@ -47,6 +47,13 @@ describe('validateSchema', () => {
     expect(errs).toContainEqual(expect.objectContaining({ field: 'age' }));
   });
 
+  it('enforces max on numbers and accepts the boundary', () => {
+    const day = { dueDay: { type: 'number', required: false, nullable: true, min: 1, max: 31 } };
+    expect(validateSchema({ dueDay: 32 }, day)).toContainEqual(expect.objectContaining({ field: 'dueDay', message: 'Must be <= 31' }));
+    expect(validateSchema({ dueDay: 31 }, day)).toEqual([]);
+    expect(validateSchema({ dueDay: null }, day)).toEqual([]);
+  });
+
   it('returns error for invalid enum value', () => {
     const errs = validateSchema({ name: 'x', kind: 'C' }, schema);
     expect(errs).toContainEqual(expect.objectContaining({ field: 'kind' }));

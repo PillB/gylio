@@ -7,6 +7,16 @@ import { useTheme } from '../core/context/ThemeContext';
  * NavBar — redesigned 2025
  * Pill-shaped active indicator, smooth hover states, accessible.
  */
+/** Screen-reader-only text: the ✦ badge alone says nothing to someone who cannot see it. */
+const VISUALLY_HIDDEN = {
+  position: 'absolute',
+  width: 1,
+  height: 1,
+  overflow: 'hidden',
+  clip: 'rect(0 0 0 0)',
+  whiteSpace: 'nowrap',
+};
+
 const NavBar = ({ items, activeKey, onNavigate, languageToggle }) => {
   const { theme } = useTheme();
   const { t } = useTranslation();
@@ -62,19 +72,19 @@ const NavBar = ({ items, activeKey, onNavigate, languageToggle }) => {
             {label}
             {locked && (
               <span
-                aria-hidden="true"
                 style={{
                   fontSize: '0.65rem',
-                  background: theme.colors.overlay,
-                  color: theme.colors.primary,
+                  background: isActive ? 'transparent' : theme.colors.overlay,
+                  color: isActive ? theme.colors.primaryForeground : theme.colors.primary,
                   borderRadius: theme.shape.radiusFull,
                   padding: '1px 5px',
                   fontWeight: 700,
-                  border: `1px solid ${theme.colors.primary}`,
+                  border: `1px solid ${isActive ? theme.colors.primaryForeground : theme.colors.primary}`,
                   lineHeight: 1.4,
                 }}
               >
-                ✦
+                <span aria-hidden="true">✦</span>
+                <span style={VISUALLY_HIDDEN}>{t('shell.premiumTab')}</span>
               </span>
             )}
           </button>

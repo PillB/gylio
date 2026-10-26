@@ -82,6 +82,8 @@ export type Debt = {
   annualRate: number;
   minPayment: number;
   categoryName: string | null;
+  /** Day of month the payment is due (1-31), or null when not set. */
+  dueDay: number | null;
   createdAt: string | null;
 };
 
@@ -373,6 +375,7 @@ const mapDebt = (row: SqlRow): Debt => ({
   annualRate: Number(row.annualRate),
   minPayment: Number(row.minPayment),
   categoryName: row.categoryName ?? null,
+  dueDay: row.dueDay == null ? null : Number(row.dueDay),
   createdAt: row.createdAt ?? null,
 });
 
@@ -501,8 +504,8 @@ const useDB = () => {
       deleteTransaction: 'DELETE FROM transactions WHERE id = ?;',
       selectTransactionById: 'SELECT * FROM transactions WHERE id = ?;',
       selectTransactions: 'SELECT * FROM transactions ORDER BY createdAt DESC;',
-      insertDebt: 'INSERT INTO debts (name, balance, annualRate, minPayment, categoryName) VALUES (?, ?, ?, ?, ?);',
-      updateDebt: 'UPDATE debts SET name = ?, balance = ?, annualRate = ?, minPayment = ?, categoryName = ? WHERE id = ?;',
+      insertDebt: 'INSERT INTO debts (name, balance, annualRate, minPayment, categoryName, dueDay) VALUES (?, ?, ?, ?, ?, ?);',
+      updateDebt: 'UPDATE debts SET name = ?, balance = ?, annualRate = ?, minPayment = ?, categoryName = ?, dueDay = ? WHERE id = ?;',
       deleteDebt: 'DELETE FROM debts WHERE id = ?;',
       selectDebtById: 'SELECT * FROM debts WHERE id = ?;',
       selectDebts: 'SELECT * FROM debts ORDER BY createdAt DESC;',
@@ -1124,11 +1127,18 @@ const useDB = () => {
   );
 
   const insertDebt = useCallback(
-    (name: string, balance: number, annualRate: number, minPayment: number, categoryName: string | null = null) =>
+    (
+      name: string,
+      balance: number,
+      annualRate: number,
+      minPayment: number,
+      categoryName: string | null = null,
+      dueDay: number | null = null
+    ) =>
       runTransaction<Debt>((tx, resolve, reject) => {
         tx.executeSql(
           statements.insertDebt,
-          [name, balance, annualRate, minPayment, categoryName],
+          [name, balance, annualRate, minPayment, categoryName, dueDay],
           (_, result) => {
             const insertId = result.insertId;
             if (insertId == null) {
@@ -1162,7 +1172,7 @@ const useDB = () => {
           };
           tx.executeSql(
             statements.updateDebt,
-            [next.name, next.balance, next.annualRate, next.minPayment, next.categoryName, id],
+            [next.name, next.balance, next.annualRate, next.minPayment, next.categoryName, next.dueDay, id],
             () => {
               resolve(next);
               return true;
