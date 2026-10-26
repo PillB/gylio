@@ -51,7 +51,10 @@ Options, cheapest first:
 3. Self-hosted GPU: not free; only if 1 and 2 fail.
 Recommendation: build 2 behind the Worker with a hard per-user quota and a deterministic non-AI fallback (AGENTS.md rule), and offer 1 later. Not built in this PR.
 
-## 7. Not done
+## 7. Account isolation
+Use a separate Free Cloudflare account for Gylio. Workers and D1 permissions are account-wide, so sharing an account with another project means a deploy token for one can change the other. (An earlier draft of the manual suggested reusing the existing account; that was dropped.)
+
+## 8. Not done
 - App is not connected to the Worker; section 3 fix is required first.
 - No rate limiting inside the Worker: add a Cloudflare rate-limiting rule on `/api/*` (see manual).
 - Billing, AI and social-plan endpoints from Express are not ported.

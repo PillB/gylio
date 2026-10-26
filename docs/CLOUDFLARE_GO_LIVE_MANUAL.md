@@ -2,13 +2,14 @@
 
 Time: about 45 minutes. Cost: $0 on the free plans. Do these in order. Anything marked "send me" is a value to paste into the thread; never paste secrets (passwords, API tokens, Clerk secret keys).
 
-## 0. Which Cloudflare account?
-Use your existing Cloudflare account (the one with the other project). Cloudflare accounts are free and one account can hold many projects; separate Workers, D1 databases and API tokens keep Gylio apart from PyArcana. Create a new account only if Gylio will be owned by a company with different people on it. When you incorporate, you can add the company as a member or move the domain; plan to review then.
+## 0. Account, domain, DNS and deploy token: follow the Cloudflare setup thread
+Do not follow two scripts. The Cloudflare setup thread guides these, in its order: a **separate Free Cloudflare account named `gylio`** (not the PyArcana account, because Workers and D1 permissions are account-wide, so a Gylio deploy token could otherwise change PyArcana's Worker), the domain (`gylio.app`, with `gylio.dev` redirecting), DNS, and creating the deploy token. I agree with that choice and withdraw my earlier suggestion to reuse the PyArcana account.
+Come back here once you have the `gylio` account and its deploy token. Everything below is only the server-specific part.
 
 ## 1. Install the tools (on your Mac)
 1. Install Node 24 (nodejs.org).
 2. In Terminal: `cd ~/Documents/GitHub/gylio/worker && npm ci`.
-3. Sign in: `npx wrangler login` (opens your browser; approve).
+3. Sign in to the **gylio** account: `npx wrangler login` (opens your browser; pick the gylio account). `npx wrangler whoami` should show the gylio account, not PyArcana's. If you use a deploy token instead, set it only for this Terminal session: `export CLOUDFLARE_API_TOKEN=...` (never commit it).
 
 ## 2. Create the database
 1. `npx wrangler d1 create gylio`
@@ -26,7 +27,7 @@ Use your existing Cloudflare account (the one with the other project). Cloudflar
 ## 4. Configure the Worker
 1. Edit `worker/wrangler.jsonc` `vars`:
    - `CLERK_ISSUER`: the Frontend API URL from step 3.
-   - `CLERK_AUTHORIZED_PARTIES` and `CORS_ORIGINS`: the exact web address of the app (for now `https://pillb.github.io`; later your own domain).
+   - `CLERK_AUTHORIZED_PARTIES` and `CORS_ORIGINS`: the exact web address of the app (the app address, for example `https://gylio.app` once it is live; until then `https://pillb.github.io`).
 2. Deploy: `npx wrangler deploy`. It prints the Worker URL (`https://gylio-api.<you>.workers.dev`).
 3. Check: open `<that URL>/api/health` in a browser. Expected: `{"status":"ok","database":"d1",...}`.
    If it says 503 or errors, send me the text (not tokens).
@@ -35,8 +36,8 @@ Use your existing Cloudflare account (the one with the other project). Cloudflar
 1. Cloudflare dashboard, Security, WAF, Rate limiting rules: create a rule for URI path starting with `/api/`, limit 60 requests per 1 minute per IP, action Block for 10 minutes. (The free plan allows one rule.)
 2. Dashboard, Workers & Pages, gylio-api, Metrics: bookmark it. Check once a week that requests stay under 100,000/day and D1 writes under 100,000/day.
 
-## 6. Custom domain (later, when the domain is ready)
-Workers & Pages, gylio-api, Settings, Domains & Routes, Add custom domain, e.g. `api.<yourdomain>`. A `.pe` domain stays at its registrar; you only add the DNS records or nameservers Cloudflare asks for. Update `CORS_ORIGINS` and `CLERK_AUTHORIZED_PARTIES` and redeploy.
+## 6. Custom API address (after the domain steps in the setup thread)
+Workers & Pages, gylio-api, Settings, Domains & Routes, Add custom domain: `api.gylio.app`. Then set `CORS_ORIGINS` and `CLERK_AUTHORIZED_PARTIES` to `https://gylio.app` and redeploy.
 
 ## 7. What I do after you finish
 Connect the app to the Worker (device-generated ids, push and pull sync, sign-in token), then run an end-to-end test with a real Clerk test user. Until that is done, the live app keeps working fully offline and does not call the Worker.
