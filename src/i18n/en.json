@@ -361,6 +361,7 @@
     "monthHeading": "Budget month",
     "openBudget": "Open budget",
     "incomeHeading": "Income",
+    "debtsOptional": "Debt payoff (optional)",
     "remainingLabel": "Remaining",
     "remainingHint": "Zero-based budgeting: give every dollar a job before the month starts. When this hits 0, every cent is intentional — that's the whole point.",
     "incomeSourceLabel": "Income source",
@@ -423,7 +424,7 @@
     "chartTapHint": "Tap or hover a bar for details",
     "chartEmpty": "Add budget categories to see planned vs actual spending.",
     "chartUnderBudget": "Within budget",
-    "showDiagnostic": "🩺 Run financial health check",
+    "showDiagnostic": "Run financial health check",
     "hideDiagnostic": "Hide diagnostic",
     "currencySymbol": "$",
     "noTransactionsYet": "No transactions recorded for {{month}} yet. Add your first expense below.",
@@ -515,7 +516,7 @@
       "prefillSavings": "Savings / Investments"
     },
     "quickStart": {
-      "btn": "⚡ Quick-start with 8 suggested categories (YNAB method)"
+      "btn": "Quick-start with 8 suggested categories (YNAB method)"
     },
     "starter": {
       "housing": "Housing",
@@ -538,6 +539,7 @@
     "gamificationOff": "Disabled",
     "gamificationDisabled": "Gamification is off.",
     "levelLabel": "Level",
+    "levelProgressAria": "Progress to the next level",
     "levelSummary": "Level {{level}}",
     "xpSummary": "{{points}} XP / {{target}} XP",
     "skipTokensLabel": "Skip tokens",
@@ -1267,7 +1269,7 @@
     "anchorDisplay": "After {{habit}}, I will do this routine",
     "streakDotsAria": "Last 21 days: {{completed}} completed",
     "tpl": {
-      "showGallery": "🔬 Browse research-backed protocols",
+      "showGallery": "Browse research-backed protocols",
       "hideGallery": "Hide protocol library",
       "addRoutine": "→ Add this routine",
       "cat": {

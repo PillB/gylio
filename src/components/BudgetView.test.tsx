@@ -249,4 +249,29 @@ describe('BudgetView', () => {
     await renderLoaded();
     expect(screen.getByRole('status').textContent).toContain('budget.noTransactionsYet');
   });
+
+  describe('data freshness banner', () => {
+    afterEach(() => vi.useRealTimers());
+
+    it('does not raise a stale alert on a budget with no transactions yet', async () => {
+      vi.useFakeTimers({ toFake: ['Date'] });
+      vi.setSystemTime(new Date(2026, 9, 28));
+      db.budgets = [{ ...seedBudget(), month: '2026-10' }];
+      db.transactions = [];
+      await renderLoaded();
+      expect(screen.queryByRole('alert')).toBeNull();
+      expect(screen.getByText(/budget.noTransactionsYet/)).toBeTruthy();
+    });
+
+    it('still warns when transactions exist but the latest is over a week old', async () => {
+      vi.useFakeTimers({ toFake: ['Date'] });
+      vi.setSystemTime(new Date(2026, 9, 28));
+      db.budgets = [{ ...seedBudget(), month: '2026-10' }];
+      db.transactions = [
+        { id: 1, budgetMonth: '2026-10', amount: 40, categoryName: 'Rent', isNeed: true, date: '2026-10-02', note: null },
+      ];
+      await renderLoaded();
+      expect(screen.getByRole('alert')).toBeTruthy();
+    });
+  });
 });

@@ -75,7 +75,7 @@ function AccessibilityPrefs({ data, onUpdate, t }) {
         style={{
           display: 'grid',
           gap: theme.spacing.xs,
-          gridTemplateColumns: 'repeat(2, minmax(0, 1fr))'
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 190px), 1fr))'
         }}
       >
         {options.map(({ value, label: optionLabel }) => (

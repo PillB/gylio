@@ -65,3 +65,16 @@ describe('sortByStart and groupByDay', () => {
     expect(groups.size).toBe(2);
   });
 });
+
+import { defaultCalendarView } from './calendarDates';
+
+describe('defaultCalendarView', () => {
+  it('opens on the day view on phones, where a 7-day week is cut off', () => {
+    expect(defaultCalendarView(320)).toBe('day');
+    expect(defaultCalendarView(639)).toBe('day');
+  });
+  it('opens on the week view from tablet width up', () => {
+    expect(defaultCalendarView(640)).toBe('week');
+    expect(defaultCalendarView(1280)).toBe('week');
+  });
+});
