@@ -77,7 +77,8 @@ const schemas = {
     balance: { type: 'number', required: true, min: 0 },
     annualRate: { type: 'number', required: true, min: 0 },
     minPayment: { type: 'number', required: true, min: 0 },
-    categoryName: { type: 'string', required: false, nullable: true, maxLength: 200 }
+    categoryName: { type: 'string', required: false, nullable: true, maxLength: 200 },
+    dueDay: { type: 'number', required: false, nullable: true, min: 1, max: 31 }
   }
 };
 

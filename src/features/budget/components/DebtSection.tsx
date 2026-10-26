@@ -7,14 +7,16 @@ import type { NewDebt } from '../hooks/useBudgetData';
 import { optionalText, parseNumber, validateDebt, type DebtFields } from '../utils/budgetValidation';
 import { BudgetInput, PrimaryButton, RemovableRowList, SectionHeading, stackStyle } from './BudgetControls';
 import PayoffPanel from './PayoffPanel';
+import BillRemindersCard from './BillRemindersCard';
 
-const EMPTY_DEBT: DebtFields = { name: '', balance: '', annualRate: '', minPayment: '', categoryName: '' };
+const EMPTY_DEBT: DebtFields = { name: '', balance: '', annualRate: '', minPayment: '', categoryName: '', dueDay: '' };
 
 type Props = {
   debts: Debt[];
   extraPayment: number;
   onAdd: (entry: NewDebt) => Promise<boolean>;
   onRemove: (id: number) => void;
+  onAddBillTask: (title: string, firstStep: string, plannedDate: string) => Promise<boolean>;
 };
 
 const toNewDebt = (values: DebtFields): NewDebt => ({
@@ -23,6 +25,7 @@ const toNewDebt = (values: DebtFields): NewDebt => ({
   annualRate: parseNumber(values.annualRate),
   minPayment: parseNumber(values.minPayment),
   categoryName: optionalText(values.categoryName),
+  dueDay: values.dueDay.trim() ? parseNumber(values.dueDay) : null,
 });
 
 const DebtLabel: React.FC<{ entry: Debt }> = ({ entry }) => {
@@ -41,7 +44,7 @@ const DebtLabel: React.FC<{ entry: Debt }> = ({ entry }) => {
   );
 };
 
-const DebtSection: React.FC<Props> = ({ debts, extraPayment, onAdd, onRemove }) => {
+const DebtSection: React.FC<Props> = ({ debts, extraPayment, onAdd, onRemove, onAddBillTask }) => {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const validate = useCallback((values: DebtFields) => validateDebt(values, t), [t]);
@@ -54,7 +57,7 @@ const DebtSection: React.FC<Props> = ({ debts, extraPayment, onAdd, onRemove }) 
     });
   };
 
-  const numberField = (name: 'balance' | 'annualRate' | 'minPayment', label: string, tooltip: string, bottom = false) => (
+  const numberField = (name: 'balance' | 'annualRate' | 'minPayment' | 'dueDay', label: string, tooltip: string, bottom = false) => (
     <BudgetInput
       type="number"
       label={label}
@@ -113,6 +116,15 @@ const DebtSection: React.FC<Props> = ({ debts, extraPayment, onAdd, onRemove }) 
           ),
           true
         )}
+        {numberField(
+          'dueDay',
+          t('budget.dueDayLabel', 'Due day of month (optional)'),
+          t(
+            'tooltips.budget.dueDay',
+            'The day of the month this payment is due, 1 to 31. Add it and Gylio can offer a gentle reminder task a few days before. Leave blank to skip.'
+          ),
+          true
+        )}
         <BudgetInput
           label={t('budget.debtCategoryLabel', 'Linked category (optional)')}
           tooltipPosition="bottom"
@@ -127,6 +139,7 @@ const DebtSection: React.FC<Props> = ({ debts, extraPayment, onAdd, onRemove }) 
           {t('budget.addDebt', 'Add debt')}
         </PrimaryButton>
       </div>
+      <BillRemindersCard debts={debts} onAddTask={onAddBillTask} />
       <RemovableRowList
         items={debts}
         emptyText={t('budget.emptyDebts', 'No debts yet.')}

@@ -336,7 +336,8 @@
     "subtasksRange": "Ingresa entre {{min}} y {{max}} pasos, o déjalo en blanco.",
     "endAfterStart": "La hora de fin debe ser posterior a la hora de inicio.",
     "nonNegativeNumber": "Ingresa un número igual o mayor a cero.",
-    "nonNegativeInteger": "Ingresa un número entero igual o mayor a cero."
+    "nonNegativeInteger": "Ingresa un número entero igual o mayor a cero.",
+    "dueDayRange": "Ingresa un día entero del 1 al 31, o déjalo en blanco."
   },
   "calendar": "Calendario",
   "theme": {
@@ -362,6 +363,7 @@
     "monthHeading": "Mes de presupuesto",
     "openBudget": "Abrir presupuesto",
     "incomeHeading": "Ingresos",
+    "debtsOptional": "Plan de pago de deudas (opcional)",
     "remainingLabel": "Restante",
     "remainingHint": "Presupuesto de base cero: asigna un trabajo a cada sol antes de que empiece el mes. Cuando llega a 0, cada centavo es intencional — ese es todo el punto.",
     "incomeSourceLabel": "Fuente de ingreso",
@@ -424,7 +426,7 @@
     "chartTapHint": "Toca o pasa el cursor sobre una barra para ver detalles",
     "chartEmpty": "Agrega categorías de presupuesto para ver lo planificado frente a lo gastado.",
     "chartUnderBudget": "Dentro del presupuesto",
-    "showDiagnostic": "🩺 Diagnóstico de salud financiera",
+    "showDiagnostic": "Diagnóstico de salud financiera",
     "hideDiagnostic": "Ocultar diagnóstico",
     "currencySymbol": "S/.",
     "noTransactionsYet": "No hay transacciones registradas para {{month}} aún. Agrega tu primer gasto abajo.",
@@ -516,7 +518,7 @@
       "prefillSavings": "Ahorros / Inversiones"
     },
     "quickStart": {
-      "btn": "⚡ Inicio rápido con 8 categorías sugeridas (método YNAB)"
+      "btn": "Inicio rápido con 8 categorías sugeridas (método YNAB)"
     },
     "starter": {
       "housing": "Vivienda",
@@ -527,7 +529,8 @@
       "dining": "Salidas a comer",
       "savings": "Ahorro",
       "emergency": "Fondo de emergencia"
-    }
+    },
+    "dueDayLabel": "Día de vencimiento del mes (opcional)"
   },
   "rewards": {
     "title": "Recompensas",
@@ -538,6 +541,7 @@
     "gamificationOff": "Desactivado",
     "gamificationDisabled": "La gamificación está desactivada.",
     "levelLabel": "Nivel",
+    "levelProgressAria": "Progreso hacia el siguiente nivel",
     "levelSummary": "Nivel {{level}}",
     "xpSummary": "{{points}} XP / {{target}} XP",
     "skipTokensLabel": "Pases de omisión",
@@ -1267,7 +1271,7 @@
     "anchorDisplay": "Después de {{habit}}, haré esta rutina",
     "streakDotsAria": "Últimos 21 días: {{completed}} completados",
     "tpl": {
-      "showGallery": "🔬 Ver protocolos respaldados por investigación",
+      "showGallery": "Ver protocolos respaldados por investigación",
       "hideGallery": "Ocultar biblioteca de protocolos",
       "addRoutine": "→ Agregar esta rutina",
       "cat": {
@@ -1632,7 +1636,8 @@
       "period": "Ingresa el mes que deseas presupuestar en formato AAAA-MM (ej. 2026-04 para abril de 2026). Cada mes es un plan base cero — tus ingresos y categorías tienen sentido dentro de esa ventana.",
       "debtName": "Nombra esta deuda claramente para identificarla de un vistazo — ej. 'Visa Chase', 'Préstamo estudiantil'. Usa el nombre del prestamista y tipo de cuenta para facilitar la conciliación.",
       "debtBalance": "Tu saldo pendiente actual — no el monto original del préstamo. Consulta tu último estado de cuenta. Este es el número que usa la calculadora de liquidación, así que la precisión importa.",
-      "debtCategory": "Vincula esta deuda a una categoría tipo DEUDA de forma opcional. Esto permite que tu registro de transacciones fluya al rastreador de liquidación automáticamente. Déjalo en blanco si prefieres llevar la deuda por separado."
+      "debtCategory": "Vincula esta deuda a una categoría tipo DEUDA de forma opcional. Esto permite que tu registro de transacciones fluya al rastreador de liquidación automáticamente. Déjalo en blanco si prefieres llevar la deuda por separado.",
+      "dueDay": "El día del mes en que vence este pago, de 1 a 31. Agrégalo y Gylio puede ofrecerte una tarea recordatorio unos días antes. Déjalo en blanco para omitir."
     },
     "rewards": {
       "section": "Convierte los hábitos diarios en un juego de progreso. Gana XP completando tareas, mantén rachas de consistencia y define recompensas que realmente quieras ganar.",
@@ -2008,5 +2013,27 @@
         "content": "Tu progreso ahora se rastrea. Completa tareas, revisa tu presupuesto semanalmente y observa crecer tu racha. Te lo has ganado."
       }
     }
+  },
+  "dayPlan": {
+    "heading": "Lo que cabe hoy",
+    "energyGroup": "¿Cuánta energía tienes?",
+    "energy": {
+      "tiny": "Mínima",
+      "low": "Baja",
+      "medium": "Media",
+      "high": "Alta"
+    },
+    "summary": "{{kept}} de {{total}} caben hoy: unos {{minutes}} min, con espacio para descansos.",
+    "over": "Hoy está lleno de tareas obligatorias. Sé amable contigo.",
+    "laterSummary": "Más tarde ({{count}}), sin prisa",
+    "laterList": "Movido a más tarde"
+  },
+  "billTask": {
+    "heading": "Pagos próximos",
+    "due": "{{name}} vence el {{date}}",
+    "add": "Agregar una tarea recordatorio",
+    "added": "Recordatorio agregado",
+    "title": "Pagar {{name}}",
+    "nextAction": "Abre tu app del banco y paga {{name}}"
   }
 }

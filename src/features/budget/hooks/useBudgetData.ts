@@ -18,6 +18,7 @@ export type NewDebt = {
   annualRate: number;
   minPayment: number;
   categoryName: string | null;
+  dueDay: number | null;
 };
 
 const logFailure = (action: string) => (error: unknown) => {
@@ -171,13 +172,22 @@ export const useBudgetData = () => {
 
   const addDebt = (entry: NewDebt) =>
     db
-      .insertDebt(entry.name, entry.balance, entry.annualRate, entry.minPayment, entry.categoryName)
+      .insertDebt(entry.name, entry.balance, entry.annualRate, entry.minPayment, entry.categoryName, entry.dueDay)
       .then((created) => {
         setDebts((prev) => [created, ...prev]);
         return true;
       })
       .catch((error) => {
         logFailure('add debt')(error);
+        return false;
+      });
+
+  const addBillTask = (title: string, firstStep: string, plannedDate: string) =>
+    db
+      .insertTask(title, 'pending', [{ label: firstStep, done: false }], plannedDate, null, 10, 'low')
+      .then(() => true)
+      .catch((error) => {
+        logFailure('add bill task')(error);
         return false;
       });
 
@@ -224,6 +234,7 @@ export const useBudgetData = () => {
     addTransaction,
     removeTransaction,
     addDebt,
+    addBillTask,
     removeDebt,
     deleteActiveBudget,
   };

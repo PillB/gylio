@@ -9,6 +9,7 @@ export type DebtFields = {
   annualRate: string;
   minPayment: string;
   categoryName: string;
+  dueDay: string;
 };
 
 export type FieldErrors<T> = Partial<Record<keyof T, string>>;
@@ -31,6 +32,13 @@ const nonNegativeAmount = (value: string, t: Translate): string => {
   const amount = parseNumber(value);
   if (Number.isNaN(amount)) return t('validation.invalidNumber');
   return amount < 0 ? t('validation.nonNegativeNumber') : '';
+};
+
+/** Optional: blank is fine; otherwise a whole day of the month, 1-31. */
+export const validateDueDay = (value: string, t: Translate): string => {
+  if (!value.trim()) return '';
+  const day = parseNumber(value);
+  return Number.isInteger(day) && day >= 1 && day <= 31 ? '' : t('validation.dueDayRange');
 };
 
 export const validateMonth = (value: string, t: Translate): string =>
@@ -61,6 +69,7 @@ export const validateDebt = (fields: DebtFields, t: Translate): FieldErrors<Debt
   balance: nonNegativeAmount(fields.balance, t),
   annualRate: nonNegativeAmount(fields.annualRate, t),
   minPayment: positiveAmount(fields.minPayment, t),
+  dueDay: validateDueDay(fields.dueDay, t),
 });
 
 export const hasErrors = (errors: Record<string, string | undefined>): boolean =>

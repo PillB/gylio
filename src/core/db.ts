@@ -62,6 +62,7 @@ const TABLE_CREATION_STATEMENTS = [
     annualRate REAL NOT NULL DEFAULT 0,
     minPayment REAL NOT NULL DEFAULT 0,
     categoryName TEXT,
+    dueDay INTEGER,
     createdAt TEXT DEFAULT (datetime('now'))
   );`,
   `CREATE TABLE IF NOT EXISTS social_plans (
@@ -190,6 +191,7 @@ export const runMigrations = (): Promise<void> =>
           { name: 'annualRate', definition: 'REAL NOT NULL DEFAULT 0' },
           { name: 'minPayment', definition: 'REAL NOT NULL DEFAULT 0' },
           { name: 'categoryName', definition: 'TEXT' },
+          { name: 'dueDay', definition: 'INTEGER' },
         ]);
 
         ensureColumns(tx, 'routines', [
