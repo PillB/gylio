@@ -8,6 +8,7 @@
  *    also convert slowly (freemium). Payers pick monthly or yearly.
  *  - Yearly plans are paid up front (cash timing matters for NPV and payback);
  *    they renew at `annualRenewal` after 12 months. Monthly plans churn each month.
+ *  - Income tax is the Peru RMT bracket on each calendar year's profit, with losses carried forward.
  *  - Prices are tax-inclusive. The merchant of record (Paddle) remits the tax
  *    and keeps 5% + $0.50 of the gross; PEN takes an FX spread when converted.
  *  - Demand response to price is NOT known for Gylio. Price sensitivity uses a
@@ -86,16 +87,40 @@ function newPayers(state, t, p) {
   const signups = signupsAt(t, p);
   // During the gifted beta nobody is charged; beta users stay in the free pool.
   if (inBeta(t, p)) return { signups, payers: 0, fromFree: 0, trialConverted: 0 };
-  const trialConverted = signups * p.trialStartRate * p.trialToPaid;
-  const fromFree = state.free * p.freemiumMonthly;
-  return { signups, payers: (trialConverted + fromFree) * p.conversionMultiplier, fromFree, trialConverted };
+  // The multiplier scales the rates, so the users who leave the free pool are exactly the ones who pay.
+  const trialConverted = signups * p.trialStartRate * p.trialToPaid * p.conversionMultiplier;
+  const fromFree = state.free * p.freemiumMonthly * p.conversionMultiplier;
+  return { signups, payers: trialConverted + fromFree, fromFree, trialConverted };
+}
+
+/** The wire fee comes out of the payout, so it is never more than the money received (no cliff). */
+function payoutFee(revenue, p) {
+  return Math.min(p.payoutFeeMonthly, Math.max(0, revenue));
 }
 
 /** Before the RUC (beta) only infrastructure costs money; the compliance floor starts after. */
 function monthCosts(t, p, mau, revenue) {
   const infra = infraCost(mau, p.infraAnchors);
   if (inBeta(t, p)) return infra;
-  return infra + p.fixedMonthly + (revenue > 100 ? p.payoutFeeMonthly : 0);
+  return infra + p.fixedMonthly + payoutFee(revenue, p);
+}
+
+/**
+ * Peru RMT income tax on one month's profit: losses carry forward and offset later profit;
+ * profit in a calendar year pays `incomeTaxRate` up to the threshold (15 UIT) and
+ * `incomeTaxRateHigh` above it. Returns the tax and the new carry/year-to-date state.
+ */
+function incomeTax(preTax, t, state, p) {
+  const ytdBefore = t % 12 === 0 ? 0 : state.ytd;
+  const profit = Math.max(0, preTax);
+  const offset = Math.min(state.carry, profit);
+  const ytd = ytdBefore + profit - offset;
+  const limit = p.rmtThresholdPen / p.penPerUsd;
+  const bracket = (x) => p.incomeTaxRate * Math.min(x, limit) + p.incomeTaxRateHigh * Math.max(0, x - limit);
+  return {
+    tax: bracket(ytd) - bracket(ytdBefore),
+    state: { carry: state.carry - offset + Math.max(0, -preTax), ytd },
+  };
 }
 
 function stepMonth(state, t, p, nets) {
@@ -113,7 +138,9 @@ function stepMonth(state, t, p, nets) {
   const adsRevenue = t >= p.adsStartMonth ? state.free * p.adPageviewsPerFreeUser * p.adRpmUsd / 1000 : 0;
   const costs = monthCosts(t, p, mau, revenue);
   const preTax = revenue + adsRevenue - costs;
-  const cashflow = preTax > 0 ? preTax * (1 - p.incomeTaxRate) : preTax;
+  const taxed = incomeTax(preTax, t, state.tax, p);
+  state.tax = taxed.state;
+  const cashflow = preTax - taxed.tax;
   return {
     month: t + 1, mau: Math.round(mau), payers: Math.round(state.monthly + activeYearly),
     signups: Math.round(signups),
@@ -125,7 +152,7 @@ function stepMonth(state, t, p, nets) {
 function simulate(params) {
   const p = { ...params };
   const nets = planNets(p);
-  const state = { free: 0, monthly: 0, yearlyCohorts: [] };
+  const state = { free: 0, monthly: 0, yearlyCohorts: [], tax: { carry: 0, ytd: 0 } };
   const rows = [];
   for (let t = 0; t < p.months; t += 1) rows.push(stepMonth(state, t, p, nets));
   const cashflows = [-p.initialInvestment, ...rows.map((r) => r.cashflow)];
@@ -161,10 +188,22 @@ function linearDemandBand(pricesMinor, { referenceMinor, beta, keptPerCharge }) 
   });
 }
 
+/**
+ * Share of paying users on the yearly plan on any given day. Sign-ups split by `annualShare`,
+ * but yearly payers stay ~12/(1-renewal) months and monthly payers 1/churn, so the stock of
+ * payers leans yearly.
+ */
+function yearlyStockShare(p) {
+  const yearly = p.annualShare * (12 / (1 - p.annualRenewal));
+  const monthly = (1 - p.annualShare) / p.monthlyChurn;
+  return yearly / (yearly + monthly);
+}
+
 /** Break-even paying users per month: fixed + infra costs / blended net per payer-month. */
 function breakEvenPayers(p, mau) {
   const nets = planNets(p);
-  const perPayerMonth = p.annualShare * nets.yearly / 12 + (1 - p.annualShare) * nets.monthly;
+  const yearlyShare = yearlyStockShare(p);
+  const perPayerMonth = yearlyShare * nets.yearly / 12 + (1 - yearlyShare) * nets.monthly;
   const costs = infraCost(mau, p.infraAnchors) + p.fixedMonthly + p.payoutFeeMonthly;
   return Math.ceil(costs / perPayerMonth);
 }
@@ -190,6 +229,7 @@ function priceSensitivity(base, factors, elasticities) {
 
 module.exports = {
   breakEvenPayers,
+  incomeTax,
   infraCost,
   linearDemandBand,
   signupsAt,
@@ -197,6 +237,7 @@ module.exports = {
   netPerCharge,
   npv,
   paybackMonth,
+  payoutFee,
   planNets,
   priceScenario,
   priceSensitivity,

@@ -147,7 +147,9 @@ COMMON_ROWS = [
     ("adsStartMonth", "Ads start after month", NUM, "AdSense approval takes time; house ads earn nothing."),
     ("adPageviewsPerFreeUser", "Ad pageviews per free user a month", NUM, "Ads only on Settings and QA."),
     ("adRpmUsd", "Blended ad RPM, $ per 1,000 views", USD, "Peru ~$0.8–1.8, US ~$5–15 (secondary)."),
-    ("incomeTaxRate", "Income tax (RMT, first 15 UIT)", PCT, "10% of profit."),
+    ("incomeTaxRate", "Income tax (RMT, first 15 UIT)", PCT, "10% of a calendar year's profit up to the threshold."),
+    ("incomeTaxRateHigh", "Income tax above the threshold", PCT, "RMT: 29.5% on yearly profit above 15 UIT."),
+    ("rmtThresholdPen", "15 UIT, soles a year", PEN, "UIT 2026 = S/ 5,500, so S/ 82,500. Losses carry forward."),
     ("initialInvestment", "Up-front cash, $", USD, "INDECOPI classes 9 + 42 (~S/ 1,068), domain, accountant set-up."),
     ("discountRateAnnual", "Discount rate, a year", PCT, "Barely matters over 36 months (see Sensitivity)."),
     ("hoursInvested", "Your hours so far", NUM, "Change to your real number."),
@@ -185,6 +187,7 @@ def build_assumptions(wb, ws, a):
     row = start + 1 + len(COMMON_ROWS) + 1
     derived = [
         ("fixedMonthlyUsd", "Fixed compliance cost, $ a month", "=(contadorPen+invoicingPen)/penPerUsd", USD),
+        ("rmtThresholdUsd", "15 UIT in dollars", "=rmtThresholdPen/penPerUsd", USD),
         ("monthlyRate", "Monthly discount rate", "=(1+discountRateAnnual)^(1/12)-1", '0.000%'),
     ]
     header(ws, row, ["Derived (formulas)", "", "Value", "", ""])
@@ -247,7 +250,7 @@ def build_unit(wb, ws):
 BLOCK_COLS = ["t", "Month", "Sign-ups", "Beta?", "Trial → paid", "Free → paid", "New payers", "New yearly",
               "New monthly", "Yearly charges", "Monthly subs", "Free users", "Active yearly", "Revenue $",
               "Active users", "Infra $", "Ads $", "Costs $", "Pre-tax $", "Net cash $", "Cumulative $",
-              "Discounted $", "MRR $", "Paying users", "Paid back?"]
+              "Discounted $", "MRR $", "Paying users", "Paid back?", "Loss carry $", "Taxable YTD $", "Tax $"]
 
 
 def block_letters(start_col):
@@ -257,6 +260,19 @@ def block_letters(start_col):
 def infra_formula(mau):
     return (f"=IF({mau}<=mau1,cost1,IF({mau}<=mau2,cost1+({mau}-mau1)/(mau2-mau1)*(cost2-cost1),"
             f"IF({mau}<=mau3,cost2+({mau}-mau2)/(mau3-mau2)*(cost3-cost2),cost3*{mau}/mau3)))")
+
+
+
+def tax_formulas(pre, t_ref, prev_carry, prev_ytd, c):
+    """Peru RMT bracket with loss carry-forward; mirrors incomeTax() in financeModel.js."""
+    ytd0 = f"IF(MOD({t_ref},12)=0,0,{prev_ytd})"
+    offset = f"MIN({prev_carry},MAX(0,{pre}))"
+    bracket = lambda x: f"(incomeTaxRate*MIN({x},rmtThresholdUsd)+incomeTaxRateHigh*MAX(0,{x}-rmtThresholdUsd))"  # noqa: E731
+    return {
+        "Loss carry $": f"={prev_carry}-{offset}+MAX(0,-{pre})",
+        "Taxable YTD $": f"={ytd0}+MAX(0,{pre})-{offset}",
+        "Tax $": f"={bracket(c['Taxable YTD $'])}-{bracket(ytd0)}",
+    }
 
 
 def build_block(ws, scen, start_col, net_m, net_y):
@@ -273,10 +289,10 @@ def build_block(ws, scen, start_col, net_m, net_y):
         ws[c["Month"]] = t + 1
         ws[c["Sign-ups"]] = f"={s('signups0')}" if t == 0 else f"={prev['Sign-ups']}*(1+{s('signupGrowth')}*{s('growthFade')}^{prev['t']})"
         ws[c["Beta?"]] = f"=IF({c['t']}<{s('betaMonths')},1,0)"
-        ws[c["Trial → paid"]] = f"=IF({c['Beta?']}=1,0,{c['Sign-ups']}*{s('trialStartRate')}*{s('trialToPaid')})"
+        ws[c["Trial → paid"]] = f"=IF({c['Beta?']}=1,0,{c['Sign-ups']}*{s('trialStartRate')}*{s('trialToPaid')}*conversionMultiplier)"
         prev_free = "0" if t == 0 else prev["Free users"]
-        ws[c["Free → paid"]] = f"=IF({c['Beta?']}=1,0,{prev_free}*{s('freemiumMonthly')})"
-        ws[c["New payers"]] = f"=({c['Trial → paid']}+{c['Free → paid']})*conversionMultiplier"
+        ws[c["Free → paid"]] = f"=IF({c['Beta?']}=1,0,{prev_free}*{s('freemiumMonthly')}*conversionMultiplier)"
+        ws[c["New payers"]] = f"={c['Trial → paid']}+{c['Free → paid']}"
         ws[c["New yearly"]] = f"={c['New payers']}*{s('annualShare')}"
         ws[c["New monthly"]] = f"={c['New payers']}-{c['New yearly']}"
         renew = f"+{L['Yearly charges']}{r - 12}*{s('annualRenewal')}" if t >= 12 else ""
@@ -289,9 +305,12 @@ def build_block(ws, scen, start_col, net_m, net_y):
         ws[c["Active users"]] = f"={c['Free users']}+{c['Monthly subs']}+{c['Active yearly']}"
         ws[c["Infra $"]] = infra_formula(c["Active users"])
         ws[c["Ads $"]] = f"=IF({c['t']}>=adsStartMonth,{c['Free users']}*adPageviewsPerFreeUser*adRpmUsd/1000,0)"
-        ws[c["Costs $"]] = f"=IF({c['Beta?']}=1,{c['Infra $']},{c['Infra $']}+fixedMonthlyUsd+IF({c['Revenue $']}>100,payoutFeeMonthly,0))"
+        ws[c["Costs $"]] = f"=IF({c['Beta?']}=1,{c['Infra $']},{c['Infra $']}+fixedMonthlyUsd+MIN(payoutFeeMonthly,MAX(0,{c['Revenue $']})))"
         ws[c["Pre-tax $"]] = f"={c['Revenue $']}+{c['Ads $']}-{c['Costs $']}"
-        ws[c["Net cash $"]] = f"=IF({c['Pre-tax $']}>0,{c['Pre-tax $']}*(1-incomeTaxRate),{c['Pre-tax $']})"
+        pc, py = ("0", "0") if t == 0 else (prev["Loss carry $"], prev["Taxable YTD $"])
+        for k, f in tax_formulas(c["Pre-tax $"], c["t"], pc, py, c).items():
+            ws[c[k]] = f
+        ws[c["Net cash $"]] = f"={c['Pre-tax $']}-{c['Tax $']}"
         ws[c["Cumulative $"]] = f"=-initialInvestment+{c['Net cash $']}" if t == 0 else f"={prev['Cumulative $']}+{c['Net cash $']}"
         ws[c["Discounted $"]] = f"={c['Net cash $']}/(1+monthlyRate)^({c['t']}+1)"
         ws[c["MRR $"]] = f"={c['Monthly subs']}*{net_m}+{c['Active yearly']}*{net_y}/12"
@@ -363,7 +382,10 @@ def build_breakeven(ws):
     ws["A1"].font = TITLE
     ws["A2"] = "Base scenario mix. Fixed costs start when the RUC does; before that only hosting costs anything."
     ws["A4"] = "Kept per paying user per month ($)"
-    ws["B4"] = "=annualShare_base*(peruShare_base*keptYearlyPEN+(1-peruShare_base)*keptYearlyUSD)/12+(1-annualShare_base)*(peruShare_base*keptMonthlyPEN+(1-peruShare_base)*keptMonthlyUSD)"
+    ws["A5"] = "Yearly share of payers on any day (yearly payers stay longer than monthly ones)"
+    ws["B5"] = "=annualShare_base*12/(1-annualRenewal_base)/(annualShare_base*12/(1-annualRenewal_base)+(1-annualShare_base)/monthlyChurn_base)"
+    ws["B5"].number_format = PCT
+    ws["B4"] = "=B5*(peruShare_base*keptYearlyPEN+(1-peruShare_base)*keptYearlyUSD)/12+(1-B5)*(peruShare_base*keptMonthlyPEN+(1-peruShare_base)*keptMonthlyUSD)"
     ws["B4"].number_format = USD
     ws["B4"].font = GREEN
     header(ws, 6, ["Active users", "Hosting $", "Compliance $", "Payout fee $", "Total fixed $", "Paying users needed"])
@@ -386,9 +408,9 @@ def build_breakeven(ws):
         ws[f"C{i}"] = f"=ROUNDUP(B{i}/$B$4,0)"
         ws[f"B{i}"].number_format = USD
         ws[f"C{i}"].number_format = NUM
-    ws["A20"] = "Income-tax headroom: RMT is 10% up to 15 UIT = S/ 82,500 of annual profit (UIT 2026 = S/ 5,500)."
+    ws["A20"] = "Income-tax headroom: RMT is 10% up to 15 UIT = S/ 82,500 of annual profit (UIT 2026 = S/ 5,500), 29.5% above."
     ws["A21"] = "Paying users where yearly profit reaches 15 UIT (approx.)"
-    ws["B21"] = "=ROUNDUP((82500/penPerUsd/12+fixedMonthlyUsd)/$B$4,0)"
+    ws["B21"] = "=ROUNDUP((rmtThresholdUsd/12+fixedMonthlyUsd)/$B$4,0)"
     ws["B21"].number_format = NUM
     for col, width in zip("ABCDEF", [34, 22, 18, 16, 16, 20]):
         ws.column_dimensions[col].width = width
@@ -430,7 +452,7 @@ def build_price(ws):
 # ── Sensitivity + engine ─────────────────────────────────────────────────────
 ENGINE_COLS = ["Trial → paid", "Free → paid", "Free users", "New yearly", "New monthly", "Yearly charges",
                "Monthly subs", "Active yearly", "Revenue $", "Active users", "Infra $", "Ads $", "Costs $",
-               "Net cash $", "Discounted $"]
+               "Net cash $", "Discounted $", "Loss carry $", "Taxable YTD $", "Tax $"]
 
 
 def build_engine(wb, ws, conversions, churns):
@@ -460,10 +482,10 @@ def build_engine(wb, ws, conversions, churns):
                 pv = {k: f"{v}{r - 1}" for k, v in L.items()}
                 prev_free = "0" if t == 0 else pv["Free users"]
                 prev_monthly = "0" if t == 0 else pv["Monthly subs"]
-                ws[c["Trial → paid"]] = f"=IF($C{r}=1,0,$B{r}*trialStartRate_base*{conv_ref})"
-                ws[c["Free → paid"]] = f"=IF($C{r}=1,0,{prev_free}*freemiumMonthly_base)"
+                ws[c["Trial → paid"]] = f"=IF($C{r}=1,0,$B{r}*trialStartRate_base*{conv_ref}*conversionMultiplier)"
+                ws[c["Free → paid"]] = f"=IF($C{r}=1,0,{prev_free}*freemiumMonthly_base*conversionMultiplier)"
                 ws[c["Free users"]] = f"={prev_free}*freeRetention_base+$B{r}-{c['Trial → paid']}-{c['Free → paid']}"
-                payers = f"({c['Trial → paid']}+{c['Free → paid']})*conversionMultiplier"
+                payers = f"({c['Trial → paid']}+{c['Free → paid']})"
                 ws[c["New yearly"]] = f"={payers}*annualShare_base"
                 ws[c["New monthly"]] = f"={payers}-{c['New yearly']}"
                 renew = f"+{L['Yearly charges']}{r - 12}*annualRenewal_base" if t >= 12 else ""
@@ -474,9 +496,12 @@ def build_engine(wb, ws, conversions, churns):
                 ws[c["Active users"]] = f"={c['Free users']}+{c['Monthly subs']}+{c['Active yearly']}"
                 ws[c["Infra $"]] = infra_formula(c["Active users"])
                 ws[c["Ads $"]] = f"=IF($A{r}>=adsStartMonth,{c['Free users']}*adPageviewsPerFreeUser*adRpmUsd/1000,0)"
-                ws[c["Costs $"]] = f"=IF($C{r}=1,{c['Infra $']},{c['Infra $']}+fixedMonthlyUsd+IF({c['Revenue $']}>100,payoutFeeMonthly,0))"
+                ws[c["Costs $"]] = f"=IF($C{r}=1,{c['Infra $']},{c['Infra $']}+fixedMonthlyUsd+MIN(payoutFeeMonthly,MAX(0,{c['Revenue $']})))"
                 pre = f"({c['Revenue $']}+{c['Ads $']}-{c['Costs $']})"
-                ws[c["Net cash $"]] = f"=IF({pre}>0,{pre}*(1-incomeTaxRate),{pre})"
+                pc, py = ("0", "0") if t == 0 else (pv["Loss carry $"], pv["Taxable YTD $"])
+                for k, f in tax_formulas(pre, f"$A{r}", pc, py, c).items():
+                    ws[c[k]] = f
+                ws[c["Net cash $"]] = f"={pre}-{c['Tax $']}"
                 ws[c["Discounted $"]] = f"={c['Net cash $']}/(1+monthlyRate)^($A{r}+1)"
             last = first + MONTHS - 1
             npv_cells[(ci, hi)] = f"=-initialInvestment+SUM('Sensitivity engine'!{L['Discounted $']}{first}:{L['Discounted $']}{last})"

@@ -12,7 +12,7 @@ from pathlib import Path
 from openpyxl import load_workbook
 
 ROOT = Path(__file__).resolve().parents[2]
-FUNCTIONS = {"IF", "SUM", "MIN", "MAX", "ROUNDUP", "IFERROR", "INDEX", "MATCH", "SUMPRODUCT"}
+FUNCTIONS = {"IF", "SUM", "MIN", "MAX", "ROUNDUP", "IFERROR", "INDEX", "MATCH", "SUMPRODUCT", "MOD"}
 
 
 class WorkbookStructure(unittest.TestCase):

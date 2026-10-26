@@ -61,6 +61,51 @@ describe('breakEvenPayers', () => {
   });
 });
 
+describe('conversion keeps the free pool honest', () => {
+  it('moves exactly the converted users out of the free pool, whatever the multiplier', () => {
+    // Month 1, no beta: 300 sign-ups x 30% start x 10% convert = 9 payers at multiplier 1.
+    // Everyone is either free or paying, so active users must equal the 300 who signed up.
+    for (const conversionMultiplier of [1, 2, 0.5]) {
+      const r = m.simulate({ ...base, betaMonths: 0, months: 1, conversionMultiplier });
+      expect(r.rows[0].mau).toBe(300);
+      expect(r.rows[0].payers).toBe(Math.round(9 * conversionMultiplier));
+    }
+  });
+});
+
+describe('payoutFee', () => {
+  it('is zero with no money, never more than the money received, and capped at the wire fee', () => {
+    expect(m.payoutFee(0, { payoutFeeMonthly: 15 })).toBe(0);
+    expect(m.payoutFee(8, { payoutFeeMonthly: 15 })).toBe(8);
+    expect(m.payoutFee(100.01, { payoutFeeMonthly: 15 })).toBe(15);
+    expect(m.payoutFee(99.99, { payoutFeeMonthly: 15 })).toBe(15); // no cliff at $100
+  });
+});
+
+describe('incomeTax (RMT bracket with loss carry-forward)', () => {
+  const p = { rmtThresholdPen: 3750, penPerUsd: 3.75, incomeTaxRate: 0.1, incomeTaxRateHigh: 0.3 }; // threshold $1,000
+  it('offsets earlier losses, then taxes 10% up to the threshold and 30% above, per calendar year', () => {
+    const tax = [];
+    let st = { carry: 0, ytd: 0 };
+    [-200, 900, 600].forEach((pre, t) => { const r = m.incomeTax(pre, t, st, p); tax.push(r.tax); st = r.state; });
+    // t1: 900 - 200 loss = 700 taxable -> 70. t2: ytd 700 -> 1300: 300 x 10% + 300 x 30% = 120.
+    expect(tax).toEqual([0, 70, 120]);
+    // a new calendar year (t=12) restarts the bracket: 500 x 10% = 50
+    expect(m.incomeTax(500, 12, st, p).tax).toBe(50);
+  });
+});
+
+describe('breakEvenPayers mix', () => {
+  it('weights plans by who is still paying, not by who signed up', () => {
+    // 50% of sign-ups choose yearly, but yearly payers stay 12 months and monthly ones 1/0.10 = 10, so
+    // 12/(12+10) = 6/11 of payers on any day are yearly. Per payer-month: 6/11 x 56.5/12 + 5/11 x 9 = 6.6591.
+    // Costs at 1k MAU: 1 + 140 + 15 = 156 -> 156 / 6.6591 = 23.43 -> 24 (the sign-up mix would say 23).
+    const p = { ...base, fixedMonthly: 140, peruShare: 0, taxIntl: 0, annualShare: 0.5, monthlyChurn: 0.1, annualRenewal: 0,
+      prices: { monthly: { USD: 1000, PEN: 0 }, yearly: { USD: 6000, PEN: 0 } } };
+    expect(m.breakEvenPayers(p, 1000)).toBe(24);
+  });
+});
+
 describe('priceSensitivity', () => {
   it('with inelastic demand the best price is higher than with elastic demand', () => {
     const factors = [0.6, 0.8, 1, 1.2, 1.5, 2];

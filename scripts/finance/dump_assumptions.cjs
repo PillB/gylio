@@ -23,6 +23,8 @@ const common = {
   adPageviewsPerFreeUser: base.adPageviewsPerFreeUser,
   adRpmUsd: base.adRpmUsd,
   incomeTaxRate: base.incomeTaxRate,
+  incomeTaxRateHigh: base.incomeTaxRateHigh,
+  rmtThresholdPen: base.rmtThresholdPen,
   initialInvestment: base.initialInvestment,
   discountRateAnnual: base.discountRateAnnual,
   hoursInvested: base.hoursInvested,

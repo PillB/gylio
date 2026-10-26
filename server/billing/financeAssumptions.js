@@ -57,8 +57,10 @@ const base = {
   adsStartMonth: 3,
   adPageviewsPerFreeUser: 4,
   adRpmUsd: 2.5,
-  // RMT: 10% on profit up to 15 UIT.
+  // RMT: 10% on profit up to 15 UIT (UIT 2026 = S/ 5,500 -> S/ 82,500 a year), 29.5% above; losses carry forward.
   incomeTaxRate: 0.1,
+  incomeTaxRateHigh: 0.295,
+  rmtThresholdPen: 82500,
   // Up-front: INDECOPI classes 9+42 (S/1,068 ≈ $285), domain ($10), accountant set-up [A $100].
   initialInvestment: 395,
   // Peru SME cost of capital [A]; the result barely moves with it (see report).
