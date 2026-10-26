@@ -958,3 +958,21 @@ Numbered after #82's CHG-046 to keep IDs unique; #82 stacks on this branch.
 **Also:** experiment switch points (`layoutVariants.ts`: tour_length, budget_quick_add, calendar_default_phone; control until #89's `useExperiment` backs it), Debt payoff collapsed by default on Budget, locked tabs announced to screen readers, `GuidedTourOverlay` complexity cap 43 → 41, repeated toasts replace each other, and no stale-data alert on a budget with no transactions. Round 7: Rewards level progress bar, Routines in a card, duplicate button emoji removed.
 **Future considerations:** header trim after #89; Settings duplicates after #89; onboarding copy is #92's. Experiments are wired but cannot produce data until the app is live.
 **References:** docs/wiki/layout-review-2026-10-06.md
+
+---
+
+### CHG-048 – 2026-10-02 (Quality program: axe audit fixes, AGENTS.md rules, wiki)
+
+**Why:** A Chromium + axe-core pass over every tab found one critical and three serious accessibility defects plus a duplicated icon on main.
+
+**Files changed:**
+- `src/components/atoms/Toast.tsx` — notification stack now has `role="region"` so its `aria-label` is valid.
+- `src/features/tasks/components/TaskList.tsx` — `role="list"` only when the wrapper contains list items; removed duplicate ⚡ (the i18n string already has it).
+- `src/features/calendar/components/WeeklyGrid.tsx` — scrollable grid is keyboard focusable.
+- `src/components/SettingsView.jsx` — "Restart guide" button text uses `theme.colors.text` (contrast 4.5:1+).
+- `docs/wiki/audit-2026-10-02.md`, `browser-audit.md`, `research-competitors-ideas.md` — one round's findings, steps and retrospective, the audit how-to and the research. Agent rules and the wiki index/ledger come from #89, so this PR carries no AGENTS.md or CLAUDE.md change.
+- Tests: `Toast.a11y.test.tsx`, `WeeklyGrid.a11y.test.tsx` (both fail without the fixes).
+
+**Update 2026-10-20:** the source fixes above landed on main through #82 (the lint thread applied the ported patch), so this PR now carries only the docs and this entry.
+
+**Trade-offs:** Settings button loses its primary-colour text to meet contrast, keeping the primary border. Axe e2e is deferred to avoid touching package.json while the lint thread owns it. Q-006 (locked-tab heading order) is left to #89, which rewrites UpgradePrompt.
