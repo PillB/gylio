@@ -76,6 +76,15 @@ describe('experiment', () => {
     for (let i = 0; i < 4000; i++) if (assignVariant(`install-${i}`, 'plan-day-v1', ['a', 'b']) === 'a') a++;
     expect(hasSampleRatioMismatch(a, 4000 - a)).toBe(false);
   });
+  it('buckets different experiments independently (not all-same or all-flipped)', () => {
+    const arm = (e: string, i: number) => assignVariant(`install-${i}`, e, ['a', 'b']);
+    for (const other of ['paywall-v1', 'plan-day-v2']) {
+      let same = 0;
+      for (let i = 0; i < 4000; i++) if (arm('plan-day-v1', i) === arm(other, i)) same++;
+      expect(same).toBeGreaterThan(1800);
+      expect(same).toBeLessThan(2200);
+    }
+  });
   it('flags a 55/45 split at n=4000 but not 51/49', () => {
     expect(hasSampleRatioMismatch(2200, 1800)).toBe(true);
     expect(hasSampleRatioMismatch(2040, 1960)).toBe(false);

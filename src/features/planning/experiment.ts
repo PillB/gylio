@@ -5,6 +5,12 @@ const fnv1a = (s: string): number => {
     h ^= s.charCodeAt(i);
     h = Math.imul(h, 0x01000193) >>> 0;
   }
+  // fmix32 finalizer: FNV's low bit is only the parity of the input bytes, so mix before taking a modulus.
+  h ^= h >>> 16;
+  h = Math.imul(h, 0x85ebca6b) >>> 0;
+  h ^= h >>> 13;
+  h = Math.imul(h, 0xc2b2ae35) >>> 0;
+  h ^= h >>> 16;
   return h >>> 0;
 };
 
