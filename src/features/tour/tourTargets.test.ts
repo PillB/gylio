@@ -47,3 +47,17 @@ describe('stepsForFlow', () => {
     expect(stepsForFlow('budget', 'overview5')).toHaveLength(stepsForFlow('budget').length);
   });
 });
+
+import { clampStepIndex } from './tourSteps';
+
+describe('clampStepIndex', () => {
+  it('keeps a valid index', () => expect(clampStepIndex(3, 9)).toBe(3));
+  it('pulls a saved index back inside a shorter step list (9-step save, 5-step variant)', () => {
+    expect(clampStepIndex(7, 5)).toBe(4);
+  });
+  it('handles empty lists and bad values', () => {
+    expect(clampStepIndex(2, 0)).toBe(0);
+    expect(clampStepIndex(-1, 5)).toBe(0);
+    expect(clampStepIndex(Number.NaN, 5)).toBe(0);
+  });
+});

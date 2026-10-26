@@ -7,7 +7,7 @@ import { useGuidedTour } from '../core/context/GuidedTourContext';
 import { useAppAuth } from '../core/context/AuthContext';
 import useDialogFocus from '../core/hooks/useDialogFocus';
 import type { TourStep } from '../features/tour/tourSteps';
-import { placeTooltip } from '../features/tour/placeTooltip';
+import { placeTooltip, type TooltipSide } from '../features/tour/placeTooltip';
 
 const TOOLTIP_WIDTH = 320;
 const TOOLTIP_GAP = 14;
@@ -188,6 +188,7 @@ export default function GuidedTourOverlay() {
   let tooltipStyle: React.CSSProperties;
   let top = 0;
   let left = 0;
+  let side: TooltipSide = 'dock';
 
   if (isCenter) {
     tooltipStyle = {
@@ -202,7 +203,7 @@ export default function GuidedTourOverlay() {
       zIndex: theme.zIndex.tour + 1,
     };
   } else {
-    ({ top, left } = placeTooltip({
+    ({ top, left, side } = placeTooltip({
       target: targetRect,
       viewportW: vw,
       viewportH: vh,
@@ -230,9 +231,8 @@ export default function GuidedTourOverlay() {
     !isCenter && targetRect
       ? (() => {
           const tipLeft = (tooltipStyle.left as number) ?? 0;
-          const tipTop = (tooltipStyle.top as number) ?? 0;
-          const isBelow = tipTop > targetRect.bottom;
-          if (tipTop + ESTIMATED_TOOLTIP_HEIGHT > targetRect.top && tipTop < targetRect.bottom) return null; // beside or docked: no pointer
+          if (side !== 'below' && side !== 'above') return null; // beside or docked: no pointer
+          const isBelow = side === 'below';
           const arrowLeft = Math.max(
             16,
             Math.min(

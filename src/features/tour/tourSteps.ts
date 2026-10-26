@@ -542,3 +542,9 @@ export function stepsForFlow(flowId: string, length: TourLength = 'overview9'): 
   if (flow.id !== 'overview' || length !== 'overview5') return flow.steps;
   return flow.steps.filter((step) => OVERVIEW_SHORT_IDS.includes(step.id));
 }
+
+/** A saved step index can outlive the step list it was saved against (a shorter variant, an edited flow). */
+export function clampStepIndex(index: number, stepCount: number): number {
+  if (stepCount <= 0) return 0;
+  return Math.max(0, Math.min(Number.isFinite(index) ? Math.floor(index) : 0, stepCount - 1));
+}

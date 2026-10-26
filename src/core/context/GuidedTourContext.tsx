@@ -6,7 +6,7 @@ import React, {
   useState,
 } from 'react';
 import type { ReactNode } from 'react';
-import { ALL_FLOWS, FLOW_MAP, OVERVIEW_FLOW, stepsForFlow } from '../../features/tour/tourSteps';
+import { ALL_FLOWS, FLOW_MAP, OVERVIEW_FLOW, clampStepIndex, stepsForFlow } from '../../features/tour/tourSteps';
 import { useLayoutVariant } from '../../features/layoutVariants';
 import type { TourStep } from '../../features/tour/tourSteps';
 
@@ -85,6 +85,11 @@ export function GuidedTourProvider({ children }: { children: ReactNode }) {
   );
 
   const totalSteps = currentSteps.length;
+  // The overlay indexes currentSteps with this, so it must never point past a shorter list.
+  const visibleTourState = useMemo(
+    () => ({ ...tourState, stepIndex: clampStepIndex(tourState.stepIndex, totalSteps) }),
+    [tourState, totalSteps]
+  );
 
   const openSelector = useCallback(() => {
     setShowSelector(true);
@@ -153,7 +158,7 @@ export function GuidedTourProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<GuidedTourContextValue>(
     () => ({
-      tourState,
+      tourState: visibleTourState,
       showSelector,
       currentSteps,
       openSelector,
@@ -169,7 +174,7 @@ export function GuidedTourProvider({ children }: { children: ReactNode }) {
       totalSteps,
     }),
     [
-      tourState,
+      visibleTourState,
       showSelector,
       currentSteps,
       openSelector,

@@ -122,7 +122,8 @@ export const WeeklyGrid: React.FC<Props> = ({
   // Open the grid near the current time rather than at the earliest hour.
   useEffect(() => {
     const el = containerRef.current;
-    if (!el) return;
+    // A container with no height yet (hidden or still laying out) has nothing to scroll.
+    if (!el || el.clientHeight === 0) return;
     el.scrollTop = initialGridScrollTop(nowMinutes, el.clientHeight, totalHours * hourHeight);
     // Only on first paint: later zoom or navigation must not yank the scroll position.
     // eslint-disable-next-line react-hooks/exhaustive-deps

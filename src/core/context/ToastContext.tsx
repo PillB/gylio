@@ -47,31 +47,36 @@ const ToastContext = createContext<ToastContextValue | null>(null);
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const timers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  // Mirrors `toasts` so showToast can read the current list without a side-effecting updater.
+  const toastsRef = useRef<ToastItem[]>([]);
 
   const dismissToast = useCallback((id: string) => {
     clearTimeout(timers.current[id]);
     delete timers.current[id];
-    setToasts((prev) => prev.filter((t) => t.id !== id));
+    toastsRef.current = toastsRef.current.filter((t) => t.id !== id);
+    setToasts(toastsRef.current);
   }, []);
 
   const showToast = useCallback(
     (opts: Omit<ToastItem, 'id'>): string => {
       const id = `toast-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
       const item: ToastItem = { ...opts, id };
-      setToasts((prev) => {
-        // Adding five tasks in a row used to stack five identical "Added to Today."
-        // toasts, a 250px column over the page on a phone. A repeat of the same
-        // message replaces the earlier toast instead, and its timer restarts.
-        const repeats = (t: ToastItem) => t.message === item.message && t.type === item.type && !t.action && !item.action;
-        prev.filter(repeats).forEach((t) => {
-          clearTimeout(timers.current[t.id]);
-          delete timers.current[t.id];
-        });
-        return [...prev.filter((t) => !repeats(t)).slice(-4), item]; // max 5 toasts at once
+      // Adding five tasks in a row used to stack five identical "Added to Today."
+      // toasts, a 250px column over the page on a phone. A repeat of the same
+      // message replaces the earlier toast instead, and its timer restarts.
+      // Timers are cleared here, not inside the state updater, which must stay pure.
+      const repeats = (t: ToastItem) => t.message === item.message && t.type === item.type && !t.action && !item.action;
+      toastsRef.current.filter(repeats).forEach((t) => {
+        clearTimeout(timers.current[t.id]);
+        delete timers.current[t.id];
       });
+      const next = [...toastsRef.current.filter((t) => !repeats(t)).slice(-4), item]; // max 5 toasts at once
+      toastsRef.current = next;
+      setToasts(next);
 
       timers.current[id] = setTimeout(() => {
-        setToasts((prev) => prev.filter((t) => t.id !== id));
+        toastsRef.current = toastsRef.current.filter((t) => t.id !== id);
+        setToasts(toastsRef.current);
         delete timers.current[id];
       }, opts.duration);
 
