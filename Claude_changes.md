@@ -961,6 +961,24 @@ Numbered after #82's CHG-046 to keep IDs unique; #82 stacks on this branch.
 
 ---
 
+### CHG-048 – 2026-10-02 (Quality program: axe audit fixes, AGENTS.md rules, wiki)
+
+**Why:** A Chromium + axe-core pass over every tab found one critical and three serious accessibility defects plus a duplicated icon on main.
+
+**Files changed:**
+- `src/components/atoms/Toast.tsx` — notification stack now has `role="region"` so its `aria-label` is valid.
+- `src/features/tasks/components/TaskList.tsx` — `role="list"` only when the wrapper contains list items; removed duplicate ⚡ (the i18n string already has it).
+- `src/features/calendar/components/WeeklyGrid.tsx` — scrollable grid is keyboard focusable.
+- `src/components/SettingsView.jsx` — "Restart guide" button text uses `theme.colors.text` (contrast 4.5:1+).
+- `docs/wiki/audit-2026-10-02.md`, `browser-audit.md`, `research-competitors-ideas.md` — one round's findings, steps and retrospective, the audit how-to and the research. Agent rules and the wiki index/ledger come from #89, so this PR carries no AGENTS.md or CLAUDE.md change.
+- Tests: `Toast.a11y.test.tsx`, `WeeklyGrid.a11y.test.tsx` (both fail without the fixes).
+
+**Update 2026-10-20:** the source fixes above landed on main through #82 (the lint thread applied the ported patch), so this PR now carries only the docs and this entry.
+
+**Trade-offs:** Settings button loses its primary-colour text to meet contrast, keeping the primary border. Axe e2e is deferred to avoid touching package.json while the lint thread owns it. Q-006 (locked-tab heading order) is left to #89, which rewrites UpgradePrompt.
+
+---
+
 ### CHG-051 – 2026-10-02 (Onboarding step 1: say each reassurance once)
 
 **Why:** Step 1 showed "Neutral defaults are already selected" twice and "change later in Settings" twice (page intro plus the saved-on-device line). For users prone to overload, repeated copy adds reading cost without information.

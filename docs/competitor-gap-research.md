@@ -32,3 +32,16 @@ Verdict: **partly**. As a rule it is supported by case history but not by hard e
 
 ## 4. Next rounds
 Wire engines into Today and Budget; read primary papers; collect real user complaints (Reddit r/ADHD, app-store reviews) when reachable; usability sessions for the A/B guardrails.
+
+## 5. Round 2 evidence (2026-10-26)
+Premise, primary-source status:
+- Golder & Tellis, *J. Marketing Research* 30(2), 1993, pp. 158-170: JSTOR first-page excerpt confirms almost half of market pioneers fail, low pioneer market share, and early leaders entering on average 13 years after pioneers. The 47% figure and the 500 brands / 50 categories sample come from secondary summaries. The full text was not read. ([Duke seminar copy](https://people.duke.edu/~moorman/Marketing-Strategy-Seminar-2015/Session%205/Golder%20and%20Tellis.pdf), [Fast Company](https://www.fastcompany.com/1692952/why-pioneers-have-arrows-their-backs))
+- Suarez & Lanzolla, "The Half-Truth of First-Mover Advantage", HBR 83(4), 2005, pp. 121-127: advantage depends on the pace of market and technology change; slow change favors first movers. Full text not read ([HBR](https://hbr.org/2005/04/the-half-truth-of-first-mover-advantage)).
+- Net: "learn from rivals and do it better" is defensible, but pace of change decides how much a late entrant gains. Not a law.
+
+Competitor complaints (still weak evidence):
+- Reddit threads were not reachable through the search tool. G2 and AlternativeTo show no Tiimo reviews. Everything below is blogs and listings, not user data.
+- Habitica: missed Dailies cost HP; a "Pause Damage" setting exists. One opinion blog argues HP loss triggers anxiety; AlternativeTo comments cite excessive notifications and complexity ([Habitica for ADHD wiki](https://habitica.fandom.com/wiki/Adapting_Habitica_for_ADHD), [review](https://bipolarcoaster.blog/2024/08/31/neurodivergent-app-review-habitica/)).
+- Tiimo: described as soft reminders; limits are complex projects and a limited free tier ([review](https://yourappland.com/tiimo-app-review/)).
+- Finch: no complaint evidence found.
+These support, but do not prove, the "no-shame, simple, not paywalled" positioning. Next step is app-store review mining and 5-8 user sessions.
