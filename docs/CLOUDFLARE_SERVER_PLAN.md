@@ -19,9 +19,11 @@ Trade-off accepted: Workers Free allows 10 ms CPU per request and 100,000 reques
 
 ## 2. What the slice contains (`worker/`)
 - `GET /api/health`; sign-in check on everything else (Clerk RS256 JWT, issuer + authorized party, keys from Clerk's JWKS, cached per isolate).
-- One `records` table for all entities (tasks, events, budgets, transactions, debts). Rows are `(userId, entity, id)` with a JSON body, `updatedAt` and a `deleted` tombstone.
-- `PUT /api/:entity/:id` is an idempotent upsert keyed by a client-chosen id, so a retried offline write never duplicates. `409` with the server copy if the client's `clientUpdatedAt` is older.
-- `GET /api/sync/pull?since=<cursor>` returns only changed rows (including tombstones), paged. An idle device costs about one indexed query.
+- One `records` table for all entities (tasks, events, budgets, transactions, debts). Rows are `(userId, entity, id)` with a JSON body, a `version`, a per-person change sequence `seq`, an `updatedAt` time and a `deleted` tombstone.
+- `PUT /api/:entity/:id` is a versioned upsert keyed by a client-chosen id. The body carries `baseVersion` (the version the device last saw; 0 or absent for a new record). The version check is part of the database write, so two devices racing from the same version cannot both win: the loser gets `409` with the current record, a tombstone included. An exact retry of a write that already landed returns 200.
+- `GET /api/sync/pull?since=<seq>` returns changes after a cursor in `seq` order (tombstones included), paged. `seq` is unique per person, so a page boundary cannot hide a change. An idle device costs about one indexed query.
+- `DELETE /api/:entity/:id` writes a tombstone (always applied; a stale offline edit afterwards gets 409 instead of resurrecting it). Tombstones older than 30 days are purged on the next create; a device offline longer than that must do a full resync (pull from 0).
+- Quota: all stored rows, tombstones included, count toward the 5,000 per-person cap, so create-and-delete cannot grow the database.
 - `GET /api/me/export` and `DELETE /api/me`: data portability and erasure.
 - Validation ported from the Express schemas; unknown fields are dropped; `dueDay` 1 to 31; 64 KB body cap; 5,000 records per user cap.
 

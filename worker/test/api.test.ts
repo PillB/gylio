@@ -25,6 +25,17 @@ const put = (path: string, body: unknown, as = 'user_a') => call(path, { method:
 const debt = { name: 'Visa', balance: 500, annualRate: 20, minPayment: 25, dueDay: 15 };
 
 describe('health and auth', () => {
+  it('reports not ready when the migrated table is missing', async () => {
+    await e.DB.exec('ALTER TABLE records RENAME TO records_hidden');
+    try {
+      const res = await call('/api/health');
+      expect(res.status).toBe(503);
+      expect(await res.json()).toMatchObject({ databaseReady: false });
+    } finally {
+      await e.DB.exec('ALTER TABLE records_hidden RENAME TO records');
+    }
+  });
+
   it('answers health without a token and reports d1', async () => {
     const res = await call('/api/health');
     expect(res.status).toBe(200);
@@ -54,11 +65,14 @@ describe('records', () => {
     expect((await call('/api/debts/d1', { as: 'user_b' })).status).toBe(404);
   });
 
-  it('is idempotent: retrying the same write updates in place and returns 200', async () => {
-    await put('/api/debts/d2', debt);
-    expect((await put('/api/debts/d2', { ...debt, balance: 400 })).status).toBe(200);
-    const row = (await (await call('/api/debts/d2', { as: 'user_a' })).json()) as { data: { balance: number } };
-    expect(row.data.balance).toBe(400);
+  it('treats an exact retry as success and versions real edits', async () => {
+    const first = (await (await put('/api/debts/d2', debt)).json()) as { version: number };
+    expect(first.version).toBe(1);
+    const retry = await put('/api/debts/d2', debt);
+    expect(retry.status).toBe(200);
+    expect(((await retry.json()) as { version: number }).version).toBe(1);
+    const edited = (await (await put('/api/debts/d2', { ...debt, balance: 400, baseVersion: 1 })).json()) as { version: number; data: { balance: number } };
+    expect([edited.version, edited.data.balance]).toEqual([2, 400]);
   });
 
   it('validates fields and drops unknown ones without storing them', async () => {
@@ -80,11 +94,30 @@ describe('records', () => {
     expect(res.status).toBe(400);
   });
 
-  it('answers 409 with the server copy when the client write is older', async () => {
-    const created = (await (await put('/api/debts/c1', debt, 'user_c')).json()) as { updatedAt: number };
-    const stale = await put('/api/debts/c1', { ...debt, balance: 1, clientUpdatedAt: created.updatedAt - 1000 }, 'user_c');
+  it('answers 409 with the current record when the write was based on an old version', async () => {
+    await put('/api/debts/c1', debt, 'user_c');
+    await put('/api/debts/c1', { ...debt, balance: 450, baseVersion: 1 }, 'user_c');
+    const stale = await put('/api/debts/c1', { ...debt, balance: 1, baseVersion: 1 }, 'user_c');
     expect(stale.status).toBe(409);
-    expect(((await stale.json()) as { current: { data: { balance: number } } }).current.data.balance).toBe(500);
+    expect(((await stale.json()) as { current: { version: number; data: { balance: number } } }).current).toMatchObject({ version: 2, data: { balance: 450 } });
+  });
+
+  it('lets only one of two devices that race from the same version win', async () => {
+    await put('/api/debts/r1', debt, 'user_race');
+    const [a, b] = await Promise.all([
+      put('/api/debts/r1', { ...debt, balance: 111, baseVersion: 1 }, 'user_race'),
+      put('/api/debts/r1', { ...debt, balance: 222, baseVersion: 1 }, 'user_race'),
+    ]);
+    expect([a.status, b.status].sort()).toEqual([200, 409]);
+  });
+
+  it('does not let an old queued write resurrect a deleted record', async () => {
+    await put('/api/debts/g1', debt, 'user_ghost');
+    await call('/api/debts/g1', { method: 'DELETE', as: 'user_ghost' });
+    const stale = await put('/api/debts/g1', { ...debt, balance: 9, baseVersion: 1 }, 'user_ghost');
+    expect(stale.status).toBe(409);
+    expect(((await stale.json()) as { current: { deleted: boolean; version: number } }).current).toMatchObject({ deleted: true, version: 2 });
+    expect((await put('/api/debts/g1', { ...debt, baseVersion: 2 }, 'user_ghost')).status).toBe(200);
   });
 
   it('deletes with a tombstone that a pull reports, and a repeated delete is a no-op', async () => {
@@ -111,10 +144,32 @@ describe('records', () => {
     expect(rest.hasMore).toBe(false);
   });
 
+  it('never skips changes made at the same moment when paging one at a time', async () => {
+    const ids = ['s1', 's2', 's3', 's4'];
+    await Promise.all(ids.map((id) => put(`/api/debts/${id}`, debt, 'user_ties')));
+    const seen: string[] = [];
+    let cursor = 0;
+    for (let page = 0; page < 10; page++) {
+      const res = (await (await call(`/api/sync/pull?since=${cursor}&limit=1`, { as: 'user_ties' })).json()) as {
+        records: { id: string }[]; cursor: number; hasMore: boolean;
+      };
+      seen.push(...res.records.map((r) => r.id));
+      cursor = res.cursor;
+      if (!res.hasMore) break;
+    }
+    expect(seen.sort()).toEqual(ids);
+  });
+
   it('enforces the per-user record cap so one account cannot fill the free database', async () => {
     for (const id of ['q1', 'q2', 'q3', 'q4', 'q5']) expect((await put(`/api/debts/${id}`, debt, 'user_cap')).status).toBe(201);
     expect((await put('/api/debts/q6', debt, 'user_cap')).status).toBe(413);
-    expect((await put('/api/debts/q1', { ...debt, balance: 1 }, 'user_cap')).status).toBe(200);
+    expect((await put('/api/debts/q1', { ...debt, balance: 1, baseVersion: 1 }, 'user_cap')).status).toBe(200);
+  });
+
+  it('counts deleted records against the cap so create-and-delete cannot grow storage', async () => {
+    for (const id of ['w1', 'w2', 'w3', 'w4', 'w5']) await put(`/api/debts/${id}`, debt, 'user_churn');
+    for (const id of ['w1', 'w2', 'w3', 'w4', 'w5']) await call(`/api/debts/${id}`, { method: 'DELETE', as: 'user_churn' });
+    expect((await put('/api/debts/w6', debt, 'user_churn')).status).toBe(413);
   });
 
   it('rejects ids that are not safe path segments and unknown resources', async () => {
