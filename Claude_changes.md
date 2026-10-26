@@ -961,7 +961,7 @@ Numbered after #82's CHG-046 to keep IDs unique; #82 stacks on this branch.
 
 ---
 
-### CHG-049 – 2026-10-02 (Onboarding step 1: say each reassurance once)
+### CHG-051 – 2026-10-02 (Onboarding step 1: say each reassurance once)
 
 **Why:** Step 1 showed "Neutral defaults are already selected" twice and "change later in Settings" twice (page intro plus the saved-on-device line). For users prone to overload, repeated copy adds reading cost without information.
 
