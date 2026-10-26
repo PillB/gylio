@@ -961,6 +961,24 @@ Numbered after #82's CHG-046 to keep IDs unique; #82 stacks on this branch.
 
 ---
 
+### CHG-048 – 2026-10-02 (Quality program: axe audit fixes, AGENTS.md rules, wiki)
+
+**Why:** A Chromium + axe-core pass over every tab found one critical and three serious accessibility defects plus a duplicated icon on main.
+
+**Files changed:**
+- `src/components/atoms/Toast.tsx` — notification stack now has `role="region"` so its `aria-label` is valid.
+- `src/features/tasks/components/TaskList.tsx` — `role="list"` only when the wrapper contains list items; removed duplicate ⚡ (the i18n string already has it).
+- `src/features/calendar/components/WeeklyGrid.tsx` — scrollable grid is keyboard focusable.
+- `src/components/SettingsView.jsx` — "Restart guide" button text uses `theme.colors.text` (contrast 4.5:1+).
+- `docs/wiki/audit-2026-10-02.md`, `browser-audit.md`, `research-competitors-ideas.md` — one round's findings, steps and retrospective, the audit how-to and the research. Agent rules and the wiki index/ledger come from #89, so this PR carries no AGENTS.md or CLAUDE.md change.
+- Tests: `Toast.a11y.test.tsx`, `WeeklyGrid.a11y.test.tsx` (both fail without the fixes).
+
+**Update 2026-10-20:** the source fixes above landed on main through #82 (the lint thread applied the ported patch), so this PR now carries only the docs and this entry.
+
+**Trade-offs:** Settings button loses its primary-colour text to meet contrast, keeping the primary border. Axe e2e is deferred to avoid touching package.json while the lint thread owns it. Q-006 (locked-tab heading order) is left to #89, which rewrites UpgradePrompt.
+
+---
+
 ### CHG-050 – 2026-10-20 (2-minute start on tasks; valid list semantics on Tasks)
 
 **Why:** Competitor review (`docs/wiki/research-competitors-ideas.md` in #91) found that starting, not planning, is where task apps for ADHD help most (Goblin Tools, Tiimo). The only start action was a 25-minute block. Separately, a browser axe pass with a task present showed the Tasks list nested `role="group"` inside `role="list"` (critical; the earlier audit only covered the empty state).
