@@ -6,7 +6,7 @@
     "strict": true,
     "skipLibCheck": true,
     "noEmit": true,
-    "types": ["@cloudflare/workers-types", "@cloudflare/vitest-plugin/types"]
+    "types": ["@cloudflare/workers-types", "@cloudflare/vitest-plugin/types", "node"]
   },
   "include": ["src", "test", "vitest.config.ts"]
 }
