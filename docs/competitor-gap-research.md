@@ -13,7 +13,7 @@ Verdict: **partly**. As a rule it is supported by case history but not by hard e
 | Gap | Best competitor | Gylio status | This PR |
 |---|---|---|---|
 | Starting help | Tiimo, Llama Life | 2-minute start in open PR #97 | none (avoid overlap) |
-| Over-planned days | Sunsama (workload cap), Structured | none | `planDay` capacity + neutral "later" bucket |
+| Over-planned days | Sunsama (workload cap), Structured | none | `planDay` shipped in the Daily Command Center as "What fits today" (energy picker, neutral Later list, A/B arm) |
 | Optimistic estimates | none do it well | none (no estimate-vs-actual) | `calibrateEstimate` (outside view) |
 | Bill to task | none (3-in-1 moat) | none | `billTaskDrafts`, drafts only |
 | Debt strategy compare | none | shipped (`debtPayoff.ts`) | none |
@@ -26,7 +26,8 @@ Verdict: **partly**. As a rule it is supported by case history but not by hard e
 4. Calibration never lowers an estimate, so it cannot push a user to rush.
 5. Bill drafts are suggestions only; no auto-created tasks, no bank access.
 6. Variants `cap` vs `cap-with-nudge`: at low traffic this test is underpowered. Use it for a guardrailed staged rollout and qualitative review, not a significance claim (see research doc section 4).
-7. This PR delivers tested engines only. UI wiring (Today view, task form, budget) is not done and needs i18n keys and keyboard/label checks.
+7. Only `planDay` is wired into the UI. `calibrateEstimate` needs the app to record actual minutes per task, and `billTaskDrafts` needs a due day on debts. Both are schema changes (client SQLite, server models, sync), so they are separate PRs, not bolted on here. The new card was not checked in a real browser: sign-in blocks automated runs here; it is covered by jsdom tests only.
+8. The Today card shows each task's time as its focus-preset minutes, or 25 min when unset; that default is a guess.
 
 ## 4. Next rounds
 Wire engines into Today and Budget; read primary papers; collect real user complaints (Reddit r/ADHD, app-store reviews) when reachable; usability sessions for the A/B guardrails.
