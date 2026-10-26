@@ -2006,5 +2006,19 @@
         "content": "Tu progreso ahora se rastrea. Completa tareas, revisa tu presupuesto semanalmente y observa crecer tu racha. Te lo has ganado."
       }
     }
+  },
+  "dayPlan": {
+    "heading": "Lo que cabe hoy",
+    "energyGroup": "¿Cuánta energía tienes?",
+    "energy": {
+      "tiny": "Mínima",
+      "low": "Baja",
+      "medium": "Media",
+      "high": "Alta"
+    },
+    "summary": "{{kept}} de {{total}} caben hoy: unos {{minutes}} min, con espacio para descansos.",
+    "over": "Hoy está lleno de tareas obligatorias. Sé amable contigo.",
+    "laterSummary": "Más tarde ({{count}}), sin prisa",
+    "laterList": "Movido a más tarde"
   }
 }

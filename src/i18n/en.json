@@ -2006,5 +2006,19 @@
         "content": "Your progress is now tracked. Complete tasks, review your budget weekly, and watch your streak grow. You've earned it."
       }
     }
+  },
+  "dayPlan": {
+    "heading": "What fits today",
+    "energyGroup": "How much energy do you have?",
+    "energy": {
+      "tiny": "Tiny",
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    },
+    "summary": "{{kept}} of {{total}} fit today: about {{minutes}} min, with room left for breaks.",
+    "over": "Today is full with must-do tasks. Be gentle with yourself.",
+    "laterSummary": "Later ({{count}}), no rush",
+    "laterList": "Moved to later"
   }
 }
