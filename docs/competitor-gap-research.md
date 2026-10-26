@@ -14,8 +14,8 @@ Verdict: **partly**. As a rule it is supported by case history but not by hard e
 |---|---|---|---|
 | Starting help | Tiimo, Llama Life | 2-minute start in open PR #97 | none (avoid overlap) |
 | Over-planned days | Sunsama (workload cap), Structured | none | `planDay` shipped in the Daily Command Center as "What fits today" (energy picker, neutral Later list, A/B arm) |
-| Optimistic estimates | none do it well | none (no estimate-vs-actual) | `calibrateEstimate` (outside view) |
-| Bill to task | none (3-in-1 moat) | none | `billTaskDrafts`, drafts only |
+| Optimistic estimates | none do it well | none (no estimate-vs-actual) | engine only; see trade-off 7b |
+| Bill to task | none (3-in-1 moat) | none | shipped: due day on debts plus "Bills coming up" reminder tasks with a first step, created only on request |
 | Debt strategy compare | none | shipped (`debtPayoff.ts`) | none |
 | Experiment hygiene | n/a | one paywall A/B | `assignVariant`, SRM check |
 
@@ -26,7 +26,8 @@ Verdict: **partly**. As a rule it is supported by case history but not by hard e
 4. Calibration never lowers an estimate, so it cannot push a user to rush.
 5. Bill drafts are suggestions only; no auto-created tasks, no bank access.
 6. Variants `cap` vs `cap-with-nudge`: at low traffic this test is underpowered. Use it for a guardrailed staged rollout and qualitative review, not a significance claim (see research doc section 4).
-7. Only `planDay` is wired into the UI. `calibrateEstimate` needs the app to record actual minutes per task, and `billTaskDrafts` needs a due day on debts. Both are schema changes (client SQLite, server models, sync), so they are separate PRs, not bolted on here. The new card was not checked in a real browser: sign-in blocks automated runs here; it is covered by jsdom tests only.
+7. Wired into the UI: `planDay` (Daily Command Center) and `billTaskDrafts` (Budget, "Bills coming up", backed by a new optional debt due day in client SQLite, server SQLite, Mongo and validation). The card was not checked in a real browser: sign-in blocks automated runs here; jsdom tests only.
+7b. **`calibrateEstimate` is deliberately not wired.** The only time-per-task field today is `focusPresetMinutes`, a Pomodoro timer length, not a prediction. Comparing it with timer elapsed time is circular (ratio about 1 by construction) and would tell people their estimates are fine. A valid version needs an explicit "how long do you think this takes" guess plus a measured or one-tap self-reported actual at completion. That is a UX decision for the owner and touches the timer code that PR #97 is changing, so it waits.
 8. The Today card shows each task's time as its focus-preset minutes, or 25 min when unset; that default is a guess.
 
 ## 4. Next rounds
