@@ -9,6 +9,7 @@ import type { RoutineTemplate } from '../data/routineTemplateLibrary';
 import WinCard from '../../../components/WinCard';
 import BudgetTooltip from '../../../components/atoms/BudgetTooltip';
 import EmptyStateAction from '../../../components/EmptyStateAction';
+import SectionCard from '../../../components/SectionCard.jsx';
 import { track, Events } from '../../../core/analytics';
 import {
   createEmptyRoutineSteps,
@@ -215,24 +216,12 @@ const RoutinesView: React.FC = () => {
   );
 
   return (
-    <section aria-label={t('routines.title')}>
-      <h2
-        style={{
-          margin: `0 0 ${theme.spacing.md}px`,
-          fontFamily: theme.typography.heading.family,
-          fontWeight: theme.typography.heading.weight,
-          color: theme.colors.text,
-          display: 'flex',
-          alignItems: 'center',
-        }}
-      >
-        {t('routines.title')}
-        <BudgetTooltip content={t('tooltips.routines.section', 'Routines are repeating sequences you run on a schedule. Chain small steps together and anchor them to existing habits — the fastest path to making new behaviors automatic.')} />
-      </h2>
-      <p style={{ margin: `0 0 ${theme.spacing.lg}px`, color: theme.colors.muted }}>
-        {t('routines.description')}
-      </p>
-
+    <SectionCard
+      ariaLabel={t('routines.title')}
+      title={t('routines.title')}
+      subtitle={t('routines.description')}
+      badge={<BudgetTooltip content={t('tooltips.routines.section', 'Routines are repeating sequences you run on a schedule. Chain small steps together and anchor them to existing habits — the fastest path to making new behaviors automatic.')} />}
+    >
       {/* Research-backed routine templates */}
       <div data-tour="routines-gallery" style={{ marginBottom: `${theme.spacing.md}px` }}>
         <button
@@ -668,7 +657,7 @@ const RoutinesView: React.FC = () => {
           onClose={() => setShowWinCard(false)}
         />
       )}
-    </section>
+    </SectionCard>
   );
 };
 

@@ -42,6 +42,10 @@ const validateSchema = (data, schema, { partial = false } = {}) => {
       errors.push({ field, message: `Must be >= ${rules.min}` });
     }
 
+    if (typeof rules.max === 'number' && typeof value === 'number' && value > rules.max) {
+      errors.push({ field, message: `Must be <= ${rules.max}` });
+    }
+
     if (typeof rules.maxLength === 'number' && typeof value === 'string' && value.length > rules.maxLength) {
       errors.push({ field, message: `Length must be <= ${rules.maxLength}` });
     }
