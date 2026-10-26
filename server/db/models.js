@@ -80,7 +80,8 @@ const DebtSchema = withUserScope(
     balance: { type: Number, required: true },
     annualRate: { type: Number, required: true },
     minPayment: { type: Number, required: true },
-    categoryName: { type: String, default: null }
+    categoryName: { type: String, default: null },
+    dueDay: { type: Number, default: null, min: 1, max: 31 }
   },
   { timestamps: { createdAt: true, updatedAt: false } }
 );

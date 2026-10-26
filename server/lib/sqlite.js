@@ -50,6 +50,7 @@ const SQLITE_SCHEMA = [
     annualRate REAL NOT NULL,
     minPayment REAL NOT NULL,
     categoryName TEXT,
+    dueDay INTEGER,
     createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
   );`,
   `CREATE TABLE IF NOT EXISTS users (
@@ -105,6 +106,12 @@ const ensureUserScopeColumns = async (db) => {
   }
 };
 
+const ensureDebtDueDayColumn = async (db) => {
+  if (!(await hasColumn(db, 'debts', 'dueDay'))) {
+    await run(db, 'ALTER TABLE debts ADD COLUMN dueDay INTEGER');
+  }
+};
+
 const ensureSqliteSchema = async (db) => {
   for (const stmt of SQLITE_SCHEMA) {
     // eslint-disable-next-line no-await-in-loop
@@ -112,6 +119,7 @@ const ensureSqliteSchema = async (db) => {
   }
 
   await ensureUserScopeColumns(db);
+  await ensureDebtDueDayColumn(db);
 };
 
 module.exports = {

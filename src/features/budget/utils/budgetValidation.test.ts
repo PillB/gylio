@@ -50,13 +50,20 @@ describe('budget form validation', () => {
     expect(errors).toEqual({ amount: '', categoryName: 'validation.categoryRequired', date: 'validation.invalidDateTime' });
   });
 
+  it('accepts a blank or whole 1-31 due day and rejects anything else', () => {
+    const base = { name: 'Card', balance: '1', annualRate: '1', minPayment: '1', categoryName: '', dueDay: '' };
+    for (const ok of ['', '1', '31', ' 15 ']) expect(validateDebt({ ...base, dueDay: ok }, t).dueDay).toBe('');
+    for (const bad of ['0', '32', '2.5', 'x', '-3']) expect(validateDebt({ ...base, dueDay: bad }, t).dueDay).toBe('validation.dueDayRange');
+  });
+
   it('allows a zero balance and zero rate on a debt but needs a positive minimum payment', () => {
-    const base = { name: 'Card', balance: '0', annualRate: '0', minPayment: '0', categoryName: '' };
+    const base = { name: 'Card', balance: '0', annualRate: '0', minPayment: '0', categoryName: '', dueDay: '' };
     expect(validateDebt(base, t)).toEqual({
       name: '',
       balance: '',
       annualRate: '',
       minPayment: 'validation.amountPositive',
+      dueDay: '',
     });
     expect(validateDebt({ ...base, balance: '-1', annualRate: 'x' }, t)).toMatchObject({
       balance: 'validation.nonNegativeNumber',
