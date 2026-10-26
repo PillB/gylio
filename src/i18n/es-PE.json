@@ -423,7 +423,7 @@
     "chartTapHint": "Toca o pasa el cursor sobre una barra para ver detalles",
     "chartEmpty": "Agrega categorías de presupuesto para ver lo planificado frente a lo gastado.",
     "chartUnderBudget": "Dentro del presupuesto",
-    "showDiagnostic": "🩺 Diagnóstico de salud financiera",
+    "showDiagnostic": "Diagnóstico de salud financiera",
     "hideDiagnostic": "Ocultar diagnóstico",
     "currencySymbol": "S/.",
     "noTransactionsYet": "No hay transacciones registradas para {{month}} aún. Agrega tu primer gasto abajo.",
@@ -515,7 +515,7 @@
       "prefillSavings": "Ahorros / Inversiones"
     },
     "quickStart": {
-      "btn": "⚡ Inicio rápido con 8 categorías sugeridas (método YNAB)"
+      "btn": "Inicio rápido con 8 categorías sugeridas (método YNAB)"
     },
     "starter": {
       "housing": "Vivienda",
@@ -537,6 +537,7 @@
     "gamificationOff": "Desactivado",
     "gamificationDisabled": "La gamificación está desactivada.",
     "levelLabel": "Nivel",
+    "levelProgressAria": "Progreso hacia el siguiente nivel",
     "levelSummary": "Nivel {{level}}",
     "xpSummary": "{{points}} XP / {{target}} XP",
     "skipTokensLabel": "Pases de omisión",
@@ -1266,7 +1267,7 @@
     "anchorDisplay": "Después de {{habit}}, haré esta rutina",
     "streakDotsAria": "Últimos 21 días: {{completed}} completados",
     "tpl": {
-      "showGallery": "🔬 Ver protocolos respaldados por investigación",
+      "showGallery": "Ver protocolos respaldados por investigación",
       "hideGallery": "Ocultar biblioteca de protocolos",
       "addRoutine": "→ Agregar esta rutina",
       "cat": {

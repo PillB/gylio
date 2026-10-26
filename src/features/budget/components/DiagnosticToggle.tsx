@@ -39,7 +39,7 @@ const DiagnosticToggle: React.FC<Props> = ({ onApply }) => {
           fontFamily: theme.typography.body.family,
         }}
       >
-        <span>📊</span>
+        <span aria-hidden="true">📊</span>
         {open
           ? t('budget.hideDiagnostic', 'Hide financial check-up')
           : t('budget.showDiagnostic', 'Run financial check-up')}
