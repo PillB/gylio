@@ -334,7 +334,8 @@
     "subtasksRange": "Enter between {{min}} and {{max}} steps, or leave blank.",
     "endAfterStart": "End time must be after the start time.",
     "nonNegativeNumber": "Enter a zero or positive number.",
-    "nonNegativeInteger": "Enter a whole number that is zero or greater."
+    "nonNegativeInteger": "Enter a whole number that is zero or greater.",
+    "dueDayRange": "Enter a whole day from 1 to 31, or leave it blank."
   },
   "calendar": "Calendar",
   "theme": {
@@ -526,7 +527,8 @@
       "dining": "Dining Out",
       "savings": "Savings",
       "emergency": "Emergency Fund"
-    }
+    },
+    "dueDayLabel": "Due day of month (optional)"
   },
   "rewards": {
     "title": "Rewards",
@@ -1632,7 +1634,8 @@
       "period": "Enter the month you want to budget for in YYYY-MM format (e.g. 2026-04 for April 2026). Each month is a fresh zero-based plan — your income and categories carry meaning within that window.",
       "debtName": "Name this debt clearly so you can identify it at a glance — e.g. 'Chase Visa', 'Student Loan', 'Car Finance'. Use the lender name + account type for easy matching with your bank statements.",
       "debtBalance": "Your current outstanding balance — not the original loan amount. Check your latest statement for the exact figure. This is the number the payoff calculator works from, so accuracy matters.",
-      "debtCategory": "Optionally link this debt to a DEBT-type budget category. This lets your transaction log flow into the payoff tracker automatically. Leave blank if you prefer to track debt separately."
+      "debtCategory": "Optionally link this debt to a DEBT-type budget category. This lets your transaction log flow into the payoff tracker automatically. Leave blank if you prefer to track debt separately.",
+      "dueDay": "The day of the month this payment is due, 1 to 31. Add it and Gylio can offer a gentle reminder task a few days before. Leave blank to skip."
     },
     "rewards": {
       "section": "Turn daily habits into a progress game. Earn XP by completing tasks, maintain streaks for consistency, and set rewards you actually want to earn.",
@@ -2008,5 +2011,27 @@
         "content": "Your progress is now tracked. Complete tasks, review your budget weekly, and watch your streak grow. You've earned it."
       }
     }
+  },
+  "dayPlan": {
+    "heading": "What fits today",
+    "energyGroup": "How much energy do you have?",
+    "energy": {
+      "tiny": "Tiny",
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    },
+    "summary": "{{kept}} of {{total}} fit today: about {{minutes}} min, with room left for breaks.",
+    "over": "Today is full with must-do tasks. Be gentle with yourself.",
+    "laterSummary": "Later ({{count}}), no rush",
+    "laterList": "Moved to later"
+  },
+  "billTask": {
+    "heading": "Bills coming up",
+    "due": "{{name}} is due {{date}}",
+    "add": "Add a reminder task",
+    "added": "Reminder added",
+    "title": "Pay {{name}}",
+    "nextAction": "Open your bank app and pay {{name}}"
   }
 }

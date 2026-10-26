@@ -4,6 +4,7 @@ import { useTheme } from '../../core/context/ThemeContext';
 import useDB from '../../core/hooks/useDB';
 import { track, Events } from '../../core/analytics';
 import useTasks from '../tasks/hooks/useTasks';
+import DayPlanCard from '../planning/DayPlanCard';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -17,6 +18,7 @@ interface Task {
   dueDate?: string | null;
   plannedDate?: string | null;
   subtasks?: unknown[];
+  focusPresetMinutes?: number | null;
 }
 
 interface CalendarEvent {
@@ -223,6 +225,7 @@ const DailyCommandCenter: React.FC<DailyCommandCenterProps> = ({ onExitSimplifie
   const { toggleTaskStatus } = useTasks();
 
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [planTasks, setPlanTasks] = useState<Task[]>([]);
   const [nextEvent, setNextEvent] = useState<CalendarEvent | null>(null);
   const [budgetNudge, setBudgetNudge] = useState<{
     category: string;
@@ -243,6 +246,7 @@ const DailyCommandCenter: React.FC<DailyCommandCenterProps> = ({ onExitSimplifie
       );
       const sorted = [...todayTasks].sort((a, b) => priorityScore(a) - priorityScore(b));
       setTasks(sorted.slice(0, 3));
+      setPlanTasks(sorted);
 
       // ── Next calendar event today (after now)
       const allEvents = await getEvents();
@@ -443,6 +447,8 @@ const DailyCommandCenter: React.FC<DailyCommandCenterProps> = ({ onExitSimplifie
           </ul>
         )}
       </Panel>
+
+      <DayPlanCard tasks={planTasks} />
 
       {/* ── Next Event ── */}
       <Panel title={t('dailyMode.nextEventTitle', 'Next Event')} icon="📅" theme={theme}>

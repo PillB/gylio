@@ -58,13 +58,14 @@ const ENTITY_CONFIG = {
   debts: {
     tableName: 'debts',
     mongoModel: 'Debt',
-    mutableFields: ['name', 'balance', 'annualRate', 'minPayment', 'categoryName'],
+    mutableFields: ['name', 'balance', 'annualRate', 'minPayment', 'categoryName', 'dueDay'],
     requiredOnCreate: ['name', 'balance', 'annualRate', 'minPayment'],
     defaults: {
-      categoryName: null
+      categoryName: null,
+      dueDay: null
     },
     jsonFields: [],
-    numericFields: ['balance', 'annualRate', 'minPayment'],
+    numericFields: ['balance', 'annualRate', 'minPayment', 'dueDay'],
     hasUpdatedAt: false
   }
 };

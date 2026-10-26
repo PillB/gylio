@@ -188,6 +188,7 @@ const BudgetView = () => {
                 extraPayment={Math.max(0, summary.remaining)}
                 onAdd={data.addDebt}
                 onRemove={data.removeDebt}
+                onAddBillTask={data.addBillTask}
               />
             </OptionalSection>
           </div>

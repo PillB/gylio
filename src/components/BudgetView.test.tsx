@@ -211,8 +211,13 @@ describe('BudgetView', () => {
     fireEvent.change(inputAfterLabel('budget.balanceLabel'), { target: { value: '1000' } });
     fireEvent.change(inputAfterLabel('budget.annualRateLabel'), { target: { value: '0' } });
     fireEvent.change(inputAfterLabel('budget.minPaymentLabel'), { target: { value: '100' } });
+    fireEvent.change(inputAfterLabel('budget.dueDayLabel'), { target: { value: '40' } });
     fireEvent.click(screen.getByText('budget.addDebt'));
-    await waitFor(() => expect(insertDebt).toHaveBeenCalledWith('Card', 1000, 0, 100, null));
+    expect(screen.getByText('validation.dueDayRange')).toBeTruthy();
+    expect(insertDebt).not.toHaveBeenCalled();
+    fireEvent.change(inputAfterLabel('budget.dueDayLabel'), { target: { value: '15' } });
+    fireEvent.click(screen.getByText('budget.addDebt'));
+    await waitFor(() => expect(insertDebt).toHaveBeenCalledWith('Card', 1000, 0, 100, null, 15));
     // 100 minimum + 1500 remaining pays 1000 at 0% in one month.
     await screen.findByText('budget.payoffTimeline {"months":1}');
     expect(screen.getByText('budget.payoffExtraHint {"extra":"1500.00"}')).toBeTruthy();
