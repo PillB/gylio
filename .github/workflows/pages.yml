@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout verified source
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           # For automatic deployments, build the exact SHA that the completed
           # CI run verified instead of whichever commit happens to be latest.
