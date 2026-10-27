@@ -1,6 +1,6 @@
 # Sync that survives a 503: keep working locally, retry by itself
 
-Written 27 Oct 2026. Answers one question from the owner: "Does the app recover from a 503 so the person can keep working locally in the same browser and have it resync periodically? Would that not be the most seamless?" Yes, that is the right design. It did not exist, and this document records what was built, how it was checked, and what is still open.
+Written 27 Oct 2026. Answers one question from the owner: "Does the app recover from a 503 so the person can keep working locally in the same browser and have it resync periodically? Would that not be the most seamless?" Yes, that is the right design. It did not exist. This document records what was built, how it was checked, and what is still open. Status at the end of this work: the engine is complete and connected to the app's own data, and it is switched on only in builds made by `worker/scripts/setup.sh` (section 5).
 
 ## 1. What was there before (the honest answer)
 
@@ -40,7 +40,7 @@ Sources are vendor and standards documentation, not user studies; where a claim 
 
 The code is in `src/core/sync/`. The numbers are reasoned defaults, in one table (`SYNC_LIMITS`, `DEFAULT_TUNING`), not measured ones.
 
-**Saving never waits for the server.** A change is written to the local outbox (IndexedDB, in its own database) before anything else. The outbox keeps one entry per record: 200 edits of one task are one entry, so a long pause cannot make the queue grow without bound, and the server sees one write.
+**Saving never waits for the server.** The app writes to its own database exactly as before. A moment later (section 5) the change is written to the local outbox (IndexedDB, in its own database). The outbox keeps one entry per record: 200 edits of one task are one entry, so a long pause cannot make the queue grow without bound, and the server sees one write.
 
 **When it sends.** Three seconds after the last edit (never later than 30 seconds after the first), when the tab is hidden, when the browser says it is online again (after a random 0 to 3 seconds), when the tab is shown after a minute or more, and every 5 minutes while the app is open and visible. A hidden tab does not poll.
 
@@ -71,34 +71,57 @@ The code is in `src/core/sync/`. The numbers are reasoned defaults, in one table
 
 **A hung request** is cut after 20 seconds and treated as a network failure, so the sync lock is never held forever.
 
-## 5. How it was checked
+## 5. How the app's own data reaches the engine
 
-- More than 130 unit tests in `src/core/sync/` and 11 for the status note and Settings section (policy, storage on memory and on IndexedDB through `fake-indexeddb`, conflicts, engine scenarios, browser wiring, status text), using a clock the test moves by hand.
-- 14 tests that run the same engine against the real Worker code in the Workers runtime with a real D1 database (`worker/test/syncClient.test.ts`): real `503 SYNC_PAUSED` with its real headers, recovery after the usage counter resets, 24 hours of pause, the 70 percent warning, `SIGNUP_CLOSED`, a response lost after the Worker stored the write, an expired token, a refused invalid change, the record cap, two devices conflicting, edit versus delete, another person's data never arriving.
-- Deliberate breakages: eight changes to the engine and policy (ignore `Retry-After`, keep sending after a 503, remove the spread, treat the pause as a refusal, drop the version check, ignore the pause timer, let a stale send erase a newer edit, keep polling while hidden) were each caught by at least one test.
-- Not validated, and why: no real browser run yet (Playwright for this comes with the app wiring, section 7); real Clerk tokens (needs a live Clerk instance); the behaviour on Safari and Firefox beyond what the standards documents say; real device clocks; real D1 row counts (see `CLOUDFLARE_SERVER_PLAN.md` section 9.4); the thresholds themselves are not tuned with real traffic.
+**The database is the truth.** The first idea was to call the engine from each of the nine places in `useDB.ts` that write. That breaks the day someone adds a tenth write, and it cannot notice a change made in another tab or a row that vanished. Instead a `Bridge` (`src/core/sync/bridge.ts`) looks at the five synced tables (tasks, events, budgets, transactions, debts) and compares them with a "mirror": for every row, a fingerprint of what the server last agreed on. A row that differs is a change; a row in the mirror that is gone is a delete; a row without a `syncId` gets one. The looks happen 0.8 seconds after a save, after another tab saves, and at the start of every sync pass. Cost: a change reaches the outbox up to about a second late (the person cannot tell, the send itself waits 3 seconds anyway), and each look reads every row of five tables, which is cheap at the sizes this app has but not measured on a large library.
 
-## 6. What the person sees
+**Ids.** Each synced row has a `syncId` column (random UUID, same on every device); the row's own number stays private to the device. A task's calendar event and an event's task are two links by local number, so they travel as sync ids; when the other end has not arrived yet, the link is kept aside and filled in when it does. The Worker's task schema now says the event link is text, events may have no end, and `createdAt` is kept. A test pins the app's records against the Worker's own validator so the two cannot drift apart.
 
-Principles: quiet by default, say where the data is first, never say "failed", no countdown, nothing blocks. A small note appears only while saved changes are waiting to reach the account, and only after 4 seconds so a brief blip never flashes: "Saved on this device. It will sync when you're back online." (offline), "...Syncing is taking a short break and will pick up on its own." (server pause), "...will try again shortly." (anything else), "Syncing isn't open yet. Everything stays safely on this device." (sign-up closed). It can be hidden, is a polite status region for screen readers, and uses no error colour. The only stronger message is "this device holds another account's data". Settings has the longer account: last sync time, the count waiting, "Try now" (one extra attempt, at most every 10 seconds), refused changes with "Try those again", and earlier versions kept. All text is in `sync.status.*` and `sync.detail.*` in English and Peruvian Spanish. Components: `src/components/SyncStatus.tsx`.
+**Applying what other devices changed.** In one transaction, then the open screens reload quietly (no spinner, they keep their place; `gylio:data-changed`). A row the person edited since the last look is never overwritten: the apply is put off for a second, the look records the edit first, and the conflict rule (section 4) decides.
 
-## 7. What is still to do before the app talks to the Worker
+**If the browser loses the data.** If five or more rows of a table disappear together and they are more than half of what was known, the app assumes the browser lost its storage (Safari clears unused sites after 7 days; "clear site data"), not that the person deleted nearly everything at once. It then deletes nothing from the account and reads everything again. The app only deletes one record at a time, so a real deletion never looks like this. Nothing the person did not intend is deleted, at the cost of one extra download.
 
-The engine is complete and tested but the app does not use it yet. The old queue is switched off at the single-origin deploy, so nothing syncs until this is done:
+**The web database is shared safely between tabs.** The web stand-in for SQLite (`src/shims/expo-sqlite.ts`) keeps all rows in `localStorage`. Two tabs used to overwrite each other. It now re-reads before each transaction when another tab changed the data, writes once per transaction, and tells the other tabs. This fixes a data-loss risk that existed before sync, whether or not sync is on.
 
-1. **Ids.** Local rows use counting ids that clash between devices. Add a `syncId` (random UUID) column to tasks, events, budgets, transactions and debts, filled for existing rows.
-2. **Links between records.** A task points at an event and an event at a task by local number. Store the other record's `syncId` too and translate both ways, repairing the link when the second record arrives. The Worker's task schema says the event link is a number; it must become a text id (nothing is deployed, so this is a free change).
-3. **Record every write.** The nine places in `useDB.ts` that call the old queue call `engine.recordChange` instead, and the first sign-in uploads every existing row once (the "seed").
-4. **Apply the server's changes** into the local database without writing them back to the outbox.
-5. **Start it.** Create the engine when someone is signed in, with IndexedDB storage (memory if it is unavailable), the fetch transport, Web Locks and the browser signals; mount the note and the Settings section; replace the old conflict list in Settings.
-6. **Switch.** A build variable (`VITE_SYNC_ENABLED`) set only by the deploy script, so previews and the GitHub Pages site never call the Worker.
-7. **Test in a real browser** (Playwright) with the Worker's 503 simulated: work offline, close and reopen the tab, see the note, recover.
-8. Later: sync the tracked time (`timeLog`), routines and rewards (not in the Worker yet), and the "different account" choice screen.
+**Signing in and out.** The engine exists only while someone is signed in (Clerk session read through `useAuth`; the token is fetched fresh for each pass). If a different person signs in on a device that holds the first person's data, nothing is sent; Settings offers "use this data with the account that is signed in now", which resets the notes about the other account and uploads once.
 
-## 8. Trade-offs, in one place
+**The switch.** `VITE_SYNC_ENABLED=true` is set only by `worker/scripts/setup.sh`. Builds without it (GitHub Pages, previews, local development) never call the Worker, and the old queue stays off whenever account sync is on.
+
+## 6. How it was checked
+
+- 608 unit and integration tests in the app (`npx vitest run`), among them the engine (52), the bridge with two simulated devices (31: edits both ways, links, deletes, loss guard, a crash between steps), the storage on memory and IndexedDB, the shared web database (10), the app start-up on the real database shim over `fake-indexeddb` (6), the start/stop on sign-in and sign-out (8), the status note and Settings section (13).
+- 14 tests that run the engine against the real Worker code in the Workers runtime with a real D1 database (`worker/test/syncClient.test.ts`): real `503 SYNC_PAUSED` with its real headers, recovery after the usage counter resets, 24 hours of pause, the 70 percent warning, `SIGNUP_CLOSED`, a response lost after the Worker stored the write, an expired token, a refused invalid change, the record cap, two devices conflicting, edit versus delete, another person's data never arriving. Worker suite: 61 tests; deploy-script suite: 93.
+- 7 scenarios in a real Chromium (`e2e/sync-offline.spec.ts`, run with `npx playwright test e2e/sync-offline.spec.ts`), with the real task list, the real note and Settings section, the real engine and the real browser database, and a stand-in Worker that can say 503: a task reaches the account and a reload neither loses it nor sends it twice; during a 503 pause the person keeps adding tasks, the note is calm, a reload loses nothing and "Try now" sends everything; after the pause ends by itself (clock moved forward) everything is sent; with the network cut the screen still works and sends when it returns; a change from another device appears on the open screen without a reload; a second tab sees the first tab's save and the two do not send it twice; when the browser's stored tasks are wiped they come back from the account and nothing is deleted there.
+- Real browser testing found a real fault the unit tests missed: "Try now" pressed within 10 seconds of the last attempt (for example right after a page load) did nothing and gave no feedback. It now runs when the 10 seconds have passed (still at most one attempt per 10 seconds).
+- Deliberate breakages: the engine and policy were broken eight ways (ignore `Retry-After`, keep sending after a 503, remove the spread, treat the pause as a refusal, drop the version check, ignore the pause timer, let a stale send erase a newer edit, keep polling while hidden) and the bridge five ways (skip the edited-row check before applying, remove the loss guard, drop the pending link, keep the other account's notes after a claim, record before the mirror is safe); each was caught by at least one test.
+
+**Not validated, and why**
+
+- Safari and Firefox: the browser scenarios run in Chromium only. Safari's storage limits and background rules are known only from documentation.
+- Real Clerk tokens and the page's content-security policy (F-009 in the Cloudflare hand-back): needs a live Clerk instance and a deployed page.
+- Real device clocks, real D1 row counts and CPU time per request (`CLOUDFLARE_SERVER_PLAN.md` section 9.4).
+- The thresholds (3 s wait, 5 min poll, 30 s to 1 h pause bounds, 6x economy) are reasoned, not tuned with real traffic.
+
+## 7. What the person sees
+
+Principles: quiet by default, say where the data is first, never say "failed", no countdown, nothing blocks. A small note appears only while saved changes are waiting to reach the account, and only after 4 seconds so a brief blip never flashes: "Saved on this device. It will sync when you're back online." (offline), "...Syncing is taking a short break and will pick up on its own." (server pause), "...will try again shortly." (anything else), "Syncing isn't open yet. Everything stays safely on this device." (sign-up closed). It can be hidden, is a polite status region for screen readers, and uses no error colour. The only stronger message is "this device holds another account's data", which comes with a button to use this data with the account that is signed in. Settings has the longer account: last sync time, the count waiting, "Try now" (one extra attempt, at most every 10 seconds), refused changes with "Try those again", and earlier versions kept. All text is in `sync.status.*` and `sync.detail.*` in English and Peruvian Spanish. Components: `src/components/SyncStatus.tsx`.
+
+## 8. What is still open
+
+1. **Not synced yet:** tracked time (`timeLog`), routines, rewards and social plans. The Worker stores five kinds of record; these need their own schemas first. Until then they exist on one device only.
+2. **IndexedDB unavailable** (some private-browsing modes): the outbox falls back to memory with a console warning. A reload then forgets what was waiting, and the next look re-uploads every row (later edit wins by timestamp, nothing is lost, but it costs the Worker writes).
+3. **Safari clears site data after 7 days without a visit** (not for an installed home-screen app). Changes made and never synced before that are gone; the note "Saved on this device" is the only warning. Everything that had synced comes back.
+4. **The web database stops saving silently when `localStorage` is full** (about 5 MB, a limit that existed before sync). Nothing tells the person. Separate fix: move the web database to IndexedDB.
+5. **A reload during a pause makes one request per page load**, because the page cannot know about the pause it never saw. At 100 loads a day that is 100 requests, all answered by the cheap gate.
+6. **Rare:** a link from a surviving row to a row that vanished and was brought back can be lost (the restored row has a new local number). A conflict decided while an apply was put off can list the losing version twice in "earlier versions".
+7. **Page CSP (F-009)** and the branding/icon set remain on the Cloudflare hand-back list.
+
+## 9. Trade-offs, in one place
 
 - Waiting is silent for 4 seconds and then quiet. A person with real trouble (a long outage) sees a note; a person with a blip sees nothing. The cost: a very short outage hides a few seconds of "not yet on the server".
 - Economy mode makes sync slower exactly when the free allowance is nearly used. The cost: another device sees your change later (up to 30 minutes at the extreme).
 - Conflict resolution by clock is simple and never loses data, but it can pick the wrong winner when a clock is wrong; the kept version is the safety net.
 - Not retrying a refused change automatically means an invalid record stays on one device until fixed; the alternative (retrying forever) wastes the server's allowance.
+- Looking at the database instead of hooking each write means a change can reach the outbox up to a second late and every look reads all rows; the gain is that no write can be forgotten and other tabs are covered.
+- The loss guard means a person who somehow removes five or more rows, more than half of a table, in one step sees them come back from the account. The app cannot do that today (it deletes one record at a time).
 - The first upload of a large existing library costs the Worker about four rows written per record. A person with 5,000 records would use 20,000 of the 100,000 daily writes. Pacing (50 records per pass) spreads the requests but not the rows; if this matters, upload new accounts' libraries over several days.

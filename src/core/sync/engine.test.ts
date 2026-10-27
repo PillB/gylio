@@ -151,10 +151,27 @@ describe('when the server pauses sync (503 SYNC_PAUSED)', () => {
     rig.engine.kick('manual');
     await rig.time.advance(SECOND);
     expect(rig.server.requests().length).toBe(before + 1);
+    await rig.time.advance(20 * SECOND);
+    rig.engine.kick('manual');
+    await rig.time.advance(SECOND);
+    expect(rig.server.requests().length).toBe(before + 3);
+  });
+
+  it('a press of "try again" inside the ten seconds is not lost: it is tried when they have passed', async () => {
+    const rig = makeRig();
+    rig.server.mode = { kind: 'shed', retryAfter: '3600' };
+    await save(rig, 'a', 'x');
     await rig.time.advance(11 * SECOND);
     rig.engine.kick('manual');
     await rig.time.advance(SECOND);
-    expect(rig.server.requests().length).toBe(before + 2);
+    const first = rig.server.requests().length;
+    rig.server.mode = { kind: 'ok' };
+    rig.engine.kick('manual');
+    await rig.time.advance(5 * SECOND);
+    expect(rig.server.requests().length).toBe(first);
+    await rig.time.advance(10 * SECOND);
+    expect(rig.server.requests().length).toBeGreaterThan(first);
+    expect(rig.engine.snapshot().pending).toBe(0);
   });
 
   it('spreads the devices that come back when the pause ends, so they do not arrive together', async () => {

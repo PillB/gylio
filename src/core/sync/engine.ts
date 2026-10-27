@@ -301,7 +301,7 @@ export class SyncEngine {
       return;
     }
     if (!this.wake(reason)) {
-      this.scheduleAfterPause();
+      this.scheduleAfterPause(reason);
       return;
     }
     this.running = true;
@@ -343,7 +343,15 @@ export class SyncEngine {
     return { nowMs: this.now(), random: this.random };
   }
 
-  private scheduleAfterPause() {
+  /**
+   * A press of "Try now" that comes too soon after the last attempt is not lost: it runs when the gap has passed.
+   * Any other blocked wake-up waits for the pause to end.
+   */
+  private scheduleAfterPause(reason: SyncReason) {
+    if (reason === 'manual') {
+      this.schedule(Math.max(0, this.lastAttemptAt + this.tuning.manualGapMs - this.now()), 'manual');
+      return;
+    }
     if (this.pausedUntil > this.now()) this.schedule(this.pausedUntil - this.now(), 'retry');
   }
 
