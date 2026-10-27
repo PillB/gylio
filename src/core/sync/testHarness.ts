@@ -24,8 +24,17 @@ export class FakeTime {
     return this.timers.length;
   }
 
+  /** Things that are still working in real time (a request into the Worker), so a step waits for them. */
+  busy: (() => boolean)[] = [];
+
+  private tick = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
   /** Lets queued promise work finish, using the real event loop (nothing here replaces setTimeout). */
-  settle = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
+  settle = async () => {
+    await this.tick(0);
+    for (let i = 0; i < 4000 && this.busy.some((isBusy) => isBusy()); i += 1) await this.tick(2);
+    await this.tick(0);
+  };
 
   async advance(ms: number) {
     const end = this.nowMs + ms;

@@ -154,6 +154,11 @@ export class SyncEngine {
     this.listeners.clear();
   }
 
+  /** True while a pass is talking to the server or the local database (tests wait for it). */
+  isRunning() {
+    return this.running;
+  }
+
   snapshot(): SyncSnapshot {
     return { state: this.state, ...this.counts, lastSyncedAt: this.lastSyncedAt, economy: this.economy };
   }
