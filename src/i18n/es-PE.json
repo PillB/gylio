@@ -72,6 +72,8 @@
     "startHere": "Empieza aquí",
     "startTimerBtn": "🍅 {{minutes}} min",
     "startTimerAria": "Iniciar {{minutes}} min de enfoque para {{title}}",
+    "startTwoBtn": "Solo 2 min",
+    "startTwoAria": "Empieza solo 2 minutos con {{title}}",
     "timerPhaseFocus": "Enfoque",
     "timerPhaseShortBreak": "Descanso corto",
     "timerPhaseLongBreak": "Descanso largo",
