@@ -38,15 +38,28 @@ Users are identified by Clerk's stable `sub`, never by email, so a Microsoft wor
 1. Send me the Clerk Frontend API URL (step 3.6). I put it in `worker/wrangler.jsonc` as `CLERK_ISSUER` (a public value) in a pull request, and you merge it. Until then health shows `auth: false`, and sign-in answers 503 on purpose.
 2. `git checkout main && git pull`, then `bash worker/scripts/redeploy.sh`. Create the deploy token when it waits at the hidden prompt.
 3. Check, in a browser (the script prints these too):
-   - `https://gylio.app/api/v1/health` shows `{"ok":true,"worker":true,"database":true,"auth":true,"usageOk":true,"origin":"https://gylio.app"}`. `database:false` means the migrations did not apply; `auth:false` means `CLERK_ISSUER` is empty.
+   - `https://gylio.app/api/v1/health` shows `{"ok":true,"worker":true,"database":true,"auth":true,"usageOk":true,"signupOpen":false,"origin":"https://gylio.app"}`. `database:false` means the migrations did not apply; `auth:false` means `CLERK_ISSUER` is empty; `signupOpen:false` is expected until section 4b is done.
    - `https://gylio.app/.well-known/security.txt` shows `Contact: mailto:security@gylio.app`.
    - `https://gylio.app/` loads the app, and a deep link such as `https://gylio.app/tasks` loads it too. No errors in the browser console.
    - The workers.dev address of `gylio-api` must not answer (it is switched off in the config).
 4. Roll the deploy token in the Cloudflare dashboard, then close the window.
 
-Not ready yet, so do not announce sign-up publicly: the holder file for the privacy page (Peruvian personal-data notice) and the app's connection to the Worker are the next changes.
+## 4b. Who holds the personal data (this is what opens sign-up)
+Peru's personal-data law (Ley 29733) requires the holder of the data to be named in the privacy notice. Until there is a company, that is you as a person. The scripts keep this value private and out of the repository:
+
+1. Create the holder file once, with the legal name exactly as it should appear in the notice (one line):
+   ```
+   mkdir -p ~/.config/gylio && chmod 700 ~/.config/gylio
+   printf '%s\n' 'Your legal name' > ~/.config/gylio/holder && chmod 600 ~/.config/gylio/holder
+   ```
+   The scripts refuse to read the file if the folder is not `700` or the file is not `600`, and they ask you to confirm the name before using it. The name goes to this one deploy as a Worker variable, not into git.
+2. The scripts open **sign-up** (new accounts) only when the holder is named **and** the built site contains `privacy.html` naming the same holder. Otherwise the deploy still succeeds, existing sign-ins keep working, and new accounts get a clear "sign-up is closed" answer (`SIGNUP_CLOSED`, HTTP 503). The reason is printed at the end of the run.
+3. The privacy notice itself (what we store, the processors Cloudflare, Clerk and Zoho, rights of access, correction and deletion, and the addresses `privacy@gylio.app`, `security@gylio.app`, `support@gylio.app`) belongs to the accounts and privacy thread. Until that page exists, sign-up stays closed on purpose, and nothing here needs you to do more.
+
+Do not announce sign-up publicly before `signupOpen` shows `true` in the health check and the app is connected to the Worker (section 6).
 
 ## 5. Protect it (free)
+0. GitHub, repository Settings, Rules, Rulesets: create a ruleset for the `main` branch with "Restrict deletions" and "Block force pushes" on, and "Require a pull request before merging" with "Require review from Code Owners" (the owners are listed in `.github/CODEOWNERS`) and the CI checks required. This cannot be done from code; it is the one repository setting that stops a mistaken push from reaching the deploy path. Because you are the only owner, GitHub will let you bypass the review for yourself; that is acceptable and keeps you from locking yourself out.
 1. Cloudflare dashboard, Security, WAF, Rate limiting rules: the Free plan allows a 10-second period and a 10-second block. The setup thread creates the rule. The path is anything starting with `/api/`; a sensible value is 100 requests per 10 seconds per IP, then Block. Sign-in itself happens on Clerk's own host, so there is no sign-in path on our domain to protect.
 2. Cloudflare dashboard, Notifications: the setup thread checks whether a usage alert for D1 rows read and written can be set on a Free account. The Worker has its own early warning either way (see `docs/CLOUDFLARE_SERVER_PLAN.md`, "Cost control").
 3. Once a week, open Workers & Pages, gylio-api, Metrics, and D1, gylio, Metrics. Requests should stay under 100,000 a day, rows read under 5,000,000, rows written under 100,000.

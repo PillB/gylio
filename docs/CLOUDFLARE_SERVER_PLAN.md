@@ -1,6 +1,6 @@
 # Gylio server: Cloudflare Worker + D1 (decision, design, trade-offs)
 
-Status: Worker slice built and tested in `worker/` (38 tests in the real Workers runtime, 13 in Node). Not deployed. Not yet connected to the app. Reworked on 27 Oct 2026 against the Cloudflare setup thread's two hand-backs (F-005 to F-007, F-009, F-012, F-014, F-015); section 9 says what changed and what is still open.
+Status: Worker slice built and tested in `worker/` (tests in the real Workers runtime and in Node; run `npm test` in `worker/`). Not deployed. Not yet connected to the app. Reworked on 27 Oct 2026 against the Cloudflare setup thread's two hand-backs (F-005 to F-007, F-009, F-012, F-014, F-015); section 9 says what changed and what is still open.
 
 ## 1. Decision
 **Option A: port the API to a Cloudflare Worker with D1; keep Clerk for sign-in.**
@@ -110,3 +110,9 @@ Records are keyed by an internal id (a random UUID in `identities`, keyed by `(p
 
 ### 9.6 One origin (F-007)
 The site and API are both at `https://gylio.app`: the Worker serves the built site as static assets and runs first only for `/api/*`. `CORS_ORIGINS` and `CLERK_AUTHORIZED_PARTIES` are exactly that origin, so no cross-origin call is needed. Trade-off: the live site moves off GitHub Pages at the first deploy, so the first deploy is a site change as well. Deviation from the brief: `not_found_handling` is `single-page-application`, not `404-page`, because the app uses browser-history routing and a deep link would otherwise 404.
+
+### 9.7 Who holds the data, and when sign-up opens (F-011)
+New accounts are refused (`503 SIGNUP_CLOSED`) unless the Worker has a `HOLDER_NAME` variable, and the deploy scripts set it only when the holder file exists (`~/.config/gylio/holder`, folder `700`, file `600`) and the built site has a `privacy.html` that names the same holder. Existing accounts keep working, export and erase are never gated, and `/api/v1/health` shows `signupOpen`. Trade-off: the holder's name is in a Worker variable that anyone with dashboard access can read, but never in git. The text of the privacy notice, and therefore the page that opens sign-up, belongs to the accounts and privacy thread; this change only makes sure nothing opens before it exists.
+
+### 9.8 Repository protection (F-013)
+Every GitHub Action is pinned to a full commit SHA with a version comment (Dependabot keeps them current); the deploy workflow no longer cancels a running deploy; `.github/CODEOWNERS` names the owner for `.github/`, `worker/`, `server/`, `.nvmrc` and the Cloudflare docs; Dependabot watches `/`, `/worker`, `/server` and the Actions, with major upgrades of the Worker tooling kept out of automatic PRs. `worker/test/node/hygiene.test.ts` fails if any of these drifts. Not doable from code: the GitHub ruleset on `main` (no deletion, no force push, code-owner review); the manual lists the clicks. The commit SHAs were read with `git ls-remote` because the GitHub API was out of scope for this session; Dependabot's first PRs are the check that they are right.
