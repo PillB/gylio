@@ -18,7 +18,7 @@ That thread guides, in its order: the separate Free Cloudflare account `gylio`, 
 | Command (from the repository root) | What it does |
 |---|---|
 | `bash worker/scripts/redeploy.sh` | The everyday command. Stops unless you are on `main` with nothing uncommitted, pulls, installs from the lockfiles, then runs setup. |
-| `bash worker/scripts/setup.sh` | Checks the token, finds or creates the database `gylio` (exact name), writes its id into your local `worker/wrangler.jsonc` ("LOCAL change: do not commit"), applies migrations, builds the site at the root path, adds `_headers` and security.txt, deploys. |
+| `bash worker/scripts/setup.sh` | Checks the Clerk key and the token, finds or creates the database `gylio` (exact name), writes its id into your local `worker/wrangler.jsonc` ("LOCAL change: do not commit"), applies migrations, builds the site at the root path (always same-origin API, billing off, whatever stray `.env` files are on your Mac), adds `_headers` and security.txt, deploys. |
 | `bash worker/scripts/export.sh [file]` | Backs up the database to a file outside the repository (default `~/gylio-backups/`), readable only by you. |
 | `bash worker/scripts/secret.sh NAME` | Sets one secret at wrangler's own hidden prompt. There are no secrets today. |
 
@@ -31,6 +31,7 @@ At the prompts: type the account id (visible) and paste the token (hidden; it pr
 4. Google: Clerk shows the redirect URL to add in Google Cloud Console (APIs & Services, Credentials, OAuth client). Create a Web client, paste the redirect URL, then paste the client ID and secret back into Clerk.
 5. Microsoft: in Microsoft Entra, App registrations, New registration, supported account types "Accounts in any organizational directory and personal Microsoft accounts". Add the redirect URL Clerk shows, create a client secret, paste id and secret into Clerk.
 6. Send me: your Clerk "Frontend API URL" (public; for the production instance it is expected to be `https://clerk.gylio.app`).
+7. Copy the **Publishable key** from the same dashboard page (API keys). It starts with `pk_live_` and is public: it ships inside the site. The deploy script asks for it at a visible prompt, or reads it from the window (`export VITE_CLERK_PUBLISHABLE_KEY=pk_live_...`) or from a one-line file `~/.config/gylio/clerk_publishable_key`. It refuses a `pk_test_` key (that is the development sign-in) and a key from a different Clerk instance than `CLERK_ISSUER`. Never copy the **Secret key** (`sk_live_`) anywhere: nothing in Gylio uses it.
 
 Users are identified by Clerk's stable `sub`, never by email, so a Microsoft work account and a personal account with the same address stay separate people.
 

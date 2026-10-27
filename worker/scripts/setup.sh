@@ -8,7 +8,9 @@ set -euo pipefail
 
 build_site() {
   say "Building the site at the root path..."
-  (cd "$REPO_ROOT" && VITE_BASE_PATH=/ ${GYLIO_BUILD_CMD:-npm run build}) || die "The site build failed."
+  # Everything the build reads is set here, so a stray .env file on this Mac cannot change what ships:
+  # same-origin API (empty base), billing off until payments are decided, the live Clerk key.
+  (cd "$REPO_ROOT" && VITE_BASE_PATH=/ VITE_API_BASE_URL= VITE_BILLING_ENABLED=false VITE_CLERK_PUBLISHABLE_KEY="$CLERK_KEY" ${GYLIO_BUILD_CMD:-npm run build}) || die "The site build failed."
   # Trust the built output, not an environment variable: a build for the old /gylio/ address must not ship.
   local index="$REPO_ROOT/dist/index.html"
   [ -f "$index" ] || die "The build produced no dist/index.html."
@@ -19,6 +21,7 @@ build_site() {
 
 main() {
   check_node
+  load_clerk_key
   load_credentials
   verify_token
   ensure_database

@@ -154,6 +154,45 @@ config_database_id() {
     process.stdout.write(String((JSON.parse(text).d1_databases || [])[0]?.database_id || ""));' "$CONFIG_FILE"
 }
 
+config_var() {
+  node -e '
+    const text = require("fs").readFileSync(process.argv[1], "utf8").replace(/^\s*\/\/.*$/gm, "");
+    process.stdout.write(String((JSON.parse(text).vars || {})[process.argv[2]] ?? ""));' "$CONFIG_FILE" "$1"
+}
+
+# The Clerk publishable key is public by design (it ships inside the site), but it has to be the live
+# instance's key: a development key (pk_test_) would put the development sign-in on gylio.app. The key is
+# also the Frontend API host in base64, so it is checked against CLERK_ISSUER when that is already set.
+# vite.config.ts reads this from the environment only, so the build gets it through CLERK_KEY.
+CLERK_KEY=""
+load_clerk_key() {
+  local value="${VITE_CLERK_PUBLISHABLE_KEY:-}" file="${GYLIO_CLERK_KEY_FILE:-$HOME/.config/gylio/clerk_publishable_key}" host issuer
+  if [ -z "$value" ] && [ -f "$file" ]; then
+    value="$(head -n 1 "$file" | tr -d '\r\n[:space:]')"
+  fi
+  if [ -z "$value" ] && interactive; then
+    printf 'Clerk publishable key (Clerk dashboard, API keys; starts with pk_live_): '
+    IFS= read -r value
+    value="$(printf '%s' "$value" | tr -d '[:space:]')"
+  fi
+  [ -n "$value" ] || die "No Clerk publishable key. Copy it from the Clerk dashboard (API keys, Publishable key, starts with pk_live_) and run: export VITE_CLERK_PUBLISHABLE_KEY=pk_live_..."
+  case "$value" in
+    pk_test_*) die "That is a development key (pk_test_). The live site needs the key of the Clerk production instance (pk_live_)." ;;
+    pk_live_*[!A-Za-z0-9+/=_-]* | pk_live_) die "That does not look like a Clerk publishable key. Copy it again from the Clerk dashboard." ;;
+    pk_live_*) ;;
+    *) die "The Clerk publishable key must start with pk_live_." ;;
+  esac
+  host="$(node -e '
+    const decoded = Buffer.from(process.argv[1].slice("pk_live_".length), "base64").toString("utf8");
+    process.stdout.write(/^[a-z0-9.-]+\$$/.test(decoded) ? decoded.slice(0, -1) : "");' "$value")"
+  [ -n "$host" ] || die "The Clerk publishable key is not valid (it does not name a sign-in host). Copy it again from the Clerk dashboard."
+  issuer="$(config_var CLERK_ISSUER)"
+  if [ -n "$issuer" ] && [ "https://$host" != "${issuer%/}" ]; then
+    die "The Clerk key belongs to https://$host but worker/wrangler.jsonc says CLERK_ISSUER is $issuer. Both must come from the same Clerk instance."
+  fi
+  CLERK_KEY="$value"
+}
+
 ensure_database() {
   local id configured
   id="$(find_database_id)"

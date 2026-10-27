@@ -22,6 +22,9 @@ const workerDir = path.join(import.meta.dirname, '..', '..');
 const SECRET = 'cfut_SUPER_SECRET_TOKEN_0123456789';
 const ACCOUNT = 'abcd1234abcd1234abcd1234abcd1234';
 const DB_ID = '11111111-2222-3333-4444-555555555555';
+// A Clerk publishable key is "pk_live_" plus base64 of the sign-in host and a "$".
+const clerkKey = (host: string, kind = 'live') => `pk_${kind}_${Buffer.from(`${host}$`).toString('base64')}`;
+const LIVE_KEY = clerkKey('clerk.gylio.app');
 
 type ApiAnswer = { status: number; body: string };
 const ACTIVE: ApiAnswer = { status: 200, body: JSON.stringify({ success: true, errors: [], messages: [], result: { id: 'x', status: 'active' } }) };
@@ -67,6 +70,7 @@ if [ "\${FAKE_FAIL:-}" = "$1" ]; then exit 1; fi
 `;
 const FAKE_BUILD = `#!/usr/bin/env bash
 echo "build base=$VITE_BASE_PATH" >> "$FAKE_LOG"
+echo "api=[$VITE_API_BASE_URL] billing=[$VITE_BILLING_ENABLED] clerk=[$VITE_CLERK_PUBLISHABLE_KEY]" > "$FAKE_LOG.env"
 if [ "\${FAKE_BUILD_FAIL:-}" = "1" ]; then exit 1; fi
 mkdir -p dist/assets
 if [ "\${FAKE_BUILD_BASE:-}" = "old" ]; then
@@ -116,6 +120,7 @@ const run = (script: string, { env = {}, tty = false, input = '', args = [] }: R
       GYLIO_INSTALL_CMD: `bash ${p.install}`,
       GYLIO_CF_API_BASE: apiBase,
       GYLIO_NODE_VERSION: 'v24.1.0',
+      VITE_CLERK_PUBLISHABLE_KEY: LIVE_KEY,
       ...env,
     };
     const scriptPath = path.join(root, 'worker', 'scripts', script);
@@ -356,6 +361,62 @@ describe('setup: guards', () => {
     const result = await run('setup.sh', { env: { ...creds, FAKE_FAIL: 'deploy' } });
     expect(result.code).toBe(1);
     expect(result.output.trim().endsWith('Nothing was deployed.')).toBe(true);
+  });
+});
+
+describe('setup: what the build is given', () => {
+  const buildEnv = () => readFileSync(`${paths().log}.env`, 'utf8').trim();
+
+  it('builds with the live Clerk key, the same-origin API, billing off and nothing from stray .env files', async () => {
+    const result = await run('setup.sh', { env: { ...creds, VITE_API_BASE_URL: 'https://stale-api.example.test', VITE_BILLING_ENABLED: 'true' } });
+    expect(result.code).toBe(0);
+    expect(buildEnv()).toBe(`api=[] billing=[false] clerk=[${LIVE_KEY}]`);
+  });
+
+  it('stops before asking for the token when there is no Clerk key and nobody to ask', async () => {
+    const result = await run('setup.sh', { env: { ...creds, VITE_CLERK_PUBLISHABLE_KEY: '' } });
+    expect(result.code).toBe(1);
+    expect(result.output).toContain('No Clerk publishable key');
+    expect(result.output).toContain('Nothing was deployed.');
+    expect(seenPaths).toEqual([]);
+    expect(wranglerCalls()).toEqual([]);
+  });
+
+  it('refuses a development key, because it would put the test sign-in on the live site', async () => {
+    const result = await run('setup.sh', { env: { ...creds, VITE_CLERK_PUBLISHABLE_KEY: clerkKey('quiet-owl-12.clerk.accounts.dev', 'test') } });
+    expect(result.code).toBe(1);
+    expect(result.output).toContain('development key');
+    expect(wranglerCalls()).toEqual([]);
+  });
+
+  it.each([['pk_live_'], ['sk_live_abcdef'], ['pk_live_not base64!'], ['pk_live_bm90IGEgaG9zdA==']])('refuses %s as a key', async (key) => {
+    const result = await run('setup.sh', { env: { ...creds, VITE_CLERK_PUBLISHABLE_KEY: key } });
+    expect(result.code).toBe(1);
+    expect(wranglerCalls()).toEqual([]);
+  });
+
+  it('refuses a key from a different Clerk instance than CLERK_ISSUER names', async () => {
+    const config = path.join(root, 'worker', 'wrangler.jsonc');
+    writeFileSync(config, readFileSync(config, 'utf8').replace('"CLERK_ISSUER": ""', '"CLERK_ISSUER": "https://clerk.gylio.app"'));
+    const other = await run('setup.sh', { env: { ...creds, VITE_CLERK_PUBLISHABLE_KEY: clerkKey('clerk.other.example') } });
+    expect(other.code).toBe(1);
+    expect(other.output).toContain('same Clerk instance');
+    expect(wranglerCalls()).toEqual([]);
+    expect((await run('setup.sh', { env: creds })).code).toBe(0);
+  });
+
+  it('reads the key from the private key file when the environment has none', async () => {
+    mkdirSync(path.join(root, '.config', 'gylio'), { recursive: true });
+    writeFileSync(path.join(root, '.config', 'gylio', 'clerk_publishable_key'), `${LIVE_KEY}\n`);
+    const result = await run('setup.sh', { env: { ...creds, VITE_CLERK_PUBLISHABLE_KEY: '' } });
+    expect(result.code).toBe(0);
+    expect(buildEnv()).toContain(`clerk=[${LIVE_KEY}]`);
+  });
+
+  it('asks for the key at the prompt when it is missing and someone is there to answer', async () => {
+    const result = await run('setup.sh', { env: { ...creds, VITE_CLERK_PUBLISHABLE_KEY: '' }, tty: true, input: `${LIVE_KEY}\n\n\n` });
+    expect(result.code).toBe(0);
+    expect(buildEnv()).toContain(`clerk=[${LIVE_KEY}]`);
   });
 });
 

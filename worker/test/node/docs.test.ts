@@ -41,6 +41,15 @@ describe('the manual and the scripts tell the same story about sign-up', () => {
     expect(manual).toContain('signupOpen');
   });
 
+  it('tells the owner where the Clerk publishable key goes, and that the secret key is never needed', () => {
+    const keyFile = /clerk_publishable_key/.exec(lib);
+    expect(keyFile).toBeTruthy();
+    expect(manual).toContain('~/.config/gylio/clerk_publishable_key');
+    expect(manual).toContain('VITE_CLERK_PUBLISHABLE_KEY');
+    expect(manual).toContain('pk_live_');
+    expect(manual).toMatch(/Secret key.*sk_live_/);
+  });
+
   it('lists the GitHub ruleset that code cannot create', () => {
     expect(manual).toMatch(/Rulesets/);
     expect(manual).toMatch(/force pushes/i);
