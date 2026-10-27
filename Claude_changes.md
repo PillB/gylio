@@ -976,3 +976,22 @@ Numbered after #82's CHG-046 to keep IDs unique; #82 stacks on this branch.
 **Update 2026-10-20:** the source fixes above landed on main through #82 (the lint thread applied the ported patch), so this PR now carries only the docs and this entry.
 
 **Trade-offs:** Settings button loses its primary-colour text to meet contrast, keeping the primary border. Axe e2e is deferred to avoid touching package.json while the lint thread owns it. Q-006 (locked-tab heading order) is left to #89, which rewrites UpgradePrompt.
+
+---
+
+### CHG-050 – 2026-10-20 (2-minute start on tasks; valid list semantics on Tasks)
+
+**Why:** Competitor review (`docs/wiki/research-competitors-ideas.md` in #91) found that starting, not planning, is where task apps for ADHD help most (Goblin Tools, Tiimo). The only start action was a 25-minute block. Separately, a browser axe pass with a task present showed the Tasks list nested `role="group"` inside `role="list"` (critical; the earlier audit only covered the empty state).
+
+**Files changed:**
+- `src/core/context/TaskTimerContext.tsx` — `startTask(taskId, minutes?)`: an optional length for the first focus block only; saved settings and later blocks are unchanged.
+- `src/features/tasks/components/TaskCard.tsx`, `taskActions.ts` — "Just 2 min" button beside the full block (extracted a shared `TimerButton`).
+- `src/features/tasks/components/TaskList.tsx` — each chunk is now its own labelled list of items; the outer list role stays only for the Upcoming view.
+- `src/i18n/en.json`, `src/i18n/es-PE.json` — `tasks.startTwoBtn`, `tasks.startTwoAria`.
+- Tests: `TaskTimerContext.test.tsx`, plus two cases in `TaskList.test.tsx` (each fails without the change).
+
+**Verified in Chromium:** typing a task, then keyboard-activating "Just 2 min" shows a running 01:59 countdown at 1280 and 320 px with no horizontal overflow; axe (WCAG 2.2 AA) reports no violations before and during the timer.
+
+**Trade-offs:** The 2-minute length is fixed rather than a setting; a user who wants another length still uses the full block and Settings. The 2-minute block is logged in the task's time log like any focus block (reward rules were not changed or checked here; if focus blocks earn XP, a short block should not earn the same as a long one, to be settled with the XP rules from #88/#89). The evidence for "just start" micro-commitments is practitioner and small-study level, not a replicated trial; the copy makes no clinical claim.
+
+**Addendum (same PR): compact task card.** On Tasks with data a card was about 194 px tall at 1280 px because Edit and Delete sat on their own line. Start buttons, Edit and Delete now share one wrapping row, and the energy badge shares a row with the planned date (card 130 px at 1280, measured in Chromium; at 320 px it still wraps to 265 px, unchanged). Reported by the Layout, tour and A/B tests thread. Test: `TaskList.test.tsx` "keeps a task card compact" (fails on the old layout). Trade-off: Edit and Delete now sit among the start buttons, so they are visually closer to the timer actions; the row keeps the existing focus order and button sizes.

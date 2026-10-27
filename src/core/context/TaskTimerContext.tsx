@@ -58,7 +58,8 @@ export interface TaskTimerContextValue {
   settings: TimerSettings;
   pendingLogEntry: PendingEntry | null;
   clearPendingEntry: () => void;
-  startTask: (taskId: number) => void;
+  /** `minutes` overrides the length of this first focus block only; later blocks use the saved setting. */
+  startTask: (taskId: number, minutes?: number) => void;
   pauseTimer: () => void;
   resumeTimer: () => void;
   skipPhase: () => void;
@@ -174,7 +175,7 @@ export function TaskTimerProvider({ children }: { children: ReactNode }) {
 
   // ---- Actions ----
 
-  const startTask = useCallback((taskId: number) => {
+  const startTask = useCallback((taskId: number, minutes?: number) => {
     const s = settingsRef.current;
     // Save partial entry for any currently running task
     setTimer((prev) => {
@@ -192,7 +193,7 @@ export function TaskTimerProvider({ children }: { children: ReactNode }) {
           });
         }
       }
-      const focusSecs = s.focusMinutes * 60;
+      const focusSecs = (minutes ?? s.focusMinutes) * 60;
       return {
         taskId,
         phase: 'focus',
