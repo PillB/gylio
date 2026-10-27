@@ -47,7 +47,7 @@ const EstimatePicker: React.FC<Props> = ({ value, onChange, samples = [], idPref
       cursor: 'pointer',
     });
   return (
-    <div role="group" aria-labelledby={`${idPrefix}-label`} style={{ display: 'grid', gap: theme.spacing.xs }}>
+    <div role="group" aria-labelledby={`${idPrefix}-label`} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: theme.spacing.xs, minWidth: 0 }}>
       <span id={`${idPrefix}-label`} style={{ fontWeight: 600, fontSize: '0.875rem' }}>
         {t('estimate.label')}
       </span>
