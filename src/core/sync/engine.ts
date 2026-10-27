@@ -163,9 +163,11 @@ export class SyncEngine {
     return { state: this.state, ...this.counts, lastSyncedAt: this.lastSyncedAt, economy: this.economy };
   }
 
-  subscribe(listener: (snapshot: SyncSnapshot) => void) {
+  subscribe(listener: (snapshot: SyncSnapshot) => void): () => void {
     this.listeners.add(listener);
-    return () => this.listeners.delete(listener);
+    return () => {
+      this.listeners.delete(listener);
+    };
   }
 
   /** Called after every local save. The change is stored before this returns; sending comes later. */

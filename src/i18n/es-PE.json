@@ -1227,7 +1227,34 @@
     "reviewConflictLabel": "Conflicto en {{entity}}",
     "reviewDetected": "Detectado: {{timestamp}}",
     "reviewKeepLocal": "Mantener mis cambios",
-    "reviewUseRemote": "Usar versión del servidor"
+    "reviewUseRemote": "Usar versión del servidor",
+    "status": {
+      "ariaLabel": "Estado de la sincronización",
+      "offline": "Guardado en este dispositivo. Se sincronizará cuando vuelvas a tener conexión.",
+      "paused": "Guardado en este dispositivo. La sincronización está en una breve pausa y continuará sola.",
+      "retrying": "Guardado en este dispositivo. La sincronización volverá a intentarlo en un momento.",
+      "closed": "La sincronización aún no está abierta. Todo se queda a salvo en este dispositivo.",
+      "otherAccount": "Este dispositivo tiene datos de otra cuenta. Abre Ajustes para elegir qué hacer.",
+      "pending_one": "1 cambio está esperando para sincronizarse.",
+      "pending_other": "{{count}} cambios están esperando para sincronizarse.",
+      "dismiss": "Ocultar este mensaje"
+    },
+    "detail": {
+      "title": "Sincronización",
+      "upToDate": "Todo está guardado en tu cuenta.",
+      "soon": "Guardando tus últimos cambios.",
+      "syncing": "Sincronizando.",
+      "signedOut": "Inicia sesión para mantener tus datos al día en todos tus dispositivos. Mientras tanto, todo se queda en este dispositivo.",
+      "lastSynced": "Última sincronización: {{time}}",
+      "neverSynced": "Aún no se ha sincronizado",
+      "tryNow": "Intentar ahora",
+      "refused_one": "1 cambio no pudo guardarse en tu cuenta. Sigue a salvo en este dispositivo.",
+      "refused_other": "{{count}} cambios no pudieron guardarse en tu cuenta. Siguen a salvo en este dispositivo.",
+      "tryRefused": "Intentarlos de nuevo",
+      "kept_one": "Se conservó 1 versión anterior porque dos dispositivos cambiaron lo mismo.",
+      "kept_other": "Se conservaron {{count}} versiones anteriores porque dos dispositivos cambiaron lo mismo.",
+      "economy": "La sincronización va despacio hoy para mantenerse dentro de los límites gratuitos."
+    }
   },
   "calendarSuggestedFocusHeading": "Bloques de enfoque sugeridos",
   "calendarSuggestedFocusHelper": "Ubicamos hasta tres tareas sin programar en bloques de tiempo libres para este día.",

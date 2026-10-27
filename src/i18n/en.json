@@ -1227,7 +1227,34 @@
     "reviewConflictLabel": "Conflict in {{entity}}",
     "reviewDetected": "Detected: {{timestamp}}",
     "reviewKeepLocal": "Keep my changes",
-    "reviewUseRemote": "Use server version"
+    "reviewUseRemote": "Use server version",
+    "status": {
+      "ariaLabel": "Sync status",
+      "offline": "Saved on this device. It will sync when you're back online.",
+      "paused": "Saved on this device. Syncing is taking a short break and will pick up on its own.",
+      "retrying": "Saved on this device. Syncing will try again shortly.",
+      "closed": "Syncing isn't open yet. Everything stays safely on this device.",
+      "otherAccount": "This device holds another account's data. Open Settings to choose what to do.",
+      "pending_one": "1 change is waiting to sync.",
+      "pending_other": "{{count}} changes are waiting to sync.",
+      "dismiss": "Hide this message"
+    },
+    "detail": {
+      "title": "Sync",
+      "upToDate": "Everything is saved to your account.",
+      "soon": "Saving your latest changes.",
+      "syncing": "Syncing.",
+      "signedOut": "Sign in to keep your data in sync across devices. Until then, everything stays on this device.",
+      "lastSynced": "Last synced {{time}}",
+      "neverSynced": "Not synced yet",
+      "tryNow": "Try now",
+      "refused_one": "1 change couldn't be saved to your account. It is still safe on this device.",
+      "refused_other": "{{count}} changes couldn't be saved to your account. They are still safe on this device.",
+      "tryRefused": "Try those again",
+      "kept_one": "1 earlier version was kept after two devices changed the same thing.",
+      "kept_other": "{{count}} earlier versions were kept after two devices changed the same thing.",
+      "economy": "Sync is running gently today to stay inside the free limits."
+    }
   },
   "calendarSuggestedFocusHeading": "Suggested focus windows",
   "calendarSuggestedFocusHelper": "We auto-place up to three unscheduled tasks into open time blocks for this day.",

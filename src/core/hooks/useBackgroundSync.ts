@@ -1,10 +1,12 @@
 import { useEffect } from 'react';
-import { processSyncQueue, requestBackgroundSync, SYNC_TAG } from '../utils/backgroundSync';
+import { legacySyncEnabled, processSyncQueue, requestBackgroundSync, SYNC_TAG } from '../utils/backgroundSync';
 
 const SYNC_POLL_INTERVAL = 60_000;
 
 const useBackgroundSync = () => {
   useEffect(() => {
+    // Nothing to talk to without a separate API origin (see legacySyncEnabled).
+    if (!legacySyncEnabled()) return undefined;
     const triggerSync = () => {
       processSyncQueue().catch((error) => {
         console.warn('Background sync failed', error);

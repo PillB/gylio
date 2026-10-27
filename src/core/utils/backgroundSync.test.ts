@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
-import { methodForSyncAction, resolveSyncEndpoint } from './backgroundSync';
+import { legacySyncEnabled, methodForSyncAction, processSyncQueue, resolveSyncEndpoint } from './backgroundSync';
 
 describe('resolveSyncEndpoint', () => {
   it('resolves task routes against current origin', () => {
@@ -28,5 +28,22 @@ describe('methodForSyncAction', () => {
 
   it('falls back to POST for unknown actions', () => {
     expect(methodForSyncAction('unknown' as never)).toBe('POST');
+  });
+});
+
+describe('legacySyncEnabled', () => {
+  it.each([[undefined], [''], ['   ']])('is off with no separate API origin (%j)', (value) => {
+    expect(legacySyncEnabled(value)).toBe(false);
+  });
+
+  it('is on only when a separate API origin is configured on purpose', () => {
+    expect(legacySyncEnabled('https://api.example.com')).toBe(true);
+  });
+
+  it('does not touch the queue or the network when it is off, so the single-origin deploy never receives its calls', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch');
+    await processSyncQueue();
+    expect(fetchSpy).not.toHaveBeenCalled();
+    fetchSpy.mockRestore();
   });
 });
