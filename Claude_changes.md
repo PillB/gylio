@@ -995,3 +995,15 @@ Numbered after #82's CHG-046 to keep IDs unique; #82 stacks on this branch.
 **Trade-offs:** The 2-minute length is fixed rather than a setting; a user who wants another length still uses the full block and Settings. The 2-minute block is logged in the task's time log like any focus block (reward rules were not changed or checked here; if focus blocks earn XP, a short block should not earn the same as a long one, to be settled with the XP rules from #88/#89). The evidence for "just start" micro-commitments is practitioner and small-study level, not a replicated trial; the copy makes no clinical claim.
 
 **Addendum (same PR): compact task card.** On Tasks with data a card was about 194 px tall at 1280 px because Edit and Delete sat on their own line. Start buttons, Edit and Delete now share one wrapping row, and the energy badge shares a row with the planned date (card 130 px at 1280, measured in Chromium; at 320 px it still wraps to 265 px, unchanged). Reported by the Layout, tour and A/B tests thread. Test: `TaskList.test.tsx` "keeps a task card compact" (fails on the old layout). Trade-off: Edit and Delete now sit among the start buttons, so they are visually closer to the timer actions; the row keeps the existing focus order and button sizes.
+
+---
+
+### CHG-051 – 2026-10-02 (Onboarding step 1: say each reassurance once)
+
+**Why:** Step 1 showed "Neutral defaults are already selected" twice and "change later in Settings" twice (page intro plus the saved-on-device line). For users prone to overload, repeated copy adds reading cost without information.
+
+**Files changed:**
+- `src/i18n/onboarding.en.json`, `src/i18n/onboarding.es-PE.json` — trimmed `intro` and `predictableSteps.accessibility`; the subtitle and saved-on-device line still carry both messages once.
+- `e2e/onboarding-science.spec.ts` — test that each line appears once (fails on the old copy).
+
+**Trade-off:** Other locales keep the longer copy until translated; parity checks pass because keys are unchanged.

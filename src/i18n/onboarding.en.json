@@ -1,5 +1,5 @@
 {
-  "intro": "Set up only what helps you. You can change these choices later in Settings.",
+  "intro": "Set up only what helps you.",
   "stepSection": "Onboarding setup",
   "progress": "Step {{current}} of {{total}}",
   "back": "Back",
@@ -9,7 +9,7 @@
     "savedAndEditable": "Saved on this device. You can leave now and change these choices later in Settings."
   },
   "predictableSteps": {
-    "accessibility": "First: choose interface preferences. Neutral defaults are already selected.",
+    "accessibility": "First: choose interface preferences.",
     "quickSetup": "Next: optionally add one first task.",
     "tour": "Last: see where the main parts of GYLIO live."
   },
