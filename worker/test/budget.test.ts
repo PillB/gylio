@@ -143,6 +143,8 @@ describe('usage meter and degraded mode', () => {
     const write = await SELF.fetch('https://api.test/api/debts/x1', { method: 'PUT', headers: { ...auth, 'Content-Type': 'application/json' }, body: JSON.stringify(debt) });
     expect(write.status).toBe(503);
     expect((await SELF.fetch('https://api.test/api/me/export', { headers: auth })).status).toBe(200);
+    expect((await SELF.fetch('https://api.test/api/me', { method: 'DELETE', headers: auth })).status).toBe(204);
+    expect((await SELF.fetch('https://api.test/api/mex/y', { headers: auth })).status).toBe(503); // lookalike paths are not exempt
     const health = await SELF.fetch('https://api.test/api/v1/health');
     expect(health.status).toBe(503);
     expect(await health.json()).toMatchObject({ usageOk: false, database: true });

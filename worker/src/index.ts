@@ -74,7 +74,7 @@ app.get(HEALTH_PATH, async (c) => {
  * because a person's right to their data must not depend on our traffic.
  */
 app.use('/api/*', async (c, next) => {
-  if (c.req.path === HEALTH_PATH || c.req.path.startsWith('/api/me')) return next();
+  if (c.req.path === HEALTH_PATH || c.req.path === '/api/me' || c.req.path.startsWith('/api/me/')) return next();
   const state = await usageState(c.env, c.get('db'));
   if (state === 'shed') {
     c.header('Retry-After', String(retryAfterSeconds()));
