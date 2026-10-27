@@ -10,12 +10,10 @@
  *                   button is only rendered when this prop is provided
  */
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../core/context/ThemeContext';
 import { track, Events } from '../core/analytics';
-
-let welcomeBackTracked = false;
 
 const LAST_ACTIVE_KEY        = 'gylio:lastActiveDate';
 const DISMISSED_KEY          = 'gylio:welcomeBackDismissed';
@@ -23,10 +21,14 @@ const LAST_STREAK_BEFORE_KEY = 'gylio:lastStreakBeforeBreak';
 const GAP_DAYS               = 3;
 const MESSAGE_COUNT          = 4; // must match welcomeBack.message0..3 keys
 
+// An ISO date carries a month from 1 to 12; Date.UTC counts months from 0.
+function utcDay(isoDate: string): number {
+  const [year, month, day] = isoDate.split('-').map(Number) as [number, number, number];
+  return Date.UTC(year, month - 1, day);
+}
+
 function daysBetween(a: string, b: string): number {
-  const utcA = Date.UTC(...(a.split('-').map(Number) as [number, number, number]));
-  const utcB = Date.UTC(...(b.split('-').map(Number) as [number, number, number]));
-  return Math.floor((utcB - utcA) / 86_400_000);
+  return Math.floor((utcDay(b) - utcDay(a)) / 86_400_000);
 }
 
 function todayISO(): string {
@@ -45,6 +47,9 @@ export default function WelcomeBackBanner({ onFreshStart, onTinyStep }: Props) {
   const [gapDays, setGapDays]     = useState(0);
   const [msgIndex, setMsgIndex]   = useState(0);
   const [lastStreak, setLastStreak] = useState<number | null>(null);
+  // StrictMode re-runs effects on the same instance in development; a ref survives that re-run,
+  // so the event fires once per real mount (a module flag would also silence later mounts).
+  const trackedRef = useRef(false);
 
   useEffect(() => {
     const today      = todayISO();
@@ -67,9 +72,8 @@ export default function WelcomeBackBanner({ onFreshStart, onTinyStep }: Props) {
       setMsgIndex(Math.floor(Math.random() * MESSAGE_COUNT));
       if (parsed !== null && parsed > 0) setLastStreak(parsed);
       setShow(true);
-      // Once per page load: StrictMode runs this effect twice in development.
-      if (!welcomeBackTracked) {
-        welcomeBackTracked = true;
+      if (!trackedRef.current) {
+        trackedRef.current = true;
         track(Events.WELCOME_BACK_SHOWN, {
           gapDays: gap,
           lastStreak: parsed ?? null,

@@ -3,13 +3,14 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../core/context/ThemeContext';
 import useDB from '../../core/hooks/useDB';
 import { track, Events } from '../../core/analytics';
+import useTasks from '../tasks/hooks/useTasks';
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
 interface Task {
-  id: number | string;
+  id: number;
   title: string;
   status: string;
   priority?: 'high' | 'medium' | 'low' | string;
@@ -23,21 +24,6 @@ interface CalendarEvent {
   title: string;
   startDate: string; // ISO string stored by useDB
   endDate?: string | null;
-}
-
-interface Budget {
-  id: number | string;
-  month: string;
-  incomes?: { source: string; amount: number }[];
-  categories?: { name: string; type: string; plannedAmount: number }[];
-}
-
-interface Transaction {
-  id: number | string;
-  budgetMonth: string;
-  amount: number;
-  categoryName: string;
-  date?: string | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -63,9 +49,18 @@ function priorityScore(task: Task): number {
   return p * 1e15 + (due === Infinity ? 1e14 : due);
 }
 
+// A bare YYYY-MM-DD is a local day; new Date() alone would read it as UTC midnight,
+// which is the previous day west of Greenwich (e.g. Lima, UTC-5).
+function parseScheduled(value: string): Date {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value) ? new Date(`${value}T00:00`) : new Date(value);
+}
+
 function isTaskToday(task: Task, todayKey: string): boolean {
   const scheduled = task.plannedDate ?? task.dueDate;
   if (!scheduled) return false;
+  // A bare YYYY-MM-DD is already a local day; new Date() would read it as UTC midnight
+  // and shift it to the previous day west of Greenwich (e.g. Lima, UTC-5).
+  if (/^\d{4}-\d{2}-\d{2}$/.test(scheduled)) return scheduled === todayKey;
   try {
     return getLocalDateKey(new Date(scheduled)) === todayKey;
   } catch {
@@ -121,7 +116,7 @@ const Panel: React.FC<PanelProps> = ({ title, icon, children, theme }) => (
 
 interface TaskRowProps {
   task: Task;
-  onComplete: (id: number | string) => void;
+  onComplete: (id: number) => void;
   theme: ReturnType<typeof useTheme>['theme'];
 }
 
@@ -198,7 +193,7 @@ const TaskRow: React.FC<TaskRowProps> = ({ task, onComplete, theme }) => {
             fontFamily: theme.typography?.body?.family,
           }}
         >
-          {new Date((task.dueDate ?? task.plannedDate) as string).toLocaleDateString(undefined, {
+          {parseScheduled((task.dueDate ?? task.plannedDate) as string).toLocaleDateString(undefined, {
             month: 'short',
             day: 'numeric',
           })}
@@ -223,18 +218,9 @@ const DailyCommandCenter: React.FC<DailyCommandCenterProps> = ({ onExitSimplifie
   const now = new Date();
   const todayKey = getLocalDateKey(now);
 
-  const { ready, getTasks, updateTask, getEvents, getBudgets, getTransactions } = useDB() as {
-    ready: boolean;
-    getTasks: () => Promise<Task[]>;
-    updateTask: (
-      id: number | string,
-      patch: Partial<Task>,
-      opts?: Record<string, unknown>,
-    ) => Promise<void>;
-    getEvents: () => Promise<CalendarEvent[]>;
-    getBudgets: () => Promise<Budget[]>;
-    getTransactions: () => Promise<Transaction[]>;
-  };
+  const { ready, getTasks, getEvents, getBudgets, getTransactions } = useDB();
+  // Same completion path as the Tasks screen: writes 'completed', awards points and the task streak.
+  const { toggleTaskStatus } = useTasks();
 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [nextEvent, setNextEvent] = useState<CalendarEvent | null>(null);
@@ -260,7 +246,7 @@ const DailyCommandCenter: React.FC<DailyCommandCenterProps> = ({ onExitSimplifie
 
       // ── Next calendar event today (after now)
       const allEvents = await getEvents();
-      const nowMs = now.getTime();
+      const nowMs = Date.now();
       const todayEvents = allEvents.filter((ev) => {
         try {
           const evDate = new Date(ev.startDate);
@@ -274,30 +260,30 @@ const DailyCommandCenter: React.FC<DailyCommandCenterProps> = ({ onExitSimplifie
       );
       setNextEvent(todayEvents[0] ?? null);
 
-      // ── Budget nudge: category with highest (plannedAmount - spent)
+      // ── Budget nudge: this month's category with highest (plannedAmount - spent)
       const budgets = await getBudgets();
       const transactions = await getTransactions();
 
-      // Build spent map: budgetMonth → categoryName → total spent
-      const spentMap: Record<string, Record<string, number>> = {};
+      // Budgets and transactions are keyed by local "YYYY-MM" (see getDefaultBudgetMonth).
+      const monthKey = todayKey.slice(0, 7);
+      const currentBudget = budgets.find((budget) => budget.month === monthKey);
+
+      // Build spent map for this month: categoryName → total spent
+      const monthSpent: Record<string, number> = {};
       for (const tx of transactions) {
-        if (!spentMap[tx.budgetMonth]) spentMap[tx.budgetMonth] = {};
-        spentMap[tx.budgetMonth][tx.categoryName] =
-          (spentMap[tx.budgetMonth][tx.categoryName] ?? 0) + tx.amount;
+        if (tx.budgetMonth !== monthKey) continue;
+        monthSpent[tx.categoryName] = (monthSpent[tx.categoryName] ?? 0) + tx.amount;
       }
 
       let bestCategory: string | null = null;
       let bestRemaining = -Infinity;
 
-      for (const budget of budgets) {
-        const monthSpent = spentMap[budget.month] ?? {};
-        for (const cat of budget.categories ?? []) {
-          const spent = monthSpent[cat.name] ?? 0;
-          const remaining = (cat.plannedAmount ?? 0) - spent;
-          if (remaining > bestRemaining) {
-            bestRemaining = remaining;
-            bestCategory = cat.name;
-          }
+      for (const cat of currentBudget?.categories ?? []) {
+        const spent = monthSpent[cat.name] ?? 0;
+        const remaining = (cat.plannedAmount ?? 0) - spent;
+        if (remaining > bestRemaining) {
+          bestRemaining = remaining;
+          bestCategory = cat.name;
         }
       }
 
@@ -311,7 +297,7 @@ const DailyCommandCenter: React.FC<DailyCommandCenterProps> = ({ onExitSimplifie
     } finally {
       setLoading(false);
     }
-  }, [ready, todayKey]);
+  }, [ready, todayKey, getTasks, getEvents, getBudgets, getTransactions]);
 
   useEffect(() => {
     loadData();
@@ -320,18 +306,22 @@ const DailyCommandCenter: React.FC<DailyCommandCenterProps> = ({ onExitSimplifie
   // ── Complete task ─────────────────────────────────────────────────────────
 
   const handleComplete = useCallback(
-    async (taskId: number | string) => {
-      try {
-        await updateTask(taskId, { status: 'done' });
-        setTasks((prev) =>
-          prev.map((t) => (t.id === taskId ? { ...t, status: 'done' } : t)),
-        );
-        track(Events.DAILY_MODE_TASK_COMPLETED, { taskId });
-      } catch (err) {
-        console.error('[DailyCommandCenter] handleComplete error', err);
+    async (taskId: number) => {
+      // Daily Mode only completes: toggleTaskStatus would reopen an already-ticked task.
+      const current = tasks.find((t) => t.id === taskId);
+      if (!current || !isIncomplete(current)) return;
+      setTasks((prev) =>
+        prev.map((t) => (t.id === taskId ? { ...t, status: 'completed' } : t)),
+      );
+      const saved = await toggleTaskStatus(taskId);
+      if (!saved) {
+        // Nothing was stored: show the task as open again instead of a completion a reload would undo.
+        setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, status: current.status } : t)));
+        return;
       }
+      track(Events.DAILY_MODE_TASK_COMPLETED, { taskId });
     },
-    [updateTask],
+    [tasks, toggleTaskStatus],
   );
 
   // ── Exit ──────────────────────────────────────────────────────────────────
@@ -345,7 +335,7 @@ const DailyCommandCenter: React.FC<DailyCommandCenterProps> = ({ onExitSimplifie
 
   const dateLabel = useMemo(
     () =>
-      now.toLocaleDateString(undefined, {
+      new Date(`${todayKey}T00:00`).toLocaleDateString(undefined, {
         weekday: 'long',
         month: 'long',
         day: 'numeric',

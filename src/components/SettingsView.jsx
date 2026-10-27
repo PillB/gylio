@@ -16,6 +16,21 @@ import AdSlot from '../features/ads/AdSlot';
 import YourDataSection from '../features/account/YourDataSection';
 import { useEntitlement } from '../features/billing/EntitlementContext';
 
+/** QA, plan and (for admins) admin links; its own component so SettingsView stays under the complexity ceiling. */
+function SettingsShortcuts() {
+  const { t } = useTranslation();
+  const { theme } = useTheme();
+  const { entitlement } = useEntitlement();
+  const linkStyle = { color: theme.colors.primary, fontWeight: 600, minHeight: 44, lineHeight: '44px' };
+  return (
+    <nav style={{ display: 'flex', flexWrap: 'wrap', gap: theme.spacing.md }}>
+      <Link to="/qa" style={linkStyle}>{t('feedback.settings.qaLink')}</Link>
+      <Link to="/pricing" style={linkStyle}>{t('feedback.settings.planLink')}</Link>
+      {entitlement?.isAdmin && <Link to="/admin" style={linkStyle}>{t('feedback.settings.adminLink')}</Link>}
+    </nav>
+  );
+}
+
 /**
  * SettingsView component
  *
@@ -25,7 +40,6 @@ import { useEntitlement } from '../features/billing/EntitlementContext';
  */
 const SettingsView = () => {
   const { t } = useTranslation();
-  const { entitlement } = useEntitlement();
   const { theme, mode, setTheme } = useTheme();
   const { resetTour } = useGuidedTour();
   const {
@@ -650,7 +664,7 @@ const SettingsView = () => {
             borderRadius: theme.shape.radiusMd,
             border: `1px solid ${theme.colors.primary}`,
             background: theme.colors.overlay,
-            color: theme.colors.primary,
+            color: theme.colors.text,
             cursor: 'pointer',
             fontSize: '0.875rem',
             fontWeight: 600,
@@ -710,13 +724,7 @@ const SettingsView = () => {
 
     {/* Testers and account shortcuts */}
     <SectionCard ariaLabel={t('feedback.settings.heading')} title={t('feedback.settings.heading')}>
-      <nav style={{ display: 'flex', flexWrap: 'wrap', gap: theme.spacing.md }}>
-        <Link to="/qa" style={{ color: theme.colors.primary, fontWeight: 600, minHeight: 44, lineHeight: '44px' }}>{t('feedback.settings.qaLink')}</Link>
-        <Link to="/pricing" style={{ color: theme.colors.primary, fontWeight: 600, minHeight: 44, lineHeight: '44px' }}>{t('feedback.settings.planLink')}</Link>
-        {entitlement?.isAdmin && (
-          <Link to="/admin" style={{ color: theme.colors.primary, fontWeight: 600, minHeight: 44, lineHeight: '44px' }}>{t('feedback.settings.adminLink')}</Link>
-        )}
-      </nav>
+      <SettingsShortcuts />
     </SectionCard>
     <AdSlot placement="settings" />
     </>

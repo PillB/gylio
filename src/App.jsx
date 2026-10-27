@@ -29,7 +29,6 @@ import { getLocalDateKey } from './core/hooks/useClock';
 import useBackgroundSync from './core/hooks/useBackgroundSync';
 import SignInPage from './features/auth/SignInPage';
 import SignUpPage from './features/auth/SignUpPage';
-import ClerkSetupBanner from './features/auth/ClerkSetupBanner';
 import { AuthProvider } from './core/context/AuthContext';
 import { useSubscription } from './features/subscription/useSubscription';
 import PricingPage from './features/subscription/PricingPage';
@@ -52,11 +51,15 @@ import { startAnalyticsUpload } from './core/analytics/upload';
 import { AccountSyncProvider } from './features/account/AccountSyncContext';
 import SyncConflictBanner from './features/account/SyncConflictBanner';
 
+// Phones reach feedback from Settings → Report a bug or idea, so the header stays one line.
+function HeaderFeedback({ isOnboarding, isMobile }) {
+  return isOnboarding || isMobile ? null : <FeedbackButton />;
+}
+
 function AppHeader({ clerkEnabled }) {
   const { t } = useTranslation();
   const { selections, updateSelections } = useOnboardingFlow();
   const { theme } = useTheme();
-  const navigate = useNavigate();
   const location = useLocation();
   const { tourState, openSelector } = useGuidedTour();
   const isOnboarding = location.pathname === '/onboarding';
@@ -139,7 +142,7 @@ function AppHeader({ clerkEnabled }) {
         )}
         <LanguageToggle placement="header" />
         {/* Phones reach feedback from Settings → Report a bug or idea; the header stays one line. */}
-        {!isOnboarding && !isMobile && <FeedbackButton />}
+        <HeaderFeedback isOnboarding={isOnboarding} isMobile={isMobile} />
         {/* Hidden on mobile — accessible from Settings */}
         {!isOnboarding && (
           <button
@@ -387,33 +390,6 @@ function TabsLayout() {
   );
 }
 
-function ClerkSetupScreen() {
-  const { theme } = useTheme();
-  return (
-    <div
-      style={{
-        fontFamily: theme.typography.body.family,
-        padding: theme.spacing.xl,
-        maxWidth: '1100px',
-        margin: '0 auto',
-        color: theme.colors.text,
-        backgroundColor: theme.colors.background,
-        minHeight: '100vh',
-      }}
-    >
-      <h1
-        style={{
-          margin: `0 0 ${theme.spacing.lg}px`,
-          color: theme.colors.text,
-          fontFamily: theme.typography.heading.family,
-        }}
-      >
-        GYLIO
-      </h1>
-      <ClerkSetupBanner />
-    </div>
-  );
-}
 
 // --- Premium gate ---
 
@@ -565,7 +541,7 @@ export default function App({ clerkEnabled = false }) {
       track(Events.APP_OPEN, { clerkEnabled });
     }
     return startAnalyticsUpload();
-  }, []);
+  }, [clerkEnabled]);
 
   if (!clerkEnabled) {
     return (

@@ -147,6 +147,7 @@ const ToastStack: React.FC = () => {
 
   return (
     <div
+      role="region"
       aria-label={t('shell.notifications')}
       style={{
         position: 'fixed',
