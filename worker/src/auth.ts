@@ -36,8 +36,11 @@ const bearer = (header: string | undefined): string | null => {
   return scheme?.toLowerCase() === 'bearer' && token && rest.length === 0 ? token : null;
 };
 
-/** Returns the Clerk user id (`sub`) of a valid RS256 session token. */
-export const authenticate = async (env: AuthEnv, authorization: string | undefined): Promise<string> => {
+/** Returns the sign-in identity of a valid RS256 session token: Clerk's stable `sub`, never the email. */
+export const authenticate = async (
+  env: AuthEnv,
+  authorization: string | undefined,
+): Promise<{ provider: 'clerk'; subject: string }> => {
   const issuer = (env.CLERK_ISSUER ?? '').trim().replace(/\/+$/, '');
   if (!issuer) throw new AuthError(503, 'AUTH_NOT_CONFIGURED', 'Authentication is not configured on this server');
   const token = bearer(authorization);
@@ -56,5 +59,5 @@ export const authenticate = async (env: AuthEnv, authorization: string | undefin
     throw new AuthError(401, 'UNAUTHORIZED', 'Token authorized party is not allowed');
   }
   if (typeof payload.sub !== 'string' || !payload.sub) throw new AuthError(401, 'UNAUTHORIZED', 'Token has no subject');
-  return payload.sub;
+  return { provider: 'clerk', subject: payload.sub };
 };

@@ -1,6 +1,6 @@
 # Gylio server: Cloudflare Worker + D1 (decision, design, trade-offs)
 
-Status: Worker slice built and tested in `worker/` (15 tests in the real Workers runtime). Not deployed. Not yet connected to the app.
+Status: Worker slice built and tested in `worker/` (38 tests in the real Workers runtime, 13 in Node). Not deployed. Not yet connected to the app. Reworked on 27 Oct 2026 against the Cloudflare setup thread's two hand-backs (F-005 to F-007, F-009, F-012, F-014, F-015); section 9 says what changed and what is still open.
 
 ## 1. Decision
 **Option A: port the API to a Cloudflare Worker with D1; keep Clerk for sign-in.**
@@ -18,12 +18,13 @@ Why not B: the repo's own runbook assumes a Hostinger Node plan that nobody has 
 Trade-off accepted: Workers Free allows 10 ms CPU per request and 100,000 requests per day; D1 Free allows 5 million rows read and 100,000 rows written per day, 5 GB total, 500 MB per database ([Workers pricing](https://developers.cloudflare.com/workers/platform/pricing/), [D1 limits](https://developers.cloudflare.com/d1/platform/limits)). Hitting a cap makes the API return errors until 00:00 UTC. Mitigation: the app is local-first, so it keeps working and retries; see section 4.
 
 ## 2. What the slice contains (`worker/`)
-- `GET /api/health`; sign-in check on everything else (Clerk RS256 JWT, issuer + authorized party, keys from Clerk's JWKS, cached per isolate).
+- `GET /api/v1/health` (booleans and the allowed origin only); sign-in check on everything else (Clerk RS256 JWT, issuer + authorized party, keys from Clerk's JWKS, cached per isolate).
 - One `records` table for all entities (tasks, events, budgets, transactions, debts). Rows are `(userId, entity, id)` with a JSON body, a `version`, a per-person change sequence `seq`, an `updatedAt` time and a `deleted` tombstone.
-- `PUT /api/:entity/:id` is a versioned upsert keyed by a client-chosen id. The body carries `baseVersion` (the version the device last saw; 0 or absent for a new record). The version check is part of the database write, so two devices racing from the same version cannot both win: the loser gets `409` with the current record, a tombstone included. An exact retry of a write that already landed returns 200.
-- `GET /api/sync/pull?since=<seq>` returns changes after a cursor in `seq` order (tombstones included), paged. `seq` is unique per person, so a page boundary cannot hide a change. An idle device costs about one indexed query.
-- `DELETE /api/:entity/:id` writes a tombstone (always applied; a stale offline edit afterwards gets 409 instead of resurrecting it). Tombstones older than 30 days are purged on the next create; a device offline longer than that must do a full resync (pull from 0).
-- Quota: all stored rows, tombstones included, count toward the 5,000 per-person cap, so create-and-delete cannot grow the database.
+- `PUT /api/:entity/:id` is a versioned upsert keyed by a client-chosen id. The body carries `baseVersion` (the version the device last saw; 0 or absent for a new record). The version check is part of the database write, so two devices racing from the same version cannot both win: the loser gets `409` with the current record, a tombstone included. An exact retry of a write that already landed, or an edit that changes nothing, returns 200 with no database write.
+- `GET /api/sync/pull?since=<seq>` returns changes after a cursor in `seq` order (tombstones included), paged. `seq` is unique per person, so a page boundary cannot hide a change. An idle device costs one indexed read.
+- `DELETE /api/:entity/:id` writes a tombstone (always applied; a stale offline edit afterwards gets 409 instead of resurrecting it). Tombstones older than 30 days are purged when a person reaches the record cap; a device offline longer than that must do a full resync (pull from 0).
+- Quota: all stored rows, tombstones included, count toward the 5,000 per-person cap, so create-and-delete cannot grow the database. The count is a counter kept in the same transaction, so checking it is one row read, not a scan.
+- There is no "list everything of one kind" endpoint any more: it had no covering index, so one call could read 5,000 rows. Devices use `pull`, and `GET /api/:entity/:id` reads one record.
 - `GET /api/me/export` and `DELETE /api/me`: data portability and erasure.
 - Validation ported from the Express schemas; unknown fields are dropped; `dueDay` 1 to 31; 64 KB body cap; 5,000 records per user cap.
 
@@ -35,13 +36,8 @@ These matter because pointing the current app at any server would not have worke
 4. There is no pull path at all: the client never downloads server changes, so a second device would stay empty.
 Fix direction (not in this PR): give every synced record a UUID created on the device, push with `PUT /api/:entity/:uuid`, and pull with `/api/sync/pull`. That is a client change across the local database and the sync queue.
 
-## 4. Free-tier budget (estimates, not measurements)
-Assume an active person makes about 40 changes and opens the app about 10 times a day.
-- Requests: 40 pushes + 10 pulls = about 50 per person per day, so roughly 2,000 daily active people before the 100,000 request cap. Batching pushes (one request per burst of edits) would raise that several times.
-- D1 writes: 40 per person per day, so about 2,500 people before the 100,000 cap.
-- D1 reads: pulls read only changed rows; a few dozen rows per person per day is far below 5 million.
-- Storage: about 1 KB per record and the 5,000 record cap gives at most about 5 MB per person; 500 MB per database is the real ceiling, roughly 100+ heavy users. Plan: monitor size and move to Workers Paid ($5/month, larger limits) before then.
-Actual numbers need measuring on a pilot; Cloudflare's dashboard shows daily usage.
+## 4. Free-tier budget
+Replaced by section 9 (capacity model with measured per-request costs). The first draft counted one row written per change; the real cost is 3 to 4, which lowers the write ceiling by about three times.
 
 ## 5. Sign-in: Google, Microsoft, email codes
 Keep Clerk (already integrated). Clerk supports email verification codes and social providers ([Clerk sign-in options](https://clerk.com/docs/authentication/configuration/sign-up-sign-in-options)). Production instances need your own OAuth credentials for each social provider. For Microsoft to accept both personal and work accounts, the Entra app registration must allow "personal Microsoft accounts and accounts in any organizational directory"; verify in Clerk's Microsoft guide when configuring. I did not confirm Clerk's free-plan limits from an official page.
@@ -58,7 +54,59 @@ Use a separate Free Cloudflare account for Gylio. Workers and D1 permissions are
 
 ## 8. Not done
 - App is not connected to the Worker; section 3 fix is required first.
-- No rate limiting inside the Worker: add a Cloudflare rate-limiting rule on `/api/*` (see manual).
 - Billing, AI and social-plan endpoints from Express are not ported.
 - Real Clerk tokens were not tested (the tests sign tokens with a throwaway key).
-- No deploy was attempted: it needs your Cloudflare login (see manual).
+- No deploy was attempted: it needs your Cloudflare token (see the manual).
+- Next changes, in order: the deploy scripts with a fake-wrangler test suite (F-008); the holder file and privacy-page check (F-011); repository hygiene (F-013); icons and sitemap; the route list for the two-account check.
+- The page CSP still lives in `index.html` and allows `unsafe-inline` and `unsafe-eval`. A strict policy fed from one module needs a real browser run with Clerk sign-in; I cannot do that here (sign-in blocks automation), so I did not ship a policy I could not test. The `_headers` file carries every other security header.
+
+## 9. Cost control and early warning (F-014), sign-in swap (F-015), one origin (F-007)
+
+### 9.1 What every endpoint costs
+Measured from D1's own per-query metadata (`meta.rows_read`, `meta.rows_written`) inside the Workers-runtime tests (`worker/test/budget.test.ts`). A test fails if an endpoint exceeds its budget. Read counts include one read for the usage gate, which production caches for 30 seconds, so real reads are about 1 lower.
+
+| Request | Rows read | Rows written | Why |
+|---|---|---|---|
+| Pull, nothing new | 1 | 0 | one seek on the `(userId, seq)` index |
+| Pull returning n records | about 1 + n | 0 | reads only changed rows; test shows cost does not grow with records stored |
+| Create a record | 3 | 4 | change-number bump 1, record 1, `seq` index 1, stored-count 1 |
+| Edit a record | 4 | 3 | bump 1, record 1, `seq` index 1 |
+| Delete (tombstone) | 2 | 4 | bump, record, `seq` index, tombstone index |
+| Same data again, retry, stale write | 1 to 2 | 0 | read first, answer, no write |
+| First request by a new person | 2 | 1 | identity mapping row |
+| Export (n records) | 1 + n | 0 | |
+| Erase | 3 | 3 + n | records, counters, mapping |
+
+Indexes and what each adds in writes: `(userId, entity, id)` primary key is the table itself (WITHOUT ROWID), so 0 extra; `(userId, seq)` unique index +1 on every create, edit and delete; the tombstone index is partial (only deleted rows) so +1 only on delete. The three other tables are WITHOUT ROWID too, so a counter bump is one row, not two.
+
+### 9.2 Capacity model (every input is an estimate)
+Assumed per daily active person: 10 app opens, 40 edits. Rows written per edit about 3.25 (a quarter creates, three quarters edits), rows read per push about 3, per pull about 2.
+
+| Case | Requests/day | Rows written/day | Rows read/day | First limit hit |
+|---|---|---|---|---|
+| Client sends every edit (40 pushes) | 50 | about 130 | about 140 | writes: 100,000 / 130 = about 770 people (shed starts at 90 percent: about 690) |
+| Client coalesces to 15 pushes | 25 | about 49 | about 65 | writes: about 2,040 people (about 1,840 at shed) |
+| Reads | | | | about 30,000 or more people; not the limiting one |
+| Requests | | | | 2,000 to 4,000 people |
+
+Rows written is the binding limit, by a wide margin. Registered people are more than daily active ones (a guess of 3 to 5 times), so the free tier should carry roughly 2,000 to 8,000 registered people if the client coalesces edits. Two things cut writes further and are not built: the client coalescing edits (one push per record per burst) and a batch endpoint. Both are client-side work and come with the app connection.
+
+### 9.3 Metering and the degraded mode
+- Every request adds its rows read, rows written and one request to a counter. The Worker writes the counter to one row per UTC day (`usage_day`) every 20 requests or 60 seconds, so metering costs about 1 write per 20 requests. Only counts are stored.
+- State is the highest of the three fractions of the free limits (5,000,000 reads, 100,000 writes, 100,000 requests). At 70 percent responses carry `Gylio-Usage: warn`. At 90 percent sync (`pull`, reads, writes, deletes) answers `503` with `SYNC_PAUSED` and `Retry-After` (at most an hour; the limit resets at 00:00 UTC). The app keeps working offline and retries. Health, export and erase stay open: a person's access to their own data does not depend on our traffic.
+- Health shows `usageOk: false` while shedding. Limits and thresholds are variables (`USAGE_*`), so a plan change is a config change.
+- Trade-offs: (1) a recycled instance loses up to 19 uncounted requests, so the meter under-counts a little; 90 percent leaves a 10 percent margin. (2) The meter counts its own queries' rows only partly; again inside the margin. (3) It cannot see rows scanned by D1 that the query metadata does not report. (4) Shedding is all or nothing for everyone, not per person; per-person fairness is not built.
+- Cloudflare's own documented alert comes only after the limit is hit and queries fail, so the Worker's warning at 70 percent is the early one. Whether a Free account can set a threshold alert is for the setup thread to check on the Notifications screen.
+
+### 9.4 What I could not validate, and why
+- Row counts come from Miniflare's local D1 (workerd). Production D1 may count rows read for an index lookup differently; the first day's real usage chart is the check. The budgets will then be re-set from real numbers.
+- CPU time per request (10 ms limit) is not measured by the test runtime. The expensive step is RS256 verification of the sign-in token. Not measured; the first deployed day's CPU graph is the check, and the fallback is verifying less often by caching a verified token for its remaining life.
+- `changes()` in the batched counter update is tested in the local database; it is standard SQLite behaviour but untested on production D1.
+- Whether the static assets service serves the `.well-known` folder is checked by the live security.txt test in the manual.
+- Clerk's sign-in host, the DNS records a production instance needs, and Clerk's free-tier limits: from documentation only, not from a live dashboard.
+
+### 9.5 Sign-in is swappable (F-015)
+Records are keyed by an internal id (a random UUID in `identities`, keyed by `(provider, subject)`), not by Clerk's `sub`. Moving to another provider means adding mapping rows. Mapping is cached per instance for 60 seconds; erasure deletes the mapping, records and counters. A first request costs one extra row written.
+
+### 9.6 One origin (F-007)
+The site and API are both at `https://gylio.app`: the Worker serves the built site as static assets and runs first only for `/api/*`. `CORS_ORIGINS` and `CLERK_AUTHORIZED_PARTIES` are exactly that origin, so no cross-origin call is needed. Trade-off: the live site moves off GitHub Pages at the first deploy, so the first deploy is a site change as well. Deviation from the brief: `not_found_handling` is `single-page-application`, not `404-page`, because the app uses browser-history routing and a deep link would otherwise 404.

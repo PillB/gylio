@@ -40,7 +40,9 @@ jobs:
         run: npm test
 
       - name: Bundle dry run
-        run: npx wrangler deploy --dry-run --outdir "$RUNNER_TEMP/worker-bundle"
+        run: |
+          mkdir -p ../dist
+          npx wrangler deploy --dry-run --outdir "$RUNNER_TEMP/worker-bundle"
 
   quality:
     name: Quality gates

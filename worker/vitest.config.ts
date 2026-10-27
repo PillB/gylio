@@ -23,9 +23,12 @@ export default defineConfig({
           CLERK_AUTHORIZED_PARTIES: 'https://app.test',
           CORS_ORIGINS: 'https://app.test',
           MAX_RECORDS_PER_USER: '5',
+          // Flush the usage meter after every request and never cache it, so tests can read exact costs.
+          USAGE_FLUSH_EVERY: '1',
+          USAGE_CACHE_MS: '0',
         },
       },
     }),
   ],
-  test: { setupFiles: ['./test/setup.ts'] },
+  test: { setupFiles: ['./test/setup.ts'], include: ['test/**/*.test.ts'], exclude: ['test/node/**'] },
 });

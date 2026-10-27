@@ -28,40 +28,41 @@ describe('health and auth', () => {
   it('reports not ready when the migrated table is missing', async () => {
     await e.DB.exec('ALTER TABLE records RENAME TO records_hidden');
     try {
-      const res = await call('/api/health');
+      const res = await call('/api/v1/health');
       expect(res.status).toBe(503);
-      expect(await res.json()).toMatchObject({ databaseReady: false });
+      expect(await res.json()).toMatchObject({ ok: false, database: false });
     } finally {
       await e.DB.exec('ALTER TABLE records_hidden RENAME TO records');
     }
   });
 
   it('answers health without a token and reports d1', async () => {
-    const res = await call('/api/health');
+    const res = await call('/api/v1/health');
     expect(res.status).toBe(200);
-    expect(await res.json()).toMatchObject({ status: 'ok', database: 'd1', authConfigured: true });
+    expect(await res.json()).toEqual({ ok: true, worker: true, database: true, auth: true, usageOk: true, origin: 'https://app.test' });
   });
 
   it('rejects missing, malformed, expired, wrong-issuer and wrong-azp tokens', async () => {
-    expect((await call('/api/debts')).status).toBe(401);
-    expect((await call('/api/debts', { headers: { Authorization: 'Bearer nope' } })).status).toBe(401);
+    expect((await call('/api/debts/x')).status).toBe(401);
+    expect((await call('/api/debts/x', { headers: { Authorization: 'Bearer nope' } })).status).toBe(401);
     for (const bad of [await token('u', { exp: '-1m' }), await token('u', { iss: 'https://evil.test' }), await token('u', { azp: 'https://evil.test' })]) {
-      expect((await call('/api/debts', { headers: { Authorization: `Bearer ${bad}` } })).status).toBe(401);
+      expect((await call('/api/debts/x', { headers: { Authorization: `Bearer ${bad}` } })).status).toBe(401);
     }
   });
 
   it('labels an expired token so the app can refresh instead of signing out', async () => {
-    const res = await call('/api/debts', { headers: { Authorization: `Bearer ${await token('u', { exp: '-1m' })}` } });
+    const res = await call('/api/debts/x', { headers: { Authorization: `Bearer ${await token('u', { exp: '-1m' })}` } });
     expect((await res.json()) as { error: { code: string } }).toMatchObject({ error: { code: 'TOKEN_EXPIRED' } });
   });
 });
 
 describe('records', () => {
-  it('stores a debt with a due day, lists it, and keeps users apart', async () => {
+  it('stores a debt with a due day, reads it back, and keeps users apart', async () => {
     expect((await put('/api/debts/d1', debt)).status).toBe(201);
-    const mine = (await (await call('/api/debts', { as: 'user_a' })).json()) as { id: string; data: typeof debt }[];
-    expect(mine.map((r) => [r.id, r.data.dueDay])).toEqual([['d1', 15]]);
-    expect(await (await call('/api/debts', { as: 'user_b' })).json()).toEqual([]);
+    const mine = (await (await call('/api/debts/d1', { as: 'user_a' })).json()) as { id: string; data: typeof debt };
+    expect([mine.id, mine.data.dueDay]).toEqual(['d1', 15]);
+    const theirs = (await (await call('/api/sync/pull?since=0', { as: 'user_b' })).json()) as { records: unknown[] };
+    expect(theirs.records).toEqual([]);
     expect((await call('/api/debts/d1', { as: 'user_b' })).status).toBe(404);
   });
 
@@ -193,10 +194,99 @@ describe('your data', () => {
 
 describe('browser access', () => {
   it('echoes only configured origins and answers preflight', async () => {
-    const ok = await call('/api/health', { headers: { Origin: 'https://app.test' } });
+    const ok = await call('/api/v1/health', { headers: { Origin: 'https://app.test' } });
     expect(ok.headers.get('Access-Control-Allow-Origin')).toBe('https://app.test');
-    const other = await call('/api/health', { headers: { Origin: 'https://evil.test' } });
+    const other = await call('/api/v1/health', { headers: { Origin: 'https://evil.test' } });
     expect(other.headers.get('Access-Control-Allow-Origin')).toBeNull();
-    expect((await call('/api/debts', { method: 'OPTIONS' })).status).toBe(204);
+    expect((await call('/api/debts/x', { method: 'OPTIONS' })).status).toBe(204);
+  });
+});
+
+describe('sign-in identity', () => {
+  const rows = async () => (await e.DB.prepare('SELECT provider, subject, userId FROM identities').all<{ provider: string; subject: string; userId: string }>()).results;
+
+  it('keys records by an internal id, never by the provider subject', async () => {
+    await put('/api/debts/i1', debt, 'user_ident_a');
+    const mapping = (await rows()).find((r) => r.subject === 'user_ident_a')!;
+    expect(mapping.provider).toBe('clerk');
+    expect(mapping.userId).not.toBe('user_ident_a');
+    const stored = await e.DB.prepare('SELECT userId FROM records WHERE id = ?').bind('i1').first<{ userId: string }>();
+    expect(stored!.userId).toBe(mapping.userId);
+    const bySubject = await e.DB.prepare('SELECT COUNT(*) AS n FROM records WHERE userId = ?').bind('user_ident_a').first<{ n: number }>();
+    expect(bySubject!.n).toBe(0);
+  });
+
+  it('gives the same person the same id on every request and different people different ids', async () => {
+    await put('/api/debts/i2', debt, 'user_ident_b');
+    await put('/api/debts/i3', debt, 'user_ident_b');
+    await put('/api/debts/i4', debt, 'user_ident_c');
+    const all = await rows();
+    expect(all.filter((r) => r.subject === 'user_ident_b')).toHaveLength(1);
+    const b = all.find((r) => r.subject === 'user_ident_b')!.userId;
+    const c = all.find((r) => r.subject === 'user_ident_c')!.userId;
+    expect(b).not.toBe(c);
+  });
+
+  it('survives a provider change: a second mapping row can point at the same person without touching records', async () => {
+    await put('/api/debts/i5', debt, 'user_ident_d');
+    const before = (await rows()).find((r) => r.subject === 'user_ident_d')!;
+    await e.DB.prepare("INSERT INTO identities (provider, subject, userId, createdAt) VALUES ('other-provider', 'abc', ?, 1)").bind(before.userId).run();
+    const records = await e.DB.prepare('SELECT COUNT(*) AS n FROM records WHERE userId = ?').bind(before.userId).first<{ n: number }>();
+    expect(records!.n).toBe(1);
+  });
+
+  it('erasure removes the mapping and the counters along with the records', async () => {
+    await put('/api/debts/i6', debt, 'user_ident_e');
+    const mapping = (await rows()).find((r) => r.subject === 'user_ident_e')!;
+    await call('/api/me', { method: 'DELETE', as: 'user_ident_e' });
+    expect((await rows()).some((r) => r.subject === 'user_ident_e')).toBe(false);
+    const seq = await e.DB.prepare('SELECT COUNT(*) AS n FROM user_seq WHERE userId = ?').bind(mapping.userId).first<{ n: number }>();
+    expect(seq!.n).toBe(0);
+  });
+});
+
+describe('token checks', () => {
+  const b64 = (o: object) => btoa(JSON.stringify(o)).replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
+  const withHeader = (jwt: string, header: object) => `${b64(header)}.${jwt.split('.')[1]}.${jwt.split('.')[2]}`;
+
+  it('rejects an unsigned token and a token claiming a different algorithm', async () => {
+    const good = await token('u');
+    const unsigned = `${b64({ alg: 'none', typ: 'JWT' })}.${good.split('.')[1]}.`;
+    expect((await call('/api/debts/x', { headers: { Authorization: `Bearer ${unsigned}` } })).status).toBe(401);
+    const confused = withHeader(good, { alg: 'HS256', typ: 'JWT', kid: 'test-key' });
+    expect((await call('/api/debts/x', { headers: { Authorization: `Bearer ${confused}` } })).status).toBe(401);
+  });
+
+  it('rejects a token with a tampered subject', async () => {
+    const [h, , s] = (await token('victim')).split('.');
+    const forged = `${h}.${b64({ sub: 'someone_else', iss: 'https://clerk.test', azp: 'https://app.test', exp: Math.floor(Date.now() / 1000) + 300 })}.${s}`;
+    expect((await call('/api/debts/x', { headers: { Authorization: `Bearer ${forged}` } })).status).toBe(401);
+  });
+
+  it('rejects a token with no subject', async () => {
+    const key = await importJWK(JSON.parse(e.TEST_PRIVATE_JWK), 'RS256');
+    const noSub = await new SignJWT({ azp: 'https://app.test' }).setProtectedHeader({ alg: 'RS256', kid: 'test-key' }).setIssuer('https://clerk.test').setExpirationTime('5m').sign(key);
+    expect((await call('/api/debts/x', { headers: { Authorization: `Bearer ${noSub}` } })).status).toBe(401);
+  });
+});
+
+describe('response headers', () => {
+  it('sends the security header set and no caching on every API response, errors included', async () => {
+    for (const res of [await call('/api/v1/health'), await call('/api/debts/x'), await call('/api/nothing-here')]) {
+      expect(res.headers.get('Strict-Transport-Security')).toContain('max-age=31536000');
+      expect(res.headers.get('X-Frame-Options')).toBe('DENY');
+      expect(res.headers.get('X-Content-Type-Options')).toBe('nosniff');
+      expect(res.headers.get('Referrer-Policy')).toBe('strict-origin-when-cross-origin');
+      expect(res.headers.get('Cross-Origin-Resource-Policy')).toBe('same-origin');
+      expect(res.headers.get('Permissions-Policy')).toContain('microphone=()');
+      expect(res.headers.get('Content-Security-Policy')).toContain("default-src 'none'");
+      expect(res.headers.get('Cache-Control')).toBe('no-store');
+    }
+  });
+
+  it('health shows booleans and the allowed origin only', async () => {
+    const body = (await (await call('/api/v1/health')).json()) as Record<string, unknown>;
+    expect(Object.keys(body).sort()).toEqual(['auth', 'database', 'ok', 'origin', 'usageOk', 'worker']);
+    expect(Object.values(body).filter((v) => typeof v !== 'boolean')).toEqual(['https://app.test']);
   });
 });

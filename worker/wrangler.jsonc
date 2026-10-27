@@ -3,18 +3,35 @@
   "name": "gylio-api",
   "main": "src/index.ts",
   "compatibility_date": "2026-10-01",
+  // Explicit, because workers_dev defaults to true when no routes are set and would leave a public copy at workers.dev.
+  "workers_dev": false,
+  "preview_urls": false,
+  // One origin: the site and the API both live at https://gylio.app. Only the apex is routed here;
+  // www and gylio.dev are redirect rules in the zone.
+  "routes": [{ "pattern": "gylio.app", "custom_domain": true }],
+  // The built site (npm run build at the repository root, with VITE_BASE_PATH=/). Only /api/* runs the Worker.
+  // single-page-application: the app uses browser-history routing, so a deep link must serve index.html, not a 404.
+  "assets": {
+    "directory": "../dist",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"],
+    "not_found_handling": "single-page-application"
+  },
+  "observability": { "enabled": true },
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "gylio",
-      "database_id": "REPLACE_WITH_ID_FROM_wrangler_d1_create",
+      "database_id": "TODO_REPLACE_WITH_D1_DATABASE_ID",
       "migrations_dir": "migrations"
     }
   ],
+  // Public values only. Local overrides (localhost) go in the untracked worker/.dev.vars.
   "vars": {
-    "CORS_ORIGINS": "http://localhost:5173",
+    // Empty fails closed: sign-in answers 503 and health reports auth: false until the Clerk issuer is set.
     "CLERK_ISSUER": "",
-    "CLERK_AUTHORIZED_PARTIES": "http://localhost:5173",
+    "CLERK_AUTHORIZED_PARTIES": "https://gylio.app",
+    "CORS_ORIGINS": "https://gylio.app",
     "MAX_RECORDS_PER_USER": "5000"
   }
 }
