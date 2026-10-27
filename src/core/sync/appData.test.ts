@@ -26,6 +26,7 @@ const ROWS: Record<EntityName, Row> = {
     calendarEventId: 7,
     focusPresetMinutes: 25,
     energyRequired: 'low',
+    estimateMin: 45,
     implementationIntention: 'After coffee, at my desk',
     timeLog: '[]',
     createdAt: '2026-10-20T09:00:00.000Z',
@@ -87,6 +88,16 @@ describe('what is sent for a row', () => {
     expect(toRemote('transactions', { ...ROWS.transactions, isNeed: 0, amount: '9.5' }, lookup())).toMatchObject({ isNeed: false, amount: 9.5 });
     const legacy = toRemote('tasks', { ...ROWS.tasks, subtasks: '["Plain step", "", {"label":"  "}, {"label":"Real","done":true}]' }, lookup());
     expect(legacy.subtasks).toEqual([{ label: 'Plain step', done: false }, { label: 'Real', done: true }]);
+  });
+
+  it('sends the estimate only when the server would accept it (a whole number of minutes, one to a day)', () => {
+    expect(toRemote('tasks', ROWS.tasks, lookup()).estimateMin).toBe(45);
+    for (const stored of [null, undefined, 0, -5, 1441, 2.5, 'abc']) {
+      const data = toRemote('tasks', { ...ROWS.tasks, estimateMin: stored }, lookup());
+      expect(data.estimateMin).toBeNull();
+      expect(validateRecord(SCHEMAS.tasks, data).errors).toEqual([]);
+    }
+    expect(toRemote('tasks', { ...ROWS.tasks, estimateMin: '30' }, lookup()).estimateMin).toBe(30);
   });
 
   it('survives damaged stored values without throwing', () => {

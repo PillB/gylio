@@ -22,7 +22,7 @@ export type LinkLookup = {
   localIdOf(table: EntityName, syncId: string): number | null;
 };
 
-type Kind = 'text' | 'number' | 'int' | 'flag' | 'list' | 'steps' | 'energy' | 'status' | 'link';
+type Kind = 'text' | 'number' | 'int' | 'minutes' | 'flag' | 'list' | 'steps' | 'energy' | 'status' | 'link';
 type Field = { name: string; kind: Kind; target?: EntityName };
 
 const field = (name: string, kind: Kind, target?: EntityName): Field => ({ name, kind, target });
@@ -37,6 +37,7 @@ const FIELDS: Record<EntityName, Field[]> = {
     field('calendarEventId', 'link', 'events'),
     field('focusPresetMinutes', 'int'),
     field('energyRequired', 'energy'),
+    field('estimateMin', 'minutes'),
     field('implementationIntention', 'text'),
     field('createdAt', 'text'),
   ],
@@ -85,6 +86,12 @@ const whole = (value: unknown): number | null => {
   return n !== null && Number.isInteger(n) ? n : null;
 };
 
+/** A guess or a time in minutes: a whole number from 1 to a day (the Worker's limit), otherwise nothing. */
+const minutes = (value: unknown): number | null => {
+  const n = whole(value);
+  return n !== null && n >= 1 && n <= 1440 ? n : null;
+};
+
 const parseList = (value: unknown): unknown[] => {
   let parsed = value;
   if (typeof value === 'string') {
@@ -114,6 +121,7 @@ const READ: Record<Exclude<Kind, 'link'>, (value: unknown) => unknown> = {
   text,
   number: finite,
   int: whole,
+  minutes,
   flag: (value) => value === true || value === 1 || value === '1',
   list: parseList,
   steps,
@@ -126,6 +134,7 @@ const WRITE: Record<Exclude<Kind, 'link'>, (value: unknown) => unknown> = {
   text: (value) => text(value),
   number: (value) => finite(value) ?? 0,
   int: whole,
+  minutes,
   flag: (value) => (value === true ? 1 : 0),
   list: (value) => JSON.stringify(Array.isArray(value) ? value : []),
   steps: (value) => JSON.stringify(Array.isArray(value) ? value : []),
