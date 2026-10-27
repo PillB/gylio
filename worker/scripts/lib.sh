@@ -185,6 +185,51 @@ guard_placeholders() {
   fi
 }
 
+file_mode() {
+  # GNU stat first, then the BSD/macOS form.
+  stat -c %a "$1" 2>/dev/null || stat -f %Lp "$1"
+}
+
+# The holder of the personal data (a person, until a company exists) is a private value: it lives in a
+# file on this Mac, is passed to this one deploy with --var, and is never committed. Sets HOLDER_VALUE,
+# or leaves it empty (sign-up stays closed) with the reason in HOLDER_NOTE.
+HOLDER_VALUE=""
+HOLDER_NOTE=""
+load_holder() {
+  local file="${GYLIO_HOLDER_FILE:-$HOME/.config/gylio/holder}" dir value
+  dir="$(dirname "$file")"
+  if [ ! -f "$file" ]; then
+    HOLDER_NOTE="No holder file at $file."
+    return 0
+  fi
+  [ "$(file_mode "$dir")" = "700" ] || die "$dir must be accessible only by you. Run: chmod 700 $dir"
+  [ "$(file_mode "$file")" = "600" ] || die "$file must be readable only by you. Run: chmod 600 $file"
+  value="$(head -n 1 "$file" | tr -d '\r')"
+  value="${value#"${value%%[![:space:]]*}"}"
+  value="${value%"${value##*[![:space:]]}"}"
+  if [ -z "$value" ]; then
+    HOLDER_NOTE="The holder file at $file is empty."
+    return 0
+  fi
+  if interactive; then
+    ask_yes "Holder on file: \"$value\". Use it for this deploy?" || die "Edit $file and run again."
+  fi
+  HOLDER_VALUE="$value"
+}
+
+# Sign-up opens only when the holder is named AND the built privacy page names the same holder.
+check_privacy_page() {
+  [ -n "$HOLDER_VALUE" ] || return 0
+  local page="$REPO_ROOT/dist/privacy.html"
+  if [ ! -f "$page" ]; then
+    HOLDER_NOTE="The built site has no privacy page (dist/privacy.html)."
+    HOLDER_VALUE=""
+  elif ! grep -qF -- "$HOLDER_VALUE" "$page"; then
+    HOLDER_NOTE="The built privacy page does not name the holder."
+    HOLDER_VALUE=""
+  fi
+}
+
 remind_roll_token() {
   say ""
   say "Last step: roll (regenerate) the deploy token in the Cloudflare dashboard and close this window."

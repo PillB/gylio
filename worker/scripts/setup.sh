@@ -26,9 +26,21 @@ main() {
   say "Applying database migrations..."
   (cd "$WORKER_DIR" && wrangler d1 migrations apply "$DATABASE_NAME" --remote) || die "Applying migrations failed."
   build_site
+  load_holder
+  check_privacy_page
+  if [ -n "$HOLDER_VALUE" ]; then
+    say "Sign-up: OPEN (holder named, privacy page checked)."
+  else
+    say "Sign-up: CLOSED. $HOLDER_NOTE People who already have an account keep working."
+  fi
   say "Deploying the Worker and the site..."
-  # Attached to the terminal, never piped, so wrangler's questions can be answered.
-  (cd "$WORKER_DIR" && wrangler deploy) || die "wrangler deploy failed."
+  # Attached to the terminal, never piped, so wrangler's questions can be answered. The holder goes in
+  # with --var for this deploy only; it is not written to any file in the repository.
+  if [ -n "$HOLDER_VALUE" ]; then
+    (cd "$WORKER_DIR" && wrangler deploy --var "HOLDER_NAME:$HOLDER_VALUE") || die "wrangler deploy failed."
+  else
+    (cd "$WORKER_DIR" && wrangler deploy) || die "wrangler deploy failed."
+  fi
   say ""
   say "Deployed. Now check, in a browser:"
   say "  https://gylio.app/api/v1/health      (ok, worker, database, auth, usageOk all true)"

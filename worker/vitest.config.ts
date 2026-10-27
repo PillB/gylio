@@ -22,6 +22,7 @@ export default defineConfig({
           CLERK_ISSUER: 'https://clerk.test',
           CLERK_AUTHORIZED_PARTIES: 'https://app.test',
           CORS_ORIGINS: 'https://app.test',
+          HOLDER_NAME: 'Titular de prueba',
           MAX_RECORDS_PER_USER: '5',
           // Flush the usage meter after every request and never cache it, so tests can read exact costs.
           USAGE_FLUSH_EVERY: '1',

@@ -9,7 +9,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from
 // The operator scripts run against a fake wrangler and a fake token-check API, with and without a real
 // pseudo-terminal (`script`), so the hidden prompt and the [Y/n] flows are exercised for real.
 // Minimum count: a test file that silently loses tests must fail, not shrink.
-const MIN_TESTS = 30;
+const MIN_TESTS = 40;
 let ran = 0;
 afterEach(() => {
   ran += 1;
@@ -74,6 +74,10 @@ if [ "\${FAKE_BUILD_BASE:-}" = "old" ]; then
 else
   echo '<script src="/assets/app.js"></script>' > dist/index.html
 fi
+case "\${FAKE_PRIVACY:-}" in
+  with) echo '<p>Responsable: Titular de prueba</p>' > dist/privacy.html ;;
+  without) echo '<p>Responsable: otra persona</p>' > dist/privacy.html ;;
+esac
 `;
 const FAKE_INSTALL = `#!/usr/bin/env bash
 echo "install in $(basename "$PWD")" >> "$FAKE_LOG"
@@ -352,6 +356,89 @@ describe('setup: guards', () => {
     const result = await run('setup.sh', { env: { ...creds, FAKE_FAIL: 'deploy' } });
     expect(result.code).toBe(1);
     expect(result.output.trim().endsWith('Nothing was deployed.')).toBe(true);
+  });
+});
+
+describe('holder of the personal data (sign-up stays closed until it is named)', () => {
+  const HOLDER = 'Titular de prueba';
+  const holderFile = () => path.join(root, '.config', 'gylio', 'holder');
+  const writeHolder = (content: string, fileMode = 0o600, dirMode = 0o700) => {
+    mkdirSync(path.dirname(holderFile()), { recursive: true });
+    writeFileSync(holderFile(), content);
+    chmodSync(holderFile(), fileMode);
+    chmodSync(path.dirname(holderFile()), dirMode);
+  };
+  const env = (extra: Record<string, string> = {}) => ({ ...creds, GYLIO_HOLDER_FILE: holderFile(), ...extra });
+
+  it('with no holder file: deploys with sign-up closed and says why', async () => {
+    const result = await run('setup.sh', { env: env({ FAKE_PRIVACY: 'with' }) });
+    expect(result.code).toBe(0);
+    expect(result.output).toContain('Sign-up: CLOSED. No holder file');
+    expect(wranglerCalls()).toContain('deploy');
+  });
+
+  it('passes the holder to this one deploy with --var when the privacy page names the same holder', async () => {
+    writeHolder(`${HOLDER}\n`);
+    const result = await run('setup.sh', { env: env({ FAKE_PRIVACY: 'with' }) });
+    expect(result.code).toBe(0);
+    expect(result.output).toContain('Sign-up: OPEN');
+    expect(wranglerCalls()).toContain(`deploy --var HOLDER_NAME:${HOLDER}`);
+  });
+
+  it('keeps sign-up closed when the built site has no privacy page', async () => {
+    writeHolder(`${HOLDER}\n`);
+    const result = await run('setup.sh', { env: env() });
+    expect(result.output).toContain('Sign-up: CLOSED. The built site has no privacy page');
+    expect(wranglerCalls()).toContain('deploy');
+    expect(wranglerCalls().join('\n')).not.toContain('--var');
+  });
+
+  it('keeps sign-up closed when the privacy page names someone else', async () => {
+    writeHolder(`${HOLDER}\n`);
+    const result = await run('setup.sh', { env: env({ FAKE_PRIVACY: 'without' }) });
+    expect(result.output).toContain('does not name the holder');
+    expect(wranglerCalls().join('\n')).not.toContain('--var');
+  });
+
+  it('treats an empty holder file as no holder', async () => {
+    writeHolder('\n');
+    const result = await run('setup.sh', { env: env({ FAKE_PRIVACY: 'with' }) });
+    expect(result.output).toContain('is empty');
+    expect(wranglerCalls().join('\n')).not.toContain('--var');
+  });
+
+  it('stops, without deploying, when the holder file or its folder is open to other people', async () => {
+    writeHolder(`${HOLDER}\n`, 0o644);
+    let result = await run('setup.sh', { env: env({ FAKE_PRIVACY: 'with' }) });
+    expect(result.code).toBe(1);
+    expect(result.output).toContain('chmod 600');
+    writeHolder(`${HOLDER}\n`, 0o600, 0o755);
+    result = await run('setup.sh', { env: env({ FAKE_PRIVACY: 'with' }) });
+    expect(result.code).toBe(1);
+    expect(result.output).toContain('chmod 700');
+    expect(wranglerCalls()).not.toContain('deploy');
+  });
+
+  it('on a terminal, asks to confirm the holder; "n" stops the deploy', async () => {
+    writeHolder(`${HOLDER}\n`);
+    const result = await run('setup.sh', { tty: true, env: env({ FAKE_PRIVACY: 'with' }), input: '\n\nn\n' });
+    expect(result.code).toBe(1);
+    expect(result.output).toContain(`Holder on file: "${HOLDER}"`);
+    expect(wranglerCalls()).not.toContain('deploy');
+  });
+
+  it('on a terminal, Enter confirms the holder and sign-up opens', async () => {
+    writeHolder(`${HOLDER}\n`);
+    const result = await run('setup.sh', { tty: true, env: env({ FAKE_PRIVACY: 'with' }), input: '\n\n\n' });
+    expect(result.code).toBe(0);
+    expect(wranglerCalls()).toContain(`deploy --var HOLDER_NAME:${HOLDER}`);
+  });
+
+  it('never writes the holder into the config or the headers: it exists only in the private file and the privacy page', async () => {
+    writeHolder(`${HOLDER}\n`);
+    await run('setup.sh', { env: env({ FAKE_PRIVACY: 'with' }) });
+    expect(readFileSync(path.join(root, 'worker', 'wrangler.jsonc'), 'utf8')).not.toContain(HOLDER);
+    expect(readFileSync(path.join(root, 'dist', '_headers'), 'utf8')).not.toContain(HOLDER);
   });
 });
 
