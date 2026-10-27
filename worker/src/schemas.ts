@@ -23,6 +23,9 @@ const subtasks = (value: unknown): string | null => {
   return bad ? 'Each subtask must include string label and boolean done' : null;
 };
 
+/** When the record was first made on a device; keeps lists in the same order on every device. */
+const createdAt: Rule = { type: 'string', nullable: true, custom: dateLike };
+
 export const SCHEMAS: Record<string, Schema> = {
   tasks: {
     title: { type: 'string', required: true, maxLength: 300 },
@@ -30,12 +33,14 @@ export const SCHEMAS: Record<string, Schema> = {
     status: { type: 'string', enum: ['pending', 'in_progress', 'done', 'completed'], nullable: true },
     subtasks: { type: 'array', nullable: true, custom: subtasks },
     plannedDate: { type: 'string', nullable: true, custom: dateLike },
-    calendarEventId: { type: 'integer', nullable: true },
+    // The id of the linked event as a record id. Devices number their rows on their own, so a number could not be shared.
+    calendarEventId: { type: 'string', nullable: true, maxLength: 64 },
     focusPresetMinutes: { type: 'integer', nullable: true, min: 0 },
     energyRequired: { type: 'string', enum: ['tiny', 'low', 'medium', 'high'], nullable: true },
     // The person's own guess, in minutes. Tracked time stays on the device for now (see docs/time-tracking-design.md).
     estimateMin: { type: 'integer', nullable: true, min: 1, max: 1440 },
     implementationIntention: { type: 'string', nullable: true, maxLength: 500 },
+    createdAt,
   },
   events: {
     title: { type: 'string', required: true, maxLength: 300 },
@@ -44,6 +49,8 @@ export const SCHEMAS: Record<string, Schema> = {
     endDate: {
       type: 'string',
       required: true,
+      // An event with no end time is allowed; when there is one it must come after the start.
+      nullable: true,
       custom: (value, data) =>
         dateLike(value) ??
         (dateLike(data.startDate) === null && Date.parse(value as string) <= Date.parse(data.startDate as string)
@@ -53,11 +60,13 @@ export const SCHEMAS: Record<string, Schema> = {
     location: { type: 'string', nullable: true, maxLength: 200 },
     taskId: { type: 'string', nullable: true, maxLength: 64 },
     reminderMinutesBefore: { type: 'integer', nullable: true, min: 0 },
+    createdAt,
   },
   budgets: {
     month: { type: 'string', required: true, maxLength: 7, custom: yearMonth },
     income: { type: 'array', nullable: true },
     categories: { type: 'array', nullable: true },
+    createdAt,
   },
   transactions: {
     budgetMonth: { type: 'string', required: true, maxLength: 7, custom: yearMonth },
@@ -66,6 +75,7 @@ export const SCHEMAS: Record<string, Schema> = {
     isNeed: { type: 'boolean', required: true },
     date: { type: 'string', required: true, custom: dateLike },
     note: { type: 'string', nullable: true, maxLength: 500 },
+    createdAt,
   },
   debts: {
     name: { type: 'string', required: true, maxLength: 200 },
@@ -74,6 +84,7 @@ export const SCHEMAS: Record<string, Schema> = {
     minPayment: { type: 'number', required: true, min: 0 },
     categoryName: { type: 'string', nullable: true, maxLength: 200 },
     dueDay: { type: 'integer', nullable: true, min: 1, max: 31 },
+    createdAt,
   },
 };
 

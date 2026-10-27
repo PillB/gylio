@@ -53,6 +53,14 @@ export type SyncMeta = {
 
 export type NewChange = Pick<OutboxEntry, 'entity' | 'id' | 'op' | 'data' | 'localUpdatedAt'>;
 
+/**
+ * Small named maps kept beside the outbox for the app-data bridge (src/core/sync/bridge.ts):
+ *  - `mirror`: record key -> fingerprint of the local row as the sync layer last saw it, so a row that changed
+ *    since can be recognised without anything having to announce the change;
+ *  - `links`: row key -> the other end of a task/event link that has not arrived on this device yet.
+ */
+export type BucketName = 'mirror' | 'links';
+
 /** Where the engine keeps its own state. IndexedDB in the browser, memory in tests. */
 export interface SyncStorage {
   listOutbox(): Promise<OutboxEntry[]>;
@@ -72,13 +80,34 @@ export interface SyncStorage {
   keepVersion(kept: KeptVersion): Promise<void>;
   listKept(): Promise<KeptVersion[]>;
   removeKept(key: string, keptAt: number): Promise<void>;
+  getBucket(name: BucketName): Promise<Record<string, string>>;
+  /** Sets the given keys; a null value removes the key. One transaction. */
+  patchBucket(name: BucketName, patch: Record<string, string | null>): Promise<void>;
+  /**
+   * Forgets what is known about the account (server versions, the change cursor, the bridge's maps) but keeps the
+   * waiting changes, the kept versions and the owner: this device's data is about to be sent to a different account.
+   */
+  forgetAccountState(): Promise<void>;
   /** Forgets everything (signing out and starting clean). */
   clear(): Promise<void>;
 }
 
 /** Applies server changes to the app's own database. The engine never touches the app database itself. */
 export interface SyncApplier {
+  /** Throws `ApplyDeferred` when nothing was applied because the person changed a record in the meantime. */
   applyRemote(records: RemoteRecord[]): Promise<void>;
+}
+
+/**
+ * The applier's way of saying "not now, and nothing is wrong": a record about to be overwritten was edited on
+ * this device after the last look at it. The engine looks again (which records that edit) a moment later, with
+ * no waiting period and no message to the person.
+ */
+export class ApplyDeferred extends Error {
+  constructor(message = 'A record was edited while server changes were arriving') {
+    super(message);
+    this.name = 'ApplyDeferred';
+  }
 }
 
 export type HttpResponse = {

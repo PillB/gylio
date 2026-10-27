@@ -1253,7 +1253,10 @@
       "tryRefused": "Intentarlos de nuevo",
       "kept_one": "Se conservó 1 versión anterior porque dos dispositivos cambiaron lo mismo.",
       "kept_other": "Se conservaron {{count}} versiones anteriores porque dos dispositivos cambiaron lo mismo.",
-      "economy": "La sincronización va despacio hoy para mantenerse dentro de los límites gratuitos."
+      "economy": "La sincronización va despacio hoy para mantenerse dentro de los límites gratuitos.",
+      "otherAccount": "Este dispositivo todavía guarda datos de otra cuenta, así que aún no se envía nada. No se ha perdido ni cambiado nada.",
+      "claim": "Añadir los datos de este dispositivo a esta cuenta",
+      "otherAccountHint": "Si prefieres mantenerlos separados, cierra sesión desde el menú del perfil y vuelve a entrar con la otra cuenta."
     }
   },
   "calendarSuggestedFocusHeading": "Bloques de enfoque sugeridos",

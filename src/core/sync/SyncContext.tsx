@@ -8,9 +8,11 @@ type SyncApi = {
   tryNow: () => void;
   /** Send again the changes the server refused. */
   retryRefused: () => void;
+  /** The person chose to add this device's data to the account that is signed in now. */
+  claim: () => void;
 };
 
-const INERT: SyncApi = { snapshot: null, tryNow: () => undefined, retryRefused: () => undefined };
+const INERT: SyncApi = { snapshot: null, tryNow: () => undefined, retryRefused: () => undefined, claim: () => undefined };
 
 const SyncContext = createContext<SyncApi>(INERT);
 
@@ -31,7 +33,11 @@ export function SyncProvider({ engine, children }: { engine: SyncEngine | null; 
     engine?.retryRefused().catch(() => undefined);
   }, [engine]);
 
-  const value = useMemo(() => ({ snapshot, tryNow, retryRefused }), [snapshot, tryNow, retryRefused]);
+  const claim = useCallback(() => {
+    engine?.claimForCurrentAccount().catch(() => undefined);
+  }, [engine]);
+
+  const value = useMemo(() => ({ snapshot, tryNow, retryRefused, claim }), [snapshot, tryNow, retryRefused, claim]);
   return <SyncContext.Provider value={value}>{children}</SyncContext.Provider>;
 }
 

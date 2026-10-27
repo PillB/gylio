@@ -1,5 +1,6 @@
 import { SyncEngine, type Auth, type EngineOptions } from './engine';
 import { MemoryStorage } from './memoryStorage';
+import { ApplyDeferred } from './types';
 import type { HttpRequest, HttpResponse, RemoteRecord, SyncApplier, Transport } from './types';
 
 // Test-only helpers: a clock the test moves by hand, and a small stand-in for the Worker that follows
@@ -168,8 +169,14 @@ export class FakeServer {
 export class FakeApplier implements SyncApplier {
   applied: RemoteRecord[][] = [];
   fail = false;
+  /** How many of the next calls say "an edit got in first, look again" before one is allowed to apply. */
+  deferTimes = 0;
   async applyRemote(records: RemoteRecord[]) {
     if (this.fail) throw new Error('local database is busy');
+    if (this.deferTimes > 0) {
+      this.deferTimes -= 1;
+      throw new ApplyDeferred();
+    }
     this.applied.push(records);
   }
   get records() {
@@ -179,7 +186,9 @@ export class FakeApplier implements SyncApplier {
 
 export type Rig = ReturnType<typeof makeRig>;
 
-export const makeRig = (options: { random?: () => number; auth?: Auth | null; storage?: MemoryStorage; tuning?: EngineOptions['tuning']; time?: FakeTime; server?: FakeServer } = {}) => {
+export const makeRig = (
+  options: { random?: () => number; auth?: Auth | null; storage?: MemoryStorage; tuning?: EngineOptions['tuning']; time?: FakeTime; server?: FakeServer; beforePass?: () => Promise<void> } = {},
+) => {
   const time = options.time ?? new FakeTime();
   const server = options.server ?? new FakeServer(time);
   const storage = options.storage ?? new MemoryStorage();
@@ -199,6 +208,7 @@ export const makeRig = (options: { random?: () => number; auth?: Auth | null; st
     clock: { now: time.now, random: options.random ?? (() => 0.5) },
     timers: { set: time.set, clear: time.clear },
     tuning: options.tuning,
+    beforePass: options.beforePass,
   });
   return { time, server, storage, applier, engine, state };
 };

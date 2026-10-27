@@ -8,6 +8,7 @@ import {
   type PauseReason,
   type Verdict,
 } from './policy';
+import { ApplyDeferred } from './types';
 import type { HttpRequest, HttpResponse, NewChange, OutboxEntry, RemoteRecord, SyncApplier, SyncStorage, Transport } from './types';
 
 /** What the person is told, in the order of how much attention each needs. Nothing here blocks the app. */
@@ -47,6 +48,11 @@ export type EngineOptions = {
   getAuth: (options: { forceRefresh: boolean }) => Promise<Auth | null>;
   clock?: { now: () => number; random: () => number };
   timers?: { set: (fn: () => void, ms: number) => unknown; clear: (handle: unknown) => void };
+  /**
+   * Runs at the start of every pass, once the signed-in person is known and owns this device's data, before
+   * anything is sent: the place to turn what changed in the app database into waiting changes.
+   */
+  beforePass?: () => Promise<void>;
   /** Runs `work` only if no other tab is syncing (Web Locks). Return `SKIPPED` when another tab holds it. */
   exclusive?: <T>(work: () => Promise<T>) => Promise<T | typeof SKIPPED>;
   tuning?: Partial<Tuning>;
@@ -172,7 +178,12 @@ export class SyncEngine {
 
   /** Called after every local save. The change is stored before this returns; sending comes later. */
   async recordChange(change: NewChange) {
-    await this.o.storage.putChange(change);
+    return this.recordChanges([change]);
+  }
+
+  /** Several changes at once (what a look at the app database found): stored together, then one wait before sending. */
+  async recordChanges(changes: NewChange[]) {
+    for (const change of changes) await this.o.storage.putChange(change);
     await this.refreshCounts();
     this.firstChangeAt ??= this.now();
     // Wait for a quiet moment so a burst of edits goes out as one change, but never longer than the cap.
@@ -215,6 +226,12 @@ export class SyncEngine {
     if (this.counts.pending > 0) this.kick('flush');
   }
 
+  /** Starts reading the server's changes from the beginning again, and skips none of them (the app database lost rows). */
+  async restartPull() {
+    await this.o.storage.setMeta({ cursor: 0 });
+    this.schedule(0, 'more');
+  }
+
   /** The signed-in person changed (signed in, signed out, token returned). */
   authChanged() {
     this.clearPause();
@@ -225,6 +242,8 @@ export class SyncEngine {
   async claimForCurrentAccount() {
     const auth = await this.o.getAuth({ forceRefresh: false });
     if (!auth) return;
+    // The server versions and notes belong to the other account: everything here is new to this one.
+    await this.o.storage.forgetAccountState();
     await this.o.storage.setMeta({ owner: auth.userId });
     this.authChanged();
   }
@@ -289,6 +308,14 @@ export class SyncEngine {
     this.lastAttemptAt = this.now();
     this.firstChangeAt = null;
     if (this.state.kind !== 'waiting') this.setState({ kind: 'syncing' });
+    await this.attempt();
+    if (this.rerun) {
+      this.rerun = false;
+      this.schedule(this.tuning.moreDelayMs, 'more');
+    }
+  }
+
+  private async attempt() {
     try {
       const outcome = await (this.o.exclusive ? this.o.exclusive(() => this.cycle()) : this.cycle());
       if (outcome === SKIPPED) {
@@ -296,16 +323,20 @@ export class SyncEngine {
         this.schedule(60_000, 'poll');
       }
     } catch (error) {
-      console.warn('Sync stopped unexpectedly; the changes are safe on this device', error instanceof Error ? error.message : error);
-      this.pause(this.unexplainedPause());
+      this.passFailed(error);
     } finally {
       this.running = false;
       await this.refreshCounts();
     }
-    if (this.rerun) {
-      this.rerun = false;
-      this.schedule(this.tuning.moreDelayMs, 'more');
+  }
+
+  private passFailed(error: unknown) {
+    if (error instanceof ApplyDeferred) {
+      this.rerun = true;
+      return;
     }
+    console.warn('Sync stopped unexpectedly; the changes are safe on this device', error instanceof Error ? error.message : error);
+    this.pause(this.unexplainedPause());
   }
 
   private clock(): Clock {
@@ -324,6 +355,7 @@ export class SyncEngine {
     this.auth = await this.o.getAuth({ forceRefresh: false });
     if (!this.auth) return this.setState({ kind: 'signed-out' });
     if (!(await this.ownerMatches(this.auth))) return this.setState({ kind: 'other-account' });
+    await this.o.beforePass?.();
     if ((await this.push()) === 'halt') return;
     if ((await this.pull()) === 'halt') return;
     this.succeeded();

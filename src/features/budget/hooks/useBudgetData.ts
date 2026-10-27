@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import useDB, { type Budget, type Debt, type Transaction } from '../../../core/hooks/useDB';
+import { useOnDataChanged } from '../../../core/hooks/useOnDataChanged';
 import { getDefaultBudgetMonth } from '../../../core/utils/date';
 
 type IncomeEntry = Budget['income'][number];
@@ -62,6 +63,18 @@ export const useBudgetData = () => {
       .catch(logFailure('load budget data'))
       .finally(() => setLoading(false));
   }, [getBudgets, getDebts, getTransactions, ready]);
+
+  // Changes that arrive from the account or another tab: reload the lists, and stay on the month being viewed.
+  useOnDataChanged(() => {
+    if (!ready) return;
+    Promise.all([getBudgets(), getTransactions(), getDebts()])
+      .then(([loadedBudgets, loadedTransactions, loadedDebts]) => {
+        setBudgets(loadedBudgets);
+        setTransactions(loadedTransactions);
+        setDebts(loadedDebts);
+      })
+      .catch(logFailure('refresh budget data'));
+  });
 
   // Typing an existing month switches to that budget.
   useEffect(() => {

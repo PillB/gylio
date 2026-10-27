@@ -563,6 +563,62 @@ describe('several tabs, and a hidden tab', () => {
   });
 });
 
+describe('working with the app database', () => {
+  it('lets the app bring its waiting edits in before each pass, but only for a signed-in owner', async () => {
+    let calls = 0;
+    const rig = makeRig({ beforePass: async () => void (calls += 1) });
+    await save(rig, 'a', 'x');
+    expect(calls).toBe(1);
+    await rig.time.advance(6 * MINUTE);
+    expect(calls).toBe(2);
+
+    calls = 0;
+    const out = makeRig({ auth: null, beforePass: async () => void (calls += 1) });
+    await out.engine.start();
+    await out.time.advance(10 * SECOND);
+    expect(calls).toBe(0);
+  });
+
+  it('does not touch the outbox of another person on this device (the choice comes first)', async () => {
+    let calls = 0;
+    const rig = makeRig({ beforePass: async () => void (calls += 1) });
+    await rig.storage.setMeta({ owner: 'user_someone_else' });
+    await rig.engine.start();
+    await rig.time.advance(10 * SECOND);
+    expect(rig.engine.snapshot().state.kind).toBe('other-account');
+    expect(calls).toBe(0);
+  });
+
+  it('when an edit got in before a server change could be applied, looks again a second later without any waiting message', async () => {
+    const rig = makeRig();
+    rig.applier.deferTimes = 2;
+    rig.server.otherDeviceSets('tasks', 'theirs', { title: 'From my phone' });
+    await rig.engine.start();
+    await rig.time.advance(500);
+    expect(rig.applier.records).toEqual([]);
+    expect(rig.engine.snapshot().state.kind).not.toBe('waiting');
+    await rig.time.advance(2 * SECOND);
+    expect(rig.applier.records.map((r) => r.id)).toEqual(['theirs']);
+    expect(rig.engine.snapshot().state).toEqual({ kind: 'idle' });
+  });
+
+  it('reads the server changes from the beginning again when asked, applying those it already knew by version only if the app forgot them', async () => {
+    const rig = makeRig();
+    rig.server.otherDeviceSets('tasks', 'one', { title: 'One' });
+    await rig.engine.start();
+    await rig.time.advance(5 * SECOND);
+    expect(rig.applier.records.map((r) => r.id)).toEqual(['one']);
+    await rig.engine.restartPull();
+    await rig.time.advance(5 * SECOND);
+    // Same version as before: skipped, unless the app cleared its note of that version.
+    expect(rig.applier.records.map((r) => r.id)).toEqual(['one']);
+    await rig.storage.setVersions({ 'tasks:one': 0 });
+    await rig.engine.restartPull();
+    await rig.time.advance(5 * SECOND);
+    expect(rig.applier.records.map((r) => r.id)).toEqual(['one', 'one']);
+  });
+});
+
 describe('stopping', () => {
   it('stops all timers and stays quiet', async () => {
     const rig = makeRig();

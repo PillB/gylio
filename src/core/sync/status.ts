@@ -43,6 +43,8 @@ export type SyncDetail = {
   kept: number;
   lastSyncedAt: number | null;
   canRetryNow: boolean;
+  /** This device holds another account's data: the person picks what happens to it. */
+  needsAccountChoice: boolean;
 };
 
 export const detailFor = (snapshot: SyncSnapshot): SyncDetail => {
@@ -53,6 +55,8 @@ export const detailFor = (snapshot: SyncSnapshot): SyncDetail => {
         return 'sync.detail.signedOut';
       case 'syncing':
         return 'sync.detail.syncing';
+      case 'other-account':
+        return 'sync.detail.otherAccount';
       case 'idle':
         return snapshot.pending > 0 ? 'sync.detail.soon' : 'sync.detail.upToDate';
       default:
@@ -66,5 +70,6 @@ export const detailFor = (snapshot: SyncSnapshot): SyncDetail => {
     kept: snapshot.kept,
     lastSyncedAt: snapshot.lastSyncedAt,
     canRetryNow: state.kind === 'waiting' || state.kind === 'closed' || (state.kind === 'idle' && snapshot.pending > 0),
+    needsAccountChoice: state.kind === 'other-account',
   };
 };

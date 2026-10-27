@@ -37,7 +37,11 @@ describe('legacySyncEnabled', () => {
   });
 
   it('is on only when a separate API origin is configured on purpose', () => {
-    expect(legacySyncEnabled('https://api.example.com')).toBe(true);
+    expect(legacySyncEnabled('https://api.example.com', false)).toBe(true);
+  });
+
+  it('is off in a build with account sync, even with an API origin, so one change is never sent twice', () => {
+    expect(legacySyncEnabled('https://api.example.com', true)).toBe(false);
   });
 
   it('does not touch the queue or the network when it is off, so the single-origin deploy never receives its calls', async () => {

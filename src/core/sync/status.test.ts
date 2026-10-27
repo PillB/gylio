@@ -52,6 +52,12 @@ describe('the account in Settings', () => {
     expect(detail).toMatchObject({ refused: 2, kept: 1, lastSyncedAt: 99 });
   });
 
+  it('explains the choice when this device holds another account\'s data, and offers nothing else then', () => {
+    const detail = detailFor(snap({ kind: 'other-account' }, { pending: 2 }));
+    expect(detail).toMatchObject({ headlineKey: 'sync.detail.otherAccount', needsAccountChoice: true, canRetryNow: false });
+    expect(detailFor(snap({ kind: 'idle' })).needsAccountChoice).toBe(false);
+  });
+
   it('offers "try now" only when something is waiting', () => {
     expect(detailFor(snap({ kind: 'waiting', reason: 'paused', retryAt: 1 })).canRetryNow).toBe(true);
     expect(detailFor(snap({ kind: 'closed' })).canRetryNow).toBe(true);

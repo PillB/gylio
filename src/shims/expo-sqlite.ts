@@ -4,6 +4,12 @@
 // by gylio: CREATE TABLE, INSERT (with ? params or literal values),
 // SELECT (WHERE col=? / ORDER BY), UPDATE SET … WHERE col=?, DELETE WHERE
 // col=?, PRAGMA table_info (no-op), CREATE INDEX (no-op), ALTER TABLE (no-op).
+//
+// Several tabs share one localStorage entry, so each transaction starts from whatever is stored now (a save in
+// another tab is never overwritten with an older copy), a transaction is written once however many statements it
+// holds, and a save is announced (src/core/dataEvents.ts) so the sync layer can notice it.
+
+import { announceDataChanged, announceLocalWrite } from '../core/dataEvents';
 
 export type SQLResultSetRowList = {
   length: number;
@@ -45,22 +51,47 @@ interface TableStore {
 const STORAGE_KEY = 'gylio_sqlite';
 
 let _store: Record<string, TableStore> = {};
+/** The stored text this tab last read or wrote: when storage holds something else, another tab saved. */
+let _lastRaw: string | null = null;
+/** Inside a transaction, saving waits until it ends. */
+let _depth = 0;
+let _dirty = false;
 
 function _loadStore() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) _store = JSON.parse(raw);
+    _lastRaw = raw;
+    _store = raw ? JSON.parse(raw) : {};
   } catch {
     _store = {};
   }
 }
 
-function _saveStore() {
+/** True when another tab saved since this tab last looked; the store is then read again. */
+function _refreshIfChanged(): boolean {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(_store));
+    if (localStorage.getItem(STORAGE_KEY) === _lastRaw) return false;
+  } catch {
+    return false;
+  }
+  _loadStore();
+  return true;
+}
+
+function _persist() {
+  try {
+    const raw = JSON.stringify(_store);
+    localStorage.setItem(STORAGE_KEY, raw);
+    _lastRaw = raw;
   } catch {
     // quota exceeded – silently continue
   }
+  announceLocalWrite();
+}
+
+function _saveStore() {
+  if (_depth > 0) _dirty = true;
+  else _persist();
 }
 
 function _getTable(name: string): TableStore {
@@ -272,10 +303,33 @@ const _createTransaction = (): SQLTransaction => ({
   },
 });
 
+/** One save for the whole transaction, even when it fails half way (there is no rollback, as before). */
+function _runTransaction(callback: (tx: SQLTransaction) => void) {
+  if (_depth === 0) _refreshIfChanged();
+  _depth += 1;
+  try {
+    callback(_createTransaction());
+  } finally {
+    _depth -= 1;
+    if (_depth === 0 && _dirty) {
+      _dirty = false;
+      _persist();
+    }
+  }
+}
+
+// Another tab saved: take its copy now, and tell the screens, which still show the older one.
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (event) => {
+    if (event.key !== STORAGE_KEY && event.key !== null) return;
+    if (_refreshIfChanged()) announceDataChanged();
+  });
+}
+
 export const openDatabase = (_name: string): SQLiteDatabase => ({
   transaction(callback, onError, onSuccess) {
     try {
-      callback(_createTransaction());
+      _runTransaction(callback);
       onSuccess?.();
     } catch (error) {
       onError?.(error as Error);

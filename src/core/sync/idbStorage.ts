@@ -1,5 +1,5 @@
 import { changeKey, coalesce } from './memoryStorage';
-import type { KeptVersion, NewChange, OutboxEntry, SyncMeta, SyncStorage } from './types';
+import type { BucketName, KeptVersion, NewChange, OutboxEntry, SyncMeta, SyncStorage } from './types';
 
 const DB_NAME = 'gylio-sync-v2';
 const DB_VERSION = 1;
@@ -7,6 +7,8 @@ const OUTBOX = 'outbox';
 const VERSIONS = 'versions';
 const META = 'meta';
 const KEPT = 'kept';
+const BUCKETS: Record<BucketName, string> = { mirror: 'bucket-mirror', links: 'bucket-links' };
+const ALL_BUCKETS = Object.values(BUCKETS);
 const META_KEY = 'state';
 
 const DEFAULT_META: SyncMeta = { cursor: 0, owner: null };
@@ -33,13 +35,14 @@ const open = (factory: IDBFactory): Promise<IDBDatabase> =>
       db.createObjectStore(VERSIONS);
       db.createObjectStore(META);
       db.createObjectStore(KEPT, { keyPath: ['key', 'keptAt'] });
+      ALL_BUCKETS.forEach((name) => db.createObjectStore(name));
     };
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
   });
 
 /**
- * The outbox, the known server versions and the change cursor, in a database of their own. Each method
+ * The outbox, the known server versions, the change cursor and the bridge's small maps, in a database of their own. Each method
  * is one transaction, so a crash or a closed tab never leaves half a change behind.
  */
 export class IdbStorage implements SyncStorage {
@@ -153,9 +156,36 @@ export class IdbStorage implements SyncStorage {
     });
   }
 
+  /** One object store per map, one record per entry, so a patch writes only what changed. */
+  getBucket(name: BucketName) {
+    return this.tx([BUCKETS[name]], 'readonly', async (tx) => {
+      const store = tx.objectStore(BUCKETS[name]);
+      const [keys, values] = await Promise.all([wrap(store.getAllKeys()), wrap(store.getAll())]);
+      return Object.fromEntries(keys.map((key, i) => [String(key), values[i] as string]));
+    });
+  }
+
+  patchBucket(name: BucketName, patch: Record<string, string | null>) {
+    return this.tx([BUCKETS[name]], 'readwrite', async (tx) => {
+      const store = tx.objectStore(BUCKETS[name]);
+      await Promise.all(Object.entries(patch).map(([key, value]) => (value === null ? wrap(store.delete(key)) : wrap(store.put(value, key)))));
+    });
+  }
+
+  forgetAccountState() {
+    const stores = [VERSIONS, META, ...ALL_BUCKETS];
+    return this.tx(stores, 'readwrite', async (tx) => {
+      const meta = tx.objectStore(META);
+      const current = ((await wrap(meta.get(META_KEY))) as Partial<SyncMeta> | undefined) ?? {};
+      await Promise.all([VERSIONS, ...ALL_BUCKETS].map((name) => wrap(tx.objectStore(name).clear())));
+      await wrap(meta.put({ ...DEFAULT_META, ...current, cursor: 0 }, META_KEY));
+    });
+  }
+
   clear() {
-    return this.tx([OUTBOX, VERSIONS, META, KEPT], 'readwrite', async (tx) => {
-      await Promise.all([OUTBOX, VERSIONS, META, KEPT].map((name) => wrap(tx.objectStore(name).clear())));
+    const stores = [OUTBOX, VERSIONS, META, KEPT, ...ALL_BUCKETS];
+    return this.tx(stores, 'readwrite', async (tx) => {
+      await Promise.all(stores.map((name) => wrap(tx.objectStore(name).clear())));
     });
   }
 }

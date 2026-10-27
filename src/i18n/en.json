@@ -1253,7 +1253,10 @@
       "tryRefused": "Try those again",
       "kept_one": "1 earlier version was kept after two devices changed the same thing.",
       "kept_other": "{{count}} earlier versions were kept after two devices changed the same thing.",
-      "economy": "Sync is running gently today to stay inside the free limits."
+      "economy": "Sync is running gently today to stay inside the free limits.",
+      "otherAccount": "This device still holds data from a different account, so nothing is sent yet. Nothing has been lost or changed.",
+      "claim": "Add this device's data to this account",
+      "otherAccountHint": "If you would rather keep them apart, sign out from the profile menu and sign back in to the other account."
     }
   },
   "calendarSuggestedFocusHeading": "Suggested focus windows",

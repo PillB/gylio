@@ -27,6 +27,8 @@ import TintLayer from './components/TintLayer.jsx';
 import useDB from './core/hooks/useDB';
 import { getLocalDateKey } from './core/hooks/useClock';
 import useBackgroundSync from './core/hooks/useBackgroundSync';
+import { SyncRoot } from './core/sync/SyncRoot';
+import { SyncStatusChip } from './components/SyncStatus';
 import SignInPage from './features/auth/SignInPage';
 import SignUpPage from './features/auth/SignUpPage';
 import { AuthProvider } from './core/context/AuthContext';
@@ -239,6 +241,7 @@ function AppLayout({ clerkEnabled }) {
         }}
       >
         <AppHeader clerkEnabled={clerkEnabled} />
+        <SyncStatusChip />
         <Outlet />
       </div>
       <GuidedTourOverlay />
@@ -480,7 +483,9 @@ function AppRouterAuthed() {
   if (!hydrated) return null;
   return (
     <AuthProvider clerkEnabled={true}>
-      <RouterProvider router={router} future={{ v7_startTransition: true }} />
+      <SyncRoot>
+        <RouterProvider router={router} future={{ v7_startTransition: true }} />
+      </SyncRoot>
     </AuthProvider>
   );
 }

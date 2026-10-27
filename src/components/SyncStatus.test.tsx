@@ -19,7 +19,7 @@ const base: SyncSnapshot = { state: { kind: 'idle' }, pending: 0, refused: 0, ke
 /** A stand-in engine the test can push new snapshots through. */
 const fakeEngine = (initial: SyncSnapshot) => {
   let listener: ((s: SyncSnapshot) => void) | null = null;
-  const calls = { kick: [] as string[], retryRefused: 0 };
+  const calls = { kick: [] as string[], retryRefused: 0, claim: 0 };
   const engine = {
     snapshot: () => initial,
     subscribe: (fn: (s: SyncSnapshot) => void) => {
@@ -29,6 +29,9 @@ const fakeEngine = (initial: SyncSnapshot) => {
     kick: (reason: string) => calls.kick.push(reason),
     retryRefused: async () => {
       calls.retryRefused += 1;
+    },
+    claimForCurrentAccount: async () => {
+      calls.claim += 1;
     },
   } as unknown as SyncEngine;
   return { engine, calls, push: (s: SyncSnapshot) => act(() => listener?.(s)) };
@@ -136,6 +139,23 @@ describe('SyncSettingsSection', () => {
     expect(screen.getByText('sync.detail.economy')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'sync.detail.tryRefused' }));
     expect(rig.calls.retryRefused).toBe(1);
+  });
+
+  it('when this device holds another account\'s data, explains it and offers to add that data to this account', () => {
+    const rig = fakeEngine({ ...base, state: { kind: 'other-account' }, pending: 4 });
+    render(<SyncProvider engine={rig.engine}><SyncSettingsSection /></SyncProvider>);
+    expect(screen.getByText('sync.detail.otherAccount')).toBeTruthy();
+    expect(screen.getByText('sync.detail.otherAccountHint')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'sync.detail.tryNow' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'sync.detail.claim' }));
+    expect(rig.calls.claim).toBe(1);
+  });
+
+  it('shows no account choice when there is none to make', () => {
+    const rig = fakeEngine({ ...base, state: waiting('paused') });
+    render(<SyncProvider engine={rig.engine}><SyncSettingsSection /></SyncProvider>);
+    expect(screen.queryByRole('button', { name: 'sync.detail.claim' })).toBeNull();
+    expect(screen.queryByText('sync.detail.otherAccountHint')).toBeNull();
   });
 
   it('every button is a real, keyboard-reachable button at least 44px tall', () => {

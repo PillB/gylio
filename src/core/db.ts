@@ -121,6 +121,9 @@ const INDEX_CREATION_STATEMENTS = [
 
 type ColumnDefinition = { name: string; definition: string };
 
+/** The id a row has on every device once it syncs (src/core/sync/appData.ts). Empty until the row is first looked at by sync. */
+const SYNC_ID_COLUMN: ColumnDefinition = { name: 'syncId', definition: 'TEXT' };
+
 const ensureColumns = (tx: SQLite.SQLTransaction, table: string, columns: ColumnDefinition[]) => {
   tx.executeSql(
     `PRAGMA table_info(${table});`,
@@ -164,17 +167,20 @@ export const runMigrations = (): Promise<void> =>
           { name: 'implementationIntention', definition: 'TEXT' },
           { name: 'timeLog', definition: "TEXT NOT NULL DEFAULT '[]'" },
           { name: 'estimateMin', definition: 'INTEGER' },
+          SYNC_ID_COLUMN,
         ]);
 
         ensureColumns(tx, 'events', [
           { name: 'taskId', definition: 'INTEGER' },
           { name: 'reminderMinutesBefore', definition: 'INTEGER' },
+          SYNC_ID_COLUMN,
         ]);
 
         ensureColumns(tx, 'budgets', [
           { name: 'month', definition: "TEXT NOT NULL DEFAULT ''" },
           { name: 'income', definition: "TEXT NOT NULL DEFAULT '[]'" },
           { name: 'categories', definition: "TEXT NOT NULL DEFAULT '[]'" },
+          SYNC_ID_COLUMN,
         ]);
 
         ensureColumns(tx, 'transactions', [
@@ -184,6 +190,7 @@ export const runMigrations = (): Promise<void> =>
           { name: 'isNeed', definition: 'INTEGER NOT NULL DEFAULT 0' },
           { name: 'date', definition: "TEXT NOT NULL DEFAULT ''" },
           { name: 'note', definition: 'TEXT' },
+          SYNC_ID_COLUMN,
         ]);
 
         ensureColumns(tx, 'debts', [
@@ -193,6 +200,7 @@ export const runMigrations = (): Promise<void> =>
           { name: 'minPayment', definition: 'REAL NOT NULL DEFAULT 0' },
           { name: 'categoryName', definition: 'TEXT' },
           { name: 'dueDay', definition: 'INTEGER' },
+          SYNC_ID_COLUMN,
         ]);
 
         ensureColumns(tx, 'routines', [

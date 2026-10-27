@@ -1,4 +1,4 @@
-import type { KeptVersion, NewChange, OutboxEntry, SyncMeta, SyncStorage } from './types';
+import type { BucketName, KeptVersion, NewChange, OutboxEntry, SyncMeta, SyncStorage } from './types';
 
 export const changeKey = (entity: string, id: string) => `${entity}:${id}`;
 
@@ -20,6 +20,7 @@ export class MemoryStorage implements SyncStorage {
   private versions = new Map<string, number>();
   private meta: SyncMeta = { cursor: 0, owner: null };
   private kept: KeptVersion[] = [];
+  private buckets: Record<BucketName, Map<string, string>> = { mirror: new Map(), links: new Map() };
 
   async listOutbox() {
     return [...this.outbox.values()].sort((a, b) => a.localUpdatedAt - b.localUpdatedAt || a.key.localeCompare(b.key));
@@ -81,7 +82,27 @@ export class MemoryStorage implements SyncStorage {
     this.kept = this.kept.filter((k) => !(k.key === key && k.keptAt === keptAt));
   }
 
+  async getBucket(name: BucketName) {
+    return Object.fromEntries(this.buckets[name]);
+  }
+
+  async patchBucket(name: BucketName, patch: Record<string, string | null>) {
+    for (const [key, value] of Object.entries(patch)) {
+      if (value === null) this.buckets[name].delete(key);
+      else this.buckets[name].set(key, value);
+    }
+  }
+
+  async forgetAccountState() {
+    this.versions.clear();
+    this.buckets.mirror.clear();
+    this.buckets.links.clear();
+    this.meta = { ...this.meta, cursor: 0 };
+  }
+
   async clear() {
+    this.buckets.mirror.clear();
+    this.buckets.links.clear();
     this.outbox.clear();
     this.versions.clear();
     this.meta = { cursor: 0, owner: null };

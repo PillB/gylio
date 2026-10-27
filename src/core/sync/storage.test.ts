@@ -96,8 +96,38 @@ describe.each<[string, () => SyncStorage]>([
     expect((await store.listKept()).map((k) => k.keptAt)).toEqual([20]);
   });
 
+  it('keeps the bridge maps apart by name, and a null removes a key', async () => {
+    const store = make();
+    expect(await store.getBucket('mirror')).toEqual({});
+    await store.patchBucket('mirror', { 'tasks:a': 'h1', 'tasks:b': 'h2' });
+    await store.patchBucket('links', { 'tasks:a': 'events:e1' });
+    expect(await store.getBucket('mirror')).toEqual({ 'tasks:a': 'h1', 'tasks:b': 'h2' });
+    expect(await store.getBucket('links')).toEqual({ 'tasks:a': 'events:e1' });
+    await store.patchBucket('mirror', { 'tasks:a': null, 'tasks:b': 'h3' });
+    expect(await store.getBucket('mirror')).toEqual({ 'tasks:b': 'h3' });
+  });
+
+  it('can forget what it knows about the account and keep this device\'s own changes', async () => {
+    const store = make();
+    await store.putChange(task('a', 'unsent'));
+    await store.setVersions({ 'tasks:a': 4 });
+    await store.setMeta({ cursor: 30, owner: 'user_old' });
+    await store.patchBucket('mirror', { 'tasks:a': 'h' });
+    await store.patchBucket('links', { 'tasks:a': 'events:e' });
+    await store.keepVersion({ key: 'tasks:a', entity: 'tasks', id: 'a', op: 'put', data: null, localUpdatedAt: 1, keptAt: 1, reason: 'remote-deleted' });
+    await store.forgetAccountState();
+    expect(await store.getVersion('tasks:a')).toBe(0);
+    expect(await store.getBucket('mirror')).toEqual({});
+    expect(await store.getBucket('links')).toEqual({});
+    expect(await store.getMeta()).toEqual({ cursor: 0, owner: 'user_old' });
+    expect(await store.listOutbox()).toHaveLength(1);
+    expect(await store.listKept()).toHaveLength(1);
+  });
+
   it('forgets everything on clear', async () => {
     const store = make();
+    await store.patchBucket('mirror', { 'tasks:a': 'h' });
+    await store.patchBucket('links', { 'tasks:a': 'events:e' });
     await store.putChange(task('a', 'one'));
     await store.setVersions({ 'tasks:a': 2 });
     await store.setMeta({ cursor: 9, owner: 'u' });
@@ -107,6 +137,8 @@ describe.each<[string, () => SyncStorage]>([
     expect(await store.getVersion('tasks:a')).toBe(0);
     expect(await store.getMeta()).toEqual({ cursor: 0, owner: null });
     expect(await store.listKept()).toEqual([]);
+    expect(await store.getBucket('mirror')).toEqual({});
+    expect(await store.getBucket('links')).toEqual({});
   });
 
   it('survives many quick edits to the same record without growing', async () => {

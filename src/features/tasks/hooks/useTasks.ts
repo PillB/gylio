@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import useDB, { type Subtask, type Task } from '../../../core/hooks/useDB';
 import useAccessibility from '../../../core/hooks/useAccessibility';
 import useRewards from '../../../core/hooks/useRewards';
+import { useOnDataChanged } from '../../../core/hooks/useOnDataChanged';
 
 export type ChecklistTask = Task & {
   steps: string[];
@@ -110,6 +111,12 @@ const useTasks = (): UseTasksResult => {
   useEffect(() => {
     refreshTasks();
   }, [refreshTasks]);
+
+  // Changes that arrive from the account or another tab: reload without the loading state.
+  useOnDataChanged(() => {
+    if (!ready) return;
+    getTasks().then(setTasks).catch((error) => console.error('Failed to refresh tasks', error));
+  });
 
   useEffect(
     () => () => {
