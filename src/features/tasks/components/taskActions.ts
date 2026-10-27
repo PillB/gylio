@@ -1,5 +1,6 @@
 import type { ChecklistTask } from '../hooks/useTasks';
 import type { Task } from '../../../core/hooks/useDB';
+import type { EstimateSample } from '../../planning/calibrateEstimate';
 
 /** What a rendered task can do, supplied by TaskList. */
 export type TaskActions = {
@@ -15,6 +16,8 @@ export type TaskActions = {
   activeTimerTaskId: number | null;
   focusMinutes: number;
   formatDate: (date: Date) => string;
+  /** Past estimate/actual pairs, for the personal buffer suggestion in the edit form. */
+  estimateSamples?: EstimateSample[];
 };
 
 export type { ChecklistTask };

@@ -27,6 +27,7 @@ type UseTasksResult = {
     calendarEventId?: number | null;
     energyRequired?: Task['energyRequired'];
     implementationIntention?: string | null;
+    estimateMin?: number | null;
   }) => Promise<Task | null>;
   updateTaskDetails: (taskId: number, updates: Partial<Omit<Task, 'id'>>) => Promise<Task | null>;
   removeTask: (taskId: number) => Promise<boolean>;
@@ -163,6 +164,7 @@ const useTasks = (): UseTasksResult => {
       calendarEventId = null,
       energyRequired = 'medium',
       implementationIntention = null,
+      ...extra
     }: {
       title: string;
       durationMinutes?: number;
@@ -171,6 +173,7 @@ const useTasks = (): UseTasksResult => {
       calendarEventId?: number | null;
       energyRequired?: Task['energyRequired'];
       implementationIntention?: string | null;
+      estimateMin?: number | null;
     }) => {
       const trimmed = title.trim();
       if (!trimmed) return null;
@@ -180,7 +183,7 @@ const useTasks = (): UseTasksResult => {
         : DEFAULT_DURATION;
 
       try {
-        const created = await insertTask(trimmed, 'pending', subtasks, plannedDate, calendarEventId, normalizedDuration, energyRequired, implementationIntention);
+        const created = await insertTask(trimmed, 'pending', subtasks, plannedDate, calendarEventId, normalizedDuration, energyRequired, implementationIntention, extra.estimateMin);
         setTasks((prev) => [created, ...prev]);
         await refreshTasks();
         return created;

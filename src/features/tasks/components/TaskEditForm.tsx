@@ -4,6 +4,7 @@ import { useTheme } from '../../../core/context/ThemeContext';
 import type { Subtask } from '../../../core/hooks/useDB';
 import type { EnergyLevel } from '../utils/energyTone';
 import { createEmptySubtasks, getSubtaskError, normalizeSubtasks } from '../utils/taskForm';
+import EstimatePicker from '../../timetracking/components/EstimatePicker';
 import EnergyPicker from './EnergyPicker';
 import SubtaskEditor from './SubtaskEditor';
 import TaskHelp from './TaskHelp';
@@ -20,6 +21,7 @@ const TaskEditForm: React.FC<Props> = ({ task, actions }) => {
   const [plannedDate, setPlannedDate] = useState(task.plannedDate ?? '');
   const [subtasks, setSubtasks] = useState<Subtask[]>(task.subtasks.length ? task.subtasks : createEmptySubtasks());
   const [energy, setEnergy] = useState<EnergyLevel>(task.energyRequired ?? 'medium');
+  const [estimateMin, setEstimateMin] = useState<number | null>(task.estimateMin ?? null);
   const [touched, setTouched] = useState({ title: false, subtasks: false });
   const [error, setError] = useState<string | null>(null);
 
@@ -40,6 +42,7 @@ const TaskEditForm: React.FC<Props> = ({ task, actions }) => {
       plannedDate: plannedDate || null,
       subtasks: normalizeSubtasks(subtasks),
       energyRequired: energy,
+      estimateMin,
       implementationIntention: task.implementationIntention?.trim() || null,
     });
     if (saved) setError(null);
@@ -80,6 +83,7 @@ const TaskEditForm: React.FC<Props> = ({ task, actions }) => {
       <div>
         <EnergyPicker value={energy} onChange={setEnergy} />
       </div>
+      <EstimatePicker idPrefix={`edit-task-${task.id}-estimate`} value={estimateMin} onChange={setEstimateMin} samples={actions.estimateSamples} />
       <SubtaskEditor
         subtasks={subtasks}
         onChange={setSubtasks}

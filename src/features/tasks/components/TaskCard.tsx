@@ -5,6 +5,7 @@ import { useTheme } from '../../../core/context/ThemeContext';
 import { energyTone } from '../utils/energyTone';
 import { parsePlannedDate } from '../utils/taskForm';
 import { energyLabelKey, focusStats, formatFocusTime } from '../utils/taskViews';
+import { ActualPrompt, TimeLogEditor, TrackButton } from '../../timetracking/components/TrackedTimeControls';
 import TaskTimerInline from './TaskTimerInline';
 import type { ChecklistTask, TaskActions } from './taskActions';
 import { controlStyle } from './taskStyles';
@@ -192,6 +193,7 @@ const TaskCard: React.FC<Props> = ({ task, actions }) => {
           </p>
         ) : null}
       </div>
+      <TrackButton task={task} />
       <TimerRow
         task={task}
         actions={actions}
@@ -206,6 +208,8 @@ const TaskCard: React.FC<Props> = ({ task, actions }) => {
           </>
         }
       />
+      <ActualPrompt task={task} />
+      <TimeLogEditor task={task} />
       <StepProgress task={task} />
       <SubtaskChecklist task={task} actions={actions} />
     </div>

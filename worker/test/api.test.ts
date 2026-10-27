@@ -90,6 +90,15 @@ describe('records', () => {
     expect((await put('/api/tasks/t2', { title: 'x', status: 'nonsense' }, 'user_t')).status).toBe(400);
   });
 
+  it('stores the person’s own time estimate on a task and rejects nonsense values', async () => {
+    expect((await put('/api/tasks/est1', { title: 'Write report', estimateMin: 30 }, 'user_est')).status).toBe(201);
+    const saved = (await (await call('/api/tasks/est1', { as: 'user_est' })).json()) as { data: { estimateMin: number } };
+    expect(saved.data.estimateMin).toBe(30);
+    for (const bad of [0, -5, 1441, 2.5, '30']) {
+      expect((await put('/api/tasks/est2', { title: 'x', estimateMin: bad }, 'user_est')).status).toBe(400);
+    }
+  });
+
   it('rejects an event that ends before it starts', async () => {
     const res = await put('/api/events/e1', { title: 'x', startDate: '2026-01-02T10:00:00Z', endDate: '2026-01-02T09:00:00Z' });
     expect(res.status).toBe(400);
