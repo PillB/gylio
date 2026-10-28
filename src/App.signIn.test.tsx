@@ -25,7 +25,6 @@ vi.mock('@clerk/clerk-react', () => ({
   SignIn: () => <p>sign-in form</p>,
   SignUp: () => <p>sign-up form</p>,
 }));
-vi.mock('react-native-paper', () => ({ Provider: ({ children }: { children: React.ReactNode }) => <>{children}</> }));
 
 import App, { serverOnlyRoutes } from './App.jsx';
 import { Navigate } from 'react-router-dom';

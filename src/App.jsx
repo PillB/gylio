@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Provider as PaperProvider } from 'react-native-paper';
 import {
   Navigate,
   Outlet,
@@ -553,7 +552,6 @@ function AppRouterNoAuth() {
 let appOpenTracked = false;
 
 export default function App({ clerkEnabled = false }) {
-  const { paperTheme } = useTheme();
   useBackgroundSync();
 
   React.useEffect(() => {
@@ -567,17 +565,5 @@ export default function App({ clerkEnabled = false }) {
     return startAnalyticsUpload();
   }, [clerkEnabled]);
 
-  if (!clerkEnabled) {
-    return (
-      <PaperProvider theme={paperTheme}>
-        <AppRouterNoAuth />
-      </PaperProvider>
-    );
-  }
-
-  return (
-    <PaperProvider theme={paperTheme}>
-      <AppRouterAuthed />
-    </PaperProvider>
-  );
+  return clerkEnabled ? <AppRouterAuthed /> : <AppRouterNoAuth />;
 }

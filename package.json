@@ -33,7 +33,6 @@
     "react-dom": "18.2.0",
     "react-i18next": "^13.5.0",
     "react-native": "^0.73.11",
-    "react-native-paper": "^5.15.3",
     "react-native-web": "^0.21.2",
     "react-router-dom": "^6.30.6"
   },

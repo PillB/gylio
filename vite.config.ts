@@ -104,7 +104,7 @@ export default defineConfig(({ mode }) => {
           ) {
             return 'vendor-react';
           }
-          if (id.includes('node_modules/react-native-web') || id.includes('node_modules/react-native-paper')) {
+          if (id.includes('node_modules/react-native-web')) {
             return 'vendor-rnw';
           }
           if (id.includes('node_modules/react-router-dom') || id.includes('node_modules/react-router/')) {

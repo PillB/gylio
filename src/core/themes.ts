@@ -385,22 +385,3 @@ export const readableTextOn = (background: string): string =>
   contrastRatio(READABLE_LIGHT_TEXT, background) >= contrastRatio(READABLE_DARK_TEXT, background)
     ? READABLE_LIGHT_TEXT
     : READABLE_DARK_TEXT;
-
-export const mapToPaperTheme = (theme: ThemeTokens) => ({
-  dark: theme.mode === 'dark',
-  roundness: theme.shape.radiusMd,
-  colors: {
-    primary: theme.colors.primary,
-    background: theme.colors.background,
-    surface: theme.colors.surface,
-    accent: theme.colors.accent,
-    text: theme.colors.text,
-    placeholder: theme.colors.muted,
-    disabled: theme.colors.muted,
-    backdrop: theme.colors.border,
-    notification: theme.colors.focus,
-    border: theme.colors.border,
-    outline: theme.colors.border,
-    onSurface: theme.colors.text,
-  },
-});
