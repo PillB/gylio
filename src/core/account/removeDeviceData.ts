@@ -12,7 +12,7 @@
  * person's to remove.
  */
 import { Events, track } from '../analytics';
-import { syncDatabaseName } from '../sync/idbStorage';
+import { resolveSyncDatabase, syncDatabaseName } from '../sync/idbStorage';
 import { removeQueuedFor } from '../utils/offlineSync';
 import { ARCHIVE_PREFIX, OWNER_KEY, OWNER_SIGNED_IN_KEY, personalKeys } from './deviceOwner';
 
@@ -45,7 +45,11 @@ type Places = { storage: Storage; session: Storage | null; factory: IDBFactory |
 const removeDatabases = async ({ storage, factory }: Places, userId: string): Promise<void> => {
   // Another tab of this person's may still have it open; the delete then waits until that tab goes, which it does
   // at once, because the owner mark it watches was just removed (AccountDataGate reloads it).
-  if (factory) await deleteDatabase(factory, syncDatabaseName(userId));
+  // Also the older, unnamed one when it was synced for this account (resolveSyncDatabase).
+  if (factory) {
+    const names = new Set([syncDatabaseName(userId), await resolveSyncDatabase(userId, factory)]);
+    await Promise.all([...names].map((name) => deleteDatabase(factory, name)));
+  }
   await removeQueuedFor(userId);
   storage.removeItem(REMOVE_DATABASES_KEY);
 };

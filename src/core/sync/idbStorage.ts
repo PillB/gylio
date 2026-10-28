@@ -48,6 +48,43 @@ const open = (factory: IDBFactory, name: string): Promise<IDBDatabase> =>
     request.onerror = () => reject(request.error);
   });
 
+/** The owner recorded in an existing database, without creating it when there is none. */
+const recordedOwner = (factory: IDBFactory, name: string): Promise<string | null> =>
+  new Promise((resolve) => {
+    const request = factory.open(name);
+    // No such database: abort its creation, which also fails this request.
+    request.onupgradeneeded = () => request.transaction?.abort();
+    request.onerror = (event) => {
+      event.preventDefault();
+      resolve(null);
+    };
+    request.onsuccess = () => {
+      const db = request.result;
+      const finish = (owner: string | null) => {
+        db.close();
+        resolve(owner);
+      };
+      if (!db.objectStoreNames.contains(META)) return finish(null);
+      const read = db.transaction(META, 'readonly').objectStore(META).get(META_KEY);
+      read.onsuccess = () => finish((read.result as Partial<SyncMeta> | undefined)?.owner ?? null);
+      read.onerror = () => finish(null);
+    };
+  });
+
+/**
+ * The database that holds `accountId`'s sync notes. Before they were kept per account, the one unnamed database held
+ * them; the account it was synced for keeps it, with its outbox, versions and mirror. A new, empty database would
+ * make every row look new and send it with today's time, over newer edits made on other devices.
+ */
+export const resolveSyncDatabase = async (accountId?: string | null, factory: IDBFactory | undefined = globalThis.indexedDB): Promise<string> => {
+  if (!accountId || !factory) return syncDatabaseName(accountId);
+  try {
+    return (await recordedOwner(factory, DB_NAME)) === accountId ? DB_NAME : syncDatabaseName(accountId);
+  } catch {
+    return syncDatabaseName(accountId);
+  }
+};
+
 /**
  * The outbox, the known server versions, the change cursor and the bridge's small maps, in a database of their own. Each method
  * is one transaction, so a crash or a closed tab never leaves half a change behind.

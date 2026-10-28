@@ -101,6 +101,28 @@ describe('finishRequestedRemoval', () => {
     expect(localStorage.getItem('theme-mode')).toBe('dark');
   });
 
+  it('also removes the older, unnamed sync database when it was synced for this account, and only then', async () => {
+    const leaveOlder = (owner: string) =>
+      new Promise<void>((resolve) => {
+        const request = indexedDB.open('gylio-sync-v2', 1);
+        request.onupgradeneeded = () => request.result.createObjectStore('meta').put({ cursor: 3, owner }, 'state');
+        request.onsuccess = () => {
+          request.result.close();
+          resolve();
+        };
+      });
+    await leaveOlder('user_b');
+    requestRemoval('user_a');
+    await finishRequestedRemoval(places());
+    expect(await databaseNames()).toContain('gylio-sync-v2');
+
+    await new Promise((resolve) => (indexedDB.deleteDatabase('gylio-sync-v2').onsuccess = resolve));
+    await leaveOlder('user_a');
+    requestRemoval('user_a');
+    await finishRequestedRemoval(places());
+    expect(await databaseNames()).not.toContain('gylio-sync-v2');
+  });
+
   it("finishes only the databases after an interrupted removal, never the next person's data", async () => {
     localStorage.setItem(REMOVE_DATABASES_KEY, 'user_a');
     localStorage.setItem(OWNER_KEY, 'user_b');

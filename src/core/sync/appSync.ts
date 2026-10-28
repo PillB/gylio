@@ -7,7 +7,7 @@ import { announceDataChanged, onDataChanged, onLocalWrite } from '../dataEvents'
 import { Bridge } from './bridge';
 import { attachBrowserSignals, webLockExclusive } from './browser';
 import { SyncEngine, type EngineOptions } from './engine';
-import { IdbStorage, syncDatabaseName } from './idbStorage';
+import { IdbStorage, resolveSyncDatabase } from './idbStorage';
 import { createSqlStore, type LocalStore } from './localStore';
 import { MemoryStorage } from './memoryStorage';
 import { createFetchTransport } from './transport';
@@ -77,7 +77,7 @@ export const startAppSync = async (options: AppSyncOptions): Promise<AppSync> =>
     await initializeDatabase();
     store = createSqlStore(getDatabase());
   }
-  const storage = options.storage ?? (await openStorage(undefined, syncDatabaseName(options.accountId)));
+  const storage = options.storage ?? (await openStorage(undefined, await resolveSyncDatabase(options.accountId)));
   const engineRef: { current: SyncEngine | null } = { current: null };
   const engine = () => engineRef.current as SyncEngine;
   const bridge = new Bridge({
