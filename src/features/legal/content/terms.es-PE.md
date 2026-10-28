@@ -134,7 +134,7 @@ El desarrollo y la operación de Gylio se financian con los usuarios que optan p
 
 Si decide adquirir una suscripción, acepta pagar todas las tarifas y cargos asociados a la suscripción durante el tiempo que elija mantenerla.
 
-**Pago:** Utilizamos procesadores de pago de terceros, como Paddle, para transmitirnos los pagos. Ofrecemos múltiples métodos de suscripción, como a través de Gylio. Según el método que elija, su información de pago y la renovación de la suscripción pueden gestionarse conforme a términos diferentes. Usted es responsable de revisar las políticas de la plataforma que elija. En caso de conflicto, los términos del servicio del procesador de pagos de terceros que haya elegido prevalecerán sobre estos términos.
+**Pago:** Utilizamos procesadores de pago de terceros, como Paddle y Mercado Pago, para transmitirnos los pagos. Ofrecemos múltiples métodos de suscripción, como a través de Gylio. Según el método que elija, su información de pago y la renovación de la suscripción pueden gestionarse conforme a términos diferentes. Usted es responsable de revisar las políticas de la plataforma que elija. En caso de conflicto, los términos del servicio del procesador de pagos de terceros que haya elegido prevalecerán sobre estos términos.
 
 **Renovación automática:** Al inscribirse en una suscripción, usted autoriza a Gylio a cobrar automáticamente su método de pago al comienzo de cada período de suscripción hasta que la suscripción se cancele. La fecha de esta renovación se basa en la fecha de la compra original y no puede modificarse.
 

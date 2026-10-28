@@ -134,7 +134,7 @@ Gylio's development and operation is paid for by users who opt to pay a subscrip
 
 Should you decide to purchase a subscription, you agree to pay all fees and charges associated with the subscription for the duration that you choose to maintain the subscription.
 
-**Payment:** We use third-party payment processors such as Paddle to transmit payments to us. We offer multiple methods of subscription such as through Gylio. Depending on which method you choose, your payment information and subscription renewal may be handled according to different terms. You are responsible for reviewing the policies of the platform you choose. In case of conflict, your chosen third-party payment processor's terms of service shall supersede these terms.
+**Payment:** We use third-party payment processors such as Paddle and Mercado Pago to transmit payments to us. We offer multiple methods of subscription such as through Gylio. Depending on which method you choose, your payment information and subscription renewal may be handled according to different terms. You are responsible for reviewing the policies of the platform you choose. In case of conflict, your chosen third-party payment processor's terms of service shall supersede these terms.
 
 **Automatic Renewal:** By enrolling in a subscription, you authorize Gylio to automatically charge your payment method at the beginning of each subscription period until the subscription is canceled. The date of this renewal is based on the date of the original purchase and cannot be changed.
 

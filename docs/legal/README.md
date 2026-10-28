@@ -16,7 +16,7 @@ each was approved by the owner one at a time:
 4. "Support server" references replaced by support@gylio.app; Discord contact heading and
    the "#announcements channel" phrase dropped; the update notice no longer mentions an announcement.
 5. Tupperbox example data lists, Discord sentences and sections removed (data lists stay empty).
-6. Payment: Stripe becomes Paddle; Patreon, Discord and the FAQ-link paragraph removed.
+6. Payment: Stripe becomes "Paddle and Mercado Pago"; Patreon, Discord and the FAQ-link paragraph removed.
 7. `{{CopyrightEmail}}` becomes support@gylio.app; the "send a letter" sentence is removed.
 8. Spanish (es-PE) is a sentence-for-sentence translation, not an official or lawyer-reviewed text.
 9. All `<!-- ... -->` template comments removed.

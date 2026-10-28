@@ -26,6 +26,10 @@ describe('legal documents', () => {
     expect(es.match(/\(\/(terms|privacy)\)/g)).toEqual(en.match(/\(\/(terms|privacy)\)/g));
   });
 
+  it('names Paddle and Mercado Pago as payment processors in both languages', () => {
+    for (const lang of LANGS) expect(textOf('terms', lang)).toMatch(/Paddle (and|y) Mercado Pago/);
+  });
+
   it('uses only the approved contact address and jurisdiction', () => {
     const all = DOCS.flatMap((d) => LANGS.map((l) => textOf(d, l))).join('\n');
     expect(new Set(all.match(/[\w.+-]+@[\w-]+\.[\w.]+/g))).toEqual(new Set(['support@gylio.app']));

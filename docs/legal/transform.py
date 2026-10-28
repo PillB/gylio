@@ -47,7 +47,7 @@ else:
     sub(', for example if you post it to a public Discord server or you otherwise elect to make', ' if you elect to make')
     sub(" such as the [support server]({{SupportServerLink}})'s \\#announcements channel,", '')
     sub('by contacting us in the [support server]({{SupportServerLink}}) using', 'by contacting us at [{{PolicyEmail}}](mailto:{{PolicyEmail}}) using')
-    sub('such as Stripe', 'such as Paddle')
+    sub('such as Stripe', 'such as Paddle and Mercado Pago')
     sub('through {{WebsiteName}}, Patreon, or Discord.', 'through {{WebsiteName}}.')
     cut_block('**Learn More:**', '## Intellectual Property')
     sub('mailto:{{CopyrightEmail}}) or send a letter to:\n\nCopyright Manager of {{CompanyMailingAddress}}\n', 'mailto:{{CopyrightEmail}}).\n')
