@@ -66,7 +66,15 @@ Do not announce sign-up publicly before `signupOpen` shows `true` in the health 
 3. Once a week, open Workers & Pages, gylio-api, Metrics, and D1, gylio, Metrics. Requests should stay under 100,000 a day, rows read under 5,000,000, rows written under 100,000.
 
 ## 6. What I do after you finish
-The app is already connected to the Worker (device-generated ids, push and pull sync, sign-in token); the deploy script turns it on for the Cloudflare build only (`VITE_SYNC_ENABLED=true`), so the GitHub Pages site and previews still never call the Worker. What is left for me after your deploy is an end-to-end test with a real Clerk test user, which cannot be done before there is a live Clerk instance. If the Worker is paused (503) or unreachable, the app keeps working on the device and tries again by itself; `docs/sync-resilience.md` explains how.
+The app is already connected to the Worker (device-generated ids, push and pull sync, sign-in token); the deploy script turns it on for the Cloudflare build only (`VITE_SYNC_ENABLED=true`). What is left for me after your deploy is an end-to-end test with a real Clerk test user, which cannot be done before there is a live Clerk instance. If the Worker is paused (503) or unreachable, the app keeps working on the device and tries again by itself; `docs/sync-resilience.md` explains how.
+
+What the Cloudflare build calls, all on `https://gylio.app` and all under `/api/` (sign-in itself happens on Clerk's own host, so the rate-limit rule in section 5 covers every path we serve):
+- `GET /api/sync/pull?since=<cursor>&limit=<n>`: fetching changes, signed in only.
+- `PUT /api/<entity>/<id>` and `DELETE /api/<entity>/<id>`, for `tasks`, `events`, `budgets`, `transactions` and `debts`: sending changes, signed in only.
+- `GET /api/v1/health`: only the deploy scripts and your checks; the app never calls it.
+- `GET /api/me/export` and `DELETE /api/me` exist on the Worker for the account thread; the app does not call them yet.
+
+What it does not call, because the Worker has no route for them: Pro status, plans, trial and checkout (`/api/billing/*`), bug reports (`/api/feedback*`), the admin pages (`/api/admin/*`), the analytics upload (`/api/analytics/events`), AI suggestions (`/api/ai/*`), the old whole-device save (`/api/state`) and the old sync queue (`/api/tasks`, `/api/events`, `/api/transactions`). The build switches each of them off (`VITE_BILLING_ENABLED=false`, `VITE_SYNC_ENABLED=true`, an empty `VITE_API_BASE_URL`; `src/core/utils/serverFeatures.ts`), so the Feedback button, the report and admin pages and the AI suggestion box do not show there. The GitHub Pages site has no sign-in and calls none of these addresses.
 
 ## If something goes wrong
 - "Not on main" or "Uncommitted changes": the script is protecting you from deploying something that is not on `main`. The only change it allows is the database id in `worker/wrangler.jsonc`.

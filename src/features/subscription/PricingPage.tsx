@@ -27,13 +27,14 @@ import {
 import { currencyForLocale, daysUntil, formatMoney, yearlySavingsPercent } from '../billing/formatMoney';
 import { openPaddleCheckout, paddleConfigured } from '../billing/paddle';
 import { useExperiment } from '../experiments/useExperiment';
+import { serverFeaturesEnabled } from '../../core/utils/serverFeatures';
 
 type Interval = 'monthly' | 'yearly';
 type Busy = null | 'trial' | 'checkout' | 'pass' | 'portal';
 
 // Static previews (GitHub Pages, CI) have no billing API; they show the catalogue
 // bundled with the app instead of calling a backend that isn't there.
-const billingApiEnabled = import.meta.env.VITE_BILLING_ENABLED === 'true';
+const billingApiEnabled = serverFeaturesEnabled();
 
 function useCatalog() {
   const [catalog, setCatalog] = useState<Catalog>(FALLBACK_CATALOG);

@@ -27,7 +27,10 @@ vi.mock('@clerk/clerk-react', () => ({
 }));
 vi.mock('react-native-paper', () => ({ Provider: ({ children }: { children: React.ReactNode }) => <>{children}</> }));
 
-import App from './App.jsx';
+import App, { serverOnlyRoutes } from './App.jsx';
+import { Navigate } from 'react-router-dom';
+import QaPage from './features/feedback/QaPage';
+import AdminPage from './features/admin/AdminPage';
 import { OnboardingFlowProvider } from './hooks/useOnboardingFlow.jsx';
 import { ThemeProvider } from './core/context/ThemeContext';
 import { AccessibilityProvider } from './core/hooks/useAccessibility';
@@ -100,6 +103,7 @@ afterEach(() => {
   cleanup();
   setOnline(true);
   vi.useRealTimers();
+  vi.unstubAllEnvs();
 });
 
 describe('the app while sign-in is checked', () => {
@@ -133,5 +137,39 @@ describe('a different account signing in on this device', () => {
     expect(screen.queryByText('A: pay rent')).toBeNull();
     expect(localStorage.getItem('gylio_sqlite')).toBeNull();
     expect(localStorage.getItem(OWNER_KEY)).toBe('user_b');
+  });
+});
+
+describe('a build without the full server (the Cloudflare site, GitHub Pages)', () => {
+  const openSignedInOffline = async () => {
+    localStorage.setItem(OWNER_KEY, 'user_a');
+    localStorage.setItem(OWNER_SIGNED_IN_KEY, 'true');
+    setOnline(false);
+    mountApp();
+    await waitFor(() => expect(document.querySelector('#new-task')).not.toBeNull(), { timeout: 3000 });
+  };
+
+  it('shows no Feedback button, since a report could not be sent', async () => {
+    vi.stubEnv('VITE_BILLING_ENABLED', 'false');
+    await openSignedInOffline();
+    expect(screen.queryByRole('button', { name: 'Feedback' })).toBeNull();
+  });
+
+  it('shows it in a build with the server', async () => {
+    vi.stubEnv('VITE_BILLING_ENABLED', 'true');
+    await openSignedInOffline();
+    expect(screen.getByRole('button', { name: 'Feedback' })).toBeTruthy();
+  });
+
+  it('sends an old link to the report or admin page to Tasks, and opens them in a build with the server', () => {
+    vi.stubEnv('VITE_BILLING_ENABLED', 'false');
+    const off = serverOnlyRoutes();
+    expect(off.map((route) => route.path)).toEqual(['qa', 'admin']);
+    off.forEach((route) => {
+      expect(route.element.type).toBe(Navigate);
+      expect(route.element.props.to).toBe('/tasks');
+    });
+    vi.stubEnv('VITE_BILLING_ENABLED', 'true');
+    expect(serverOnlyRoutes().map((route) => route.element.type)).toEqual([QaPage, AdminPage]);
   });
 });

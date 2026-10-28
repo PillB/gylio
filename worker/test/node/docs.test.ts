@@ -56,3 +56,34 @@ describe('the manual and the scripts tell the same story about sign-up', () => {
     expect(manual).toMatch(/Code Owners/);
   });
 });
+
+describe('the manual lists every address the app can call on the Worker', () => {
+  const manual = readFileSync(path.join(repo, 'docs', 'CLOUDFLARE_GO_LIVE_MANUAL.md'), 'utf8');
+  const section6 = manual.slice(manual.indexOf('## 6.'), manual.indexOf('## If something goes wrong'));
+  const sources = (dir: string): string[] =>
+    readdirSync(dir).flatMap((name) => {
+      const full = path.join(dir, name);
+      if (statSync(full).isDirectory()) return sources(full);
+      return /\.(jsx?|tsx?)$/.test(name) && !/\.test\./.test(name) ? [full] : [];
+    });
+  // The first part of every /api/ address the app names, e.g. /api/sync, /api/billing.
+  const named = [...new Set(
+    sources(path.join(repo, 'src')).flatMap((file) =>
+      [...readFileSync(file, 'utf8').matchAll(/['"`]\/api\/([a-z][\w-]*)/g)].map((match) => `/api/${match[1]}`),
+    ),
+  )].sort();
+
+  it('finds the addresses in the app', () => {
+    expect(named).toEqual(expect.arrayContaining(['/api/sync', '/api/billing', '/api/feedback']));
+  });
+
+  it('names each of them in section 6, as called or as switched off', () => {
+    expect(section6.length).toBeGreaterThan(0);
+    expect(named.filter((prefix) => !section6.includes(prefix))).toEqual([]);
+  });
+
+  it('no longer claims the app never calls the Worker', () => {
+    expect(section6).not.toMatch(/never call the Worker/);
+    expect(section6).toMatch(/Clerk's own host/);
+  });
+});

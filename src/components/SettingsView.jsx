@@ -16,8 +16,12 @@ import AdSlot from '../features/ads/AdSlot';
 import YourDataSection from '../features/account/YourDataSection';
 import SignOutCard from '../features/account/SignOutSection';
 import { useEntitlement } from '../features/billing/EntitlementContext';
+import { serverFeaturesEnabled } from '../core/utils/serverFeatures';
 
-/** QA, plan and (for admins) admin links; its own component so SettingsView stays under the complexity ceiling. */
+/**
+ * QA (where reports can be sent: serverFeatures.ts), plan and (for admins) admin links; its own component so
+ * SettingsView stays under the complexity ceiling.
+ */
 function SettingsShortcuts() {
   const { t } = useTranslation();
   const { theme } = useTheme();
@@ -25,7 +29,7 @@ function SettingsShortcuts() {
   const linkStyle = { color: theme.colors.primary, fontWeight: 600, minHeight: 44, lineHeight: '44px' };
   return (
     <nav style={{ display: 'flex', flexWrap: 'wrap', gap: theme.spacing.md }}>
-      <Link to="/qa" style={linkStyle}>{t('feedback.settings.qaLink')}</Link>
+      {serverFeaturesEnabled() && <Link to="/qa" style={linkStyle}>{t('feedback.settings.qaLink')}</Link>}
       <Link to="/pricing" style={linkStyle}>{t('feedback.settings.planLink')}</Link>
       {entitlement?.isAdmin && <Link to="/admin" style={linkStyle}>{t('feedback.settings.adminLink')}</Link>}
     </nav>

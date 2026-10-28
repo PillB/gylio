@@ -51,14 +51,22 @@ import TrialBanner from './features/billing/TrialBanner';
 import FeedbackButton from './features/feedback/FeedbackButton';
 import QaPage from './features/feedback/QaPage';
 import AdminPage from './features/admin/AdminPage';
+import { serverFeaturesEnabled } from './core/utils/serverFeatures';
 import { installErrorCapture } from './features/feedback/diagnostics';
 import { startAnalyticsUpload } from './core/analytics/upload';
 import { AccountSyncProvider } from './features/account/AccountSyncContext';
 import SyncConflictBanner from './features/account/SyncConflictBanner';
 
-// Phones reach feedback from Settings → Report a bug or idea, so the header stays one line.
+// Phones reach feedback from Settings → Report a bug or idea, so the header stays one line. Reports go to the full
+// server, so a build without it (serverFeatures.ts: the Cloudflare site, GitHub Pages) shows no button that cannot send.
 function HeaderFeedback({ isOnboarding, isMobile }) {
-  return isOnboarding || isMobile ? null : <FeedbackButton />;
+  return isOnboarding || isMobile || !serverFeaturesEnabled() ? null : <FeedbackButton />;
+}
+
+// The report page and the admin pages only work with the full server; without it, an old link opens Tasks.
+export function serverOnlyRoutes() {
+  const pages = { qa: <QaPage />, admin: <AdminPage /> };
+  return Object.entries(pages).map(([path, page]) => ({ path, element: serverFeaturesEnabled() ? page : <Navigate to="/tasks" replace /> }));
 }
 
 function AppHeader({ clerkEnabled }) {
@@ -495,8 +503,7 @@ function buildAuthRouter(clerkEnabled) {
             element: clerkEnabled ? <ProtectedLayoutAuthed /> : <ProtectedLayoutNoAuth />,
             children: [
               { path: 'onboarding', element: <OnboardingRoute /> },
-              { path: 'qa', element: <QaPage /> },
-              { path: 'admin', element: <AdminPage /> },
+              ...serverOnlyRoutes(),
               {
                 element: <TabsLayout />,
                 children: [

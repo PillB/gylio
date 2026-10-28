@@ -12,6 +12,7 @@ import { PostReflectionPrompt } from './PostReflectionPrompt';
 import { RelationshipTypePicker } from './RelationshipTypePicker';
 import { TemplateGallery } from './TemplateGallery';
 import { fetchSocialSuggestions } from '../utils/openAiSocial';
+import { serverFeaturesEnabled } from '../../../core/utils/serverFeatures';
 import { getScheduleQuota } from '../../auth/useScheduleQuota';
 import {
   buildSocialPlanValidation,
@@ -23,6 +24,22 @@ import {
   type SocialPlanValidationState
 } from '../utils/socialPlanForm';
 import type { RelationshipType, SocialTemplate as LibrarySocialTemplate } from '../data/socialTemplateLibrary';
+
+/** The AI choice, only in a build that has the server for it (serverFeatures.ts); elsewhere the template is the plan. */
+export function AiOptIn({ checked, onChange }: { checked: boolean; onChange: (next: boolean) => void }) {
+  const { t } = useTranslation();
+  const { theme } = useTheme();
+  if (!serverFeaturesEnabled()) return null;
+  return (
+    <>
+      <label style={{ display: 'flex', gap: `${theme.spacing.xs}px`, alignItems: 'center' }}>
+        <input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} />
+        <span>{t('social.aiOptIn')}</span>
+      </label>
+      <p style={{ margin: 0, color: theme.colors.muted, fontSize: '0.8125rem' }}>{t('social.aiPrivacy')}</p>
+    </>
+  );
+}
 
 const SocialPlansView: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -122,8 +139,10 @@ const SocialPlansView: React.FC = () => {
     const fallbackSteps = selectedLibraryTemplate.stepKeys.map((key) => t(key, key));
     const fallbackNotes = t(selectedLibraryTemplate.notesKey, '');
 
+    // AI only when this build has the server for it and the person asked; otherwise the template is the plan.
+    const askAi = aiOptIn && serverFeaturesEnabled();
     let suggestion = null;
-    if (aiOptIn) {
+    if (askAi) {
       const quota = getScheduleQuota(userId);
       if (quota.isExhausted) {
         setAiStatus({ loading: false, message: t('social.aiQuotaExhausted') });
@@ -153,7 +172,7 @@ const SocialPlansView: React.FC = () => {
 
     setAiStatus({
       loading: false,
-      message: suggestion ? '' : t('social.aiFallbackUsed')
+      message: suggestion || !askAi ? '' : t('social.aiFallbackUsed')
     });
   };
 
@@ -588,15 +607,7 @@ const SocialPlansView: React.FC = () => {
             {/* AI enhancement */}
             {selectedLibraryTemplate && (
               <div style={{ display: 'grid', gap: `${theme.spacing.xs}px` }}>
-                <label style={{ display: 'flex', gap: `${theme.spacing.xs}px`, alignItems: 'center' }}>
-                  <input
-                    type="checkbox"
-                    checked={aiOptIn}
-                    onChange={(event) => setAiOptIn(event.target.checked)}
-                  />
-                  <span>{t('social.aiOptIn')}</span>
-                </label>
-                <p style={{ margin: 0, color: theme.colors.muted, fontSize: '0.8125rem' }}>{t('social.aiPrivacy')}</p>
+                <AiOptIn checked={aiOptIn} onChange={setAiOptIn} />
                 {aiStatus.message ? <p style={{ margin: 0, color: theme.colors.errorStrong, fontSize: '0.8125rem' }}>{aiStatus.message}</p> : null}
                 <button
                   type="button"
