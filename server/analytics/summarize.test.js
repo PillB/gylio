@@ -36,6 +36,35 @@ describe('summarize', () => {
     ]);
   });
 
+  it('reads the routine limit test per group: exposed sessions, the 7 to 28 day funnel, the limit and its guardrails', () => {
+    const t = (name, sessionId, props) => ev(name, sessionId, props);
+    const events = [
+      t('experiment_exposure', 'a', { experiment: 'routine_free_limit', variant: 'three_plus_surprise' }),
+      t('experiment_exposure', 'a', { experiment: 'routine_free_limit', variant: 'three_plus_surprise' }),
+      t('experiment_exposure', 'b', { experiment: 'routine_free_limit', variant: 'three_plus_surprise' }),
+      t('experiment_exposure', 'c', { experiment: 'routine_free_limit', variant: 'five' }),
+      t('experiment_exposure', 'x', { experiment: 'trial_cta_copy', variant: 'five' }), // another test: not counted
+      t('experiment_exposure', 'y', { experiment: 'trial_cta_copy', variant: 'start_trial' }), // nor given a row
+      t('routine_days', 'a', { days: 1, variant: 'three_plus_surprise' }),
+      t('routine_days', 'a', { days: 3, variant: 'three_plus_surprise' }),
+      t('routine_days', 'a', { days: 7, variant: 'three_plus_surprise' }),
+      t('routine_days', 'b', { days: 7, variant: 'three_plus_surprise' }),
+      t('routine_days', 'b', { days: 28, variant: 'three_plus_surprise' }),
+      t('routine_limit', 'a', { step: 'reached', variant: 'three_plus_surprise', limit: 3, used: 3 }),
+      t('routine_limit', 'a', { step: 'reached', variant: 'three_plus_surprise', limit: 3, used: 3 }),
+      t('routine_limit', 'a', { step: 'extra_given', variant: 'three_plus_surprise', days: 7 }),
+      t('routine_limit', 'a', { step: 'see_pro', variant: 'three_plus_surprise', limit: 3 }),
+      t('routine_created', 'a', { variant: 'three_plus_surprise', limit: 3, count: 1 }),
+      t('routine_deleted', 'a', { variant: 'three_plus_surprise', limit: 3, count: 0 }),
+      t('routine_created', 'c', { variant: 'five', limit: 5, count: 1 }),
+      t('routine_completed', 'c', { routineId: 1 }), // no group: not counted
+    ];
+    expect(summarize(events, {}).routineLimit).toEqual([
+      { variant: 'five', exposed: 1, reached1Day: 0, reached7Days: 0, reached28Days: 0, from7To28: 0, limitReachedSessions: 0, extraGiven: 0, seePro: 0, created: 1, deleted: 0 },
+      { variant: 'three_plus_surprise', exposed: 2, reached1Day: 1, reached7Days: 2, reached28Days: 1, from7To28: 0.5, limitReachedSessions: 1, extraGiven: 1, seePro: 1, created: 1, deleted: 1 },
+    ]);
+  });
+
   it('computes ad click-through per provider and placement, and daily totals', () => {
     const events = [
       ev('ad_impression', 'a', { provider: 'house', placement: 'settings' }),

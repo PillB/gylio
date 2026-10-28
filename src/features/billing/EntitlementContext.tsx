@@ -3,10 +3,13 @@
  *
  * The last answer is cached (plan and expiry only, no personal data) so Pro
  * keeps working offline until the moment it would have expired, and so the UI
- * does not flash the free tier on every load.
+ * does not flash the free tier on every load. A build without the billing
+ * server (serverFeatures.ts) never asks: it would only spend requests on an
+ * address that cannot answer, on every focus of the tab.
  */
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useAppAuth } from '../../core/context/AuthContext';
+import { serverFeaturesEnabled } from '../../core/utils/serverFeatures';
 import { billingApi, type Entitlement } from './billingApi';
 
 const CACHE_KEY = 'gylio:entitlement:v1';
@@ -69,7 +72,7 @@ export function EntitlementProvider({ children }: { children: ReactNode }) {
   }, [userId]);
 
   const refresh = useCallback(async () => {
-    if (!userId) return null;
+    if (!userId || !serverFeaturesEnabled()) return null;
     setLoading(true);
     try {
       const next = await billingApi.entitlement();
@@ -90,6 +93,7 @@ export function EntitlementProvider({ children }: { children: ReactNode }) {
       return;
     }
     setEntitlementState(readCache(userId, Date.now()));
+    if (!serverFeaturesEnabled()) return undefined;
     void refresh();
     // Pick up purchases and gifts made on another device when the tab regains focus.
     const onFocus = () => { void refresh(); };

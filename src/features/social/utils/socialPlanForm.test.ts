@@ -82,6 +82,13 @@ describe('socialPlanForm utils', () => {
     expect(validation.reminderMinutesBefore).toBe('validation.nonNegativeInteger');
   });
 
+  it('accepts a reminder up to four weeks ahead and refuses one further out', () => {
+    expect(buildSocialPlanValidation(baseForm({ reminderMinutesBefore: '40320' }), t).reminderMinutesBefore).toBe('');
+    expect(buildSocialPlanValidation(baseForm({ reminderMinutesBefore: '40321' }), t).reminderMinutesBefore).toBe(
+      'validation.reminderTooFar'
+    );
+  });
+
   it('accepts valid forms without validation errors', () => {
     const validation = buildSocialPlanValidation(
       baseForm({ dateTime: '2026-03-29T09:00', reminderMinutesBefore: '15' }),

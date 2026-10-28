@@ -33,9 +33,9 @@ describe('wrangler.jsonc', () => {
     expect(read('src/index.ts')).not.toMatch(/scheduled\s*[:(]/);
   });
 
-  it('holds public values only, and fails closed until the issuer is set', () => {
+  it('holds public values only, and trusts tokens from the live Clerk instance on our own domain only', () => {
     expect(Object.keys(config.vars).sort()).toEqual(['CLERK_AUTHORIZED_PARTIES', 'CLERK_ISSUER', 'CORS_ORIGINS', 'MAX_RECORDS_PER_USER']);
-    expect(config.vars.CLERK_ISSUER).toBe('');
+    expect(config.vars.CLERK_ISSUER).toBe('https://clerk.gylio.app');
     const text = read('wrangler.jsonc');
     expect(text).not.toMatch(/sk_(live|test)_|pk_(live|test)_|-----BEGIN|@gmail\.|@outlook\./i);
   });

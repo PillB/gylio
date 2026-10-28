@@ -1,5 +1,6 @@
 import type { SocialTemplate } from './socialTemplates';
 import type { SocialPlanEnergyLevel, SocialPlanType, SocialStep } from './socialTypes';
+import { isReminderTooFar } from '../../../core/utils/reminders';
 
 export type { SocialPlanEnergyLevel, SocialPlanType, SocialStep };
 
@@ -72,6 +73,8 @@ export const buildSocialPlanValidation = (
     const reminder = Number(fields.reminderMinutesBefore);
     if (Number.isNaN(reminder) || reminder < 0 || !Number.isInteger(reminder)) {
       validation.reminderMinutesBefore = t('validation.nonNegativeInteger');
+    } else if (isReminderTooFar(reminder)) {
+      validation.reminderMinutesBefore = t('validation.reminderTooFar');
     }
   }
 

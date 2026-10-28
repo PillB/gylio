@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../../core/context/ThemeContext';
 import type { TaskDraft } from '../hooks/useTaskDraft';
 import TaskHelp from './TaskHelp';
+import { HelpLabel } from '../../../components/atoms/HelpField';
 import { controlStyle, textInputStyle } from './taskStyles';
 
 type Props = { draft: TaskDraft; todayKey: string; tomorrowKey: string };
@@ -46,10 +47,9 @@ const ScheduleChoices: React.FC<Props> = ({ draft, todayKey, tomorrowKey }) => {
           {t('tasks.pickDate', 'Pick date')}
         </button>
       </div>
-      <label htmlFor="planned-date" style={{ display: 'flex', alignItems: 'center', marginTop: `${theme.spacing.sm}px`, fontWeight: 600 }}>
+      <HelpLabel htmlFor="planned-date" help={<TaskHelp topic="plannedDate" />} style={{ marginTop: `${theme.spacing.sm}px`, fontWeight: 600 }}>
         {t('tasks.plannedDateLabel')}
-        <TaskHelp topic="plannedDate" />
-      </label>
+      </HelpLabel>
       <input
         id="planned-date"
         data-tour="task-date"

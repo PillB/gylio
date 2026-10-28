@@ -9,6 +9,19 @@ import {
   getTemplatesFor,
 } from '../data/socialTemplateLibrary';
 
+/** Read out by screen readers, not shown. */
+const VISUALLY_HIDDEN: React.CSSProperties = {
+  position: 'absolute',
+  width: 1,
+  height: 1,
+  padding: 0,
+  margin: -1,
+  overflow: 'hidden',
+  clip: 'rect(0, 0, 0, 0)',
+  whiteSpace: 'nowrap',
+  border: 0,
+};
+
 type Props = {
   relationshipType: RelationshipType | null;
   onSelect: (template: SocialTemplate, conversationStarter: string | null) => void;
@@ -27,7 +40,8 @@ const DEPTH_FILTERS: (DepthLevel | 'all')[] = ['all', 'light', 'medium', 'deep']
 export const TemplateGallery: React.FC<Props> = ({ relationshipType, onSelect, theme }) => {
   const { t } = useTranslation();
   const [depthFilter, setDepthFilter] = useState<DepthLevel | 'all'>('all');
-  const [copiedStarter, setCopiedStarter] = useState<string | null>(null);
+  // Which message was copied, and whether the copy worked (no clipboard over plain http, or a refused permission).
+  const [copy, setCopy] = useState<{ text: string; ok: boolean } | null>(null);
 
   const templates = getTemplatesFor(
     relationshipType,
@@ -35,13 +49,26 @@ export const TemplateGallery: React.FC<Props> = ({ relationshipType, onSelect, t
   );
 
   const handleCopyStarter = (text: string) => {
-    navigator.clipboard?.writeText(text).catch(() => {});
-    setCopiedStarter(text);
-    setTimeout(() => setCopiedStarter(null), 2000);
+    const show = (ok: boolean) => {
+      setCopy({ text, ok });
+      setTimeout(() => setCopy((current) => (current?.text === text ? null : current)), 2000);
+    };
+    if (!navigator.clipboard?.writeText) {
+      show(false);
+      return;
+    }
+    navigator.clipboard.writeText(text).then(
+      () => show(true),
+      () => show(false)
+    );
   };
+  const copyStatus = copy ? t(copy.ok ? 'social.gallery.copied' : 'social.gallery.copyFailed') : '';
 
   return (
     <div>
+      <span role="status" style={VISUALLY_HIDDEN}>
+        {copyStatus}
+      </span>
       {/* Depth filter tabs */}
       <div style={{ display: 'flex', gap: 6, marginBottom: `${theme.spacing.md}px`, flexWrap: 'wrap' }}>
         {DEPTH_FILTERS.map((d) => {
@@ -125,6 +152,8 @@ export const TemplateGallery: React.FC<Props> = ({ relationshipType, onSelect, t
                   <div style={{ display: 'grid', gap: 4 }}>
                     {tpl.conversationStarters.map((starter, i) => {
                       const translatedStarter = t(`${tpl.titleKey.replace('.title', `.starter${i + 1}`)}`, starter);
+                      const copied = copy?.text === translatedStarter && copy.ok;
+                      const failed = copy?.text === translatedStarter && !copy.ok;
                       return (
                       <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
                         <p style={{ margin: 0, flex: 1, fontSize: '0.8125rem', color: theme.colors.text, fontStyle: 'italic', lineHeight: 1.4 }}>
@@ -136,18 +165,20 @@ export const TemplateGallery: React.FC<Props> = ({ relationshipType, onSelect, t
                           aria-label={t('social.gallery.copyAria', 'Copy this message')}
                           style={{
                             flexShrink: 0,
+                            minWidth: 44,
+                            minHeight: 32,
                             padding: '2px 8px',
                             borderRadius: theme.shape.radiusSm,
                             border: `1px solid ${theme.colors.border}`,
-                            background: copiedStarter === translatedStarter ? theme.colors.success : theme.colors.background,
-                            color: copiedStarter === translatedStarter ? theme.colors.onSuccess : theme.colors.text,
+                            background: copied ? theme.colors.success : theme.colors.background,
+                            color: copied ? theme.colors.onSuccess : theme.colors.text,
                             cursor: 'pointer',
                             fontSize: '0.7rem',
                             fontFamily: theme.typography.body.family,
                             transition: 'all 0.15s',
                           }}
                         >
-                          {copiedStarter === translatedStarter ? '✓' : t('social.gallery.copy', 'Copy')}
+                          {copied ? '✓' : failed ? t('social.gallery.copyFailed') : t('social.gallery.copy', 'Copy')}
                         </button>
                       </div>
                       );

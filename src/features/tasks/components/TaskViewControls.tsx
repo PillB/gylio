@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useId, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../../core/context/ThemeContext';
+import { tabIndexForKey } from '../../../core/utils/tabKeys';
 import type { EnergyFilter, ViewFilter } from '../utils/taskViews';
 import { ENERGY_LEVELS, EnergyChip } from './EnergyPicker';
 import { controlStyle } from './taskStyles';
@@ -23,16 +24,31 @@ const TaskViewControls: React.FC<Props> = ({ view, onViewChange, energy, onEnerg
     { id: 'backlog', label: t('tasks.viewBacklog') },
   ];
   const allSelected = energy === 'all';
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const energyLabelId = useId();
+  // Arrow keys move between the tabs and pick the one they land on; Tab moves on to the next control.
+  const onTabKey = (event: React.KeyboardEvent, index: number) => {
+    const next = tabIndexForKey(event.key, index, views.length);
+    if (next === null) return;
+    event.preventDefault();
+    onViewChange(views[next].id);
+    tabRefs.current[next]?.focus();
+  };
   return (
     <>
       <div data-tour="task-tabs" className="app-tabs" role="tablist" aria-label={t('tasks.viewLabel')} style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-        {views.map((option) => (
+        {views.map((option, index) => (
           <button
             key={option.id}
+            ref={(node) => {
+              tabRefs.current[index] = node;
+            }}
             role="tab"
             type="button"
             aria-selected={view === option.id}
+            tabIndex={view === option.id ? 0 : -1}
             onClick={() => onViewChange(option.id)}
+            onKeyDown={(event) => onTabKey(event, index)}
             className="app-tabs__item"
             style={controlStyle(theme, {
               backgroundColor: view === option.id ? theme.colors.background : theme.colors.surface,
@@ -44,8 +60,15 @@ const TaskViewControls: React.FC<Props> = ({ view, onViewChange, energy, onEnerg
           </button>
         ))}
       </div>
-      <div className="app-tabs" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-        <span style={{ fontSize: '0.8125rem', color: theme.colors.muted, fontWeight: 600 }}>{t('tasks.filterByEnergy', 'Energy:')}</span>
+      <div
+        className="app-tabs"
+        role="group"
+        aria-labelledby={energyLabelId}
+        style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}
+      >
+        <span id={energyLabelId} style={{ fontSize: '0.8125rem', color: theme.colors.muted, fontWeight: 600 }}>
+          {t('tasks.filterByEnergy', 'Energy:')}
+        </span>
         <button
           type="button"
           aria-pressed={allSelected}

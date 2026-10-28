@@ -124,6 +124,20 @@ export type ProUser = Entitlement & { userId: string; email: string | null };
 
 export type GiftRequest = { email?: string; userId?: string; days: number | null; reason: string; note?: string };
 
+export type RoutineLimitRow = {
+  variant: string;
+  exposed: number;
+  reached1Day: number;
+  reached7Days: number;
+  reached28Days: number;
+  from7To28: number;
+  limitReachedSessions: number;
+  extraGiven: number;
+  seePro: number;
+  created: number;
+  deleted: number;
+};
+
 export type AnalyticsSummary = {
   days: number;
   truncated: boolean;
@@ -133,6 +147,8 @@ export type AnalyticsSummary = {
   totals: { name: string; events: number; sessions: number }[];
   funnel: { step: string; sessions: number }[];
   experiments: { experiment: string; variant: string; exposed: number; trials: number; checkouts: number; trialRate: number }[];
+  /** The routine limit test per group (server/analytics/summarize.js); missing from servers older than it. */
+  routineLimit?: RoutineLimitRow[];
   ads: { provider: string; placement: string; impressions: number; clicks: number; ctr: number }[];
   daily: { day: string; events: number; sessions: number }[];
 };

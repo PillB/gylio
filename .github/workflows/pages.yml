@@ -83,9 +83,8 @@ jobs:
           base="${PAGE_URL%/}/"
           origin="$(printf '%s' "$base" | sed -E 's#(https?://[^/]+).*#\1#')"
           root_file="$(mktemp)"
-          guide_file="$(mktemp)"
           asset_file="$(mktemp)"
-          trap 'rm -f "$root_file" "$guide_file" "$asset_file"' EXIT
+          trap 'rm -f "$root_file" "$asset_file"' EXIT
 
           # Pages/CDN propagation can lag the deploy API briefly. Retry the
           # exact public artifact. Validate only facts that exist in static
@@ -94,11 +93,7 @@ jobs:
           for attempt in $(seq 1 12); do
             if curl --fail --silent --show-error --location \
                 "${base}?sha=${VERIFIED_SHA}" -o "$root_file" \
-              && curl --fail --silent --show-error --location \
-                "${base}deployment-guide.html?sha=${VERIFIED_SHA}" -o "$guide_file" \
-              && grep -q '<div id="root"></div>' "$root_file" \
-              && grep -q 'gylio-guide-validated' "$guide_file" \
-              && grep -q 'Shipping mobile containment gate' "$guide_file"; then
+              && grep -q '<div id="root"></div>' "$root_file"; then
 
               # Vite rewrites the module entry to a hashed asset. Resolve and
               # download that emitted JavaScript so the smoke test proves the
@@ -130,9 +125,16 @@ jobs:
             exit 1
           fi
 
+          # The internal deployment guide is not part of the public site any more; fail if it comes back.
+          guide_status="$(curl --silent --output /dev/null --write-out '%{http_code}' --location \
+            "${base}deployment-guide.html?sha=${VERIFIED_SHA}")"
+          if [ "$guide_status" != "404" ]; then
+            echo "The internal deployment guide is published again (HTTP ${guide_status})."
+            exit 1
+          fi
+
           echo "Live root: ${base}"
           echo "Live app asset: ${asset_url}"
-          echo "Live guide: ${base}deployment-guide.html"
           echo "Validated deployed SHA: ${VERIFIED_SHA}"
 
       - name: Publish live deployment success status

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../../core/context/ThemeContext';
 import type { ThemeTokens } from '../../../core/themes';
 import BudgetTooltip from '../../../components/atoms/BudgetTooltip';
+import HelpField from '../../../components/atoms/HelpField';
 
 // Shared building blocks for the Budget screen. Styles match the original
 // single-file BudgetView so the split is visually identical.
@@ -28,14 +29,6 @@ type TooltipProps = {
   tooltipPosition?: 'top' | 'bottom';
 };
 
-/** Label text with its optional help tooltip. */
-export const LabelWithTooltip: React.FC<TooltipProps & { children: React.ReactNode }> = ({ tooltip, tooltipPosition, children }) => (
-  <span style={{ display: 'flex', alignItems: 'center' }}>
-    {children}
-    {tooltip ? <BudgetTooltip content={tooltip} position={tooltipPosition} /> : null}
-  </span>
-);
-
 type HeadingProps = TooltipProps & { children: React.ReactNode };
 
 export const SectionHeading: React.FC<HeadingProps> = ({ tooltip, tooltipPosition, children }) => (
@@ -48,22 +41,16 @@ export const SectionHeading: React.FC<HeadingProps> = ({ tooltip, tooltipPositio
 type FieldProps = TooltipProps & {
   label: React.ReactNode;
   error?: string;
-  children: React.ReactNode;
+  /** One form control (input or select). It gets the label, and the error as its description. */
+  children: React.ReactElement;
 };
 
-/** A label wrapping its control, with the inline validation message below it. */
-export const BudgetField: React.FC<FieldProps> = ({ label, error, tooltip, tooltipPosition, children }) => {
-  const { theme } = useTheme();
-  return (
-    <label style={{ display: 'flex', flexDirection: 'column' }}>
-      <LabelWithTooltip tooltip={tooltip} tooltipPosition={tooltipPosition}>
-        {label}
-      </LabelWithTooltip>
-      {children}
-      {error ? <span style={{ color: theme.colors.accent }}>{error}</span> : null}
-    </label>
-  );
-};
+/** A label for its control, with the help button beside the label and the validation message below. */
+export const BudgetField: React.FC<FieldProps> = ({ label, error, tooltip, tooltipPosition, children }) => (
+  <HelpField label={label} error={error} help={tooltip ? <BudgetTooltip content={tooltip} position={tooltipPosition} /> : null}>
+    {children}
+  </HelpField>
+);
 
 type InputProps = TooltipProps & {
   label: React.ReactNode;
@@ -84,6 +71,7 @@ export const BudgetInput: React.FC<InputProps> = ({ label, value, onChange, erro
 
 type ButtonProps = {
   onClick: () => void;
+  ariaLabel?: string;
   children: React.ReactNode;
   compact?: boolean;
   fitContent?: boolean;
@@ -119,13 +107,14 @@ export const PrimaryButton: React.FC<ButtonProps> = ({ onClick, children, compac
   );
 };
 
-export const SecondaryButton: React.FC<ButtonProps> = ({ onClick, children, compact = false, style }) => {
+export const SecondaryButton: React.FC<ButtonProps> = ({ onClick, children, compact = false, style, ariaLabel }) => {
   const { theme } = useTheme();
   const padX = compact ? theme.spacing.sm : theme.spacing.md;
   const padY = compact ? theme.spacing.xs : theme.spacing.sm;
   return (
     <button
       type="button"
+      aria-label={ariaLabel}
       onClick={onClick}
       style={{
         padding: `${padY}px ${padX}px`,
@@ -178,11 +167,13 @@ type RowListProps<T> = {
   emptyText: string;
   getKey: (item: T, index: number) => React.Key;
   renderLabel: (item: T) => React.ReactNode;
+  /** Short name read out with each Delete button, so "Delete" is not repeated with no context. */
+  getName: (item: T) => string;
   onRemove: (item: T, index: number) => void;
 };
 
 /** Plain list of saved entries, each with a Delete button; shows a hint when empty. */
-export function RemovableRowList<T>({ items, emptyText, getKey, renderLabel, onRemove }: RowListProps<T>) {
+export function RemovableRowList<T>({ items, emptyText, getKey, renderLabel, getName, onRemove }: RowListProps<T>) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   if (!items.length) return <p>{emptyText}</p>;
@@ -202,6 +193,7 @@ export function RemovableRowList<T>({ items, emptyText, getKey, renderLabel, onR
           <div style={{ flex: 1, minWidth: 0 }}>{renderLabel(item)}</div>
           <SecondaryButton
             compact
+            ariaLabel={t('budget.deleteNamed', { name: getName(item) })}
             onClick={() => onRemove(item, index)}
             style={{ minHeight: 44, flexShrink: 0, whiteSpace: 'nowrap' }}
           >

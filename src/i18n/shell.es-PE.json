@@ -3,8 +3,5 @@
   "notifications": "Notificaciones",
   "dismissNotification": "Cerrar notificación",
   "information": "Información",
-  "productResources": "Recursos del producto",
-  "resourcesLabel": "Recursos de GYLIO",
-  "deploymentAcademy": "Academia de despliegue a producción",
-  "premiumTab": "Función premium"
+  "premiumTab": "Función de Pro"
 }

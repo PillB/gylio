@@ -8,6 +8,7 @@ import EstimatePicker from '../../timetracking/components/EstimatePicker';
 import EnergyPicker from './EnergyPicker';
 import SubtaskEditor from './SubtaskEditor';
 import TaskHelp from './TaskHelp';
+import { HelpLabel } from '../../../components/atoms/HelpField';
 import type { ChecklistTask, TaskActions } from './taskActions';
 import { controlStyle, primaryControlStyle, textInputStyle } from './taskStyles';
 
@@ -50,10 +51,9 @@ const TaskEditForm: React.FC<Props> = ({ task, actions }) => {
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: '0.75rem' }}>
-      <label htmlFor={`edit-title-${task.id}`} style={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+      <HelpLabel htmlFor={`edit-title-${task.id}`} help={<TaskHelp topic="title" />} style={{ fontWeight: 600 }}>
         {t('titleLabel')}
-        <TaskHelp topic="title" />
-      </label>
+      </HelpLabel>
       <input
         id={`edit-title-${task.id}`}
         type="text"
@@ -66,10 +66,9 @@ const TaskEditForm: React.FC<Props> = ({ task, actions }) => {
         style={textInputStyle(theme)}
       />
       {touched.title && !title.trim() ? <span style={{ color: theme.colors.primary }}>{t('validation.titleRequired')}</span> : null}
-      <label htmlFor={`edit-planned-${task.id}`} style={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+      <HelpLabel htmlFor={`edit-planned-${task.id}`} help={<TaskHelp topic="plannedDate" />} style={{ fontWeight: 600 }}>
         {t('tasks.plannedDateLabel')}
-        <TaskHelp topic="plannedDate" />
-      </label>
+      </HelpLabel>
       <input
         id={`edit-planned-${task.id}`}
         type="date"
@@ -98,7 +97,7 @@ const TaskEditForm: React.FC<Props> = ({ task, actions }) => {
         idPrefix={`edit-task-${task.id}`}
         tooltip={<TaskHelp topic="subtasks" />}
       />
-      {error ? <p style={{ color: theme.colors.accent }}>{error}</p> : null}
+      {error ? <p style={{ color: theme.colors.errorStrong }}>{error}</p> : null}
       <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
         <button type="button" onClick={save} style={primaryControlStyle(theme, { fontWeight: 600 })}>
           {t('saveLabel')}

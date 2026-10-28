@@ -117,6 +117,18 @@
     "dailyHeading": "Por día",
     "day": "Día",
     "empty": "Todavía no hay eventos en este periodo.",
-    "error": "No se pudo cargar la analítica."
+    "error": "No se pudo cargar la analítica.",
+    "routineHeading": "Prueba del límite de rutinas",
+    "devicesNote": "Los días se cuentan una vez por dispositivo, la primera vez que los alcanza; no se identifica a nadie.",
+    "routineNote": "Decide solo al llegar al tamaño de muestra fijado de antemano (unos 470 dispositivos por grupo que llegaron a 7 días); ver docs/research/routine-free-limit-2026-10-28.md.",
+    "reached1Day": "Llegó a 1 día",
+    "reached7Days": "Llegó a 7 días",
+    "reached28Days": "Llegó a 28 días",
+    "from7To28": "De 7 a 28 días",
+    "limitReached": "Sesiones en el límite",
+    "extraGiven": "Agradecimientos dados",
+    "seePro": "Clics en Ver Pro",
+    "created": "Rutinas añadidas",
+    "deleted": "Rutinas quitadas"
   }
 }

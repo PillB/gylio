@@ -8,12 +8,32 @@ export function getLocalDateKey(): string {
   return `${y}-${m}-${d}`;
 }
 
+/** Milliseconds until the next whole minute (at least 1 ms). */
+export const msToNextMinute = (date: Date): number => Math.max(1, 60_000 - (date.getSeconds() * 1000 + date.getMilliseconds()));
+
 export function useClock(locale = 'en') {
   const [now, setNow] = useState(() => new Date());
 
+  // Tick on the minute boundary, not every 60 s from mount (which showed the old minute for up to 59 s),
+  // and catch up at once when the tab comes back, since background timers are slowed or paused.
   useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 60_000);
-    return () => clearInterval(id);
+    let timer: ReturnType<typeof setTimeout>;
+    const tick = () => {
+      const current = new Date();
+      setNow(current);
+      timer = setTimeout(tick, msToNextMinute(current));
+    };
+    timer = setTimeout(tick, msToNextMinute(new Date()));
+    const onVisible = () => {
+      if (document.visibilityState !== 'visible') return;
+      clearTimeout(timer);
+      tick();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
   }, []);
 
   const timeStr = new Intl.DateTimeFormat(locale, {

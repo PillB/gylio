@@ -389,7 +389,7 @@ const DailyCommandCenter: React.FC<DailyCommandCenterProps> = ({ onExitSimplifie
   }
 
   return (
-    <main
+    <section
       aria-label={t('dailyMode.ariaMain', 'Daily Command Center')}
       style={{
         maxWidth: 560,
@@ -515,7 +515,7 @@ const DailyCommandCenter: React.FC<DailyCommandCenterProps> = ({ onExitSimplifie
           >
             <strong
               style={{
-                color: theme.colors.success ?? theme.colors.primary,
+                color: theme.colors.successStrong,
                 fontSize: '1.15rem',
               }}
             >
@@ -583,7 +583,7 @@ const DailyCommandCenter: React.FC<DailyCommandCenterProps> = ({ onExitSimplifie
           <span aria-hidden="true">→</span>
         </button>
       </div>
-    </main>
+    </section>
   );
 };
 

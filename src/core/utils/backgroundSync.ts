@@ -58,6 +58,24 @@ const calculateBackoffMs = (attempts: number) => {
   return delay;
 };
 
+/**
+ * Answers that will be the same however often the write is sent: an unknown route (the Worker has no
+ * legacy routes), a removed resource or a body the server rejects. Retrying them forever cost requests,
+ * battery and data and never succeeded, so the entry is dropped. The data itself stays on the device.
+ */
+const PERMANENT_FAILURES = new Set([400, 404, 405, 410, 413, 422]);
+
+export const isPermanentSyncFailure = (statusCode: number): boolean => PERMANENT_FAILURES.has(statusCode);
+
+/** How long a `Retry-After` header (seconds or an HTTP date) asks the client to wait, or 0 when absent or unreadable. */
+export const retryAfterMs = (header: string | null, now = Date.now()): number => {
+  if (!header) return 0;
+  const seconds = Number(header);
+  if (Number.isFinite(seconds)) return Math.max(0, seconds * 1000);
+  const date = Date.parse(header);
+  return Number.isNaN(date) ? 0 : Math.max(0, date - now);
+};
+
 const parseJsonSafe = async (response: Response) => {
   try {
     return await response.json();
@@ -91,6 +109,7 @@ type SyncResult =
       errorCode: SyncErrorCode;
       message: string;
       remoteData: Record<string, unknown> | null;
+      retryAfterMs?: number;
     };
 
 const syncAction = async (action: SyncAction): Promise<SyncResult> => {
@@ -123,6 +142,7 @@ const syncAction = async (action: SyncAction): Promise<SyncResult> => {
 
   if (statusCode === 409) {
     await addSyncConflict({
+      owner: action.owner,
       entityType: action.entityType,
       action: action.action,
       localData: action.payload,
@@ -149,7 +169,33 @@ const syncAction = async (action: SyncAction): Promise<SyncResult> => {
     errorCode,
     message,
     remoteData,
+    retryAfterMs: retryAfterMs(response.headers.get('Retry-After')),
   };
+};
+
+const errorDetails = (code: SyncErrorCode, statusCode: number, message: string) => ({
+  lastErrorCode: code,
+  lastStatusCode: statusCode,
+  lastErrorMessage: message,
+  lastErrorAt: new Date().toISOString(),
+});
+
+/** Schedules the next try, no sooner than the server asked. */
+const scheduleRetry = (action: SyncAction, details: ReturnType<typeof errorDetails>, serverDelayMs = 0) => {
+  const attempts = action.attempts + 1;
+  const nextAttemptAt = Date.now() + Math.max(calculateBackoffMs(attempts), serverDelayMs);
+  return updateSyncAction(action.id, { attempts, nextAttemptAt, status: 'retry', ...details });
+};
+
+const settleAction = async (action: SyncAction, result: SyncResult) => {
+  if (result.status === 'ok') return removeSyncAction(action.id);
+  const details = errorDetails(result.errorCode, result.statusCode, result.message);
+  if (result.status === 'conflict') return updateSyncAction(action.id, { status: 'conflict', ...details });
+  if (isPermanentSyncFailure(result.statusCode)) {
+    console.warn(`Sync gave up on a ${action.entityType} change: the server answered ${result.statusCode}. It stays on this device.`);
+    return removeSyncAction(action.id);
+  }
+  return scheduleRetry(action, details, result.retryAfterMs);
 };
 
 let syncInFlight = false;
@@ -167,46 +213,10 @@ const runSyncQueue = async () => {
     const pending = await listPendingSyncActions();
     for (const action of pending) {
       try {
-        const result = await syncAction(action);
-        if (result.status === 'ok') {
-          await removeSyncAction(action.id);
-          continue;
-        }
-
-        if (result.status === 'conflict') {
-          await updateSyncAction(action.id, {
-            status: 'conflict',
-            lastErrorCode: result.errorCode,
-            lastStatusCode: result.statusCode,
-            lastErrorMessage: result.message,
-            lastErrorAt: new Date().toISOString(),
-          });
-          continue;
-        }
-
-        const attempts = action.attempts + 1;
-        const nextAttemptAt = Date.now() + calculateBackoffMs(attempts);
-        await updateSyncAction(action.id, {
-          attempts,
-          nextAttemptAt,
-          status: 'retry',
-          lastErrorCode: result.errorCode,
-          lastStatusCode: result.statusCode,
-          lastErrorMessage: result.message,
-          lastErrorAt: new Date().toISOString(),
-        });
+        await settleAction(action, await syncAction(action));
       } catch (error) {
-        const attempts = action.attempts + 1;
-        const nextAttemptAt = Date.now() + calculateBackoffMs(attempts);
-        await updateSyncAction(action.id, {
-          attempts,
-          nextAttemptAt,
-          status: 'retry',
-          lastErrorCode: 'NETWORK_ERROR',
-          lastStatusCode: 0,
-          lastErrorMessage: error instanceof Error ? error.message : 'Unknown network error',
-          lastErrorAt: new Date().toISOString(),
-        });
+        const message = error instanceof Error ? error.message : 'Unknown network error';
+        await scheduleRetry(action, errorDetails('NETWORK_ERROR', 0, message));
       }
     }
   } finally {

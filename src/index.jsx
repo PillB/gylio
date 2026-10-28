@@ -1,3 +1,6 @@
+// First: finishes "remove my data from this device" before anything below reads storage.
+import './core/account/removeOnStart';
+import './styles/fonts.css';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { I18nextProvider } from 'react-i18next';
@@ -11,7 +14,6 @@ import { AccessibilityProvider } from './core/hooks/useAccessibility';
 import AccessibleMotionBoundary from './core/accessibility/AccessibleMotionBoundary';
 import { ToastProvider } from './core/context/ToastContext';
 import ToastStack from './components/atoms/Toast';
-import SiteUtilityFooter from './components/SiteUtilityFooter';
 import { GuidedTourProvider } from './core/context/GuidedTourContext';
 import { TaskTimerProvider } from './core/context/TaskTimerContext';
 import { TimeTrackerProvider } from './features/timetracking/TimeTrackerContext';
@@ -40,7 +42,6 @@ const providers = (
                 <AccessibilityProvider>
                   <AccessibleMotionBoundary>
                     <App clerkEnabled={Boolean(PUBLISHABLE_KEY)} />
-                    <SiteUtilityFooter />
                     <ToastStack />
                   </AccessibleMotionBoundary>
                 </AccessibilityProvider>

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { openSeedPage } from './helpers/seedPage';
 
 const accessibility = {
   textStyle: 'large',
@@ -18,7 +19,7 @@ const accessibility = {
  * storage access without mounting any GYLIO state providers.
  */
 async function seedState(page: Page, state: Record<string, unknown>) {
-  await page.goto('/gylio/deployment-guide.html', { waitUntil: 'domcontentloaded' });
+  await openSeedPage(page);
   await page.evaluate((payload) => {
     localStorage.setItem('gylio_lang', 'en');
     localStorage.setItem('onboardingFlowState', JSON.stringify(payload));

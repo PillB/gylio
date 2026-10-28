@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import type { Subtask } from '../../../core/hooks/useDB';
 import type { ThemeTokens } from '../../../core/themes';
 import { MAX_SUBTASKS } from '../utils/taskForm';
@@ -35,6 +36,7 @@ const SubtaskEditor: React.FC<SubtaskEditorProps> = ({
   idPrefix,
   tooltip,
 }) => {
+  const { t } = useTranslation();
   const update = (next: Subtask[]) => {
     onChange(next);
     onTouch();
@@ -63,6 +65,7 @@ const SubtaskEditor: React.FC<SubtaskEditorProps> = ({
               type="text"
               value={subtask.label}
               placeholder={placeholder}
+              aria-label={t('tasks.stepAria', { n: index + 1 })}
               onChange={(event) =>
                 update(subtasks.map((entry, entryIndex) => (entryIndex === index ? { ...entry, label: event.target.value } : entry)))
               }
@@ -71,7 +74,7 @@ const SubtaskEditor: React.FC<SubtaskEditorProps> = ({
             <button
               type="button"
               onClick={() => update(subtasks.filter((_, entryIndex) => entryIndex !== index))}
-              aria-label={removeLabel}
+              aria-label={t('tasks.removeStepAria', { n: index + 1 })}
               style={controlStyle(theme)}
             >
               {removeLabel}
@@ -89,7 +92,7 @@ const SubtaskEditor: React.FC<SubtaskEditorProps> = ({
       >
         {addLabel}
       </button>
-      {error ? <p style={{ margin: '0.5rem 0 0', color: theme.colors.accent }}>{error}</p> : null}
+      {error ? <p style={{ margin: '0.5rem 0 0', color: theme.colors.errorStrong }}>{error}</p> : null}
     </fieldset>
   );
 };

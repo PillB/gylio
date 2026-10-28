@@ -111,12 +111,12 @@ const spacing = {
 
 const typography = {
   body: {
-    family: "'Inter', 'Open Sans', system-ui, sans-serif",
+    family: "'Inter', system-ui, sans-serif",
     size: 16,
     lineHeight: 1.6,
   },
   heading: {
-    family: "'Inter', 'Open Sans', system-ui, sans-serif",
+    family: "'Inter', system-ui, sans-serif",
     weight: 700,
   },
 };
@@ -152,8 +152,10 @@ const palettes = {
     surface: '#FFFFFF',
     surfaceElevated: '#F2F0FA',
     text: '#1C1B22',
-    muted: '#6B6880',
-    primary: '#5B5CF6',
+    // Primary and muted were 4.55:1 and 5.0:1 on the page, so any tinted or elevated surface (selected
+    // cards, open toggles, dialogs) took them under 4.5:1. These darker shades keep AA on all of them.
+    muted: '#625F77',
+    primary: '#5250E8',
     primaryHover: '#4849E8',
     primaryForeground: '#FFFFFF',
     secondary: '#7C3AED',
@@ -175,15 +177,15 @@ const palettes = {
     onError: '#1C1B22',
     border: '#E2E0EA',
     borderStrong: '#C4C0D4',
-    focus: '#5B5CF6',
-    overlay: 'rgba(91,92,246,0.08)',
+    focus: '#5250E8',
+    overlay: 'rgba(82,80,232,0.08)',
   },
   dark: {
     background: '#0D0D14',
     surface: '#13131E',
     surfaceElevated: '#1A1A2E',
     text: '#F0EFF8',
-    muted: '#8A8899',
+    muted: '#9492A3',
     primary: '#8182FA',
     primaryHover: '#9394FB',
     primaryForeground: '#0D0D14',
@@ -383,22 +385,3 @@ export const readableTextOn = (background: string): string =>
   contrastRatio(READABLE_LIGHT_TEXT, background) >= contrastRatio(READABLE_DARK_TEXT, background)
     ? READABLE_LIGHT_TEXT
     : READABLE_DARK_TEXT;
-
-export const mapToPaperTheme = (theme: ThemeTokens) => ({
-  dark: theme.mode === 'dark',
-  roundness: theme.shape.radiusMd,
-  colors: {
-    primary: theme.colors.primary,
-    background: theme.colors.background,
-    surface: theme.colors.surface,
-    accent: theme.colors.accent,
-    text: theme.colors.text,
-    placeholder: theme.colors.muted,
-    disabled: theme.colors.muted,
-    backdrop: theme.colors.border,
-    notification: theme.colors.focus,
-    border: theme.colors.border,
-    outline: theme.colors.border,
-    onSurface: theme.colors.text,
-  },
-});

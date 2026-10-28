@@ -117,6 +117,18 @@
     "dailyHeading": "By day",
     "day": "Day",
     "empty": "No events in this period yet.",
-    "error": "Analytics couldn't be loaded."
+    "error": "Analytics couldn't be loaded.",
+    "routineHeading": "Routine limit test",
+    "devicesNote": "Days are counted once per device, the first time it reaches them; nobody is identified.",
+    "routineNote": "Decide only at the sample size set in advance (about 470 devices per group that reached 7 days); see docs/research/routine-free-limit-2026-10-28.md.",
+    "reached1Day": "Reached 1 day",
+    "reached7Days": "Reached 7 days",
+    "reached28Days": "Reached 28 days",
+    "from7To28": "7 → 28 days",
+    "limitReached": "Sessions at the limit",
+    "extraGiven": "Thank-yous given",
+    "seePro": "See Pro clicks",
+    "created": "Routines added",
+    "deleted": "Routines removed"
   }
 }

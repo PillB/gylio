@@ -1,3 +1,5 @@
+import { readOwner } from '../account/deviceOwner';
+
 const SYNC_DB_NAME = 'gylio-sync';
 const SYNC_DB_VERSION = 1;
 const QUEUE_STORE = 'sync_queue';
@@ -29,6 +31,8 @@ export type SyncAction = {
   lastStatusCode?: number;
   lastErrorMessage?: string;
   lastErrorAt?: string;
+  /** The account whose data this change came from (src/core/account/deviceOwner.ts); null before anyone signed in. */
+  owner?: string | null;
 };
 
 export type SyncConflict = {
@@ -42,7 +46,15 @@ export type SyncConflict = {
   errorCode?: SyncErrorCode;
   statusCode?: number;
   message?: string;
+  owner?: string | null;
 };
+
+/**
+ * A change waits for the account it came from. Changes made before anyone signed in belong to whoever signs in first,
+ * as the rest of that data does. On a shared device this keeps one person's queued edits from being sent with the
+ * next person's sign-in, or shown to them as conflicts.
+ */
+const belongsTo = (entry: { owner?: string | null }, owner: string | null) => !entry.owner || entry.owner === owner;
 
 const supportsIndexedDB = () => typeof window !== 'undefined' && 'indexedDB' in window;
 
@@ -114,6 +126,7 @@ export const enqueueSyncAction = async (
     };
   }
   const record: SyncAction = {
+    owner: readOwner(),
     ...action,
     id: createId(),
     attempts: 0,
@@ -131,19 +144,19 @@ export const listSyncActions = async (): Promise<SyncAction[]> => {
   return entries.sort((a, b) => Date.parse(a.clientUpdatedAt) - Date.parse(b.clientUpdatedAt));
 };
 
-export const listPendingSyncActions = async (): Promise<SyncAction[]> => {
+export const listPendingSyncActions = async (owner: string | null = readOwner()): Promise<SyncAction[]> => {
   const entries = await listSyncActions();
   const now = Date.now();
-  return entries.filter((entry) => entry.status !== 'conflict' && entry.nextAttemptAt <= now);
+  return entries.filter((entry) => entry.status !== 'conflict' && entry.nextAttemptAt <= now && belongsTo(entry, owner));
 };
 
+/** Reads and writes one entry by its key. Reading and sorting the whole queue per entry made a pass O(n²). */
 export const updateSyncAction = async (id: string, updates: Partial<SyncAction>): Promise<void> => {
-  const entries = await listSyncActions();
-  const existing = entries.find((entry) => entry.id === id);
-  if (!existing) return;
-  const next = { ...existing, ...updates };
   await withStore<void>(QUEUE_STORE, 'readwrite', (store) => {
-    store.put(next);
+    const request = store.get(id);
+    request.onsuccess = () => {
+      if (request.result) store.put({ ...(request.result as SyncAction), ...updates });
+    };
   });
 };
 
@@ -165,9 +178,9 @@ export const addSyncConflict = async (conflict: Omit<SyncConflict, 'id'>): Promi
   return record;
 };
 
-export const listSyncConflicts = async (): Promise<SyncConflict[]> => {
+export const listSyncConflicts = async (owner: string | null = readOwner()): Promise<SyncConflict[]> => {
   const entries = await getAllFromStore<SyncConflict>(CONFLICT_STORE);
-  return entries.sort((a, b) => Date.parse(b.detectedAt) - Date.parse(a.detectedAt));
+  return entries.filter((entry) => belongsTo(entry, owner)).sort((a, b) => Date.parse(b.detectedAt) - Date.parse(a.detectedAt));
 };
 
 export const removeSyncConflict = async (id: string): Promise<void> => {
@@ -175,4 +188,13 @@ export const removeSyncConflict = async (id: string): Promise<void> => {
   await withStore<void>(CONFLICT_STORE, 'readwrite', (store) => {
     store.delete(id);
   });
+};
+
+/** Drops the queued changes and conflicts that belong to `owner` ("Remove my data from this device"). */
+export const removeQueuedFor = async (owner: string): Promise<void> => {
+  const [actions, conflicts] = await Promise.all([listSyncActions(), getAllFromStore<SyncConflict>(CONFLICT_STORE)]);
+  const remove = (storeName: string, ids: string[]) =>
+    ids.length ? withStore<void>(storeName, 'readwrite', (store) => ids.forEach((id) => store.delete(id))) : Promise.resolve();
+  await remove(QUEUE_STORE, actions.filter((entry) => belongsTo(entry, owner)).map((entry) => entry.id));
+  await remove(CONFLICT_STORE, conflicts.filter((entry) => belongsTo(entry, owner)).map((entry) => entry.id));
 };

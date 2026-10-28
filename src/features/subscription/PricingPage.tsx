@@ -27,13 +27,17 @@ import {
 import { currencyForLocale, daysUntil, formatMoney, yearlySavingsPercent } from '../billing/formatMoney';
 import { openPaddleCheckout, paddleConfigured } from '../billing/paddle';
 import { useExperiment } from '../experiments/useExperiment';
+import { serverFeaturesEnabled } from '../../core/utils/serverFeatures';
+import { BASE_FREE_ROUTINES } from '../routines/routineAllowance';
+import { syncEnabled } from '../../core/sync/flag';
+import { resolveAdProvider } from '../ads/adConfig';
 
 type Interval = 'monthly' | 'yearly';
 type Busy = null | 'trial' | 'checkout' | 'pass' | 'portal';
 
 // Static previews (GitHub Pages, CI) have no billing API; they show the catalogue
 // bundled with the app instead of calling a backend that isn't there.
-const billingApiEnabled = import.meta.env.VITE_BILLING_ENABLED === 'true';
+const billingApiEnabled = serverFeaturesEnabled();
 
 function useCatalog() {
   const [catalog, setCatalog] = useState<Catalog>(FALLBACK_CATALOG);
@@ -152,7 +156,7 @@ export const PricingPage: React.FC = () => {
   useEffect(() => {
     if (!ready || viewLogged.current) return;
     viewLogged.current = true;
-    track('paywall_viewed', { interval: defaultInterval, currency });
+    track('paywall_viewed', { interval: defaultInterval, currency, selling: serverFeaturesEnabled() });
   }, [ready, defaultInterval, currency]);
 
   const monthly = planFor(catalog, 'monthly');
@@ -175,7 +179,7 @@ export const PricingPage: React.FC = () => {
         <h1 id="pricing-heading" style={{ margin: 0, fontFamily: theme.typography.heading.family, fontSize: '1.75rem' }}>
           {t('billing.heading')}
         </h1>
-        <p style={{ color: theme.colors.muted, margin: `${theme.spacing.sm}px 0 0` }}>{t('billing.subheading')}</p>
+        <PricingIntro />
       </header>
 
       <EntitlementStatus entitlement={entitlement} />
@@ -198,12 +202,36 @@ export const PricingPage: React.FC = () => {
       <PassOptions passes={catalog.passes} currency={currency} actions={actions} />
       <ActionMessage message={actions.message} />
 
-      <p style={{ textAlign: 'center', color: theme.colors.muted, fontSize: '0.875rem', marginTop: theme.spacing.xl }}>
-        {t('billing.fineprint')}
-      </p>
+      <Fineprint />
     </main>
   );
 };
+
+/**
+ * What the page is for. Where Pro can't be bought yet (billing off: serverFeatures.ts) the page shows the planned
+ * plans and prices, says so, and offers nothing to buy.
+ */
+function PricingIntro() {
+  const { t } = useTranslation();
+  const { theme } = useTheme();
+  return (
+    <p style={{ color: theme.colors.muted, margin: `${theme.spacing.sm}px 0 0` }}>
+      {t(serverFeaturesEnabled() ? 'billing.subheading' : 'billing.planned.subheading')}
+    </p>
+  );
+}
+
+/** Cancelling terms, only where there is something to cancel. */
+function Fineprint() {
+  const { t } = useTranslation();
+  const { theme } = useTheme();
+  if (!serverFeaturesEnabled()) return null;
+  return (
+    <p style={{ textAlign: 'center', color: theme.colors.muted, fontSize: '0.875rem', marginTop: theme.spacing.xl }}>
+      {t('billing.fineprint')}
+    </p>
+  );
+}
 
 function EntitlementStatus({ entitlement }: { entitlement: Entitlement | null }) {
   const { t, i18n } = useTranslation();
@@ -303,7 +331,7 @@ function useCardStyle(highlight: boolean): React.CSSProperties {
   };
 }
 
-function FeatureList({ keys }: { keys: string[] }) {
+function FeatureList({ keys, values = {} }: { keys: string[]; values?: Record<string, Record<string, unknown>> }) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   return (
@@ -311,26 +339,43 @@ function FeatureList({ keys }: { keys: string[] }) {
       {keys.map((key) => (
         <li key={key} style={{ display: 'flex', gap: theme.spacing.xs }}>
           <span aria-hidden="true" style={{ color: theme.colors.successStrong, fontWeight: 700 }}>✓</span>
-          {t(key)}
+          {t(key, values[key])}
         </li>
       ))}
     </ul>
   );
 }
 
-const FREE_FEATURE_KEYS = ['billing.free.tasks', 'billing.free.calendar', 'billing.free.budget', 'billing.free.rewards', 'billing.free.sync', 'billing.free.ads'];
+/** The same rule as AdSlot: ads only where they are on and Pro, which removes them, can be bought. */
+const adsRun = (): boolean => serverFeaturesEnabled() && resolveAdProvider(import.meta.env, 'settings') !== 'off';
+
+/**
+ * Only what this build does: saving to an account where it syncs (src/core/sync/flag.ts), and ads where they are on
+ * (adConfig.ts). Routines, rewards and social plans stay on the device, so the sync line names what it saves.
+ */
+const freeFeatureKeys = (): string[] => [
+  'billing.free.tasks',
+  'billing.free.calendar',
+  'billing.free.budget',
+  'billing.free.rewards',
+  'billing.free.routines',
+  ...(syncEnabled() ? ['billing.free.sync'] : []),
+  ...(adsRun() ? ['billing.free.ads'] : []),
+];
 const PRO_FEATURE_KEYS = ['billing.pro.everything', 'billing.pro.routines', 'billing.pro.social', 'billing.pro.ai', 'billing.pro.support', 'billing.pro.noAds'];
 
 function FreeCard({ currency }: { currency: Currency }) {
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   const style = useCardStyle(false);
+  // The same free limit the person meets on the Routines screen. Exposure is counted there, where the limit applies.
+  const { variant } = useExperiment('routine_free_limit', { shown: false });
   return (
     <section aria-labelledby="plan-free" style={style}>
       <h2 id="plan-free" style={{ margin: 0, fontSize: '1.25rem' }}>{t('billing.free.name')}</h2>
       <p style={{ margin: 0, fontSize: '1.75rem', fontWeight: 700 }}>{formatMoney(0, currency, i18n.language)}</p>
       <p style={{ margin: 0, color: theme.colors.muted }}>{t('billing.free.tagline')}</p>
-      <FeatureList keys={FREE_FEATURE_KEYS} />
+      <FeatureList keys={freeFeatureKeys()} values={{ 'billing.free.routines': { count: BASE_FREE_ROUTINES[variant] } }} />
     </section>
   );
 }
@@ -407,6 +452,8 @@ function ProActions({ plan, trialDays, entitlement, actions }: ProActionsProps) 
   const primary = usePrimaryButtonStyle();
   const secondary = useSecondaryButtonStyle();
 
+  // Nothing to buy where Pro isn't on sale yet (serverFeatures.ts): the planned price, and a plain line saying so.
+  if (!serverFeaturesEnabled()) return <p style={{ margin: 0, fontWeight: 600, textAlign: 'center' }}>{t('billing.planned.notYet')}</p>;
   // Nothing until sign-in state is known, so a signed-in person never sees "Create an account" flash.
   if (!authLoaded) return <div style={{ minHeight: 48 }} aria-busy="true" />;
   if (!userId) {

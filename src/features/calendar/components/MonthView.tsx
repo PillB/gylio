@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../../core/context/ThemeContext';
 import type { Event } from '../../../core/hooks/useDB';
 import type { CalendarFormat } from '../hooks/useCalendarFormat';
@@ -43,15 +44,19 @@ const DensityDots: React.FC<{ events: TintedEvent<Event>[] }> = ({ events }) => 
 
 const DayCell: React.FC<DayCellProps> = ({ date, events, inMonth, isToday, isSelected, format, onOpen }) => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   return (
     <div
       role="button"
       tabIndex={0}
-      aria-label={`${format.day(date)}, ${events.length} events`}
+      aria-label={t('calendarDayEvents', { day: format.day(date), count: events.length })}
       aria-pressed={isSelected}
       onClick={onOpen}
       onKeyDown={(event) => {
-        if (event.key === 'Enter' || event.key === ' ') onOpen();
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        // Space on a non-button element also scrolls the page; a real button would not.
+        event.preventDefault();
+        onOpen();
       }}
       style={{
         border: `1px solid ${isToday ? theme.colors.primary : theme.colors.border}`,

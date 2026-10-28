@@ -1,5 +1,6 @@
 import { authHeaders } from '../../../core/utils/authToken';
 import { apiUrl } from '../../../core/utils/apiUrl';
+import { serverFeaturesEnabled } from '../../../core/utils/serverFeatures';
 
 export type SocialSuggestion = {
   steps: string[];
@@ -33,20 +34,24 @@ export const fetchSocialSuggestions = async ({
   energyLevel,
   locale
 }: FetchSocialSuggestionsArgs): Promise<SocialSuggestion | null> => {
-  const response = await fetch(apiUrl('/api/ai/social-suggestions'), {
-    method: 'POST',
-    headers: await authHeaders({ 'Content-Type': 'application/json' }),
-    body: JSON.stringify({
-      templateSummary,
-      energyLevel,
-      locale
-    })
-  });
-
-  if (!response.ok) {
+  // Only the full server answers this; elsewhere the template steps are the answer.
+  if (!serverFeaturesEnabled()) return null;
+  // Offline, or an answer that is not JSON: the template steps again, rather than a button stuck on "Loading".
+  try {
+    const response = await fetch(apiUrl('/api/ai/social-suggestions'), {
+      method: 'POST',
+      headers: await authHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({
+        templateSummary,
+        energyLevel,
+        locale
+      })
+    });
+    if (!response.ok) {
+      return null;
+    }
+    return parseSuggestion((await response.json()) as unknown);
+  } catch {
     return null;
   }
-
-  const data = (await response.json()) as unknown;
-  return parseSuggestion(data);
 };

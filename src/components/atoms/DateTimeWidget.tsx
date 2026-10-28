@@ -46,13 +46,19 @@ const DateTimeWidget: React.FC = () => {
   const { now, tzStr } = useClock(i18n.language);
 
   const [granularity, setGranularity] = useState<ClockGranularity>(() => {
-    const stored = localStorage.getItem(STORAGE_KEY) as ClockGranularity | null;
-    return stored && GRANULARITY_CYCLE.includes(stored) ? stored : 'exact';
+    let stored: string | null = null;
+    try {
+      stored = localStorage.getItem(STORAGE_KEY);
+    } catch {
+      stored = null;
+    }
+    return stored && (GRANULARITY_CYCLE as string[]).includes(stored) ? (stored as ClockGranularity) : 'exact';
   });
   const [menuOpen, setMenuOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const toggleRef = useRef<HTMLButtonElement>(null);
 
-  // Close menu on outside click or Escape
+  // Close menu on outside click or Escape. Escape puts focus back on the toggle so keyboard users keep their place.
   useEffect(() => {
     if (!menuOpen) return;
     const onPointer = (e: MouseEvent) => {
@@ -61,7 +67,10 @@ const DateTimeWidget: React.FC = () => {
       }
     };
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setMenuOpen(false);
+      if (e.key === 'Escape') {
+        setMenuOpen(false);
+        toggleRef.current?.focus();
+      }
     };
     document.addEventListener('mousedown', onPointer);
     document.addEventListener('keydown', onKey);
@@ -73,8 +82,14 @@ const DateTimeWidget: React.FC = () => {
 
   const applyGranularity = useCallback((g: ClockGranularity) => {
     setGranularity(g);
-    localStorage.setItem(STORAGE_KEY, g);
+    try {
+      localStorage.setItem(STORAGE_KEY, g);
+    } catch {
+      // Storage can be unavailable (private mode, blocked site data); the choice still applies for this visit.
+    }
     setMenuOpen(false);
+    // The option the person pressed disappears with the menu; keep focus on the toggle instead of losing it.
+    toggleRef.current?.focus();
   }, []);
 
   // Locale-aware date string (dd/mm ordering for non-English via Intl)
@@ -123,11 +138,9 @@ const DateTimeWidget: React.FC = () => {
       ref={containerRef}
       style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 4 }}
     >
-      {/* Date / time text */}
+      {/* Date / time text. Not a live region: a clock that changes every minute would be read out every minute. */}
       {granularity !== 'hidden' && (
         <span
-          aria-live="polite"
-          aria-atomic="true"
           style={{
             fontSize: '0.8125rem',
             color: theme.colors.muted,
@@ -151,15 +164,15 @@ const DateTimeWidget: React.FC = () => {
 
       {/* Granularity picker button */}
       <button
+        ref={toggleRef}
         type="button"
         onClick={() => setMenuOpen((o) => !o)}
         aria-label={toggleLabel}
         aria-expanded={menuOpen}
-        aria-haspopup="listbox"
         title={toggleLabel}
         style={{
-          width: 22,
-          height: 22,
+          width: 24,
+          height: 24,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -180,7 +193,7 @@ const DateTimeWidget: React.FC = () => {
       {/* Dropdown */}
       {menuOpen && (
         <div
-          role="listbox"
+          role="group"
           aria-label={toggleLabel}
           style={{
             position: 'absolute',
@@ -200,8 +213,7 @@ const DateTimeWidget: React.FC = () => {
             return (
               <button
                 key={g}
-                role="option"
-                aria-selected={active}
+                aria-pressed={active}
                 type="button"
                 onClick={() => applyGranularity(g)}
                 style={{

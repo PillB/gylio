@@ -6,9 +6,10 @@
  * When the API is unreachable and nothing is cached, the older Clerk
  * publicMetadata.plan flag is honoured so existing test accounts keep working.
  *
- * Free vs Pro follows the competitor/benchmark research in
- * docs/billing/PRO_VS_FREE.md: the daily loop (tasks, calendar, budget,
- * rewards, and saving to your account) stays free; depth, AI and an ad-free app are Pro.
+ * Free vs Pro follows docs/pricing-strategy-final.md §2.2 and, for routines,
+ * docs/research/routine-free-limit-2026-10-28.md: the daily loop (tasks, calendar,
+ * budget, rewards, a few routines, and saving to your account) stays free; depth
+ * (unlimited routines, social plans), AI and an ad-free app are Pro.
  */
 import { useAppAuth } from '../../core/context/AuthContext';
 import { useEntitlement } from '../billing/EntitlementContext';
@@ -22,18 +23,20 @@ export type FeatureKey =
   | 'rewards'
   | 'social'
   | 'routines'
+  | 'routines_unlimited'
   | 'ai_suggestions'
   | 'ai_unlimited'
   | 'sync'
   | 'ad_free';
 
 // Saving to your account and using it on other devices is free: losing data is never a paywall.
-export const FREE_FEATURES: ReadonlySet<FeatureKey> = new Set(['tasks', 'calendar', 'budget', 'rewards', 'sync']);
+// Routines are free up to a limit (src/features/routines/routineAllowance.ts); Pro has no limit.
+export const FREE_FEATURES: ReadonlySet<FeatureKey> = new Set(['tasks', 'calendar', 'budget', 'rewards', 'routines', 'sync']);
 
 export const PRO_FEATURES: ReadonlySet<FeatureKey> = new Set([
   ...FREE_FEATURES,
   'social',
-  'routines',
+  'routines_unlimited',
   'ai_suggestions',
   'ai_unlimited',
   'sync',

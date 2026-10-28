@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../../core/context/ThemeContext';
+import { serverFeaturesEnabled } from '../../core/utils/serverFeatures';
 import { useEntitlement } from './EntitlementContext';
 import { daysUntil } from './formatMoney';
 import type { Entitlement } from './billingApi';
@@ -56,9 +57,12 @@ export function TrialBanner() {
       <span style={{ flex: '1 1 240px' }}>
         {t(`billing.banner.${reminder.kind}`, { count: reminder.days })}
       </span>
-      <Link to="/pricing" style={{ color: theme.colors.primary, fontWeight: 600, minHeight: 44, lineHeight: '44px' }}>
-        {t('billing.banner.seePlans')}
-      </Link>
+      {/* Plans only where they can be bought (serverFeatures.ts); the reminder itself is still true. */}
+      {serverFeaturesEnabled() && (
+        <Link to="/pricing" style={{ color: theme.colors.primary, fontWeight: 600, minHeight: 44, lineHeight: '44px' }}>
+          {t('billing.banner.seePlans')}
+        </Link>
+      )}
       <button type="button" onClick={dismiss} style={{ minHeight: 44, background: 'transparent', border: 'none', color: theme.colors.muted, cursor: 'pointer' }}>
         {t('billing.banner.dismiss')}
       </button>

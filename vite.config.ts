@@ -1,4 +1,3 @@
-import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { defineConfig } from 'vite';
@@ -11,31 +10,6 @@ const __dirname = path.dirname(__filename);
 const configuredBase = (process.env.VITE_BASE_PATH || '/gylio/').trim();
 const base = configuredBase.endsWith('/') ? configuredBase : `${configuredBase}/`;
 
-// The standalone guide contains horizontally scrollable code/SVG regions. Its
-// step list must explicitly use a zero-minimum grid track; otherwise CSS Grid's
-// automatic min-content sizing lets long command content widen the entire page
-// on 320/390px screens. Keep this shipping patch centralized so the dev server
-// and built standalone HTML are byte-for-byte equivalent for this constraint.
-const deploymentGuideMobileFix = `
-    /* Shipping mobile containment gate: validated at 320px and 390px. */
-    .steps { grid-template-columns: minmax(0, 1fr); }
-    .step, .step-head, .step-head > * { min-width: 0; }
-`;
-
-const applyDeploymentGuideShippingFixes = (html) => {
-  if (html.includes('Shipping mobile containment gate')) return html;
-  return html.replace('</style>', `${deploymentGuideMobileFix}\n  </style>`);
-};
-
-/**
- * Vite serves public/ files from the origin root during development, while
- * GitHub Pages mounts the built dist directory beneath the repository base.
- * The footer intentionally points to `${base}deployment-guide.html` so the
- * deployed URL is correct. During development/Playwright, serve that same
- * based URL directly from public/ before Vite's SPA fallback handles it.
- * After build, apply the identical mobile-containment fix to the standalone
- * copied HTML in dist/ so the exact artifact deployed by Pages is validated.
- */
 /** Fills the CSP meta tag from the build's own environment (see csp.config.js). */
 const contentSecurityPolicy = () => {
   let env: Record<string, string> = {};
@@ -55,35 +29,28 @@ const contentSecurityPolicy = () => {
   };
 };
 
-const deploymentGuidePublicBaseBridge = () => ({
-  name: 'deployment-guide-public-base-bridge',
-  configureServer(server) {
-    if (base === '/') return;
+/**
+ * Writes precache.json: every file the build emits, for the service worker to cache at install, so an
+ * installed app opens offline on any screen, not only the ones visited while online. The worker used to read
+ * manifest.json, which is the web app manifest (name, icons), not a file list, so it cached no scripts at all.
+ */
+const PRECACHE_FILE = 'precache.json';
+const PRECACHEABLE = /\.(js|css|html|svg|png|woff2?)$/;
 
-    const basedGuidePath = `${base}deployment-guide.html`.replace(/\/{2,}/g, '/');
-    const guideFile = path.resolve(__dirname, 'public', 'deployment-guide.html');
-
-    server.middlewares.use((req, res, next) => {
-      if (!req.url) return next();
-      const pathname = req.url.split('?', 1)[0];
-      if (pathname !== basedGuidePath) return next();
-
-      try {
-        const html = applyDeploymentGuideShippingFixes(fs.readFileSync(guideFile, 'utf8'));
-        res.statusCode = 200;
-        res.setHeader('Content-Type', 'text/html; charset=utf-8');
-        res.setHeader('Cache-Control', 'no-store');
-        res.end(html);
-      } catch (error) {
-        next(error);
-      }
+const precacheList = () => ({
+  name: 'gylio-precache-list',
+  apply: 'build' as const,
+  enforce: 'post' as const,
+  generateBundle(_options: unknown, bundle: Record<string, { fileName: string }>) {
+    const files = Object.values(bundle)
+      .map((output) => output.fileName)
+      .filter((file) => PRECACHEABLE.test(file) && file !== 'service-worker.js' && !file.startsWith('.vite/'))
+      .sort();
+    (this as unknown as { emitFile: (file: { type: 'asset'; fileName: string; source: string }) => void }).emitFile({
+      type: 'asset',
+      fileName: PRECACHE_FILE,
+      source: JSON.stringify(files),
     });
-  },
-  closeBundle() {
-    const builtGuide = path.resolve(__dirname, 'dist', 'deployment-guide.html');
-    if (!fs.existsSync(builtGuide)) return;
-    const html = fs.readFileSync(builtGuide, 'utf8');
-    fs.writeFileSync(builtGuide, applyDeploymentGuideShippingFixes(html), 'utf8');
   },
 });
 
@@ -111,7 +78,10 @@ export default defineConfig(({ mode }) => {
 
   return {
   base,
-  plugins: [react(), contentSecurityPolicy(), deploymentGuidePublicBaseBridge()],
+  // The Cloudflare deploy (worker/scripts/setup.sh) points this at an empty folder and pins every VITE_ setting
+  // itself, so a stray .env file on the Mac that deploys cannot change what ships.
+  envDir: process.env.GYLIO_ENV_DIR || undefined,
+  plugins: [react(), contentSecurityPolicy(), precacheList()],
   build: {
     manifest: true,
     rollupOptions: {
@@ -134,7 +104,7 @@ export default defineConfig(({ mode }) => {
           ) {
             return 'vendor-react';
           }
-          if (id.includes('node_modules/react-native-web') || id.includes('node_modules/react-native-paper')) {
+          if (id.includes('node_modules/react-native-web')) {
             return 'vendor-rnw';
           }
           if (id.includes('node_modules/react-router-dom') || id.includes('node_modules/react-router/')) {

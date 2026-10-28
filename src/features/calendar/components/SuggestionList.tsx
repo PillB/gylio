@@ -30,6 +30,7 @@ const SuggestionList: React.FC<Props> = ({ suggestions, format, onSchedule }) =>
               <button
                 type="button"
                 onClick={() => onSchedule(suggestion)}
+                aria-label={t('calendarScheduleSuggestionNamed', { title: suggestion.title })}
                 style={calendarButtonStyle(theme, 'outlinePrimary', { marginTop: `${theme.spacing.xs}px`, minHeight: 44 })}
               >
                 {t('calendarScheduleSuggestion')}

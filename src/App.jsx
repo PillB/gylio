@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Provider as PaperProvider } from 'react-native-paper';
 import {
   Navigate,
   Outlet,
@@ -29,6 +28,8 @@ import { getLocalDateKey } from './core/hooks/useClock';
 import useBackgroundSync from './core/hooks/useBackgroundSync';
 import { SyncRoot } from './core/sync/SyncRoot';
 import { WholeDeviceSaving } from './core/sync/WholeDeviceSaving';
+import { AccountDataGate } from './core/account/AccountDataGate';
+import { SignInWaitNotice, useSignInWait } from './core/account/SignInWait';
 import { SyncStatusChip } from './components/SyncStatus';
 import SignInPage from './features/auth/SignInPage';
 import SignUpPage from './features/auth/SignUpPage';
@@ -49,14 +50,22 @@ import TrialBanner from './features/billing/TrialBanner';
 import FeedbackButton from './features/feedback/FeedbackButton';
 import QaPage from './features/feedback/QaPage';
 import AdminPage from './features/admin/AdminPage';
+import { serverFeaturesEnabled } from './core/utils/serverFeatures';
 import { installErrorCapture } from './features/feedback/diagnostics';
 import { startAnalyticsUpload } from './core/analytics/upload';
 import { AccountSyncProvider } from './features/account/AccountSyncContext';
 import SyncConflictBanner from './features/account/SyncConflictBanner';
 
-// Phones reach feedback from Settings → Report a bug or idea, so the header stays one line.
+// Phones reach feedback from Settings → Report a bug or idea, so the header stays one line. Reports go to the full
+// server, so a build without it (serverFeatures.ts: the Cloudflare site, GitHub Pages) shows no button that cannot send.
 function HeaderFeedback({ isOnboarding, isMobile }) {
-  return isOnboarding || isMobile ? null : <FeedbackButton />;
+  return isOnboarding || isMobile || !serverFeaturesEnabled() ? null : <FeedbackButton />;
+}
+
+// The report page and the admin pages only work with the full server; without it, an old link opens Tasks.
+export function serverOnlyRoutes() {
+  const pages = { qa: <QaPage />, admin: <AdminPage /> };
+  return Object.entries(pages).map(([path, page]) => ({ path, element: serverFeaturesEnabled() ? page : <Navigate to="/tasks" replace /> }));
 }
 
 function AppHeader({ clerkEnabled }) {
@@ -151,7 +160,7 @@ function AppHeader({ clerkEnabled }) {
           <button
             type="button"
             onClick={toggleTts}
-            aria-label={t('onboarding.ttsToggle.aria')}
+            aria-pressed={ttsEnabled}
             className="header-tts"
             style={{
               padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
@@ -166,14 +175,24 @@ function AppHeader({ clerkEnabled }) {
               fontWeight: ttsEnabled ? 600 : 400,
             }}
           >
-            {ttsEnabled ? '🔊' : '🔇'} {t('onboarding.accessibility.tts')}
+            <span aria-hidden="true">{ttsEnabled ? '🔊' : '🔇'}</span> {t('onboarding.accessibility.tts')}
           </button>
         )}
         {clerkEnabled && !isOnboarding && (
           <>
             {!isMobile && <SubscriptionBadge />}
             <div style={{ minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <UserButton afterSignOutUrl={`${import.meta.env.BASE_URL}sign-in`} />
+              <UserButton afterSignOutUrl={`${import.meta.env.BASE_URL}sign-in`}>
+                {/* Next to Clerk's own "Sign out", which keeps the data here: the way out for a shared device. */}
+                <UserButton.MenuItems>
+                  <UserButton.Action label="signOut" />
+                  <UserButton.Link
+                    label={t('account.signOut.menu')}
+                    labelIcon={<span aria-hidden="true">⌫</span>}
+                    href={`${import.meta.env.BASE_URL}settings#sign-out`}
+                  />
+                </UserButton.MenuItems>
+              </UserButton>
             </div>
           </>
         )}
@@ -204,10 +223,13 @@ function SubscriptionBadge() {
           letterSpacing: '0.02em',
         }}
       >
-        {t('upgrade.premiumBadge', '✦ Premium')}
+        {t('upgrade.premiumBadge', '✦ Pro')}
       </span>
     );
   }
+
+  // Nothing to sell while Pro can't be bought (serverFeatures.ts): no Upgrade button.
+  if (!serverFeaturesEnabled()) return null;
 
   return (
     <button
@@ -272,9 +294,11 @@ function AppLayout({ clerkEnabled }) {
 function RootRedirectAuthed() {
   const { isOnboardingComplete } = useOnboardingFlow();
   const { isLoaded, isSignedIn } = useAuth();
-  if (!isLoaded) return null;
+  const wait = useSignInWait(isLoaded);
+  const home = <Navigate to={isOnboardingComplete ? '/tasks' : '/onboarding'} replace />;
+  if (!isLoaded) return wait === 'local' ? home : <SignInWaitNotice wait={wait} />;
   if (!isSignedIn) return <Navigate to="/sign-in" replace />;
-  return <Navigate to={isOnboardingComplete ? '/tasks' : '/onboarding'} replace />;
+  return home;
 }
 
 function RootRedirectNoAuth() {
@@ -282,9 +306,11 @@ function RootRedirectNoAuth() {
   return <Navigate to={isOnboardingComplete ? '/tasks' : '/onboarding'} replace />;
 }
 
+/** While sign-in is checked, the person whose data this is gets it offline or on a slow line (see SignInWait.tsx). */
 function ProtectedLayoutAuthed() {
   const { isLoaded, isSignedIn } = useAuth();
-  if (!isLoaded) return null;
+  const wait = useSignInWait(isLoaded);
+  if (!isLoaded) return wait === 'local' ? <Outlet /> : <SignInWaitNotice wait={wait} />;
   if (!isSignedIn) return <Navigate to="/sign-in" replace />;
   return <Outlet />;
 }
@@ -346,10 +372,10 @@ function OnboardingRoute() {
   }
 
   return (
-    <section style={{ marginTop: theme.spacing.lg }}>
+    <main style={{ marginTop: theme.spacing.lg }}>
       <p style={{ color: theme.colors.muted }}>{t('onboarding.intro')}</p>
       <OnboardingFlow onComplete={handleOnboardingComplete} />
-    </section>
+    </main>
   );
 }
 
@@ -367,7 +393,7 @@ function TabsLayout() {
       { key: 'calendar', label: t('calendar'), locked: false },
       { key: 'budget', label: t('budget.title'), locked: false },
       { key: 'social', label: t('social.title'), locked: !hasFeature('social') },
-      { key: 'routines', label: t('routines.title'), locked: !hasFeature('routines') },
+      { key: 'routines', label: t('routines.title'), locked: false },
       { key: 'rewards', label: t('rewards.title'), locked: !hasFeature('rewards') },
       { key: 'settings', label: t('settings'), locked: false },
     ],
@@ -401,18 +427,10 @@ const PREMIUM_GATE_CONFIG = {
   social: (t) => ({
     featureName: t('social.title'),
     outcomes: [
-      t('upgrade.social.outcome1', 'Share your streaks and wins with friends'),
-      t('upgrade.social.outcome2', 'Join accountability groups and group challenges'),
+      t('upgrade.social.outcome1', 'Plan time with people, with an energy level and small steps'),
+      t('upgrade.social.outcome2', 'Get a gentle reminder before each plan'),
     ],
-    freeAlternative: t('upgrade.social.freeAlt', 'track your own progress privately'),
-  }),
-  routines: (t) => ({
-    featureName: t('routines.title'),
-    outcomes: [
-      t('upgrade.routines.outcome1', 'Build unlimited morning, evening, and custom routines'),
-      t('upgrade.routines.outcome2', 'Get gentle nudges timed to your energy levels'),
-    ],
-    freeAlternative: t('upgrade.routines.freeAlt', 'add up to 3 tasks to your daily routine'),
+    freeAlternative: t('upgrade.social.freeAlt', 'add time with people as a task or a calendar event'),
   }),
   rewards: (t) => ({
     featureName: t('rewards.title'),
@@ -453,11 +471,8 @@ function buildAuthRouter(clerkEnabled) {
       element: <PremiumGate feature="social" />,
       children: [{ index: true, element: <SocialPlansView /> }],
     },
-    {
-      path: 'routines',
-      element: <PremiumGate feature="routines" />,
-      children: [{ index: true, element: <RoutinesView /> }],
-    },
+    // Free up to a limit, unlimited with Pro: the limit lives in the screen itself (useRoutineAllowance).
+    { path: 'routines', element: <RoutinesView /> },
     {
       path: 'rewards',
       element: <PremiumGate feature="rewards" />,
@@ -479,8 +494,7 @@ function buildAuthRouter(clerkEnabled) {
             element: clerkEnabled ? <ProtectedLayoutAuthed /> : <ProtectedLayoutNoAuth />,
             children: [
               { path: 'onboarding', element: <OnboardingRoute /> },
-              { path: 'qa', element: <QaPage /> },
-              { path: 'admin', element: <AdminPage /> },
+              ...serverOnlyRoutes(),
               {
                 element: <TabsLayout />,
                 children: [
@@ -506,13 +520,16 @@ function AppRouterAuthed() {
   if (!hydrated) return null;
   return (
     <AuthProvider clerkEnabled={true}>
-      <EntitlementProvider>
-        <WholeDeviceSaving>
-          <SyncRoot>
-            <RouterProvider router={router} future={{ v7_startTransition: true }} />
-          </SyncRoot>
-        </WholeDeviceSaving>
-      </EntitlementProvider>
+      {/* Outside everything that reads or sends data, so a different account never sees the previous one's. */}
+      <AccountDataGate>
+        <EntitlementProvider>
+          <WholeDeviceSaving>
+            <SyncRoot>
+              <RouterProvider router={router} future={{ v7_startTransition: true }} />
+            </SyncRoot>
+          </WholeDeviceSaving>
+        </EntitlementProvider>
+      </AccountDataGate>
     </AuthProvider>
   );
 }
@@ -535,7 +552,6 @@ function AppRouterNoAuth() {
 let appOpenTracked = false;
 
 export default function App({ clerkEnabled = false }) {
-  const { paperTheme } = useTheme();
   useBackgroundSync();
 
   React.useEffect(() => {
@@ -549,17 +565,5 @@ export default function App({ clerkEnabled = false }) {
     return startAnalyticsUpload();
   }, [clerkEnabled]);
 
-  if (!clerkEnabled) {
-    return (
-      <PaperProvider theme={paperTheme}>
-        <AppRouterNoAuth />
-      </PaperProvider>
-    );
-  }
-
-  return (
-    <PaperProvider theme={paperTheme}>
-      <AppRouterAuthed />
-    </PaperProvider>
-  );
+  return clerkEnabled ? <AppRouterAuthed /> : <AppRouterNoAuth />;
 }

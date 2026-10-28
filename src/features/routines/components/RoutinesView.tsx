@@ -8,6 +8,7 @@ import RoutineTemplateGallery from './RoutineTemplateGallery';
 import type { RoutineTemplate } from '../data/routineTemplateLibrary';
 import WinCard from '../../../components/WinCard';
 import BudgetTooltip from '../../../components/atoms/BudgetTooltip';
+import { HelpLabel } from '../../../components/atoms/HelpField';
 import EmptyStateAction from '../../../components/EmptyStateAction';
 import SectionCard from '../../../components/SectionCard.jsx';
 import { track, Events } from '../../../core/analytics';
@@ -19,6 +20,8 @@ import {
   validateRoutineForm,
 } from '../utils/routineHelpers';
 import useRoutines from '../hooks/useRoutines';
+import { useRoutineAllowance } from '../hooks/useRoutineAllowance';
+import { RoutineExtraNotice, RoutineFormGate, RoutineLimitCount } from './RoutineAllowanceNote';
 
 type FormState = {
   title: string;
@@ -43,6 +46,7 @@ const RoutinesView: React.FC = () => {
   const { theme } = useTheme();
   const { routines, loading, addRoutine, updateRoutine, removeRoutine, toggleStep, completeRoutine } =
     useRoutines();
+  const allowance = useRoutineAllowance(routines, !loading);
 
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [touched, setTouched] = useState(false);
@@ -89,6 +93,7 @@ const RoutinesView: React.FC = () => {
       steps: normalizeRoutineSteps(form.steps),
       anchorHabit: form.anchorHabit || null,
     });
+    track(Events.ROUTINE_CREATED, { variant: allowance.variant, limit: allowance.limit, count: allowance.used + 1 });
     setForm(EMPTY_FORM);
     setTouched(false);
   };
@@ -120,6 +125,8 @@ const RoutinesView: React.FC = () => {
 
   const handleDelete = async (id: number) => {
     await removeRoutine(id);
+    // A guardrail for the limit test: whether people remove routines to make room.
+    track(Events.ROUTINE_DELETED, { variant: allowance.variant, limit: allowance.limit, count: allowance.used - 1 });
     setDeletingId(null);
   };
 
@@ -222,163 +229,166 @@ const RoutinesView: React.FC = () => {
       subtitle={t('routines.description')}
       badge={<BudgetTooltip content={t('tooltips.routines.section', 'Routines are repeating sequences you run on a schedule. Chain small steps together and anchor them to existing habits — the fastest path to making new behaviors automatic.')} />}
     >
-      {/* Research-backed routine templates */}
-      <div data-tour="routines-gallery" style={{ marginBottom: `${theme.spacing.md}px` }}>
-        <button
-          type="button"
-          onClick={() => setShowRoutineGallery((prev) => !prev)}
+      <RoutineExtraNotice allowance={allowance} />
+      <RoutineFormGate allowance={allowance}>
+        {/* Ready-made routine templates */}
+        <div data-tour="routines-gallery" style={{ marginBottom: `${theme.spacing.md}px` }}>
+          <button
+            type="button"
+            onClick={() => setShowRoutineGallery((prev) => !prev)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
+              minHeight: '44px',
+              borderRadius: theme.shape.radiusFull,
+              border: `1.5px solid ${showRoutineGallery ? theme.colors.primary : theme.colors.border}`,
+              background: showRoutineGallery ? `${theme.colors.primary}12` : 'transparent',
+              color: showRoutineGallery ? theme.colors.primary : theme.colors.muted,
+              cursor: 'pointer',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              fontFamily: theme.typography.body.family,
+            }}
+          >
+            <span aria-hidden="true">🔬</span>
+            {showRoutineGallery
+              ? t('routines.tpl.hideGallery', 'Hide templates')
+              : t('routines.tpl.showGallery', "Browse routine templates")}
+          </button>
+          {showRoutineGallery && (
+            <div style={{ marginTop: `${theme.spacing.sm}px` }}>
+              <RoutineTemplateGallery theme={theme} onSelect={handleSelectRoutineTemplate} />
+            </div>
+          )}
+        </div>
+
+        <div
+          data-tour="routines-form"
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
-            minHeight: '44px',
-            borderRadius: theme.shape.radiusFull,
-            border: `1.5px solid ${showRoutineGallery ? theme.colors.primary : theme.colors.border}`,
-            background: showRoutineGallery ? `${theme.colors.primary}12` : 'transparent',
-            color: showRoutineGallery ? theme.colors.primary : theme.colors.muted,
-            cursor: 'pointer',
-            fontSize: '0.875rem',
-            fontWeight: 600,
-            fontFamily: theme.typography.body.family,
+            border: `1px solid ${theme.colors.border}`,
+            borderRadius: theme.shape.radiusMd,
+            padding: `${theme.spacing.md}px`,
+            backgroundColor: theme.colors.surface,
+            display: 'grid',
+            gap: `${theme.spacing.sm}px`,
+            marginBottom: `${theme.spacing.lg}px`,
           }}
         >
-          <span aria-hidden="true">🔬</span>
-          {showRoutineGallery
-            ? t('routines.tpl.hideGallery', 'Hide templates')
-            : t('routines.tpl.showGallery', 'Browse routine templates')}
-        </button>
-        {showRoutineGallery && (
-          <div style={{ marginTop: `${theme.spacing.sm}px` }}>
-            <RoutineTemplateGallery theme={theme} onSelect={handleSelectRoutineTemplate} />
+          <h3 style={{ margin: 0, color: theme.colors.text, fontFamily: theme.typography.heading.family }}>
+            {t('routines.addHeading')}
+          </h3>
+          <RoutineLimitCount allowance={allowance} />
+
+          <div style={{ color: theme.colors.text }}>
+            <HelpLabel htmlFor="routine-title" help={<BudgetTooltip content={t('tooltips.routines.title', "Name your routine clearly: 'Morning wind-down' or 'Pre-work focus ritual'. A good name makes it feel intentional and worth protecting in your schedule.")} />} style={{ fontWeight: 600 }}>
+              {t('routines.titleLabel')}
+            </HelpLabel>
+            <input
+              id="routine-title"
+              ref={routineTitleRef}
+              type="text"
+              value={form.title}
+              onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
+              placeholder={t('routines.titlePlaceholder')}
+              aria-required="true"
+              aria-describedby={touched && errors.title ? 'routine-title-error' : undefined}
+              style={{ ...inputStyle, display: 'block', marginTop: `${theme.spacing.xs}px` }}
+            />
           </div>
-        )}
-      </div>
+          {touched && errors.title && (
+            <p id="routine-title-error" role="alert" style={{ margin: 0, color: theme.colors.errorStrong }}>
+              {errors.title}
+            </p>
+          )}
 
-      <div
-        data-tour="routines-form"
-        style={{
-          border: `1px solid ${theme.colors.border}`,
-          borderRadius: theme.shape.radiusMd,
-          padding: `${theme.spacing.md}px`,
-          backgroundColor: theme.colors.surface,
-          display: 'grid',
-          gap: `${theme.spacing.sm}px`,
-          marginBottom: `${theme.spacing.lg}px`,
-        }}
-      >
-        <h3 style={{ margin: 0, color: theme.colors.text, fontFamily: theme.typography.heading.family }}>
-          {t('routines.addHeading')}
-        </h3>
+          <div style={{ color: theme.colors.text }}>
+            <HelpLabel htmlFor="routine-description" help={<BudgetTooltip content={t('tooltips.routines.description', 'Optional context — what this routine is for, when you do it, or how it makes you feel. Useful when you revisit it weeks later.')} />} style={{ fontWeight: 600 }}>
+              {t('routines.descriptionLabel')}
+            </HelpLabel>
+            <input
+              id="routine-description"
+              type="text"
+              value={form.description}
+              onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
+              style={{ ...inputStyle, display: 'block', marginTop: `${theme.spacing.xs}px` }}
+            />
+          </div>
 
-        <label htmlFor="routine-title" style={{ color: theme.colors.text }}>
-          <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
-            {t('routines.titleLabel')}
-            <BudgetTooltip content={t('tooltips.routines.title', "Name your routine clearly: 'Morning wind-down' or 'Pre-work focus ritual'. A good name makes it feel intentional and worth protecting in your schedule.")} />
-          </span>
-          <input
-            id="routine-title"
-            ref={routineTitleRef}
-            type="text"
-            value={form.title}
-            onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
-            placeholder={t('routines.titlePlaceholder')}
-            aria-required="true"
-            aria-describedby={touched && errors.title ? 'routine-title-error' : undefined}
-            style={{ ...inputStyle, display: 'block', marginTop: `${theme.spacing.xs}px` }}
-          />
-        </label>
-        {touched && errors.title && (
-          <p id="routine-title-error" role="alert" style={{ margin: 0, color: theme.colors.accent }}>
-            {errors.title}
-          </p>
-        )}
+          <div style={{ color: theme.colors.text }}>
+            <HelpLabel htmlFor="routine-frequency" help={<BudgetTooltip content={t('tooltips.routines.frequency', 'How often should this routine run? Daily routines build automaticity faster; weekly ones suit habits that need more recovery time between.')} />} style={{ fontWeight: 600 }}>
+              {t('routines.frequencyLabel')}
+            </HelpLabel>
+            <select
+              id="routine-frequency"
+              value={form.frequency}
+              onChange={(event) =>
+                setForm((prev) => ({ ...prev, frequency: event.target.value as Routine['frequency'] }))
+              }
+              style={{ ...inputStyle, display: 'block', marginTop: `${theme.spacing.xs}px` }}
+            >
+              <option value="DAILY">{t('routines.frequencyDaily')}</option>
+              <option value="WEEKLY">{t('routines.frequencyWeekly')}</option>
+              <option value="CUSTOM">{t('routines.frequencyCustom')}</option>
+            </select>
+          </div>
 
-        <label htmlFor="routine-description" style={{ color: theme.colors.text }}>
-          <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
-            {t('routines.descriptionLabel')}
-            <BudgetTooltip content={t('tooltips.routines.description', 'Optional context — what this routine is for, when you do it, or how it makes you feel. Useful when you revisit it weeks later.')} />
-          </span>
-          <input
-            id="routine-description"
-            type="text"
-            value={form.description}
-            onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
-            style={{ ...inputStyle, display: 'block', marginTop: `${theme.spacing.xs}px` }}
-          />
-        </label>
+          <div style={{ color: theme.colors.text }}>
+            <HelpLabel htmlFor="routine-trigger" help={<BudgetTooltip content={t('tooltips.routines.triggerTime', 'Set a time that reliably triggers this routine. Pairing with an existing time anchor (e.g., 7:00 AM right after waking) strengthens the habit loop.')} />} style={{ fontWeight: 600 }}>
+              {t('routines.triggerTimeLabel')}
+            </HelpLabel>
+            <input
+              id="routine-trigger"
+              type="time"
+              value={form.triggerTime}
+              onChange={(event) => setForm((prev) => ({ ...prev, triggerTime: event.target.value }))}
+              style={{ ...inputStyle, display: 'block', marginTop: `${theme.spacing.xs}px` }}
+            />
+          </div>
 
-        <label htmlFor="routine-frequency" style={{ color: theme.colors.text }}>
-          <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
-            {t('routines.frequencyLabel')}
-            <BudgetTooltip content={t('tooltips.routines.frequency', 'How often should this routine run? Daily routines build automaticity faster; weekly ones suit habits that need more recovery time between.')} />
-          </span>
-          <select
-            id="routine-frequency"
-            value={form.frequency}
-            onChange={(event) =>
-              setForm((prev) => ({ ...prev, frequency: event.target.value as Routine['frequency'] }))
-            }
-            style={{ ...inputStyle, display: 'block', marginTop: `${theme.spacing.xs}px` }}
+          <HelpLabel
+            htmlFor="routine-anchor"
+            help={<BudgetTooltip content={t('tooltips.routines.anchor', "Habit stacking: link a new routine to something you already do every day, so the old habit becomes the reminder.")} />}
+            style={{ fontWeight: 600 }}
           >
-            <option value="DAILY">{t('routines.frequencyDaily')}</option>
-            <option value="WEEKLY">{t('routines.frequencyWeekly')}</option>
-            <option value="CUSTOM">{t('routines.frequencyCustom')}</option>
-          </select>
-        </label>
-
-        <label htmlFor="routine-trigger" style={{ color: theme.colors.text }}>
-          <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
-            {t('routines.triggerTimeLabel')}
-            <BudgetTooltip content={t('tooltips.routines.triggerTime', 'Set a time that reliably triggers this routine. Pairing with an existing time anchor (e.g., 7:00 AM right after waking) strengthens the habit loop.')} />
-          </span>
+            {t('routines.anchorLabel', 'Stack onto a habit (optional)')}
+          </HelpLabel>
           <input
-            id="routine-trigger"
-            type="time"
-            value={form.triggerTime}
-            onChange={(event) => setForm((prev) => ({ ...prev, triggerTime: event.target.value }))}
-            style={{ ...inputStyle, display: 'block', marginTop: `${theme.spacing.xs}px` }}
+            id="routine-anchor"
+            type="text"
+            value={form.anchorHabit}
+            onChange={(event) => setForm((prev) => ({ ...prev, anchorHabit: event.target.value }))}
+            placeholder={t('routines.anchorPlaceholder', 'e.g. After morning coffee')}
+            style={{
+              width: '100%',
+              minHeight: '44px',
+              padding: '8px 12px',
+              borderRadius: 8,
+              border: `1px solid ${theme.colors.border}`,
+              backgroundColor: theme.colors.background,
+              color: theme.colors.text,
+              fontFamily: 'inherit',
+              boxSizing: 'border-box',
+            }}
           />
-        </label>
+          <p style={{ margin: '2px 0 0', color: theme.colors.muted, fontSize: '0.8125rem' }}>
+            {t('routines.anchorHelper', "Habit stacking: link a new routine to something you already do every day, so the old habit becomes the reminder.")}
+          </p>
 
-        <label htmlFor="routine-anchor" style={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
-          {t('routines.anchorLabel', 'Stack onto a habit (optional)')}
-          <BudgetTooltip content={t('tooltips.routines.anchor', 'Habit stacking attaches a new routine to something you already do automatically (e.g. "After I pour my coffee, I will…"). This triggers the new habit reliably without willpower.')} />
-        </label>
-        <input
-          id="routine-anchor"
-          type="text"
-          value={form.anchorHabit}
-          onChange={(event) => setForm((prev) => ({ ...prev, anchorHabit: event.target.value }))}
-          placeholder={t('routines.anchorPlaceholder', 'e.g. After morning coffee')}
-          style={{
-            width: '100%',
-            minHeight: '44px',
-            padding: '8px 12px',
-            borderRadius: 8,
-            border: `1px solid ${theme.colors.border}`,
-            backgroundColor: theme.colors.background,
-            color: theme.colors.text,
-            fontFamily: 'inherit',
-            boxSizing: 'border-box',
-          }}
-        />
-        <p style={{ margin: '2px 0 0', color: theme.colors.muted, fontSize: '0.8125rem' }}>
-          {t('routines.anchorHelper', 'Link this routine to an existing habit if that cue is useful to you.')}
-        </p>
+          <fieldset style={{ border: 'none', padding: 0, margin: 0 }}>
+            <legend style={{ color: theme.colors.text, marginBottom: `${theme.spacing.xs}px`, display: 'flex', alignItems: 'center' }}>
+              {t('routines.stepsLabel')}
+              <BudgetTooltip content={t('tooltips.routines.steps', 'Break your routine into small, specific actions. Each step becomes a checkbox you tick off — this reduces decision fatigue and makes it clear exactly what "done" looks like.')} />
+            </legend>
+            {renderStepFields(form.steps, setForm, 'new')}
+          </fieldset>
 
-        <fieldset style={{ border: 'none', padding: 0, margin: 0 }}>
-          <legend style={{ color: theme.colors.text, marginBottom: `${theme.spacing.xs}px`, display: 'flex', alignItems: 'center' }}>
-            {t('routines.stepsLabel')}
-            <BudgetTooltip content={t('tooltips.routines.steps', 'Break your routine into small, specific actions. Each step becomes a checkbox you tick off — this reduces decision fatigue and makes it clear exactly what "done" looks like.')} />
-          </legend>
-          {renderStepFields(form.steps, setForm, 'new')}
-        </fieldset>
-
-        <button type="button" onClick={handleAdd} style={primaryBtnStyle}>
-          {t('routines.addRoutine')}
-        </button>
-      </div>
+          <button type="button" onClick={handleAdd} style={primaryBtnStyle}>
+            {t('routines.addRoutine')}
+          </button>
+        </div>
+      </RoutineFormGate>
 
       {loading ? (
         <p style={{ color: theme.colors.muted }}>{t('loading')}</p>
@@ -392,7 +402,7 @@ const RoutinesView: React.FC = () => {
             const titleInput = document.getElementById('routine-title') as HTMLInputElement | null;
             titleInput?.focus();
           }}
-          secondaryLabel={t('routines.tpl.showGallery', 'Browse routine templates')}
+          secondaryLabel={t('routines.tpl.showGallery', "Browse routine templates")}
           onSecondary={() => setShowRoutineGallery(true)}
           accentColor={theme.dataViz.violet}
         />
@@ -426,7 +436,7 @@ const RoutinesView: React.FC = () => {
                       />
                     </label>
                     {editErrors.title && (
-                      <p role="alert" style={{ margin: 0, color: theme.colors.accent }}>
+                      <p role="alert" style={{ margin: 0, color: theme.colors.errorStrong }}>
                         {editErrors.title}
                       </p>
                     )}
@@ -494,7 +504,7 @@ const RoutinesView: React.FC = () => {
                       }}
                     />
                     <p style={{ margin: '2px 0 0', color: theme.colors.muted, fontSize: '0.8125rem' }}>
-                      {t('routines.anchorHelper', 'Link this routine to an existing habit if that cue is useful to you.')}
+                      {t('routines.anchorHelper', "Habit stacking: link a new routine to something you already do every day, so the old habit becomes the reminder.")}
                     </p>
 
                     <fieldset style={{ border: 'none', padding: 0, margin: 0 }}>
@@ -550,7 +560,7 @@ const RoutinesView: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => handleDelete(routine.id)}
-                              style={{ ...primaryBtnStyle, backgroundColor: theme.colors.accent, borderColor: theme.colors.accent }}
+                              style={{ ...primaryBtnStyle, backgroundColor: theme.colors.errorStrong, borderColor: theme.colors.errorStrong, color: theme.colors.background }}
                             >
                               {t('yesLabel')}
                             </button>
@@ -634,7 +644,7 @@ const RoutinesView: React.FC = () => {
                         type="button"
                         onClick={() => {
                           completeRoutine(routine.id);
-                          track(Events.ROUTINE_COMPLETED, { routineId: routine.id });
+                          track(Events.ROUTINE_COMPLETED, { routineId: routine.id, variant: allowance.variant });
                           setLastCompletedTitle(routine.title);
                           setShowWinCard(true);
                         }}

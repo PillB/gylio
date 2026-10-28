@@ -33,9 +33,9 @@
     "deleted": "\"{{title}}\" deleted",
     "undoDelete": "Undo",
     "plannedDateLabel": "Planned date",
-    "plannedDateHelper": "Scheduling a task makes you 2–3× more likely to do it. Even \"today\" is enough — specificity is the point.",
+    "plannedDateHelper": "Giving a task a day makes it easier to start. Even \"today\" is enough.",
     "subtasksLabel": "Micro-steps",
-    "subtasksHelper": "Break it into micro-steps. Research shows task initiation — not execution — is the hardest part for most people. Starting the first step is 80% of the work.",
+    "subtasksHelper": "Break it into small steps. Starting is often the hardest part, so make the first step something you could do in a few minutes.",
     "subtaskPlaceholder": "Add a micro-step",
     "addSubtask": "Add step",
     "removeSubtask": "Remove",
@@ -44,7 +44,7 @@
     "confirmDelete": "Delete task {{title}}?",
     "focusAreaAria": "Pomodoro and focus controls",
     "focusHeading": "Focus blocks",
-    "focusHelper": "The Pomodoro technique (25-min focused sprints) matches your brain's natural 90-min ultradian cycle. Even one session a day compounds significantly over a month.",
+    "focusHelper": "Pomodoro: 25 minutes of focus, then a short break. Change the lengths in Settings if another rhythm suits you better.",
     "focusDuration": "{{minutes}} min",
     "startFocus": "Start {{minutes}} minute focus",
     "focusComplete": "{{minutes}} minute focus for {{title}} finished.",
@@ -68,7 +68,7 @@
     "energyFilterAll": "All",
     "intentionLabel": "When / where",
     "intentionPlaceholder": "When I finish breakfast, I will…",
-    "intentionHelper": "Implementation intentions (when/where) double follow-through rates — proven across 94 studies. Your brain treats this as a pre-commitment.",
+    "intentionHelper": "Deciding when and where you'll do it (\"after lunch, at my desk\") helps many people follow through. A review of 94 studies found a medium-to-large effect.",
     "startHere": "Start here",
     "startTimerBtn": "🍅 {{minutes}} min",
     "startTimerAria": "Start {{minutes}} min focus for {{title}}",
@@ -313,7 +313,7 @@
         "step3": "Call and say you're considering switching — ask for a better rate",
         "step4": "Document the outcome and time saved vs money saved"
       },
-      "showGallery": "Quick-start from proven tasks",
+      "showGallery": "Start with a template",
       "hideGallery": "Hide quick-start tasks"
     }
   },
@@ -337,7 +337,11 @@
     "endAfterStart": "End time must be after the start time.",
     "nonNegativeNumber": "Enter a zero or positive number.",
     "nonNegativeInteger": "Enter a whole number that is zero or greater.",
-    "dueDayRange": "Enter a whole day from 1 to 31, or leave it blank."
+    "dueDayRange": "Enter a whole day from 1 to 31, or leave it blank.",
+    "pointsWhole": "Use a whole number of points.",
+    "pointsTooLarge": "Use {{max}} points or fewer.",
+    "amountTooLarge": "That amount looks too large. Check for extra digits.",
+    "reminderTooFar": "Choose a reminder up to 4 weeks (40,320 minutes) before."
   },
   "calendar": "Calendar",
   "theme": {
@@ -530,13 +534,16 @@
       "savings": "Savings",
       "emergency": "Emergency Fund"
     },
-    "dueDayLabel": "Due day of month (optional)"
+    "dueDayLabel": "Due day of month (optional)",
+    "removed": "\"{{name}}\" deleted",
+    "undoRemove": "Undo",
+    "deleteNamed": "Delete {{name}}"
   },
   "rewards": {
     "title": "Rewards",
     "confirmDelete": "Delete reward {{title}}?",
     "gamificationLabel": "Gamification",
-    "gamificationHelper": "Progress feedback works best as a choice. XP and streaks are optional, user-controlled, and can be turned off any time. Your data stays private and local.",
+    "gamificationHelper": "Turn XP, streaks and unlocks on or off. Your points stay on this device.",
     "gamificationOn": "Enabled",
     "gamificationOff": "Disabled",
     "gamificationDisabled": "Gamification is off.",
@@ -545,7 +552,7 @@
     "levelSummary": "Level {{level}}",
     "xpSummary": "{{points}} XP / {{target}} XP",
     "skipTokensLabel": "Skip tokens",
-    "skipTokensHelper": "Life happens. A missed day would break your streak. Skip tokens preserve your momentum — use them when you need them.",
+    "skipTokensHelper": "Life happens. A skip token keeps your streak after a missed day, no explanation needed.",
     "streakHeading": "Streak status",
     "focusStreak": "Daily focus streak: {{days}} days",
     "taskStreak": "Task completion streak: {{days}} days",
@@ -694,7 +701,9 @@
       "copy": "Copy",
       "copyAria": "Copy this message",
       "useTemplate": "Use this plan →",
-      "empty": "No templates for this filter. Try a different depth level."
+      "empty": "No templates for this filter. Try a different depth level.",
+      "copied": "Copied",
+      "copyFailed": "Couldn’t copy"
     },
     "startFromScratch": "Skip — start from scratch",
     "changeTemplate": "Change",
@@ -775,14 +784,14 @@
       },
       "friend36q": {
         "title": "36 Questions",
-        "desc": "Arthur Aron's closeness-building conversation — tried and tested.",
+        "desc": "Arthur Aron's 36 questions, first used in a 1997 study on how strangers grow closer.",
         "notes": "Do the questions in order. Both answer each one.",
         "step1": "Choose a comfortable setting with at least 90 minutes",
         "step2": "Take turns answering Set 1 questions (1–12)",
         "step3": "Move to Set 2 (13–24) when you're both ready",
         "step4": "Finish with Set 3 (25–36) and the 4-minute eye contact",
         "starter1": "I came across this thing called the '36 questions that build closeness' and it looked really interesting. Want to try it together?",
-        "starter2": "I want to do something different when we hang out — there's this research-backed conversation format I'm curious about. Game?"
+        "starter2": "I want to try something different when we hang out. There's a list of 36 questions meant to help people get to know each other. Game?"
       },
       "friendSupport": {
         "title": "Be there for them",
@@ -1010,12 +1019,16 @@
         "starter1": "Want to do a video call soon? I miss actually seeing your face.",
         "starter2": "Are you up for a proper video hang? We can just chill and talk."
       }
-    }
+    },
+    "stepAria": "Step {{n}}",
+    "removeStepAria": "Remove step {{n}}"
   },
   "settings": "Settings",
   "loading": "Loading…",
   "deleteLabel": "Delete",
   "editLabel": "Edit",
+  "editNamed": "Edit {{name}}",
+  "deleteNamed": "Delete {{name}}",
   "saveLabel": "Save",
   "confirmLabel": "Confirm",
   "cancelLabel": "Cancel",
@@ -1064,6 +1077,7 @@
   "calendarResetForm": "Reset form",
   "calendarTasksToConvert": "Convert tasks to events",
   "calendarConvertTask": "Convert to event",
+  "calendarConvertTaskNamed": "Convert to event: {{title}}",
   "calendarNoTasksToConvert": "No tasks ready to convert.",
   "calendarEventsHeading": "Scheduled events",
   "calendarNoEvents": "No events yet.",
@@ -1228,6 +1242,7 @@
     "reviewDetected": "Detected: {{timestamp}}",
     "reviewKeepLocal": "Keep my changes",
     "reviewUseRemote": "Use server version",
+    "reviewServerUnreadable": "The server's copy could not be read, so only this device's version can be kept.",
     "status": {
       "ariaLabel": "Sync status",
       "offline": "Saved on this device. It will sync when you're back online.",
@@ -1264,6 +1279,7 @@
   "calendarSuggestedFocusWindow": "{{window}} · {{minutes}} min",
   "calendarSuggestedFocusEmpty": "No open window fits your unscheduled tasks right now.",
   "calendarScheduleSuggestion": "Schedule this window",
+  "calendarScheduleSuggestionNamed": "Schedule this window for {{title}}",
   "routines": {
     "title": "Routines",
     "description": "Habits compound. A 30-minute morning routine done consistently for 90 days creates more change than a perfect plan done once.",
@@ -1297,11 +1313,11 @@
     "deleteLabel": "Delete {{title}}",
     "anchorLabel": "Stack onto a habit (optional)",
     "anchorPlaceholder": "e.g. After morning coffee",
-    "anchorHelper": "Habit stacking: link a new behavior to one you already do automatically. BJ Fogg's research shows this doubles implementation success versus starting cold.",
+    "anchorHelper": "Habit stacking: link a new routine to something you already do every day, so the old habit becomes the reminder.",
     "anchorDisplay": "After {{habit}}, I will do this routine",
     "streakDotsAria": "Last 21 days: {{completed}} completed",
     "tpl": {
-      "showGallery": "Browse research-backed protocols",
+      "showGallery": "Browse routine templates",
       "hideGallery": "Hide protocol library",
       "addRoutine": "→ Add this routine",
       "cat": {
@@ -1337,7 +1353,7 @@
       },
       "exerciseMorning": {
         "title": "Morning Exercise",
-        "why": "Morning exercise boosts dopamine, serotonin, and BDNF for the next 4–6 hours. Doing it first removes the decision entirely.",
+        "why": "Exercise is linked to better mood and focus afterwards. Doing it first thing means there is no later decision to make.",
         "step1": "Put on workout clothes before any decision-making",
         "step2": "Do 20–30 min of cardio or resistance training",
         "step3": "Do NOT check phone until workout is complete",
@@ -1345,7 +1361,7 @@
       },
       "hubermanEvening": {
         "title": "Huberman Evening Protocol",
-        "why": "Bright light after sunset delays melatonin by up to 3 hours. Dimming lights early accelerates sleep onset and improves deep-sleep quality.",
+        "why": "Bright light late in the evening can delay sleepiness. Dimming the lights an hour or two before bed helps many people fall asleep sooner.",
         "step1": "View sunset or dim lights 2+ hours before bed",
         "step2": "No bright overhead lights after 9pm — use lamps",
         "step3": "No caffeine after 2pm (if you haven't already)",
@@ -1354,14 +1370,14 @@
       },
       "powerDownHour": {
         "title": "Power-Down Hour",
-        "why": "A structured wind-down signals the nervous system to shift from sympathetic to parasympathetic — making sleep faster and deeper.",
+        "why": "A predictable wind-down gives your body and mind a cue that the day is ending, which can make it easier to fall asleep.",
         "step1": "First 20 min: finish small tasks and tomorrow's to-do list",
         "step2": "Next 20 min: hygiene (shower, brush teeth, skincare)",
         "step3": "Final 20 min: only relaxing activities — reading, light stretching, breathing"
       },
       "eveningReview": {
         "title": "Evening Review",
-        "why": "Stoic journaling lowers rumination by externalizing thoughts, and gratitude practice measurably improves mood and sleep quality.",
+        "why": "Writing thoughts down can stop them from going round in your head, and noting a few good things is linked to better mood.",
         "step1": "Write: What did I do well today?",
         "step2": "Write: What could I have done better?",
         "step3": "Write: What am I grateful for today?",
@@ -1394,7 +1410,7 @@
       },
       "pomodoroBlock": {
         "title": "Pomodoro Focus Block",
-        "why": "Fixed-interval focus with scheduled breaks matches natural ultradian rhythms and prevents the mental fatigue of open-ended work sessions.",
+        "why": "Fixed focus blocks with planned breaks give work a clear start and end, which can make it easier to begin and to stop.",
         "step1": "Choose one task and write it down",
         "step2": "Set 25-min timer — work on nothing else",
         "step3": "Take 5-min break (stand up, walk)",
@@ -1409,14 +1425,14 @@
       },
       "zone2Cardio": {
         "title": "Zone 2 Cardio",
-        "why": "Zone 2 cardio is the single highest-ROI exercise for metabolic health, mitochondrial density, and longevity. 3–4 sessions/week is the minimum effective dose.",
+        "why": "Steady, easy cardio where you can still talk is good for heart and metabolic health. Many guidelines suggest about 150 minutes of moderate activity a week.",
         "step1": "Do 30–45 minutes of cardio at a 'conversational' pace — you could speak in sentences",
         "step2": "Keep heart rate around 60–70% of your max (roughly 180 minus your age)",
         "step3": "Aim for 3–4 sessions per week — this is the minimum effective dose for longevity"
       },
       "mobility": {
         "title": "Daily Mobility Routine",
-        "why": "Ten minutes of daily mobility prevents the chronic tightness that leads to injury. Done consistently, it reverses years of desk posture.",
+        "why": "A few minutes of gentle movement each day can ease the stiffness that comes from sitting for long periods.",
         "step1": "Neck rolls: 5 slow circles each direction",
         "step2": "Hip circles: 10 each direction",
         "step3": "Cat-cow spinal stretch: 10 reps",
@@ -1426,7 +1442,7 @@
     },
     "gallery": {
       "heading": "Routine Template Library",
-      "subtitle": "Research-backed routines. Pick one to add it to your schedule.",
+      "subtitle": "Ready-made routines. Pick one to add it to your schedule.",
       "filterAria": "Filter by category",
       "allFilter": "All",
       "stepsPreview": "Steps preview",
@@ -1452,6 +1468,17 @@
       "immediatelyOnWaking": "Immediately on waking",
       "afterWork": "After work",
       "afterMorningLight": "After morning light"
+    },
+    "limit": {
+      "count": "{{used}} of {{limit}} routines in use",
+      "full": "The free plan keeps up to {{limit}} routines, and you have {{used}}. To add a new one, change or remove one you no longer use. Every routine you have stays.",
+      "pro": "Pro has no limit on routines.",
+      "seePro": "See Pro"
+    },
+    "extra": {
+      "title": "A thank-you",
+      "body": "You have done routines on {{days}} different days. You now have room for {{spaces}} more, up to {{limit}} routines. They are yours to keep.",
+      "ok": "OK"
     }
   },
   "win": {
@@ -1536,37 +1563,33 @@
     "lastChecked": "Last checked at {{time}}"
   },
   "upgrade": {
-    "premiumBadge": "✦ Premium",
-    "premiumBadgeAria": "Premium feature",
-    "regionAria": "Upgrade to access this feature",
+    "premiumBadge": "✦ Pro",
+    "premiumBadgeAria": "Pro feature",
+    "regionAria": "A Pro feature",
     "iconAria": "Sparkles",
-    "title": "{{feature}} is a premium feature",
-    "subtitle": "This feature is part of Gylio Premium. Start a 7-day free trial — no pressure, cancel any time.",
-    "startTrial": "Start 7-day free trial",
+    "title": "{{feature}} is part of Pro",
+    "subtitle": "This is part of Gylio Pro. Start a {{days}}-day free trial: no pressure, cancel any time.",
+    "startTrial": "Start {{days}}-day free trial",
     "seePlans": "See plans",
     "tryFree": "Try free",
     "tryOnce": "Try this once, free",
     "tryOnceAria": "Try this once, free — {{featureName}}",
     "outcomesHeading": "What you'll be able to do",
-    "outcomesListAria": "What you gain with premium",
+    "outcomesListAria": "What you gain with Pro",
     "freeAlternativePrefix": "You can still",
-    "pricing": "$12/month · or $10/month billed yearly",
     "social": {
-      "outcome1": "Share your streaks and wins with friends",
-      "outcome2": "Join accountability groups and group challenges",
-      "freeAlt": "track your own progress privately"
-    },
-    "routines": {
-      "outcome1": "Build unlimited morning, evening, and custom routines",
-      "outcome2": "Get gentle nudges timed to your energy levels",
-      "freeAlt": "add up to 3 tasks to your daily routine"
+      "outcome1": "Plan time with people, with an energy level and small steps",
+      "outcome2": "Get a gentle reminder before each plan",
+      "freeAlt": "add time with people as a task or a calendar event"
     },
     "rewards": {
       "outcome1": "Create your own custom rewards and milestones",
       "outcome2": "Unlock animated celebrations for big achievements",
       "freeAlt": "earn the three built-in milestone badges"
     },
-    "upgradeCta": "✦ Upgrade"
+    "upgradeCta": "✦ Upgrade",
+    "notOnSale": "This is part of Gylio Pro, which isn't on sale yet. Everything else in Gylio is free to use now.",
+    "price": "{{monthly}} a month, or {{yearly}} a year"
   },
   "pricing": {
     "heading": "Simple, honest pricing",
@@ -1614,17 +1637,17 @@
     "tasks": {
       "section": "Your central task hub — everything you need to do, broken into steps you can actually start. Add anything here, then check it off when done.",
       "energy": "Filter tasks by the mental fuel they need right now. Tiny/Low for rough days. Medium/High when you're in the zone. Match effort to capacity.",
-      "quickStart": "Research-backed task templates you can add in one tap. Customise the title to fit your situation — the structure is already done for you.",
+      "quickStart": "Task templates you can add in one tap. Change the title to fit your situation; the steps are already filled in.",
       "reliability": "Tracks how consistently your recurring tasks are being auto-generated. If instances are being missed, you can rebuild them here.",
-      "subtasks": "Break a big task into tiny steps. Research shows task initiation — not execution — is the hardest part. Starting the first micro-step is 80% of the work.",
-      "plannedDate": "Scheduling a task makes you 2–3× more likely to do it. Even pinning it to 'today' works — specificity is the whole point.",
-      "intention": "An implementation intention (when + where) doubles follow-through — proven across 94 studies. Your brain treats it as a pre-commitment.",
-      "timer": "Pomodoro sprints: focused work + short breaks. Timed urgency removes the 'I'll start in a minute' trap without adding pressure.",
+      "subtasks": "Break a big task into small steps. Starting is often the hardest part, so make the first step small enough to begin right away.",
+      "plannedDate": "Giving a task a day makes it easier to start, and it shows up in your calendar and daily view. Even 'today' works.",
+      "intention": "Deciding when and where you'll do it (\"after lunch, at my desk\") helps many people follow through. A review of 94 studies found a medium-to-large effect.",
+      "timer": "Pomodoro sprints: focused work, then a short break. A timer with a clear end can make it easier to start.",
       "templates": "Ready-made task structures for common situations — study session, work block, self-care. Pick one and personalise the title to fit your context.",
       "title": "Give your task a clear, specific name. The more concrete the title, the easier it is to start — 'Email Dr Santos' beats 'Emails' every time."
     },
     "calendar": {
-      "section": "Schedule events and block time for tasks. Putting something on the calendar makes it 2–3× more likely to actually happen.",
+      "section": "Schedule events and block time for tasks. A task with a time slot is easier to start than one waiting for 'later'.",
       "suggestedFocus": "Based on your open tasks and free time today, these slots are your best windows for focused work. Schedule them now while your intentions are fresh.",
       "tasksToConvert": "Tasks without a time slot yet. 'Convert to event' gives each task a specific time — turning an intention into a commitment.",
       "events": "All your scheduled events. Click any event to edit, add a reminder, or link it to a task. Deleting an event never deletes the linked task.",
@@ -1635,7 +1658,7 @@
       "description": "Optional details — agenda items, prep notes, access codes. You will see this when you click the event.",
       "taskLink": "Connect this event to an existing task. When you complete the event, it can mark the task done too — keeping both lists in sync.",
       "reminder": "Get a notification before the event starts. Especially helpful for appointments that need travel time or preparation.",
-      "addEvent": "Create a new calendar event. Putting tasks on the calendar makes them 3x more likely to happen — this is the step between planning and doing."
+      "addEvent": "Create a new calendar event. Giving a task a time slot is the step between planning and doing."
     },
     "budget": {
       "section": "Zero-based budgeting: every dollar gets a job before you spend it. Income minus all allocations should equal zero — intentional, not accidental.",
@@ -1671,7 +1694,7 @@
     },
     "rewards": {
       "section": "Turn daily habits into a progress game. Earn XP by completing tasks, maintain streaks for consistency, and set rewards you actually want to earn.",
-      "gamification": "Variable reward schedules keep motivation high over time. XP and streaks here follow that model. All data stays private and local — nothing is shared.",
+      "gamification": "Turn XP points, level-ups and streaks on or off. Your points stay on this device and are not shared.",
       "streak": "A streak counts consecutive days you've been consistent. Task, focus, and budget streaks are tracked separately — breaking one doesn't break them all.",
       "skipTokens": "Use a skip token to take a guilt-free rest day without breaking your streak. Tokens are earned by staying consistent. Skipping strategically is planning, not failing.",
       "rewardsList": "Personal treats you've committed to earning. Set a point target, name your reward, and redeem it guilt-free when you hit the goal. Make rewards you actually want.",
@@ -1688,14 +1711,14 @@
       "planTitle": "Give this connection plan a name. Keep it simple: 'Brunch with Sofia' or 'Call Mom weekly'. The clearer the plan, the easier it is to actually follow through.",
       "planType": "What kind of interaction is this? Call = phone/video; Meetup = in-person; Message = text/email; Event = shared experience. Each type has different friction — start with the lowest friction option.",
       "energyLevel": "How much social energy does this interaction require? Match this to your available energy — low-energy days are perfect for a quick message, high-energy days for a real meetup.",
-      "dateTime": "When do you want this to happen? Scheduling a specific date makes it 10x more likely to occur vs. 'sometime soon'.",
+      "dateTime": "When do you want this to happen? A specific date is easier to keep than 'sometime soon'.",
       "steps": "Break the connection plan into small actions: 'text to suggest a date', 'book the restaurant', 'confirm the day before'. Each step removes a reason to postpone."
     },
     "routines": {
       "section": "Routines are pre-sequenced steps tied to a time of day. Instead of deciding what to do next, you follow the steps — removing decision fatigue from the equation.",
       "addRoutine": "Build a new routine: name it, pick an anchor (morning/work/evening), set a start time, and list the steps. Keep each step tiny — 5 minutes or less each.",
       "steps": "One specific, concrete action per step. 'Get ready' is too vague. 'Brush teeth, wash face, take meds' is actionable. Tiny steps remove the starting barrier.",
-      "anchor": "Habit stacking: link a new behaviour to one you already do automatically. BJ Fogg's research shows this doubles implementation success vs. starting cold.",
+      "anchor": "Habit stacking: link a new routine to something you already do every day, so the old habit becomes the reminder.",
       "title": "Name your routine clearly: 'Morning wind-down' or 'Pre-work focus ritual'. A good name makes it feel intentional and worth protecting in your schedule.",
       "description": "Optional context — what this routine is for, when you do it, or how it makes you feel. Useful when you revisit it weeks later.",
       "frequency": "How often should this routine run? Daily routines build automaticity faster; weekly ones suit habits that need more recovery time between.",
@@ -1707,7 +1730,7 @@
       "screenTint": "Adds a warm amber overlay to reduce blue light in the evening. Helps signal wind-down time to your brain without changing system display settings.",
       "tts": "Reads settings changes and alerts aloud — useful for eyes-free situations, managing distractions, or confirming changes without looking at the screen.",
       "announce": "Announces each change you make in Settings aloud as it happens — good for double-checking choices without re-reading the screen.",
-      "timer": "Pomodoro: timed work sprints followed by short breaks. Research shows timed urgency reduces avoidance without adding stress — especially effective for ADHD brains.",
+      "timer": "Pomodoro: timed work sprints followed by short breaks. Some people find a timer makes it easier to start; adjust the lengths until they feel right.",
       "shortcuts": "Keyboard shortcuts let you navigate the whole app without the mouse. Learn 1–2 at a time — muscle memory compounds quickly.",
       "restartGuide": "Replays the interactive app tour from the beginning. Useful if you want to re-explore a skipped feature, or when introducing the app to someone new.",
       "dailyView": "Shows a simplified Daily Command Centre on the Tasks tab: just your top 3 tasks, next event, and a budget nudge. Good for days when the full view feels overwhelming.",
@@ -1733,7 +1756,7 @@
   "timerLongBreakLabel": "Long break",
   "timerSessionsLabel": "Sessions before long break",
   "timerAutoBreak": "Auto-start breaks when focus ends",
-  "timerInsight": "Research shows the brain works in ~90-minute ultradian cycles. Shorter sprints (25 min) suit most tasks; longer sprints (45–90 min) require proportionally longer breaks to avoid cognitive fatigue. Find your window.",
+  "timerInsight": "Shorter sprints (25 min) suit most tasks; longer ones (45 to 90 min) work better with longer breaks. Try a few lengths and keep the one that feels right.",
   "timerBreakInsight": "Longer focus sprints need longer breaks: 45 min → 15 min break; 90 min → 20 min break. Skipping breaks compounds mental fatigue.",
   "dailyViewHeading": "Daily view",
   "dailyViewToggle": "Enable daily view",
@@ -1774,7 +1797,7 @@
     },
     "navBar": {
       "title": "Your main navigation",
-      "content": "Switch between Tasks, Calendar, Budget, and more using this bar. Features marked with ✦ are available on the Premium plan."
+      "content": "Switch between Tasks, Calendar, Budget, and more using this bar. Features marked with ✦ are part of Pro."
     },
     "taskInput": {
       "title": "Add a task",
@@ -1790,7 +1813,7 @@
     },
     "pomodoro": {
       "title": "Focus blocks (Pomodoro)",
-      "content": "Work in short, timed sprints — 25 minutes on, then a break. Your brain's natural rhythm matches this cycle, so you stay in flow longer and feel less drained."
+      "content": "Work in short, timed sprints: 25 minutes on, then a break. Knowing when it ends can make it easier to start and to keep going."
     },
     "calendar": {
       "title": "Your calendar",
@@ -1881,7 +1904,7 @@
       },
       "date": {
         "title": "Step 2: Schedule it",
-        "content": "Pick today or a future date. Scheduling a task makes you 2–3× more likely to do it."
+        "content": "Pick today or a future date. A task with a day is easier to start."
       },
       "energy": {
         "content": "Choose how much energy this takes. Low battery? Filter for Tiny tasks. Feeling sharp? Take on a High.",
@@ -1903,8 +1926,8 @@
         "content": "You know how to capture, schedule, break down, and complete tasks. Open the Pomodoro timer to run a focused sprint."
       },
       "templates": {
-        "title": "Start with a proven task",
-        "content": "Tap here to browse 28 research-backed templates across 7 life areas. Select one and your title, energy level, and micro-steps are filled in instantly."
+        "title": "Start with a template",
+        "content": "Tap here to browse 28 templates across 7 life areas. Pick one and the title, energy level and steps are filled in for you."
       }
     },
     "calendarFlow": {
@@ -2005,8 +2028,8 @@
         "content": "A routine is a sequence you run on autopilot. We'll build one together — give it a trigger time, micro-steps, and a frequency."
       },
       "gallery": {
-        "title": "Research-backed protocols",
-        "content": "Browse science-backed routine templates — morning routines, wind-down sequences, focus protocols, and more. Click 'Browse protocols' to explore."
+        "title": "Routine templates",
+        "content": "Browse ready-made routines: mornings, winding down, focus blocks and more. Click 'Browse routine templates' to explore."
       },
       "form": {
         "title": "Build your routine",
@@ -2070,7 +2093,7 @@
     "barAria": "Time tracker",
     "elapsedAria": "Elapsed time {{clock}}",
     "start": "Track time",
-    "startAria": "Start tracking time on {{title}}",
+    "startAria": "Track time on {{title}}",
     "stop": "Stop",
     "stopAria": "Stop tracking time on {{title}}",
     "tracked": "Tracked {{duration}}",
@@ -2099,7 +2122,8 @@
     "addLabel": "Add time",
     "addSave": "Add",
     "entryLabel": "Minutes for the stretch on {{when}}",
-    "removeEntryAria": "Remove the stretch on {{when}}",
+    "removeEntryAria": "Delete the stretch on {{when}}",
+    "saveEntryAria": "Save the stretch on {{when}}",
     "actualAria": "How long did {{title}} take?",
     "actualQuestion": "About how long did it take? (optional)",
     "actualSkip": "Skip"
@@ -2113,5 +2137,19 @@
     "hintHistory": "Your tasks usually take about {{ratio}}× your guess. Plan for {{suggested}}?",
     "hintDefault": "Guesses tend to run short for everyone, so a 25% buffer helps. Plan for {{suggested}}?",
     "useSuggestion": "Use {{suggested}}"
+  },
+  "calendarDayEvents_one": "{{day}}, {{count}} event",
+  "calendarDayEvents_other": "{{day}}, {{count}} events",
+  "device": {
+    "checkingSignIn": "Checking your sign-in…",
+    "offlineSignIn": "You're offline. Sign-in will finish when you're back online.",
+    "switching": "Setting the previous account's data aside on this device…",
+    "noRoom": {
+      "title": "This device is out of space",
+      "body": "The previous account's data could not be set aside, so nothing was changed and it stays hidden. Sign out, or free some space in this browser, and sign in again.",
+      "signOut": "Sign out"
+    },
+    "restoring": "Bringing back your data on this device…",
+    "removed": "Your data was removed from this device."
   }
 }

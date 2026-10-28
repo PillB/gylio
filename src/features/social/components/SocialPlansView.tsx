@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import SectionCard from '../../../components/SectionCard.jsx';
 import BudgetTooltip from '../../../components/atoms/BudgetTooltip';
+import HelpField from '../../../components/atoms/HelpField';
 import { useAppAuth } from '../../../core/context/AuthContext';
 import { useTheme } from '../../../core/context/ThemeContext';
 import type { SocialPlan, SocialStep } from '../../../core/hooks/useDB';
@@ -11,6 +12,7 @@ import { PostReflectionPrompt } from './PostReflectionPrompt';
 import { RelationshipTypePicker } from './RelationshipTypePicker';
 import { TemplateGallery } from './TemplateGallery';
 import { fetchSocialSuggestions } from '../utils/openAiSocial';
+import { serverFeaturesEnabled } from '../../../core/utils/serverFeatures';
 import { getScheduleQuota } from '../../auth/useScheduleQuota';
 import {
   buildSocialPlanValidation,
@@ -22,6 +24,22 @@ import {
   type SocialPlanValidationState
 } from '../utils/socialPlanForm';
 import type { RelationshipType, SocialTemplate as LibrarySocialTemplate } from '../data/socialTemplateLibrary';
+
+/** The AI choice, only in a build that has the server for it (serverFeatures.ts); elsewhere the template is the plan. */
+export function AiOptIn({ checked, onChange }: { checked: boolean; onChange: (next: boolean) => void }) {
+  const { t } = useTranslation();
+  const { theme } = useTheme();
+  if (!serverFeaturesEnabled()) return null;
+  return (
+    <>
+      <label style={{ display: 'flex', gap: `${theme.spacing.xs}px`, alignItems: 'center' }}>
+        <input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} />
+        <span>{t('social.aiOptIn')}</span>
+      </label>
+      <p style={{ margin: 0, color: theme.colors.muted, fontSize: '0.8125rem' }}>{t('social.aiPrivacy')}</p>
+    </>
+  );
+}
 
 const SocialPlansView: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -121,8 +139,10 @@ const SocialPlansView: React.FC = () => {
     const fallbackSteps = selectedLibraryTemplate.stepKeys.map((key) => t(key, key));
     const fallbackNotes = t(selectedLibraryTemplate.notesKey, '');
 
+    // AI only when this build has the server for it and the person asked; otherwise the template is the plan.
+    const askAi = aiOptIn && serverFeaturesEnabled();
     let suggestion = null;
-    if (aiOptIn) {
+    if (askAi) {
       const quota = getScheduleQuota(userId);
       if (quota.isExhausted) {
         setAiStatus({ loading: false, message: t('social.aiQuotaExhausted') });
@@ -152,7 +172,7 @@ const SocialPlansView: React.FC = () => {
 
     setAiStatus({
       loading: false,
-      message: suggestion ? '' : t('social.aiFallbackUsed')
+      message: suggestion || !askAi ? '' : t('social.aiFallbackUsed')
     });
   };
 
@@ -252,7 +272,9 @@ const SocialPlansView: React.FC = () => {
         border: `1px solid ${theme.colors.border}`,
         borderRadius: theme.shape.radiusMd,
         padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
-        margin: 0
+        margin: 0,
+        // A fieldset is never narrower than its content by default, so a long step pushed it past the card.
+        minWidth: 0
       }}
     >
       <legend style={{ padding: `0 ${theme.spacing.xs}px`, fontWeight: 600, display: 'flex', alignItems: 'center' }}>
@@ -260,12 +282,13 @@ const SocialPlansView: React.FC = () => {
         <BudgetTooltip content={t('tooltips.social.steps', "Break the connection plan into small actions: 'text to suggest a date', 'book the restaurant', 'confirm the day before'. Each step removes a reason to postpone.")} />
       </legend>
       <p style={{ margin: '0 0 0.5rem', color: theme.colors.muted }}>{t('social.stepsHelper')}</p>
-      <div style={{ display: 'grid', gap: '0.5rem' }}>
+      <div style={{ display: 'grid', gap: '0.5rem', gridTemplateColumns: 'minmax(0, 1fr)' }}>
         {steps.map((step, index) => (
           <div key={`${prefix}-${index.toString()}`} style={{ display: 'flex', gap: '0.5rem' }}>
             <input
               type="text"
               value={step.label}
+              aria-label={t('social.stepAria', { n: index + 1 })}
               placeholder={t('social.stepPlaceholder')}
               onChange={(event) => {
                 const next = steps.map((entry, entryIndex) =>
@@ -276,6 +299,7 @@ const SocialPlansView: React.FC = () => {
               }}
               style={{
                 flex: 1,
+                minWidth: 0,
                 minHeight: '44px',
                 padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
                 borderRadius: theme.shape.radiusMd,
@@ -291,7 +315,7 @@ const SocialPlansView: React.FC = () => {
                 onChange(next);
                 onTouch?.();
               }}
-              aria-label={t('social.removeStep')}
+              aria-label={t('social.removeStepAria', { n: index + 1 })}
               style={{
                 minHeight: '44px',
                 padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
@@ -336,12 +360,14 @@ const SocialPlansView: React.FC = () => {
       React.SetStateAction<{ title: boolean; dateTime: boolean; reminderMinutesBefore: boolean }>
     >
   ) => (
-    <div style={{ display: 'grid', gap: `${theme.spacing.sm}px` }}>
-      <label style={{ display: 'grid', gap: `${theme.spacing.xs}px` }}>
-        <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
-          {t('titleLabel')}
-          <BudgetTooltip content={t('tooltips.social.planTitle', "Give this connection plan a name. Keep it simple: 'Brunch with Sofia' or 'Call Mom weekly'. The clearer the plan, the easier it is to actually follow through.")} />
-        </span>
+    <div style={{ display: 'grid', gap: `${theme.spacing.sm}px`, gridTemplateColumns: 'minmax(0, 1fr)' }}>
+      <HelpField
+        label={t('titleLabel')}
+        labelStyle={{ fontWeight: 600 }}
+        style={{ gap: `${theme.spacing.xs}px` }}
+        help={<BudgetTooltip content={t('tooltips.social.planTitle', "Give this connection plan a name. Keep it simple: 'Brunch with Sofia' or 'Call Mom weekly'. The clearer the plan, the easier it is to actually follow through.")} />}
+        error={fieldTouched.title && validation.title ? validation.title : undefined}
+      >
         <input
           type="text"
           value={fields.title}
@@ -358,16 +384,14 @@ const SocialPlansView: React.FC = () => {
             color: theme.colors.text
           }}
         />
-        {fieldTouched.title && validation.title ? (
-          <span style={{ color: theme.colors.accent }}>{validation.title}</span>
-        ) : null}
-      </label>
+      </HelpField>
 
-      <label style={{ display: 'grid', gap: `${theme.spacing.xs}px` }}>
-        <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
-          {t('social.typeLabel')}
-          <BudgetTooltip content={t('tooltips.social.planType', 'What kind of interaction is this? Call = phone/video; Meetup = in-person; Message = text/email; Event = shared experience. Each type has different friction — start with the lowest friction option.')} />
-        </span>
+      <HelpField
+        label={t('social.typeLabel')}
+        labelStyle={{ fontWeight: 600 }}
+        style={{ gap: `${theme.spacing.xs}px` }}
+        help={<BudgetTooltip content={t('tooltips.social.planType', 'What kind of interaction is this? Call = phone/video; Meetup = in-person; Message = text/email; Event = shared experience. Each type has different friction — start with the lowest friction option.')} />}
+      >
         <select
           value={fields.type}
           onChange={(event) => setFields((prev) => ({ ...prev, type: event.target.value as SocialPlan['type'] }))}
@@ -385,13 +409,14 @@ const SocialPlansView: React.FC = () => {
           <option value="MESSAGE">{t('social.type.message')}</option>
           <option value="EVENT">{t('social.type.event')}</option>
         </select>
-      </label>
+      </HelpField>
 
-      <label style={{ display: 'grid', gap: `${theme.spacing.xs}px` }}>
-        <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
-          {t('social.energyLabel')}
-          <BudgetTooltip content={t('tooltips.social.energyLevel', 'How much social energy does this interaction require? Match this to your available energy — low-energy days are perfect for a quick message, high-energy days for a real meetup.')} />
-        </span>
+      <HelpField
+        label={t('social.energyLabel')}
+        labelStyle={{ fontWeight: 600 }}
+        style={{ gap: `${theme.spacing.xs}px` }}
+        help={<BudgetTooltip content={t('tooltips.social.energyLevel', 'How much social energy does this interaction require? Match this to your available energy — low-energy days are perfect for a quick message, high-energy days for a real meetup.')} />}
+      >
         <select
           value={fields.energyLevel}
           onChange={(event) =>
@@ -410,13 +435,15 @@ const SocialPlansView: React.FC = () => {
           <option value="MED">{t('social.energy.med')}</option>
           <option value="HIGH">{t('social.energy.high')}</option>
         </select>
-      </label>
+      </HelpField>
 
-      <label style={{ display: 'grid', gap: `${theme.spacing.xs}px` }}>
-        <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
-          {t('social.dateTimeLabel')}
-          <BudgetTooltip content={t('tooltips.social.dateTime', "When do you want this to happen? Scheduling a specific date makes it 10× more likely to occur vs. 'sometime soon'.")} />
-        </span>
+      <HelpField
+        label={t('social.dateTimeLabel')}
+        labelStyle={{ fontWeight: 600 }}
+        style={{ gap: `${theme.spacing.xs}px` }}
+        help={<BudgetTooltip content={t('tooltips.social.dateTime', "When do you want this to happen? A specific date is easier to keep than 'sometime soon'.")} />}
+        error={fieldTouched.dateTime && validation.dateTime ? validation.dateTime : undefined}
+      >
         <input
           type="datetime-local"
           value={fields.dateTime}
@@ -433,16 +460,18 @@ const SocialPlansView: React.FC = () => {
             color: theme.colors.text
           }}
         />
-        {fieldTouched.dateTime && validation.dateTime ? (
-          <span style={{ color: theme.colors.accent }}>{validation.dateTime}</span>
-        ) : null}
-      </label>
+      </HelpField>
 
-      <label style={{ display: 'grid', gap: `${theme.spacing.xs}px` }}>
-        {t('social.reminderLabel')}
+      <HelpField
+        label={t('social.reminderLabel')}
+        style={{ gap: `${theme.spacing.xs}px` }}
+        error={fieldTouched.reminderMinutesBefore && validation.reminderMinutesBefore ? validation.reminderMinutesBefore : undefined}
+        hint={ttsEnabled ? t('social.reminderHelperTtsOn') : t('social.reminderHelperTtsOff')}
+      >
         <input
           type="number"
           min="0"
+          inputMode="numeric"
           value={fields.reminderMinutesBefore}
           onChange={(event) => {
             setFields((prev) => ({ ...prev, reminderMinutesBefore: event.target.value }));
@@ -457,23 +486,20 @@ const SocialPlansView: React.FC = () => {
             color: theme.colors.text
           }}
         />
-        {fieldTouched.reminderMinutesBefore && validation.reminderMinutesBefore ? (
-          <span style={{ color: theme.colors.accent }}>{validation.reminderMinutesBefore}</span>
-        ) : null}
-        <span style={{ color: theme.colors.muted }}>{
-          ttsEnabled ? t('social.reminderHelperTtsOn') : t('social.reminderHelperTtsOff')
-        }</span>
-      </label>
+      </HelpField>
 
       {renderStepsEditor(fields.steps, (next) => setFields((prev) => ({ ...prev, steps: next })))}
 
-      <label style={{ display: 'grid', gap: `${theme.spacing.xs}px` }}>
+      <label style={{ display: 'grid', gap: `${theme.spacing.xs}px`, gridTemplateColumns: 'minmax(0, 1fr)' }}>
         {t('notesLabel')}
         <textarea
           rows={3}
           value={fields.notes}
           onChange={(event) => setFields((prev) => ({ ...prev, notes: event.target.value }))}
           style={{
+            width: '100%',
+            minWidth: 0,
+            boxSizing: 'border-box',
             padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
             borderRadius: theme.shape.radiusSm,
             border: `1px solid ${theme.colors.border}`,
@@ -488,10 +514,9 @@ const SocialPlansView: React.FC = () => {
 
   return (
     <SectionCard
-      ariaLabel={`${t('social.title')} module`}
       title={t('social.title')}
       subtitle={t('social.description')}
-      badge={<BudgetTooltip content={t('tooltips.social.section', 'Track and nurture your relationships with intentional plans. Research shows that social connection is one of the strongest predictors of wellbeing — schedule it like anything else that matters.')} />}
+      badge={<BudgetTooltip content={t('tooltips.social.section', "Relationships drift without intentional effort. This tab helps you plan regular check-ins and activities with people who matter — before distance sets in.")} />}
     >
       <div style={{ display: 'grid', gap: `${theme.spacing.lg}px`, gridTemplateColumns: 'minmax(0, 1fr)' }}>
         {/* ── Step 1: Who is this for? ─────────────────────────────────── */}
@@ -524,6 +549,7 @@ const SocialPlansView: React.FC = () => {
                     color: theme.colors.muted,
                     cursor: 'pointer',
                     fontSize: '0.8125rem',
+                    minHeight: 44,
                     padding: 0,
                     fontFamily: theme.typography.body.family
                   }}
@@ -574,23 +600,15 @@ const SocialPlansView: React.FC = () => {
 
         {/* ── Step 3: Create plan form (always visible) ──────────────── */}
         {!showGallery && (
-          <section data-tour="social-form" style={{ display: 'grid', gap: `${theme.spacing.sm}px` }}>
+          <section data-tour="social-form" style={{ display: 'grid', gap: `${theme.spacing.sm}px`, gridTemplateColumns: 'minmax(0, 1fr)' }}>
             <h3 style={{ margin: 0 }}>{t('social.addHeading')}</h3>
             {renderPlanForm(form, setForm, addValidation, touched, setTouched)}
 
             {/* AI enhancement */}
             {selectedLibraryTemplate && (
               <div style={{ display: 'grid', gap: `${theme.spacing.xs}px` }}>
-                <label style={{ display: 'flex', gap: `${theme.spacing.xs}px`, alignItems: 'center' }}>
-                  <input
-                    type="checkbox"
-                    checked={aiOptIn}
-                    onChange={(event) => setAiOptIn(event.target.checked)}
-                  />
-                  <span>{t('social.aiOptIn')}</span>
-                </label>
-                <p style={{ margin: 0, color: theme.colors.muted, fontSize: '0.8125rem' }}>{t('social.aiPrivacy')}</p>
-                {aiStatus.message ? <p style={{ margin: 0, color: theme.colors.accent, fontSize: '0.8125rem' }}>{aiStatus.message}</p> : null}
+                <AiOptIn checked={aiOptIn} onChange={setAiOptIn} />
+                {aiStatus.message ? <p style={{ margin: 0, color: theme.colors.errorStrong, fontSize: '0.8125rem' }}>{aiStatus.message}</p> : null}
                 <button
                   type="button"
                   onClick={handleGenerateSuggestions}
@@ -771,6 +789,7 @@ const SocialPlansView: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => startEdit(plan)}
+                      aria-label={t('editNamed', { name: plan.title })}
                       style={{
                         padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
                         minHeight: '44px',
@@ -785,6 +804,7 @@ const SocialPlansView: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => handleDelete(plan)}
+                      aria-label={t('deleteNamed', { name: plan.title })}
                       style={{
                         padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
                         minHeight: '44px',

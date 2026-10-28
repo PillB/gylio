@@ -6,7 +6,7 @@
  * receive complete grammatical sentences (not fragments).
  */
 
-import React, { useState } from 'react';
+import React, { useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { ThemeTokens } from '../../../core/themes';
 import { formatAmount } from '../../../core/utils/format';
@@ -185,9 +185,10 @@ type FieldProps = {
 
 function MoneyField({ label, value, onChange, theme, currencySymbol }: FieldProps) {
   const { colors, shape, spacing } = theme;
+  const id = useId();
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.xs }}>
-      <label style={{ fontSize: 13, color: colors.muted, fontFamily: theme.typography.body.family }}>
+      <label htmlFor={id} style={{ fontSize: 13, color: colors.muted, fontFamily: theme.typography.body.family }}>
         {label}
       </label>
       <div style={{ position: 'relative' }}>
@@ -205,6 +206,7 @@ function MoneyField({ label, value, onChange, theme, currencySymbol }: FieldProp
           {currencySymbol}
         </span>
         <input
+          id={id}
           type="number"
           min="0"
           step="1"
@@ -312,7 +314,7 @@ export default function FinancialDiagnostic({ theme, onApply }: Props) {
 
         <div style={cardStyle}>
           <div style={sectionHeadingStyle}>{t('budget.diagnostic.fixedSection')}</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: spacing.md }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(200px, 100%), 1fr))', gap: spacing.md }}>
             <MoneyField label={t('budget.diagnostic.rentLabel')}          value={input.rent}          onChange={set('rent')}          {...fieldProps} />
             <MoneyField label={t('budget.diagnostic.utilitiesLabel')}     value={input.utilities}     onChange={set('utilities')}     {...fieldProps} />
             <MoneyField label={t('budget.diagnostic.subscriptionsLabel')} value={input.subscriptions} onChange={set('subscriptions')} {...fieldProps} />
@@ -324,7 +326,7 @@ export default function FinancialDiagnostic({ theme, onApply }: Props) {
 
         <div style={cardStyle}>
           <div style={sectionHeadingStyle}>{t('budget.diagnostic.variableSection')}</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: spacing.md }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(200px, 100%), 1fr))', gap: spacing.md }}>
             <MoneyField label={t('budget.diagnostic.groceriesLabel')}     value={input.groceries}     onChange={set('groceries')}     {...fieldProps} />
             <MoneyField label={t('budget.diagnostic.diningOutLabel')}     value={input.diningOut}     onChange={set('diningOut')}     {...fieldProps} />
             <MoneyField label={t('budget.diagnostic.entertainmentLabel')} value={input.entertainment} onChange={set('entertainment')} {...fieldProps} />
@@ -456,12 +458,12 @@ export default function FinancialDiagnostic({ theme, onApply }: Props) {
         </div>
         <div style={{ display: 'flex', gap: spacing.md, marginTop: spacing.sm, flexWrap: 'wrap' }}>
           {[
-            { color: theme.colors.primary, label: t('budget.diagnostic.fixedLegend',    { pct: Math.round(fixedPct) }) },
-            { color: theme.colors.warning, label: t('budget.diagnostic.variableLegend', { pct: Math.round(variablePct) }) },
-            { color: theme.colors.success, label: t('budget.diagnostic.savingsLegend',  { pct: Math.round(savingsPct) }) },
+            { swatch: theme.colors.primary, label: t('budget.diagnostic.fixedLegend',    { pct: Math.round(fixedPct) }) },
+            { swatch: theme.colors.warning, label: t('budget.diagnostic.variableLegend', { pct: Math.round(variablePct) }) },
+            { swatch: theme.colors.success, label: t('budget.diagnostic.savingsLegend',  { pct: Math.round(savingsPct) }) },
           ].map((item) => (
             <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-              <div style={{ width: 10, height: 10, borderRadius: 2, background: item.color, flexShrink: 0 }} />
+              <div style={{ width: 10, height: 10, borderRadius: 2, background: item.swatch, flexShrink: 0 }} />
               <span style={{ fontSize: 12, color: colors.muted, fontFamily: theme.typography.body.family }}>{item.label}</span>
             </div>
           ))}
