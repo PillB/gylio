@@ -391,7 +391,7 @@ function TabsLayout() {
       { key: 'calendar', label: t('calendar'), locked: false },
       { key: 'budget', label: t('budget.title'), locked: false },
       { key: 'social', label: t('social.title'), locked: !hasFeature('social') },
-      { key: 'routines', label: t('routines.title'), locked: !hasFeature('routines') },
+      { key: 'routines', label: t('routines.title'), locked: false },
       { key: 'rewards', label: t('rewards.title'), locked: !hasFeature('rewards') },
       { key: 'settings', label: t('settings'), locked: false },
     ],
@@ -429,14 +429,6 @@ const PREMIUM_GATE_CONFIG = {
       t('upgrade.social.outcome2', 'Join accountability groups and group challenges'),
     ],
     freeAlternative: t('upgrade.social.freeAlt', 'track your own progress privately'),
-  }),
-  routines: (t) => ({
-    featureName: t('routines.title'),
-    outcomes: [
-      t('upgrade.routines.outcome1', 'Build unlimited morning, evening, and custom routines'),
-      t('upgrade.routines.outcome2', 'Get gentle nudges timed to your energy levels'),
-    ],
-    freeAlternative: t('upgrade.routines.freeAlt', 'add up to 3 tasks to your daily routine'),
   }),
   rewards: (t) => ({
     featureName: t('rewards.title'),
@@ -477,11 +469,8 @@ function buildAuthRouter(clerkEnabled) {
       element: <PremiumGate feature="social" />,
       children: [{ index: true, element: <SocialPlansView /> }],
     },
-    {
-      path: 'routines',
-      element: <PremiumGate feature="routines" />,
-      children: [{ index: true, element: <RoutinesView /> }],
-    },
+    // Free up to a limit, unlimited with Pro: the limit lives in the screen itself (useRoutineAllowance).
+    { path: 'routines', element: <RoutinesView /> },
     {
       path: 'rewards',
       element: <PremiumGate feature="rewards" />,

@@ -403,15 +403,8 @@ export const UpgradePrompt: React.FC<Props> = ({
  * />
  *
  * ── Routines tab ────────────────────────────────────────────────────────────
- * <UpgradePrompt
- *   featureName="routines"
- *   outcomes={[
- *     t('upgrade.routines.outcome1', 'Build unlimited morning, evening, and custom routines'),
- *     t('upgrade.routines.outcome2', 'Get gentle nudges timed to your energy levels'),
- *   ]}
- *   freeAlternative={t('upgrade.routines.freeAlt', 'add up to 3 tasks to your daily routine')}
- *   onTryOnce={() => setRoutinePreviewMode(true)}
- * />
+ * Not gated: routines are free up to a limit, and the screen says so itself
+ * (src/features/routines/components/RoutineAllowanceNote.tsx).
  *
  * ── Rewards tab ─────────────────────────────────────────────────────────────
  * <UpgradePrompt

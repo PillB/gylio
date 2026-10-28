@@ -106,17 +106,17 @@ test.describe('GYLIO App Visual Audit', () => {
     await expect(page.locator('main').first()).toBeVisible();
   });
 
-  test('08 - Routines premium gate', async ({ page }) => {
+  test('08 - Routines view', async ({ page }) => {
     await completeOnboardingIfNeeded(page);
     await goto(page, '/routines');
     await page.waitForLoadState('networkidle');
     await page.screenshot({ path: `${SCREENSHOT_DIR}/08-routines.png`, fullPage: true });
 
-    // CI intentionally runs without production Clerk credentials, so the
-    // subscription defaults to free_user. Validate the product contract that a
-    // premium feature is gated instead of falsely expecting the editor itself.
-    await expect(page.getByRole('region', { name: /upgrade to access this feature/i })).toBeVisible();
-    await expect(page.getByRole('heading', { name: /routines is a premium feature/i })).toBeVisible();
+    // Routines are free up to a limit (src/features/routines/routineAllowance.ts): a free account gets the editor,
+    // with the count of routines in use, and no upgrade prompt.
+    await expect(page.getByRole('region', { name: /upgrade to access this feature/i })).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: /new routine/i })).toBeVisible();
+    await expect(page.getByText(/^0 of [35] routines in use$/)).toBeVisible();
   });
 
   test('09 - Settings view', async ({ page }) => {
@@ -182,9 +182,9 @@ test.describe('GYLIO App Visual Audit', () => {
     }
   });
 
-  test('13 - Premium routines gate links to pricing', async ({ page }) => {
+  test('13 - Premium social gate links to pricing', async ({ page }) => {
     await completeOnboardingIfNeeded(page);
-    await goto(page, '/routines');
+    await goto(page, '/social');
     await page.waitForLoadState('networkidle');
 
     const gate = page.getByRole('region', { name: /upgrade to access this feature/i });
@@ -193,7 +193,7 @@ test.describe('GYLIO App Visual Audit', () => {
     await page.waitForLoadState('networkidle');
     await expect(page).toHaveURL(/\/pricing$/);
     await expect(page.getByRole('heading', { name: /simple, honest pricing/i })).toBeVisible();
-    await page.screenshot({ path: `${SCREENSHOT_DIR}/13-pricing-from-routines.png`, fullPage: true });
+    await page.screenshot({ path: `${SCREENSHOT_DIR}/13-pricing-from-social.png`, fullPage: true });
   });
 
   test('14 - Keyboard navigation on tasks', async ({ page }) => {

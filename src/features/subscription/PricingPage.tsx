@@ -28,6 +28,7 @@ import { currencyForLocale, daysUntil, formatMoney, yearlySavingsPercent } from 
 import { openPaddleCheckout, paddleConfigured } from '../billing/paddle';
 import { useExperiment } from '../experiments/useExperiment';
 import { serverFeaturesEnabled } from '../../core/utils/serverFeatures';
+import { BASE_FREE_ROUTINES } from '../routines/routineAllowance';
 
 type Interval = 'monthly' | 'yearly';
 type Busy = null | 'trial' | 'checkout' | 'pass' | 'portal';
@@ -304,7 +305,7 @@ function useCardStyle(highlight: boolean): React.CSSProperties {
   };
 }
 
-function FeatureList({ keys }: { keys: string[] }) {
+function FeatureList({ keys, values = {} }: { keys: string[]; values?: Record<string, Record<string, unknown>> }) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   return (
@@ -312,26 +313,28 @@ function FeatureList({ keys }: { keys: string[] }) {
       {keys.map((key) => (
         <li key={key} style={{ display: 'flex', gap: theme.spacing.xs }}>
           <span aria-hidden="true" style={{ color: theme.colors.successStrong, fontWeight: 700 }}>✓</span>
-          {t(key)}
+          {t(key, values[key])}
         </li>
       ))}
     </ul>
   );
 }
 
-const FREE_FEATURE_KEYS = ['billing.free.tasks', 'billing.free.calendar', 'billing.free.budget', 'billing.free.rewards', 'billing.free.sync', 'billing.free.ads'];
+const FREE_FEATURE_KEYS = ['billing.free.tasks', 'billing.free.calendar', 'billing.free.budget', 'billing.free.rewards', 'billing.free.routines', 'billing.free.sync', 'billing.free.ads'];
 const PRO_FEATURE_KEYS = ['billing.pro.everything', 'billing.pro.routines', 'billing.pro.social', 'billing.pro.ai', 'billing.pro.support', 'billing.pro.noAds'];
 
 function FreeCard({ currency }: { currency: Currency }) {
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   const style = useCardStyle(false);
+  // The same free limit the person meets on the Routines screen. Exposure is counted there, where the limit applies.
+  const { variant } = useExperiment('routine_free_limit', { shown: false });
   return (
     <section aria-labelledby="plan-free" style={style}>
       <h2 id="plan-free" style={{ margin: 0, fontSize: '1.25rem' }}>{t('billing.free.name')}</h2>
       <p style={{ margin: 0, fontSize: '1.75rem', fontWeight: 700 }}>{formatMoney(0, currency, i18n.language)}</p>
       <p style={{ margin: 0, color: theme.colors.muted }}>{t('billing.free.tagline')}</p>
-      <FeatureList keys={FREE_FEATURE_KEYS} />
+      <FeatureList keys={FREE_FEATURE_KEYS} values={{ 'billing.free.routines': { count: BASE_FREE_ROUTINES[variant] } }} />
     </section>
   );
 }

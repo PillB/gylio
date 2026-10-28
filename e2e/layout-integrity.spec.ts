@@ -234,7 +234,8 @@ for (const locale of locales) {
 
 // The routes above show the upgrade prompt to a free user, so the premium editors themselves were never
 // measured (Social overflowed a 320px phone unnoticed). These open the real screens.
-const premiumRoutes = ['/social', '/routines', '/rewards'];
+// Routines are free up to a limit, so the free routes above already measure the real screen.
+const premiumRoutes = ['/social', '/rewards'];
 
 for (const locale of locales) {
   for (const viewport of viewports) {
@@ -265,7 +266,7 @@ for (const locale of locales) {
 const panels: { route: string; premium: boolean; open: RegExp[] }[] = [
   { route: '/budget', premium: false, open: [/^(run financial health check|diagnóstico de salud financiera)$/i] },
   { route: '/tasks', premium: false, open: [/^(add details|agregar detalles)$/i, /^(start with a template|empezar con una plantilla)$/i] },
-  { route: '/routines', premium: true, open: [/(browse routine templates|ver plantillas de rutinas)/i] },
+  { route: '/routines', premium: false, open: [/(browse routine templates|ver plantillas de rutinas)/i] },
   { route: '/social', premium: true, open: [/^🤝 (friend|amigo\/a)$/i] },
 ];
 

@@ -1468,6 +1468,17 @@
       "immediatelyOnWaking": "Inmediatamente al despertar",
       "afterWork": "Después del trabajo",
       "afterMorningLight": "Después de la luz matutina"
+    },
+    "limit": {
+      "count": "{{used}} de {{limit}} rutinas en uso",
+      "full": "El plan gratuito guarda hasta {{limit}} rutinas y tienes {{used}}. Para añadir otra, cambia o quita una que ya no uses. Todas tus rutinas se quedan.",
+      "pro": "Pro no tiene límite de rutinas.",
+      "seePro": "Ver Pro"
+    },
+    "extra": {
+      "title": "Un agradecimiento",
+      "body": "Has hecho rutinas en {{days}} días distintos. Ahora tienes espacio para {{spaces}} más, hasta {{limit}} rutinas. Son tuyas para siempre.",
+      "ok": "Entendido"
     }
   },
   "win": {
@@ -1571,11 +1582,6 @@
       "outcome1": "Comparte tus rachas y logros con amigos",
       "outcome2": "Únete a grupos de apoyo mutuo y retos en equipo",
       "freeAlt": "registrar tu propio progreso de forma privada"
-    },
-    "routines": {
-      "outcome1": "Crea rutinas ilimitadas: mañana, noche o personalizadas",
-      "outcome2": "Recibe recordatorios suaves adaptados a tus niveles de energía",
-      "freeAlt": "agregar hasta 3 tareas a tu rutina diaria"
     },
     "rewards": {
       "outcome1": "Diseña tus propias recompensas e hitos personales",

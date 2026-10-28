@@ -58,6 +58,20 @@ describe('PricingPage', () => {
     expect(screen.getByText(/\(1 day left\)/)).toBeTruthy();
   });
 
+  it('lists the free routine limit the person actually has, and unlimited routines with Pro', async () => {
+    await i18n.changeLanguage('en');
+    entitlementState.entitlement = entitlement({});
+    for (const [variant, count] of [['three', 3], ['three_plus_surprise', 3], ['five', 5]] as const) {
+      window.history.replaceState(null, '', `/pricing?exp_routine_free_limit=${variant}`);
+      await renderPage();
+      const free = screen.getByRole('region', { name: 'Free' });
+      expect(free.textContent).toContain(`Up to ${count} routines`);
+      expect(screen.getByRole('region', { name: /^Pro/ }).textContent).toContain('Unlimited routines');
+      cleanup();
+    }
+    window.history.replaceState(null, '', '/');
+  });
+
   it('confirms a payment when the person comes back from Mercado Pago', async () => {
     await i18n.changeLanguage('en');
     entitlementState.entitlement = entitlement({});

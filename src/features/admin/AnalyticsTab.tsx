@@ -5,7 +5,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../core/context/ThemeContext';
-import { adminApi, type AnalyticsSummary } from '../billing/billingApi';
+import { adminApi, type AnalyticsSummary, type RoutineLimitRow } from '../billing/billingApi';
 
 const RANGES = [1, 7, 30, 90];
 const pct = (x: number, locale: string) => new Intl.NumberFormat(locale, { style: 'percent', maximumFractionDigits: 1 }).format(x);
@@ -24,6 +24,21 @@ function Table({ caption, headers, rows }: { caption: string; headers: string[];
   );
 }
 
+/** The routine limit test (docs/research/routine-free-limit-2026-10-28.md): the 7 → 28 day funnel is what decides it. */
+function RoutineLimitTable({ rows = [] }: { rows?: RoutineLimitRow[] }) {
+  const { t, i18n } = useTranslation();
+  const n = (x: number) => new Intl.NumberFormat(i18n.language).format(x);
+  const k = (key: string) => t(`admin.analytics.${key}`);
+  return (
+    <>
+      <Table caption={k('routineHeading')}
+        headers={[k('variant'), k('exposed'), k('reached1Day'), k('reached7Days'), k('reached28Days'), k('from7To28'), k('limitReached'), k('extraGiven'), k('seePro'), k('created'), k('deleted')]}
+        rows={rows.map((r) => [r.variant, n(r.exposed), n(r.reached1Day), n(r.reached7Days), n(r.reached28Days), pct(r.from7To28, i18n.language), n(r.limitReachedSessions), n(r.extraGiven), n(r.seePro), n(r.created), n(r.deleted)])} />
+      <p style={{ margin: 0, fontSize: '0.8125rem' }}>{k('devicesNote')} {k('routineNote')}</p>
+    </>
+  );
+}
+
 function Sections({ data }: { data: AnalyticsSummary }) {
   const { t, i18n } = useTranslation();
   const n = (x: number) => new Intl.NumberFormat(i18n.language).format(x);
@@ -36,6 +51,7 @@ function Sections({ data }: { data: AnalyticsSummary }) {
         headers={[t('admin.analytics.experiment'), t('admin.analytics.variant'), t('admin.analytics.exposed'), t('admin.analytics.trials'), t('admin.analytics.trialRate')]}
         rows={data.experiments.map((e) => [e.experiment, e.variant, n(e.exposed), n(e.trials), pct(e.trialRate, i18n.language)])} />
       <p style={{ margin: 0, fontSize: '0.8125rem' }}>{t('admin.analytics.abNote')}</p>
+      <RoutineLimitTable rows={data.routineLimit} />
       <Table caption={t('admin.analytics.adsHeading')}
         headers={[t('admin.analytics.provider'), t('admin.analytics.placement'), t('admin.analytics.impressions'), t('admin.analytics.clicks'), t('admin.analytics.ctr')]}
         rows={data.ads.map((a) => [a.provider, a.placement, n(a.impressions), n(a.clicks), pct(a.ctr, i18n.language)])} />

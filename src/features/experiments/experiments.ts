@@ -26,6 +26,9 @@ export const EXPERIMENTS = {
   budget_quick_add: { variants: ['none', 'top'] },
   // Calendar view phones open on: Day vs the cut-off seven-day Week.
   calendar_default_phone: { variants: ['day', 'week'] },
+  // Free routines (docs/research/routine-free-limit-2026-10-28.md): 3 (the owner's decision, control), 3 plus an
+  // unannounced, one-time 2 more after routines done on 7 different days, or 5 from the start.
+  routine_free_limit: { variants: ['three', 'three_plus_surprise', 'five'] },
 } as const satisfies Record<string, ExperimentDefinition>;
 
 export type ExperimentKey = keyof typeof EXPERIMENTS;

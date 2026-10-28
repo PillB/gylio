@@ -1,6 +1,6 @@
 {
   "heading": "Simple, honest pricing",
-  "subheading": "Free keeps your daily plan working and saved to your account. Pro adds routines, social support, AI help and no ads.",
+  "subheading": "Free keeps your daily plan working and saved to your account. Pro adds unlimited routines, social support, AI help and no ads.",
   "fineprint": "Cancel anytime in one step. If you cancel, Pro stays on until the end of the period you paid for, and your data stays yours on the free plan.",
   "error": {
     "generic": "Something went wrong. Please try again.",
@@ -40,6 +40,7 @@
     "calendar": "Calendar and time blocking",
     "budget": "Zero-based budget",
     "rewards": "Rewards, streaks and badges",
+    "routines": "Up to {{count}} routines",
     "ads": "A small ad on the Settings and QA pages",
     "sync": "Saved to your account, on all your devices"
   },
@@ -50,7 +51,7 @@
     "perMonthEquivalent": "That's {{price}} a month, instead of {{monthly}}.",
     "billedMonthly": "Billed every month.",
     "everything": "Everything in Free",
-    "routines": "Routine builder",
+    "routines": "Unlimited routines",
     "social": "Social plans and gentle reminders",
     "ai": "AI suggestions",
     "noAds": "No ads",
@@ -83,7 +84,7 @@
     "removeAds": "Remove ads with Pro",
     "house": {
       "noAds": "Pro removes ads and keeps the app quiet.",
-      "routines": "Pro includes the routine builder for mornings and evenings.",
+      "routines": "Pro has no limit on routines.",
       "ai": "Pro adds AI help to break big tasks into small steps."
     }
   },

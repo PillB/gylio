@@ -1,6 +1,6 @@
 {
   "heading": "Precios simples y honestos",
-  "subheading": "Con el plan gratis tu día sigue funcionando y guardado en tu cuenta. Pro suma rutinas, apoyo social, ayuda con IA y cero anuncios.",
+  "subheading": "Con el plan gratis tu día sigue funcionando y guardado en tu cuenta. Pro suma rutinas ilimitadas, apoyo social, ayuda con IA y cero anuncios.",
   "fineprint": "Cancela cuando quieras en un paso. Si cancelas, Pro sigue activo hasta el final del periodo que pagaste, y tus datos se quedan contigo en el plan gratis.",
   "error": {
     "generic": "Algo salió mal. Inténtalo de nuevo.",
@@ -40,6 +40,7 @@
     "calendar": "Calendario y bloques de tiempo",
     "budget": "Presupuesto base cero",
     "rewards": "Recompensas, rachas e insignias",
+    "routines": "Hasta {{count}} rutinas",
     "ads": "Un anuncio pequeño en Ajustes y en la página de pruebas",
     "sync": "Guardado en tu cuenta, en todos tus dispositivos"
   },
@@ -50,7 +51,7 @@
     "perMonthEquivalent": "Equivale a {{price}} al mes, en vez de {{monthly}}.",
     "billedMonthly": "Se cobra cada mes.",
     "everything": "Todo lo del plan Gratis",
-    "routines": "Creador de rutinas",
+    "routines": "Rutinas ilimitadas",
     "social": "Planes sociales y recordatorios amables",
     "ai": "Sugerencias con IA",
     "noAds": "Sin anuncios",
@@ -83,7 +84,7 @@
     "removeAds": "Quita los anuncios con Pro",
     "house": {
       "noAds": "Pro quita los anuncios y mantiene la app tranquila.",
-      "routines": "Pro incluye el creador de rutinas para tus mañanas y noches.",
+      "routines": "Pro no tiene límite de rutinas.",
       "ai": "Pro suma ayuda con IA para dividir tareas grandes en pasos pequeños."
     }
   },

@@ -130,6 +130,11 @@ export const Events = {
   ROUTINE_CREATED:                 'routine_created',
   ROUTINE_COMPLETED:               'routine_completed',
   ROUTINE_TEMPLATE_USED:           'routine_template_used',
+  // The free routine limit and its thank-you: step reached | see_pro | extra_given | extra_seen.
+  ROUTINE_LIMIT:                   'routine_limit',
+  ROUTINE_DELETED:                 'routine_deleted',
+  // First time this device reaches 1, 3, 7, 14, 28 or 56 different days with a routine done (routineAllowance.ts).
+  ROUTINE_DAYS:                    'routine_days',
 
   // Budget
   BUDGET_ACTION:                   'budget_action',

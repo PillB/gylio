@@ -1468,6 +1468,17 @@
       "immediatelyOnWaking": "Immediately on waking",
       "afterWork": "After work",
       "afterMorningLight": "After morning light"
+    },
+    "limit": {
+      "count": "{{used}} of {{limit}} routines in use",
+      "full": "The free plan keeps up to {{limit}} routines, and you have {{used}}. To add a new one, change or remove one you no longer use. Every routine you have stays.",
+      "pro": "Pro has no limit on routines.",
+      "seePro": "See Pro"
+    },
+    "extra": {
+      "title": "A thank-you",
+      "body": "You have done routines on {{days}} different days. You now have room for {{spaces}} more, up to {{limit}} routines. They are yours to keep.",
+      "ok": "OK"
     }
   },
   "win": {
@@ -1571,11 +1582,6 @@
       "outcome1": "Share your streaks and wins with friends",
       "outcome2": "Join accountability groups and group challenges",
       "freeAlt": "track your own progress privately"
-    },
-    "routines": {
-      "outcome1": "Build unlimited morning, evening, and custom routines",
-      "outcome2": "Get gentle nudges timed to your energy levels",
-      "freeAlt": "add up to 3 tasks to your daily routine"
     },
     "rewards": {
       "outcome1": "Create your own custom rewards and milestones",
