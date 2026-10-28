@@ -1,10 +1,12 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import SectionCard from '../../../components/SectionCard.jsx';
 import WinCard from '../../../components/WinCard';
 import EmptyStateAction from '../../../components/EmptyStateAction';
 import { useTheme } from '../../../core/context/ThemeContext';
 import { useTaskTimer } from '../../../core/context/TaskTimerContext';
+import { calibrationSamples } from '../../timetracking/trackedTime';
+import { useTimeTracker } from '../../timetracking/TimeTrackerContext';
 import { useToast } from '../../../core/context/ToastContext';
 import useDB from '../../../core/hooks/useDB';
 import { useClock, getLocalDateKey } from '../../../core/hooks/useClock';
@@ -55,8 +57,6 @@ const TaskChunk: React.FC<ChunkProps> = ({ tasks, index, editingTaskId, actions 
   const label = t('tasks.chunkLabel', { index: index + 1 });
   return (
     <div
-      role="group"
-      aria-label={label}
       style={{
         border: `1px solid ${theme.colors.border}`,
         borderRadius: theme.shape.radiusMd,
@@ -65,7 +65,7 @@ const TaskChunk: React.FC<ChunkProps> = ({ tasks, index, editingTaskId, actions 
       }}
     >
       <p style={{ margin: '0 0 0.5rem', color: theme.colors.muted, fontWeight: 600 }}>{label}</p>
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: '0.75rem' }}>
+      <div role="list" aria-label={label} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: '0.75rem' }}>
         {tasks.map((task) => (
           <div key={task.id} role="listitem">
             {editingTaskId === task.id ? <TaskEditForm task={task} actions={actions} /> : <TaskCard task={task} actions={actions} />}
@@ -155,6 +155,7 @@ const TaskList: React.FC = () => {
   const { tasks, loading, toggleTaskStatus, toggleSubtask, addTask, updateTaskDetails, removeTask, refreshTasks } = useTasks();
   const { activeTimer, pendingLogEntry, clearPendingEntry, startTask, settings } = useTaskTimer();
   const { appendTaskTimeLog } = useDB();
+  const { version: trackedVersion } = useTimeTracker();
   const { dateKey: todayKey } = useClock(i18n.language);
   const titleRef = useRef<HTMLInputElement>(null);
 
@@ -168,6 +169,11 @@ const TaskList: React.FC = () => {
   const { hiddenIds, remove, showSuccess } = useTaskDelete(removeTask, t);
   useNewTaskShortcut(titleRef);
   usePersistPendingTimeLog({ pendingLogEntry, appendTaskTimeLog, refreshTasks, clearPendingEntry });
+  // Time saved from the tracker bar or an editor lands in the database; reload so the cards show it.
+  useEffect(() => {
+    if (trackedVersion > 0) void refreshTasks();
+  }, [trackedVersion, refreshTasks]);
+  const estimateSamples = useMemo(() => calibrationSamples(tasks), [tasks]);
 
   const formatter = useMemo(() => new Intl.DateTimeFormat(i18n.language, { month: 'short', day: 'numeric' }), [i18n.language]);
   const filteredTasks = useMemo(
@@ -183,6 +189,8 @@ const TaskList: React.FC = () => {
     () => (isFocusMode && !focusModeExpanded ? filteredTasks.slice(0, FOCUS_MODE_LIMIT) : filteredTasks),
     [filteredTasks, focusModeExpanded, isFocusMode]
   );
+  // Only the Upcoming view lists rows directly; the other views nest their own lists inside labelled chunks.
+  const isUpcomingList = !loading && upcomingGroups !== null && visibleTasks.length > 0;
 
   const toggle = useCallback(
     async (taskId: number) => {
@@ -220,6 +228,7 @@ const TaskList: React.FC = () => {
     activeTimerTaskId: activeTimer?.taskId ?? null,
     focusMinutes: settings.focusMinutes,
     formatDate: (date) => formatter.format(date),
+    estimateSamples,
   };
 
   const createTask = async (input: NewTaskInput) => {
@@ -253,7 +262,7 @@ const TaskList: React.FC = () => {
       subtitle={t('tasks.description', '')}
       badge={<TaskHelp topic="section" />}
     >
-      <TaskComposer draft={draft} todayKey={todayKey} tomorrowKey={addDaysToKey(todayKey, 1)} titleRef={titleRef} onSubmit={submitDraft}>
+      <TaskComposer draft={draft} todayKey={todayKey} tomorrowKey={addDaysToKey(todayKey, 1)} titleRef={titleRef} onSubmit={submitDraft} estimateSamples={estimateSamples}>
         <RecurringStatusToggle />
       </TaskComposer>
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: `${theme.spacing.lg}px` }}>
@@ -266,7 +275,7 @@ const TaskList: React.FC = () => {
             onToggle={() => setFocusModeExpanded((prev) => !prev)}
           />
         )}
-        <div role={loading || filteredTasks.length === 0 ? undefined : 'list'} aria-label={loading || filteredTasks.length === 0 ? undefined : t('tasks.chunkedListAria')} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: '1rem' }}>
+        <div role={isUpcomingList ? 'list' : undefined} aria-label={isUpcomingList ? t('tasks.chunkedListAria') : undefined} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: '1rem' }}>
           <TaskListBody
             loading={loading}
             view={viewFilter}

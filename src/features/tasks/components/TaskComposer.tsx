@@ -7,6 +7,8 @@ import EnergyPicker from './EnergyPicker';
 import ScheduleChoices from './ScheduleChoices';
 import SubtaskEditor from './SubtaskEditor';
 import { TaskTemplateGallery } from './TaskTemplateGallery';
+import type { EstimateSample } from '../../planning/calibrateEstimate';
+import EstimatePicker from '../../timetracking/components/EstimatePicker';
 import TaskHelp from './TaskHelp';
 import { controlStyle, primaryControlStyle, textInputStyle } from './taskStyles';
 
@@ -16,6 +18,8 @@ type Props = {
   tomorrowKey: string;
   titleRef: React.RefObject<HTMLInputElement>;
   onSubmit: () => void;
+  /** Past estimate/actual pairs, for the personal buffer suggestion. */
+  estimateSamples?: EstimateSample[];
   /** Rendered between the quick-start toggle and the form. */
   children?: React.ReactNode;
 };
@@ -99,7 +103,7 @@ const IntentionField: React.FC<{ draft: TaskDraft }> = ({ draft }) => {
 };
 
 /** Optional details: schedule, energy, when/where cue and micro-steps. */
-const DraftDetails: React.FC<Omit<Props, 'titleRef' | 'onSubmit' | 'children'>> = ({ draft, todayKey, tomorrowKey }) => {
+const DraftDetails: React.FC<Omit<Props, 'titleRef' | 'onSubmit' | 'children'>> = ({ draft, todayKey, tomorrowKey, estimateSamples }) => {
   const { t } = useTranslation();
   const { theme } = useTheme();
   return (
@@ -108,6 +112,7 @@ const DraftDetails: React.FC<Omit<Props, 'titleRef' | 'onSubmit' | 'children'>> 
       <div data-tour="task-energy">
         <EnergyPicker value={draft.energy} onChange={draft.setEnergy} />
       </div>
+      <EstimatePicker idPrefix="new-task-estimate" value={draft.estimateMin} onChange={draft.setEstimateMin} samples={estimateSamples} />
       {draft.title.trim() && !draft.plannedDate ? <IntentionField draft={draft} /> : null}
       <button type="button" data-tour="task-steps-btn" onClick={draft.toggleSubtaskEditor} style={controlStyle(theme)}>
         {t('breakIntoSteps')}
@@ -133,7 +138,7 @@ const DraftDetails: React.FC<Omit<Props, 'titleRef' | 'onSubmit' | 'children'>> 
 };
 
 /** Quick-capture form: a title is enough; everything else sits behind "Add details". */
-const TaskComposer: React.FC<Props> = ({ draft, todayKey, tomorrowKey, titleRef, onSubmit, children }) => {
+const TaskComposer: React.FC<Props> = ({ draft, todayKey, tomorrowKey, titleRef, onSubmit, estimateSamples, children }) => {
   const { t } = useTranslation();
   const { theme } = useTheme();
   return (
@@ -191,7 +196,7 @@ const TaskComposer: React.FC<Props> = ({ draft, todayKey, tomorrowKey, titleRef,
             {t('addTask')}
           </button>
         </div>
-        {draft.detailsOpen ? <DraftDetails draft={draft} todayKey={todayKey} tomorrowKey={tomorrowKey} /> : null}
+        {draft.detailsOpen ? <DraftDetails draft={draft} todayKey={todayKey} tomorrowKey={tomorrowKey} estimateSamples={estimateSamples} /> : null}
       </form>
       {draft.formError ? <p style={{ color: theme.colors.accent, marginTop: 0 }}>{draft.formError}</p> : null}
     </>

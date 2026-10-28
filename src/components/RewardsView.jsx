@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import XpBar from '../features/rewards/XpBar';
 import useDB from '../core/hooks/useDB';
 import useGamification from '../core/hooks/useGamification';
 import { useTheme } from '../core/context/ThemeContext';
@@ -257,6 +258,11 @@ const RewardsView = () => {
                       target: progressSummary.nextLevelTarget,
                     }) || `${progressSummary.points} XP / ${progressSummary.nextLevelTarget} XP`}
                   </small>
+                  <XpBar
+                    points={progressSummary.points}
+                    level={progressSummary.level}
+                    label={t('rewards.levelProgressAria', 'Progress to the next level')}
+                  />
                 </div>
                 <div>
                   <p style={{ margin: 0, fontWeight: 600, display: 'flex', alignItems: 'center' }}>

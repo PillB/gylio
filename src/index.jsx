@@ -14,6 +14,8 @@ import ToastStack from './components/atoms/Toast';
 import SiteUtilityFooter from './components/SiteUtilityFooter';
 import { GuidedTourProvider } from './core/context/GuidedTourContext';
 import { TaskTimerProvider } from './core/context/TaskTimerContext';
+import { TimeTrackerProvider } from './features/timetracking/TimeTrackerContext';
+import TimeTrackerBar from './features/timetracking/components/TimeTrackerBar';
 import { registerServiceWorker } from './core/utils/serviceWorker';
 
 registerServiceWorker();
@@ -31,6 +33,8 @@ const providers = (
       <ThemeProvider>
         <ToastProvider>
           <TaskTimerProvider>
+            <TimeTrackerProvider>
+            <TimeTrackerBar />
             <GuidedTourProvider>
               <OnboardingFlowProvider>
                 <AccessibilityProvider>
@@ -42,6 +46,7 @@ const providers = (
                 </AccessibilityProvider>
               </OnboardingFlowProvider>
             </GuidedTourProvider>
+            </TimeTrackerProvider>
           </TaskTimerProvider>
         </ToastProvider>
       </ThemeProvider>

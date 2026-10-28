@@ -10,7 +10,8 @@ export type Subtask = {
 };
 
 export type TimeLogEntry = {
-  type: 'focus' | 'short-break' | 'long-break';
+  /** 'tracked' is a stopwatch stretch from the time tracker; the rest are focus-timer phases. */
+  type: 'focus' | 'short-break' | 'long-break' | 'tracked';
   startedAt: string;
   endedAt: string;
   plannedSeconds: number;
@@ -28,6 +29,8 @@ export type Task = {
   focusPresetMinutes: number | null;
   energyRequired: 'tiny' | 'low' | 'medium' | 'high';
   implementationIntention: string | null;
+  /** The person's own guess, in minutes, before starting. Optional. */
+  estimateMin: number | null;
   timeLog: TimeLogEntry[];
   createdAt: string | null;
   updatedAt: string | null;
@@ -82,6 +85,8 @@ export type Debt = {
   annualRate: number;
   minPayment: number;
   categoryName: string | null;
+  /** Day of month the payment is due (1-31), or null when not set. */
+  dueDay: number | null;
   createdAt: string | null;
 };
 
@@ -316,17 +321,19 @@ const normalizeCategories = (value: unknown): BudgetCategory[] => {
     .filter((entry): entry is BudgetCategory => Boolean(entry));
 };
 
+const toNumberOrNull = (value: unknown): number | null => (value !== undefined && value !== null ? Number(value) : null);
+
 const mapTask = (row: SqlRow): Task => ({
   id: row.id,
   title: row.title,
   status: row.status,
   subtasks: normalizeSubtasks(row.subtasks),
   plannedDate: row.plannedDate ?? null,
-  calendarEventId: row.calendarEventId !== undefined && row.calendarEventId !== null ? Number(row.calendarEventId) : null,
-  focusPresetMinutes:
-    row.focusPresetMinutes !== undefined && row.focusPresetMinutes !== null ? Number(row.focusPresetMinutes) : null,
+  calendarEventId: toNumberOrNull(row.calendarEventId),
+  focusPresetMinutes: toNumberOrNull(row.focusPresetMinutes),
   energyRequired: (['tiny', 'low', 'medium', 'high'] as const).includes(row.energyRequired) ? row.energyRequired : 'medium',
   implementationIntention: row.implementationIntention ?? null,
+  estimateMin: toNumberOrNull(row.estimateMin),
   timeLog: parseJson<TimeLogEntry[]>(row.timeLog, []),
   createdAt: row.createdAt ?? null,
   updatedAt: row.updatedAt ?? null,
@@ -373,6 +380,7 @@ const mapDebt = (row: SqlRow): Debt => ({
   annualRate: Number(row.annualRate),
   minPayment: Number(row.minPayment),
   categoryName: row.categoryName ?? null,
+  dueDay: row.dueDay == null ? null : Number(row.dueDay),
   createdAt: row.createdAt ?? null,
 });
 
@@ -476,9 +484,9 @@ const useDB = () => {
   const statements = useMemo<StatementSet>(
     () => ({
       insertTask:
-        'INSERT INTO tasks (title, status, subtasks, plannedDate, calendarEventId, focusPresetMinutes, energyRequired, implementationIntention) VALUES (?, ?, ?, ?, ?, ?, ?, ?);',
+        'INSERT INTO tasks (title, status, subtasks, plannedDate, calendarEventId, focusPresetMinutes, energyRequired, implementationIntention, estimateMin) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);',
       updateTask:
-        'UPDATE tasks SET title = ?, status = ?, subtasks = ?, plannedDate = ?, calendarEventId = ?, focusPresetMinutes = ?, energyRequired = ?, implementationIntention = ?, updatedAt = ? WHERE id = ?;',
+        'UPDATE tasks SET title = ?, status = ?, subtasks = ?, plannedDate = ?, calendarEventId = ?, focusPresetMinutes = ?, energyRequired = ?, implementationIntention = ?, estimateMin = ?, updatedAt = ? WHERE id = ?;',
       deleteTask: 'DELETE FROM tasks WHERE id = ?;',
       selectTaskById: 'SELECT * FROM tasks WHERE id = ?;',
       selectTasks: 'SELECT * FROM tasks ORDER BY createdAt DESC;',
@@ -501,8 +509,8 @@ const useDB = () => {
       deleteTransaction: 'DELETE FROM transactions WHERE id = ?;',
       selectTransactionById: 'SELECT * FROM transactions WHERE id = ?;',
       selectTransactions: 'SELECT * FROM transactions ORDER BY createdAt DESC;',
-      insertDebt: 'INSERT INTO debts (name, balance, annualRate, minPayment, categoryName) VALUES (?, ?, ?, ?, ?);',
-      updateDebt: 'UPDATE debts SET name = ?, balance = ?, annualRate = ?, minPayment = ?, categoryName = ? WHERE id = ?;',
+      insertDebt: 'INSERT INTO debts (name, balance, annualRate, minPayment, categoryName, dueDay) VALUES (?, ?, ?, ?, ?, ?);',
+      updateDebt: 'UPDATE debts SET name = ?, balance = ?, annualRate = ?, minPayment = ?, categoryName = ?, dueDay = ? WHERE id = ?;',
       deleteDebt: 'DELETE FROM debts WHERE id = ?;',
       selectDebtById: 'SELECT * FROM debts WHERE id = ?;',
       selectDebts: 'SELECT * FROM debts ORDER BY createdAt DESC;',
@@ -605,7 +613,8 @@ const useDB = () => {
       calendarEventId: number | null = null,
       focusPresetMinutes: number | null = null,
       energyRequired: Task['energyRequired'] = 'medium',
-      implementationIntention: string | null = null
+      implementationIntention: string | null = null,
+      estimateMin: number | null = null
     ) =>
       runTransaction<Task>((tx, resolve, reject) => {
         tx.executeSql(
@@ -619,6 +628,7 @@ const useDB = () => {
             focusPresetMinutes,
             energyRequired,
             implementationIntention,
+            estimateMin,
           ],
           (_, result) => {
             const insertId = result.insertId;
@@ -668,6 +678,7 @@ const useDB = () => {
             focusPresetMinutes: updates.focusPresetMinutes ?? current.focusPresetMinutes,
             energyRequired: updates.energyRequired ?? current.energyRequired,
             implementationIntention: updates.implementationIntention !== undefined ? updates.implementationIntention : current.implementationIntention,
+            estimateMin: updates.estimateMin !== undefined ? updates.estimateMin : current.estimateMin,
             updatedAt: new Date().toISOString(),
           };
           tx.executeSql(
@@ -681,6 +692,7 @@ const useDB = () => {
               next.focusPresetMinutes,
               next.energyRequired,
               next.implementationIntention,
+              next.estimateMin,
               next.updatedAt,
               id,
             ],
@@ -1124,11 +1136,18 @@ const useDB = () => {
   );
 
   const insertDebt = useCallback(
-    (name: string, balance: number, annualRate: number, minPayment: number, categoryName: string | null = null) =>
+    (
+      name: string,
+      balance: number,
+      annualRate: number,
+      minPayment: number,
+      categoryName: string | null = null,
+      dueDay: number | null = null
+    ) =>
       runTransaction<Debt>((tx, resolve, reject) => {
         tx.executeSql(
           statements.insertDebt,
-          [name, balance, annualRate, minPayment, categoryName],
+          [name, balance, annualRate, minPayment, categoryName, dueDay],
           (_, result) => {
             const insertId = result.insertId;
             if (insertId == null) {
@@ -1162,7 +1181,7 @@ const useDB = () => {
           };
           tx.executeSql(
             statements.updateDebt,
-            [next.name, next.balance, next.annualRate, next.minPayment, next.categoryName, id],
+            [next.name, next.balance, next.annualRate, next.minPayment, next.categoryName, next.dueDay, id],
             () => {
               resolve(next);
               return true;
@@ -1616,6 +1635,19 @@ const useDB = () => {
     [runTransaction, statements.selectTaskById, statements.updateTaskWithTimeLog]
   );
 
+  const setTaskTimeLog = useCallback(
+    (taskId: number, timeLog: TimeLogEntry[]) =>
+      runTransaction<void>((tx, resolve, reject) => {
+        tx.executeSql(
+          statements.updateTaskWithTimeLog,
+          [JSON.stringify(timeLog), new Date().toISOString(), taskId],
+          () => { resolve(); return true; },
+          (_, error) => { reject(error); return false; }
+        );
+      }),
+    [runTransaction, statements.updateTaskWithTimeLog]
+  );
+
   return {
     ready,
     insertTask,
@@ -1661,6 +1693,7 @@ const useDB = () => {
     updateRoutine,
     deleteRoutine,
     appendTaskTimeLog,
+    setTaskTimeLog,
   } as const;
 };
 

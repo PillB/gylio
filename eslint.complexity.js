@@ -9,7 +9,7 @@ export const COMPLEXITY_CEILING = 10;
 // src/test/complexityBaseline.test.ts fails if a cap is looser than needed.
 export const COMPLEXITY_BASELINE = {
   'src/App.jsx': 23,
-  'src/components/GuidedTourOverlay.tsx': 43,
+  'src/components/GuidedTourOverlay.tsx': 41,
   'src/components/RewardsView.jsx': 51,
   'src/components/SettingsView.jsx': 39,
   'src/components/atoms/DateTimeWidget.tsx': 14,
