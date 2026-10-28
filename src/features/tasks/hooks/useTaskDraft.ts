@@ -13,6 +13,7 @@ export type NewTaskInput = {
   plannedDate: string | null;
   energyRequired: EnergyLevel;
   implementationIntention: string | null;
+  estimateMin: number | null;
 };
 
 type DraftOptions = {
@@ -40,6 +41,7 @@ export const useTaskDraft = ({ t, viewFilter, todayKey }: DraftOptions) => {
   const [subtaskEditorOpen, setSubtaskEditorOpen] = useState(false);
   const [energy, setEnergy] = useState<EnergyLevel>('medium');
   const [intention, setIntention] = useState('');
+  const [estimateMin, setEstimateMin] = useState<number | null>(null);
   const [titleTouched, setTitleTouched] = useState(false);
   const [subtasksTouched, setSubtasksTouched] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -89,6 +91,7 @@ export const useTaskDraft = ({ t, viewFilter, todayKey }: DraftOptions) => {
     setSubtaskEditorOpen(false);
     setEnergy('medium');
     setIntention('');
+    setEstimateMin(null);
   };
 
   /** Validates and returns the task to create, or null after showing the errors. */
@@ -111,6 +114,7 @@ export const useTaskDraft = ({ t, viewFilter, todayKey }: DraftOptions) => {
       plannedDate: effectiveDate || null,
       energyRequired: energy,
       implementationIntention: intention.trim() || null,
+      estimateMin,
     };
   };
 
@@ -134,6 +138,8 @@ export const useTaskDraft = ({ t, viewFilter, todayKey }: DraftOptions) => {
     setEnergy,
     intention,
     setIntention,
+    estimateMin,
+    setEstimateMin,
     formError,
     applyTemplate,
     submit,

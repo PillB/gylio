@@ -33,6 +33,8 @@ export const SCHEMAS: Record<string, Schema> = {
     calendarEventId: { type: 'integer', nullable: true },
     focusPresetMinutes: { type: 'integer', nullable: true, min: 0 },
     energyRequired: { type: 'string', enum: ['tiny', 'low', 'medium', 'high'], nullable: true },
+    // The person's own guess, in minutes. Tracked time stays on the device for now (see docs/time-tracking-design.md).
+    estimateMin: { type: 'integer', nullable: true, min: 1, max: 1440 },
     implementationIntention: { type: 'string', nullable: true, maxLength: 500 },
   },
   events: {

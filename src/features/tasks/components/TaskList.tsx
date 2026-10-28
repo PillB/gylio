@@ -1,10 +1,12 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import SectionCard from '../../../components/SectionCard.jsx';
 import WinCard from '../../../components/WinCard';
 import EmptyStateAction from '../../../components/EmptyStateAction';
 import { useTheme } from '../../../core/context/ThemeContext';
 import { useTaskTimer } from '../../../core/context/TaskTimerContext';
+import { calibrationSamples } from '../../timetracking/trackedTime';
+import { useTimeTracker } from '../../timetracking/TimeTrackerContext';
 import { useToast } from '../../../core/context/ToastContext';
 import useDB from '../../../core/hooks/useDB';
 import { useClock, getLocalDateKey } from '../../../core/hooks/useClock';
@@ -153,6 +155,7 @@ const TaskList: React.FC = () => {
   const { tasks, loading, toggleTaskStatus, toggleSubtask, addTask, updateTaskDetails, removeTask, refreshTasks } = useTasks();
   const { activeTimer, pendingLogEntry, clearPendingEntry, startTask, settings } = useTaskTimer();
   const { appendTaskTimeLog } = useDB();
+  const { version: trackedVersion } = useTimeTracker();
   const { dateKey: todayKey } = useClock(i18n.language);
   const titleRef = useRef<HTMLInputElement>(null);
 
@@ -166,6 +169,11 @@ const TaskList: React.FC = () => {
   const { hiddenIds, remove, showSuccess } = useTaskDelete(removeTask, t);
   useNewTaskShortcut(titleRef);
   usePersistPendingTimeLog({ pendingLogEntry, appendTaskTimeLog, refreshTasks, clearPendingEntry });
+  // Time saved from the tracker bar or an editor lands in the database; reload so the cards show it.
+  useEffect(() => {
+    if (trackedVersion > 0) void refreshTasks();
+  }, [trackedVersion, refreshTasks]);
+  const estimateSamples = useMemo(() => calibrationSamples(tasks), [tasks]);
 
   const formatter = useMemo(() => new Intl.DateTimeFormat(i18n.language, { month: 'short', day: 'numeric' }), [i18n.language]);
   const filteredTasks = useMemo(
@@ -220,6 +228,7 @@ const TaskList: React.FC = () => {
     activeTimerTaskId: activeTimer?.taskId ?? null,
     focusMinutes: settings.focusMinutes,
     formatDate: (date) => formatter.format(date),
+    estimateSamples,
   };
 
   const createTask = async (input: NewTaskInput) => {
@@ -253,7 +262,7 @@ const TaskList: React.FC = () => {
       subtitle={t('tasks.description', '')}
       badge={<TaskHelp topic="section" />}
     >
-      <TaskComposer draft={draft} todayKey={todayKey} tomorrowKey={addDaysToKey(todayKey, 1)} titleRef={titleRef} onSubmit={submitDraft}>
+      <TaskComposer draft={draft} todayKey={todayKey} tomorrowKey={addDaysToKey(todayKey, 1)} titleRef={titleRef} onSubmit={submitDraft} estimateSamples={estimateSamples}>
         <RecurringStatusToggle />
       </TaskComposer>
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: `${theme.spacing.lg}px` }}>

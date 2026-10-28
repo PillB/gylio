@@ -163,6 +163,7 @@ export const runMigrations = (): Promise<void> =>
           { name: 'energyRequired', definition: "TEXT NOT NULL DEFAULT 'medium'" },
           { name: 'implementationIntention', definition: 'TEXT' },
           { name: 'timeLog', definition: "TEXT NOT NULL DEFAULT '[]'" },
+          { name: 'estimateMin', definition: 'INTEGER' },
         ]);
 
         ensureColumns(tx, 'events', [
