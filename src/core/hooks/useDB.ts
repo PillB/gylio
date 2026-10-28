@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { SQLResultSetRowList, SQLTransaction } from 'expo-sqlite';
 import { initializeDatabase, type Database } from '../db';
-import { requestBackgroundSync } from '../utils/backgroundSync';
+import { legacySyncEnabled, requestBackgroundSync } from '../utils/backgroundSync';
 import { enqueueSyncAction, type SyncActionType, type SyncEntityType } from '../utils/offlineSync';
 
 export type Subtask = {
@@ -467,6 +467,8 @@ const useDB = () => {
       payload: Record<string, unknown>,
       clientUpdatedAt = new Date().toISOString()
     ) => {
+      // Without a separate API origin the old queue has nowhere to send to; do not let it grow unseen.
+      if (!legacySyncEnabled()) return;
       enqueueSyncAction({
         entityType,
         action,

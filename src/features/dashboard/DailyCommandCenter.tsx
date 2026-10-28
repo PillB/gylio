@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../core/context/ThemeContext';
 import useDB from '../../core/hooks/useDB';
+import { useOnDataChanged } from '../../core/hooks/useOnDataChanged';
 import { track, Events } from '../../core/analytics';
 import useTasks from '../tasks/hooks/useTasks';
 import DayPlanCard from '../planning/DayPlanCard';
@@ -235,9 +236,9 @@ const DailyCommandCenter: React.FC<DailyCommandCenterProps> = ({ onExitSimplifie
 
   // ── Data loading ──────────────────────────────────────────────────────────
 
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (quiet = false) => {
     if (!ready) return;
-    setLoading(true);
+    if (!quiet) setLoading(true);
     try {
       // ── Tasks: top-3 incomplete today tasks sorted by priority then due date
       const allTasks = await getTasks();
@@ -306,6 +307,11 @@ const DailyCommandCenter: React.FC<DailyCommandCenterProps> = ({ onExitSimplifie
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  // Changes that arrive from the account or another tab: reload without the loading state.
+  useOnDataChanged(() => {
+    loadData(true);
+  });
 
   // ── Complete task ─────────────────────────────────────────────────────────
 

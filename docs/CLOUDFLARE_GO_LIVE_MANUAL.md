@@ -66,7 +66,7 @@ Do not announce sign-up publicly before `signupOpen` shows `true` in the health 
 3. Once a week, open Workers & Pages, gylio-api, Metrics, and D1, gylio, Metrics. Requests should stay under 100,000 a day, rows read under 5,000,000, rows written under 100,000.
 
 ## 6. What I do after you finish
-Connect the app to the Worker (device-generated ids, push and pull sync, sign-in token), then run an end-to-end test with a real Clerk test user. Until that is done, the live app keeps working fully offline and does not call the Worker.
+The app is already connected to the Worker (device-generated ids, push and pull sync, sign-in token); the deploy script turns it on for the Cloudflare build only (`VITE_SYNC_ENABLED=true`), so the GitHub Pages site and previews still never call the Worker. What is left for me after your deploy is an end-to-end test with a real Clerk test user, which cannot be done before there is a live Clerk instance. If the Worker is paused (503) or unreachable, the app keeps working on the device and tries again by itself; `docs/sync-resilience.md` explains how.
 
 ## If something goes wrong
 - "Not on main" or "Uncommitted changes": the script is protecting you from deploying something that is not on `main`. The only change it allows is the database id in `worker/wrangler.jsonc`.

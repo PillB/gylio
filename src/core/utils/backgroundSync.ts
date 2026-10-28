@@ -10,8 +10,20 @@ import {
 } from './offlineSync';
 import { authHeaders, getAuthToken } from './authToken';
 import { apiUrl } from './apiUrl';
+import { syncEnabled } from '../sync/flag';
 
 export const SYNC_TAG = 'gylio-sync';
+
+/**
+ * This queue was written for the old Express API, which lives on a separate origin
+ * (`VITE_API_BASE_URL`). With no such origin there is nothing for it to talk to: on the single-origin
+ * Cloudflare deploy every `/api/tasks` call it makes would be answered by the new Worker (which has no
+ * such route), retried forever, and counted against the free daily request allowance. So it runs only
+ * when a separate API origin is configured on purpose, and never in a build that has account sync, which
+ * replaces it (src/core/sync).
+ */
+export const legacySyncEnabled = (apiBase: string | undefined = import.meta.env.VITE_API_BASE_URL, accountSync: boolean = syncEnabled()): boolean =>
+  String(apiBase ?? '').trim() !== '' && !accountSync;
 
 const ENTITY_ROUTE_MAP: Record<SyncEntityType, string> = {
   task: '/api/tasks',
@@ -142,7 +154,7 @@ const syncAction = async (action: SyncAction): Promise<SyncResult> => {
 
 let syncInFlight = false;
 
-export const processSyncQueue = async () => {
+const runSyncQueue = async () => {
   if (syncInFlight) return;
   if (typeof navigator !== 'undefined' && !navigator.onLine) return;
 
@@ -202,7 +214,12 @@ export const processSyncQueue = async () => {
   }
 };
 
+export const processSyncQueue = async () => {
+  if (legacySyncEnabled()) await runSyncQueue();
+};
+
 export const requestBackgroundSync = async () => {
+  if (!legacySyncEnabled()) return;
   if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return;
   try {
     const registration = await navigator.serviceWorker.ready;

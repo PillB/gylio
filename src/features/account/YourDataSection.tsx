@@ -6,6 +6,7 @@ import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../core/context/ThemeContext';
 import { useAppAuth } from '../../core/context/AuthContext';
+import { syncEnabled } from '../../core/sync/flag';
 import { useAccountSync } from './AccountSyncContext';
 import { applySnapshot, backupsFor, collectSnapshot, dropBackup, type Snapshot } from './accountSync';
 import { buildDataFile, parseDataFile } from './dataFile';
@@ -101,6 +102,8 @@ export function YourDataSection() {
   const { userId } = useAppAuth();
   const { saveNow, status } = useAccountSync();
   const button = useButtonStyle();
+  // With account sync on, the Sync section above says where data is saved and has its own "Try now".
+  const wholeDeviceSaving = !syncEnabled();
   // Only this person's own backups (or data made before anyone signed in), newest first.
   const backup = backupsFor(localStorage, userId)[0] ?? null;
 
@@ -118,9 +121,9 @@ export function YourDataSection() {
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: theme.spacing.md }}>
-      <StatusLine />
+      {wholeDeviceSaving && <StatusLine />}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: theme.spacing.sm }}>
-        {userId && <button type="button" style={button} onClick={() => void saveNow()} disabled={status === 'saving'}>{t('account.saveNow')}</button>}
+        {userId && wholeDeviceSaving && <button type="button" style={button} onClick={() => void saveNow()} disabled={status === 'saving'}>{t('account.saveNow')}</button>}
         <button type="button" style={button} onClick={download}>{t('account.download')}</button>
         {backup && (
           <button type="button" style={button} onClick={undo}>

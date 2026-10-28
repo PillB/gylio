@@ -70,7 +70,7 @@ if [ "\${FAKE_FAIL:-}" = "$1" ]; then exit 1; fi
 `;
 const FAKE_BUILD = `#!/usr/bin/env bash
 echo "build base=$VITE_BASE_PATH" >> "$FAKE_LOG"
-echo "api=[$VITE_API_BASE_URL] billing=[$VITE_BILLING_ENABLED] clerk=[$VITE_CLERK_PUBLISHABLE_KEY]" > "$FAKE_LOG.env"
+echo "api=[$VITE_API_BASE_URL] sync=[$VITE_SYNC_ENABLED] billing=[$VITE_BILLING_ENABLED] clerk=[$VITE_CLERK_PUBLISHABLE_KEY]" > "$FAKE_LOG.env"
 if [ "\${FAKE_BUILD_FAIL:-}" = "1" ]; then exit 1; fi
 mkdir -p dist/assets
 if [ "\${FAKE_BUILD_BASE:-}" = "old" ]; then
@@ -367,10 +367,10 @@ describe('setup: guards', () => {
 describe('setup: what the build is given', () => {
   const buildEnv = () => readFileSync(`${paths().log}.env`, 'utf8').trim();
 
-  it('builds with the live Clerk key, the same-origin API, billing off and nothing from stray .env files', async () => {
-    const result = await run('setup.sh', { env: { ...creds, VITE_API_BASE_URL: 'https://stale-api.example.test', VITE_BILLING_ENABLED: 'true' } });
+  it('builds with the live Clerk key, the same-origin API, account sync on, billing off and nothing from stray .env files', async () => {
+    const result = await run('setup.sh', { env: { ...creds, VITE_API_BASE_URL: 'https://stale-api.example.test', VITE_BILLING_ENABLED: 'true', VITE_SYNC_ENABLED: 'false' } });
     expect(result.code).toBe(0);
-    expect(buildEnv()).toBe(`api=[] billing=[false] clerk=[${LIVE_KEY}]`);
+    expect(buildEnv()).toBe(`api=[] sync=[true] billing=[false] clerk=[${LIVE_KEY}]`);
   });
 
   it('stops before asking for the token when there is no Clerk key and nobody to ask', async () => {

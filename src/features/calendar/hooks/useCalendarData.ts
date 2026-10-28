@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import useDB, { type Event, type Task } from '../../../core/hooks/useDB';
+import { useOnDataChanged } from '../../../core/hooks/useOnDataChanged';
 import type { EventPayload } from '../utils/eventFields';
 
 type ScheduleInput = { title: string; startDate: string; endDate: string; taskId: number };
@@ -31,6 +32,17 @@ export const useCalendarData = () => {
       .catch(logFailure('load calendar data'))
       .finally(() => setLoading(false));
   }, [getEvents, getTasks, ready]);
+
+  // Changes that arrive from the account or another tab: reload without the loading state.
+  useOnDataChanged(() => {
+    if (!ready) return;
+    Promise.all([getEvents(), getTasks()])
+      .then(([loadedEvents, loadedTasks]) => {
+        setEvents(loadedEvents);
+        setTasks(loadedTasks);
+      })
+      .catch(logFailure('refresh calendar data'));
+  });
 
   const setTaskLink = async (taskId: number | null, eventId: number | null) => {
     if (!taskId) return;

@@ -105,6 +105,27 @@ describe('records', () => {
     expect(res.status).toBe(400);
   });
 
+  it('accepts an event with no end time, but still rejects one that ends before it starts', async () => {
+    expect((await put('/api/events/open', { title: 'Open-ended', startDate: '2026-01-02T10:00:00Z', endDate: null }, 'user_open')).status).toBe(201);
+    expect((await put('/api/events/same', { title: 'Zero length', startDate: '2026-01-02T10:00:00Z', endDate: '2026-01-02T10:00:00Z' }, 'user_open')).status).toBe(400);
+  });
+
+  it('links a task and an event by record id (a device-local number cannot be shared between devices)', async () => {
+    const linked = await put('/api/tasks/lt1', { title: 'Prep', calendarEventId: 'event-uuid-1' }, 'user_link');
+    expect(linked.status).toBe(201);
+    const row = (await (await call('/api/tasks/lt1', { as: 'user_link' })).json()) as { data: Record<string, unknown> };
+    expect(row.data.calendarEventId).toBe('event-uuid-1');
+    expect((await put('/api/tasks/lt2', { title: 'Prep', calendarEventId: 7 }, 'user_link')).status).toBe(400);
+    expect((await put('/api/tasks/lt3', { title: 'Prep', calendarEventId: 'x'.repeat(65) }, 'user_link')).status).toBe(400);
+  });
+
+  it('keeps when a record was first made, so every device lists things in the same order', async () => {
+    await put('/api/debts/created', { ...debt, createdAt: '2026-03-04T05:06:07.000Z' }, 'user_made');
+    const row = (await (await call('/api/debts/created', { as: 'user_made' })).json()) as { data: Record<string, unknown> };
+    expect(row.data.createdAt).toBe('2026-03-04T05:06:07.000Z');
+    expect((await put('/api/debts/created2', { ...debt, createdAt: 'yesterday-ish' }, 'user_made')).status).toBe(400);
+  });
+
   it('answers 409 with the current record when the write was based on an old version', async () => {
     await put('/api/debts/c1', debt, 'user_c');
     await put('/api/debts/c1', { ...debt, balance: 450, baseVersion: 1 }, 'user_c');
