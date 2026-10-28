@@ -1,14 +1,19 @@
+// @vitest-environment node
 /**
+ * The deploy's build (worker/scripts/setup.sh) must not read stray .env files. It lives with the site's tests, which
+ * have Vite installed; the Worker's CI job installs only the Worker's packages.
+ *
  * The real Vite configuration, resolved (not built): with GYLIO_ENV_DIR set, as the deploy sets it, a value planted in
  * a .env file is not read; without it, the same value is, which shows the check can fail.
  */
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { afterAll, describe, expect, it } from 'vitest';
 import { resolveConfig } from 'vite';
 
-const repo = path.join(import.meta.dirname, '..', '..', '..');
+const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 // A mode of its own, so the planted file is read by nothing but this test.
 const MODE = 'gylioenvcheck';
 const planted = path.join(repo, `.env.${MODE}.local`);
