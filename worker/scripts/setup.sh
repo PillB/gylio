@@ -8,10 +8,22 @@ set -euo pipefail
 
 build_site() {
   say "Building the site at the root path..."
-  # Everything the build reads is set here, so a stray .env file on this Mac cannot change what ships:
-  # same-origin API (empty base), account sync on (this Worker is the API it talks to), billing off until
-  # payments are decided, the live Clerk key.
-  (cd "$REPO_ROOT" && VITE_BASE_PATH=/ VITE_API_BASE_URL= VITE_SYNC_ENABLED=true VITE_BILLING_ENABLED=false VITE_CLERK_PUBLISHABLE_KEY="$CLERK_KEY" ${GYLIO_BUILD_CMD:-npm run build}) || die "The site build failed."
+  # Every VITE_ setting the app reads is set here, and nothing else reaches the build: inherited VITE_ values are
+  # dropped and Vite reads no .env file (GYLIO_ENV_DIR is an empty folder), so a stray value on this Mac cannot
+  # change what ships. Same-origin API (empty base), account sync on (this Worker is the API it talks to), billing,
+  # payments and ads off until they are decided, the live Clerk key, and the commit as the version.
+  # worker/test/node/hygiene.test.ts fails when the app reads a VITE_ setting this list does not pin.
+  local empty_env version
+  empty_env="$(mktemp -d)"
+  version="$(git -C "$REPO_ROOT" rev-parse --short HEAD 2>/dev/null || echo unknown)"
+  local inherited=()
+  while IFS= read -r name; do inherited+=(-u "$name"); done < <(compgen -e | grep '^VITE_' || true)
+  (cd "$REPO_ROOT" && env ${inherited[@]+"${inherited[@]}"} GYLIO_ENV_DIR="$empty_env" \
+    VITE_BASE_PATH=/ VITE_API_BASE_URL= VITE_SYNC_ENABLED=true VITE_BILLING_ENABLED=false \
+    VITE_CLERK_PUBLISHABLE_KEY="$CLERK_KEY" VITE_PADDLE_CLIENT_TOKEN= VITE_PADDLE_ENV= \
+    VITE_ADS_PROVIDER=off VITE_ADSENSE_CLIENT= VITE_ADSENSE_SLOT= VITE_ADS_TEST_MODE=false \
+    VITE_APP_VERSION="$version" ${GYLIO_BUILD_CMD:-npm run build}) || die "The site build failed."
+  rmdir "$empty_env" 2>/dev/null || true
   # Trust the built output, not an environment variable: a build for the old /gylio/ address must not ship.
   local index="$REPO_ROOT/dist/index.html"
   [ -f "$index" ] || die "The build produced no dist/index.html."

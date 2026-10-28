@@ -71,6 +71,8 @@ if [ "\${FAKE_FAIL:-}" = "$1" ]; then exit 1; fi
 const FAKE_BUILD = `#!/usr/bin/env bash
 echo "build base=$VITE_BASE_PATH" >> "$FAKE_LOG"
 echo "api=[$VITE_API_BASE_URL] sync=[$VITE_SYNC_ENABLED] billing=[$VITE_BILLING_ENABLED] clerk=[$VITE_CLERK_PUBLISHABLE_KEY]" > "$FAKE_LOG.env"
+env | grep '^VITE_' | sort > "$FAKE_LOG.vite"
+if [ -d "\${GYLIO_ENV_DIR:-}" ] && [ -z "$(ls -A "$GYLIO_ENV_DIR")" ]; then echo "envdir=empty" >> "$FAKE_LOG.vite"; fi
 if [ "\${FAKE_BUILD_FAIL:-}" = "1" ]; then exit 1; fi
 mkdir -p dist/assets
 if [ "\${FAKE_BUILD_BASE:-}" = "old" ]; then
@@ -371,6 +373,28 @@ describe('setup: what the build is given', () => {
     const result = await run('setup.sh', { env: { ...creds, VITE_API_BASE_URL: 'https://stale-api.example.test', VITE_BILLING_ENABLED: 'true', VITE_SYNC_ENABLED: 'false' } });
     expect(result.code).toBe(0);
     expect(buildEnv()).toBe(`api=[] sync=[true] billing=[false] clerk=[${LIVE_KEY}]`);
+  });
+
+  it('pins every setting the app reads, drops any other VITE_ value, and lets Vite read no .env file', async () => {
+    const planted = { VITE_ADS_PROVIDER: 'adsense', VITE_ADSENSE_CLIENT: 'ca-pub-planted', VITE_PADDLE_ENV: 'production', VITE_SOMETHING_NEW: 'x' };
+    const result = await run('setup.sh', { env: { ...creds, ...planted } });
+    expect(result.code).toBe(0);
+    const seen = readFileSync(`${paths().log}.vite`, 'utf8').trim().split('\n');
+    expect(seen).toEqual([
+      'VITE_ADSENSE_CLIENT=',
+      'VITE_ADSENSE_SLOT=',
+      'VITE_ADS_PROVIDER=off',
+      'VITE_ADS_TEST_MODE=false',
+      'VITE_API_BASE_URL=',
+      'VITE_APP_VERSION=unknown',
+      'VITE_BASE_PATH=/',
+      'VITE_BILLING_ENABLED=false',
+      `VITE_CLERK_PUBLISHABLE_KEY=${LIVE_KEY}`,
+      'VITE_PADDLE_CLIENT_TOKEN=',
+      'VITE_PADDLE_ENV=',
+      'VITE_SYNC_ENABLED=true',
+      'envdir=empty',
+    ]);
   });
 
   it('stops before asking for the token when there is no Clerk key and nobody to ask', async () => {

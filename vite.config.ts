@@ -136,6 +136,9 @@ export default defineConfig(({ mode }) => {
 
   return {
   base,
+  // The Cloudflare deploy (worker/scripts/setup.sh) points this at an empty folder and pins every VITE_ setting
+  // itself, so a stray .env file on the Mac that deploys cannot change what ships.
+  envDir: process.env.GYLIO_ENV_DIR || undefined,
   plugins: [react(), contentSecurityPolicy(), deploymentGuidePublicBaseBridge(), precacheList()],
   build: {
     manifest: true,

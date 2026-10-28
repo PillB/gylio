@@ -93,3 +93,31 @@ describe('one story about the Node version', () => {
     expect(lib).toContain(`Install Node ${nvmrc}`);
   });
 });
+
+describe('the deploy build is given every setting the app reads, and nothing else', () => {
+  const sourceFiles = (dir: string): string[] =>
+    readdirSync(path.join(repo, dir), { withFileTypes: true }).flatMap((entry) => {
+      const relative = path.join(dir, entry.name);
+      if (entry.isDirectory()) return sourceFiles(relative);
+      return /\.(tsx?|jsx?|mjs)$/.test(entry.name) && !/\.test\./.test(entry.name) ? [relative] : [];
+    });
+  const used = new Set(
+    [...sourceFiles('src'), 'vite.config.ts', 'csp.config.js', 'index.html'].flatMap((file) => read(file).match(/VITE_[A-Z0-9_]+/g) ?? []),
+  );
+  const setup = read('worker', 'scripts', 'setup.sh');
+  const pinned = new Set((setup.match(/\bVITE_[A-Z0-9_]+=/g) ?? []).map((assignment) => assignment.slice(0, -1)));
+
+  it('finds the settings the app reads', () => {
+    expect(used.size).toBeGreaterThanOrEqual(10);
+  });
+
+  it('pins each one in setup.sh, so a stray value on the Mac that deploys cannot reach the live site', () => {
+    expect([...used].filter((name) => !pinned.has(name)).sort()).toEqual([]);
+  });
+
+  it('drops inherited VITE_ values and points Vite at an empty folder instead of the .env files', () => {
+    expect(setup).toMatch(/compgen -e \| grep '\^VITE_'/);
+    expect(setup).toContain('GYLIO_ENV_DIR="$empty_env"');
+    expect(read('vite.config.ts')).toContain('envDir: process.env.GYLIO_ENV_DIR || undefined');
+  });
+});
