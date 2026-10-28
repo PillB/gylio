@@ -40,6 +40,13 @@ describe('DailyCommandCenter', () => {
     expect(await screen.findByText('Pay rent')).toBeTruthy();
   });
 
+  it('is a named region inside the page, not a second main landmark (the app layout already has one)', async () => {
+    render(<DailyCommandCenter onExitSimplified={() => undefined} />);
+    await screen.findByText('Pay rent');
+    expect(screen.queryByRole('main')).toBeNull();
+    expect(screen.getByRole('region', { name: 'Daily Command Center' })).toBeTruthy();
+  });
+
   it('marks a task completed with the status the rest of the app understands', async () => {
     render(<DailyCommandCenter onExitSimplified={() => undefined} />);
     fireEvent.click(await screen.findByRole('checkbox'));

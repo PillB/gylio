@@ -1,3 +1,5 @@
+import { isReminderTooFar } from '../../../core/utils/reminders';
+
 export type EventFormFields = {
   title: string;
   startDate: string;
@@ -62,6 +64,8 @@ export const validateEventFormFields = (
   if (fields.reminderMinutesBefore !== '') {
     if (!isNonNegativeInteger(fields.reminderMinutesBefore)) {
       validation.reminderMinutesBefore = t('validation.nonNegativeInteger');
+    } else if (isReminderTooFar(Number(fields.reminderMinutesBefore))) {
+      validation.reminderMinutesBefore = t('validation.reminderTooFar');
     }
   }
 

@@ -15,5 +15,9 @@
   "pickDate": "Pick date",
   "taskAddedToday": "Added to Today.",
   "taskAddedScheduled": "Task added.",
-  "taskAddedBacklog": "Added to Backlog."
+  "taskAddedBacklog": "Added to Backlog.",
+  "editNamed": "Edit {{title}}",
+  "deleteNamed": "Delete {{title}}",
+  "stepAria": "Step {{n}}",
+  "removeStepAria": "Remove step {{n}}"
 }

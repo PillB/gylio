@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { expectPremiumScreen, premiumNeedsDevServer, unlockPremium } from './helpers/premium';
 
 type AuditLocale = 'en' | 'es-PE';
 
@@ -147,6 +148,42 @@ async function assertControlsStayInsideHorizontalViewport(page: Page) {
   expect(clippedControls, 'Visible controls escape the horizontal viewport').toEqual([]);
 }
 
+/**
+ * Form controls must stay inside the card (section) that holds them, anywhere on the page. The
+ * viewport check above only looks at the first screenful and only at the page edge, so inputs that
+ * ran past their card's border at 320px (Calendar's add-event form) were never caught.
+ */
+async function assertFieldsStayInsideTheirCard(page: Page) {
+  const escaped = await page.evaluate(() => {
+    const scrolls = (element: Element | null): boolean => {
+      for (let node = element; node && node !== document.body; node = node.parentElement) {
+        const overflowX = window.getComputedStyle(node).overflowX;
+        if (overflowX === 'auto' || overflowX === 'scroll') return true;
+      }
+      return false;
+    };
+    return Array.from(document.querySelectorAll<HTMLElement>('input, select, textarea, button'))
+      .flatMap((element) => {
+        const style = window.getComputedStyle(element);
+        const rect = element.getBoundingClientRect();
+        if (style.display === 'none' || style.visibility === 'hidden' || rect.width <= 1 || rect.height <= 1) return [];
+        const card = element.closest('section');
+        if (!card || scrolls(element.parentElement)) return [];
+        const box = card.getBoundingClientRect();
+        if (rect.left >= box.left - 1 && rect.right <= box.right + 1) return [];
+        return [{
+          tag: element.tagName,
+          label: element.getAttribute('aria-label') || element.textContent?.trim().slice(0, 40) || '',
+          left: Math.round(rect.left),
+          right: Math.round(rect.right),
+          cardLeft: Math.round(box.left),
+          cardRight: Math.round(box.right),
+        }];
+      });
+  });
+  expect(escaped, 'Form controls run past the edge of their card').toEqual([]);
+}
+
 const routes = [
   '/tasks',
   '/calendar',
@@ -182,6 +219,7 @@ for (const locale of locales) {
           await assertNoDocumentOverflow(page);
           await assertVisibleControlsHaveGeometry(page);
           await assertControlsStayInsideHorizontalViewport(page);
+          await assertFieldsStayInsideTheirCard(page);
 
           const routeName = route.replace(/^\//, '').replace(/\//g, '-') || 'root';
           await page.screenshot({
@@ -193,6 +231,68 @@ for (const locale of locales) {
     });
   }
 }
+
+// The routes above show the upgrade prompt to a free user, so the premium editors themselves were never
+// measured (Social overflowed a 320px phone unnoticed). These open the real screens.
+const premiumRoutes = ['/social', '/routines', '/rewards'];
+
+for (const locale of locales) {
+  for (const viewport of viewports) {
+    test.describe(`layout integrity — premium — ${locale} — ${viewport.name}`, () => {
+      test.skip(premiumNeedsDevServer, 'Unlocking premium needs the dev server.');
+      test.use({ viewport: { width: viewport.width, height: viewport.height } });
+
+      for (const route of premiumRoutes) {
+        test(`${route} stays inside the viewport`, async ({ page }) => {
+          await seedCompletedOnboarding(page, locale);
+          await unlockPremium(page);
+          await page.goto(`.${route}`);
+          await page.waitForLoadState('networkidle');
+          await expectPremiumScreen(page);
+
+          await assertNoDocumentOverflow(page);
+          await assertVisibleControlsHaveGeometry(page);
+          await assertControlsStayInsideHorizontalViewport(page);
+          await assertFieldsStayInsideTheirCard(page);
+        });
+      }
+    });
+  }
+}
+
+// Panels that only appear after a tap were never measured: the routine template gallery had a 320px
+// minimum column and the financial check-up a 200px one, both wider than a phone's card.
+const panels: { route: string; premium: boolean; open: RegExp[] }[] = [
+  { route: '/budget', premium: false, open: [/^(run financial health check|diagnóstico de salud financiera)$/i] },
+  { route: '/tasks', premium: false, open: [/^(add details|agregar detalles)$/i, /^(start with a template|empezar con una plantilla)$/i] },
+  { route: '/routines', premium: true, open: [/(browse routine templates|ver plantillas de rutinas)/i] },
+  { route: '/social', premium: true, open: [/^🤝 (friend|amigo\/a)$/i] },
+];
+
+test.describe('layout integrity — opened panels — small-mobile', () => {
+  test.use({ viewport: { width: 320, height: 568 } });
+
+  for (const locale of locales) {
+    for (const panel of panels) {
+      test(`${locale}: ${panel.route} with its panel open stays inside the viewport`, async ({ page }) => {
+        test.skip(panel.premium && premiumNeedsDevServer, 'Unlocking premium needs the dev server.');
+        await seedCompletedOnboarding(page, locale);
+        if (panel.premium) await unlockPremium(page);
+        await page.goto(`.${panel.route}`);
+        await page.waitForLoadState('networkidle');
+        for (const name of panel.open) {
+          const toggle = page.getByRole('button', { name }).first();
+          if (await toggle.count()) await toggle.click();
+        }
+        await page.waitForTimeout(300);
+
+        await assertNoDocumentOverflow(page);
+        await assertControlsStayInsideHorizontalViewport(page);
+        await assertFieldsStayInsideTheirCard(page);
+      });
+    }
+  }
+});
 
 test.describe('layout integrity — task edit form — small-mobile', () => {
   test.use({ viewport: { width: 320, height: 568 } });
@@ -208,11 +308,23 @@ test.describe('layout integrity — task edit form — small-mobile', () => {
       await page.locator('#new-task').press('Enter');
       await expect(page.getByText(title, { exact: true })).toBeVisible();
 
-      await page.getByRole('button', { name: /^(edit|editar)$/i }).first().click();
+      await page.getByRole('button', { name: `${locale === 'en' ? 'Edit' : 'Editar'} ${title}`, exact: true }).click();
       await expect(page.locator('input[id^="edit-title-"]')).toBeVisible();
 
       await assertNoDocumentOverflow(page);
       await assertControlsStayInsideHorizontalViewport(page);
+      await assertFieldsStayInsideTheirCard(page);
+    });
+
+    test(`${locale}: the add-event form stays inside its card`, async ({ page }) => {
+      await seedCompletedOnboarding(page, locale);
+      await page.goto('./calendar');
+      await page.waitForLoadState('networkidle');
+      await page.getByRole('button', { name: /add event|agregar evento/i }).click();
+      await expect(page.getByRole('button', { name: /save event|guardar evento/i })).toBeVisible();
+
+      await assertNoDocumentOverflow(page);
+      await assertFieldsStayInsideTheirCard(page);
     });
   }
 });

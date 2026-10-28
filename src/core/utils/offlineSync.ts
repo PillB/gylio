@@ -137,13 +137,13 @@ export const listPendingSyncActions = async (): Promise<SyncAction[]> => {
   return entries.filter((entry) => entry.status !== 'conflict' && entry.nextAttemptAt <= now);
 };
 
+/** Reads and writes one entry by its key. Reading and sorting the whole queue per entry made a pass O(n²). */
 export const updateSyncAction = async (id: string, updates: Partial<SyncAction>): Promise<void> => {
-  const entries = await listSyncActions();
-  const existing = entries.find((entry) => entry.id === id);
-  if (!existing) return;
-  const next = { ...existing, ...updates };
   await withStore<void>(QUEUE_STORE, 'readwrite', (store) => {
-    store.put(next);
+    const request = store.get(id);
+    request.onsuccess = () => {
+      if (request.result) store.put({ ...(request.result as SyncAction), ...updates });
+    };
   });
 };
 

@@ -151,7 +151,7 @@ function AppHeader({ clerkEnabled }) {
           <button
             type="button"
             onClick={toggleTts}
-            aria-label={t('onboarding.ttsToggle.aria')}
+            aria-pressed={ttsEnabled}
             className="header-tts"
             style={{
               padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
@@ -166,7 +166,7 @@ function AppHeader({ clerkEnabled }) {
               fontWeight: ttsEnabled ? 600 : 400,
             }}
           >
-            {ttsEnabled ? '🔊' : '🔇'} {t('onboarding.accessibility.tts')}
+            <span aria-hidden="true">{ttsEnabled ? '🔊' : '🔇'}</span> {t('onboarding.accessibility.tts')}
           </button>
         )}
         {clerkEnabled && !isOnboarding && (
@@ -346,10 +346,10 @@ function OnboardingRoute() {
   }
 
   return (
-    <section style={{ marginTop: theme.spacing.lg }}>
+    <main style={{ marginTop: theme.spacing.lg }}>
       <p style={{ color: theme.colors.muted }}>{t('onboarding.intro')}</p>
       <OnboardingFlow onComplete={handleOnboardingComplete} />
-    </section>
+    </main>
   );
 }
 

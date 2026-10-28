@@ -87,6 +87,31 @@ const deploymentGuidePublicBaseBridge = () => ({
   },
 });
 
+/**
+ * Writes precache.json: every file the build emits, for the service worker to cache at install, so an
+ * installed app opens offline on any screen, not only the ones visited while online. The worker used to read
+ * manifest.json, which is the web app manifest (name, icons), not a file list, so it cached no scripts at all.
+ */
+const PRECACHE_FILE = 'precache.json';
+const PRECACHEABLE = /\.(js|css|html|svg|png|woff2?)$/;
+
+const precacheList = () => ({
+  name: 'gylio-precache-list',
+  apply: 'build' as const,
+  enforce: 'post' as const,
+  generateBundle(_options: unknown, bundle: Record<string, { fileName: string }>) {
+    const files = Object.values(bundle)
+      .map((output) => output.fileName)
+      .filter((file) => PRECACHEABLE.test(file) && file !== 'service-worker.js' && !file.startsWith('.vite/'))
+      .sort();
+    (this as unknown as { emitFile: (file: { type: 'asset'; fileName: string; source: string }) => void }).emitFile({
+      type: 'asset',
+      fileName: PRECACHE_FILE,
+      source: JSON.stringify(files),
+    });
+  },
+});
+
 // Vite configuration for GYLIO
 // - Enables React support
 // - Maps react-native imports to react-native-web
@@ -111,7 +136,7 @@ export default defineConfig(({ mode }) => {
 
   return {
   base,
-  plugins: [react(), contentSecurityPolicy(), deploymentGuidePublicBaseBridge()],
+  plugins: [react(), contentSecurityPolicy(), deploymentGuidePublicBaseBridge(), precacheList()],
   build: {
     manifest: true,
     rollupOptions: {

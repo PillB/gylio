@@ -5,7 +5,7 @@ import { useTheme } from '../../core/context/ThemeContext';
 const SignUpPage: React.FC = () => {
   const { theme } = useTheme();
   return (
-    <div
+    <main
       style={{
         display: 'flex',
         justifyContent: 'center',
@@ -24,7 +24,7 @@ const SignUpPage: React.FC = () => {
         fallbackRedirectUrl={`${import.meta.env.BASE_URL}onboarding`}
         signInUrl={`${import.meta.env.BASE_URL}sign-in`}
       />
-    </div>
+    </main>
   );
 };
 

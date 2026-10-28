@@ -2,6 +2,14 @@
 **Date:** 2026-04-04 | **Purpose:** Inform NeuroFlow's AI-powered task breakdown feature  
 **Sources:** Goblin.tools UX analysis, academic research (arXiv, PMC, CHI), ADHD practitioner resources
 
+> **Red-team corrections (2026-10-28).** Five statements below were wrong or unsourced and are marked inline:
+> 1. "ADHD brains may need 2–3× more dopamine stimulation" has no source; removed.
+> 2. The "interest-based nervous system" is a clinician's model (Dodson), not a research finding.
+> 3. "Microstepping is one of the most evidence-supported ADHD strategies" cited a clinic blog; no trial of microstepping as such was found. Task breakdown is a reasonable support, not a proven one.
+> 4. The section titled "CHI 2024" cites an arXiv preprint numbered 2603.17258, which is March 2026. Venue and year were wrong.
+> 5. Miller's 7 ± 2 is outdated as a capacity estimate; Cowan (2001) puts it at about 4 chunks.
+> The app's help now asks for a first step small enough to start right away (one help text said "under 10 minutes"; this document says "1 hour or less", which is the coaching source's ceiling for a step, not a target).
+
 ---
 
 ## 1. How Goblin.tools Magic To-Do Works
@@ -83,7 +91,7 @@ r/autism post "Amazing resource GoblinTools" cited extensively; community descri
 
 ### Why Task Initiation Fails (The Activation Barrier)
 
-ADHD brains operate on an **interest-based nervous system** (Dr. William Dodson). Unlike neurotypical brains that activate through willpower + importance, ADHD brains require **novelty, interest, challenge, or urgency** to trigger dopamine-dependent activation.
+*[Correction: a clinician's model, not a finding.]* ADHD brains operate on an **interest-based nervous system** (Dr. William Dodson). Unlike neurotypical brains that activate through willpower + importance, ADHD brains require **novelty, interest, challenge, or urgency** to trigger dopamine-dependent activation.
 
 Key executive function deficits affecting task management:
 - **Task initiation paralysis** — knowing what to do but being unable to start
@@ -92,11 +100,11 @@ Key executive function deficits affecting task management:
 - **Binary engagement** — hyperfocus or complete disengagement, little middle ground
 - **Emotional dysregulation** — aversive reactions to tasks perceived as overwhelming
 
-**Research base:** Faraone et al. 2021 (ADHD neurobiology); Harvard Medical School ADHD dopamine research. ADHD brains may need 2–3× more dopamine stimulation to initiate tasks.
+**Research base:** Faraone et al. 2021 (ADHD neurobiology). *[Removed 2026-10-28: "ADHD brains may need 2–3× more dopamine stimulation to initiate tasks" had no source.]*
 
 ### Optimal Subtask Count and Granularity
 
-**Miller's Law baseline:** Working memory holds 7 ± 2 chunks (neurotypical adults). For ADHD populations, working memory capacity is significantly lower and more susceptible to load.
+**Miller's Law baseline:** Working memory holds 7 ± 2 chunks (neurotypical adults). *[Correction: Cowan (2001) revises this to about 4 chunks.]* For ADHD populations, working memory capacity is significantly lower and more susceptible to load.
 
 **Research:** PMC8175567 shows ADHD groups show greater accuracy drops under high cognitive load vs. controls.
 
@@ -112,7 +120,7 @@ Key executive function deficits affecting task management:
 
 ### The Microstepping Evidence Base
 
-Microstepping (breaking tasks into absurdly small, friction-free first actions) is one of the most evidence-supported ADHD strategies.
+Microstepping (breaking tasks into absurdly small, friction-free first actions) is widely recommended by ADHD coaches. *[Correction: the original "one of the most evidence-supported ADHD strategies" rested on a clinic blog; no trial of microstepping itself was found.]*
 
 **Mechanism:**
 1. Minimal first action lowers the activation threshold
@@ -121,7 +129,9 @@ Microstepping (breaking tasks into absurdly small, friction-free first actions) 
 
 **Source:** [Klarity Health: Breaking the First-Step Barrier](https://www.helloklarity.com/post/breaking-the-first-step-barrier-how-micro-steps-can-help-adhd-brains-overcome-task-initiation-problems/)
 
-### CHI 2024 Research: What ADHD Users Actually Need from AI Task Tools
+### 2026 preprint: What ADHD Users Actually Need from AI Task Tools
+
+*[Correction: earlier titled "CHI 2024". The arXiv number 2603.17258 is a March 2026 preprint; no CHI publication was found.]*
 
 From *"Not Just Me and My To-Do List": Understanding Challenges of Task Management for Adults with ADHD and the Need for AI-Augmented Social Scaffolds* (arXiv:2603.17258):
 
@@ -298,7 +308,7 @@ Research (arXiv:2603.17258) shows the biggest unmet need is emotional scaffoldin
 | Goblin.tools — Asana Forum | https://forum.asana.com/t/free-handy-ai-assisted-goblin-tools-breaks-down-tasks-and-more-designed-for-neurodivergent-people-and-useful-to-all/868466 | User quotes |
 | Goblin.tools — Gold Penguin | https://goldpenguin.org/tools/goblintools/ | UX analysis |
 | Goblin.tools — Effective Effort Consulting | https://effectiveeffortconsulting.com/goblin-tools/ | ADHD practitioner review |
-| arXiv: "Not Just Me and My To-Do List" (CHI 2024) | https://arxiv.org/html/2603.17258v1 | ADHD AI task management research |
+| arXiv: "Not Just Me and My To-Do List" (preprint, March 2026) | https://arxiv.org/html/2603.17258v1 | ADHD AI task management research |
 | arXiv: Neurodivergent-Aware Productivity (2025) | https://arxiv.org/html/2507.06864 | Systems review |
 | Shimmer ADHD: Breaking Down Tasks | https://www.shimmer.care/blog/breaking-down-tasks | Practitioner guidance |
 | Klarity Health: Micro-steps for ADHD | https://www.helloklarity.com/post/breaking-the-first-step-barrier-how-micro-steps-can-help-adhd-brains-overcome-task-initiation-problems/ | Evidence base |

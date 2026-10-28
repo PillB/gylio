@@ -76,6 +76,8 @@ vi.mock('../core/hooks/useDB', () => ({ default: () => dbApi }));
 vi.mock('../core/hooks/useRewards', () => ({ default: () => ({ applyRewardsProgress }) }));
 vi.mock('../core/hooks/useGamification', () => ({ default: () => ({ gamificationEnabled: true }) }));
 vi.mock('../core/hooks/useAccessibility', () => ({ default: () => ({ speak: () => undefined }) }));
+const toast = { success: vi.fn() };
+vi.mock('../core/context/ToastContext', () => ({ useToast: () => toast }));
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string, options?: Record<string, unknown> | string) =>
@@ -95,13 +97,8 @@ const seedBudget = (): Budget => ({
   ],
 });
 
-const inputAfterLabel = (labelText: string) => {
-  const label = screen.getByText(labelText, { selector: 'label, label > span' }).closest('label');
-  if (!label) throw new Error(`No label for ${labelText}`);
-  const control = label.querySelector('input, select');
-  if (!control) throw new Error(`No control for ${labelText}`);
-  return control as HTMLInputElement;
-};
+/** The control a label names, found the way a screen reader finds it (label text only, no help button). */
+const inputAfterLabel = (labelText: string) => screen.getByLabelText(labelText, { exact: true }) as HTMLInputElement;
 
 const transactionSection = () => screen.getByText('budget.transactionsHeading').closest('section') as HTMLElement;
 
@@ -248,6 +245,62 @@ describe('BudgetView', () => {
     db.transactions = [];
     await renderLoaded();
     expect(screen.getByRole('status').textContent).toContain('budget.noTransactionsYet');
+  });
+
+  it('names every Budget field by its label alone', async () => {
+    await renderLoaded();
+    for (const label of ['budget.incomeSourceLabel', 'budget.incomeAmountLabel', 'amountLabel', 'budget.transactionDateLabel']) {
+      expect(inputAfterLabel(label).tagName).toBe('INPUT');
+    }
+    expect(screen.getByLabelText('budget.categoryTypeLabel', { exact: true }).tagName).toBe('SELECT');
+  });
+
+  describe('undo after a delete', () => {
+    const lastUndo = () => {
+      const [message, action] = toast.success.mock.calls[toast.success.mock.calls.length - 1] as [string, { label: string; onClick: () => void }];
+      return { message, action };
+    };
+
+    it('puts a deleted category back in the same place', async () => {
+      await renderLoaded();
+      fireEvent.click(screen.getByRole('button', { name: 'budget.deleteNamed {"name":"Rent"}' }));
+      await waitFor(() => expect(toast.success).toHaveBeenCalled());
+      expect(db.budgets[0].categories.map((c) => c.name)).toEqual(['Fun']);
+      const { message, action } = lastUndo();
+      expect(message).toBe('budget.removed {"name":"Rent"}');
+      expect(action.label).toBe('budget.undoRemove');
+      action.onClick();
+      await waitFor(() => expect(db.budgets[0].categories.map((c) => c.name)).toEqual(['Rent', 'Fun']));
+    });
+
+    it('restores into the budget as it is now, keeping lines added after the delete', async () => {
+      await renderLoaded();
+      fireEvent.click(screen.getByRole('button', { name: 'budget.deleteNamed {"name":"Salary"}' }));
+      await waitFor(() => expect(toast.success).toHaveBeenCalled());
+      const { action } = lastUndo();
+      fireEvent.change(inputAfterLabel('budget.incomeSourceLabel'), { target: { value: 'Freelance' } });
+      fireEvent.change(inputAfterLabel('budget.incomeAmountLabel'), { target: { value: '200' } });
+      fireEvent.click(screen.getByText('budget.addIncome'));
+      await waitFor(() => expect(db.budgets[0].income.map((i) => i.source)).toEqual(['Freelance']));
+      action.onClick();
+      await waitFor(() => expect(db.budgets[0].income.map((i) => i.source)).toEqual(['Salary', 'Freelance']));
+    });
+
+    it('saves a deleted expense again', async () => {
+      await renderLoaded();
+      fireEvent.click(within(transactionSection()).getByRole('button', { name: /budget\.deleteNamed/ }));
+      await waitFor(() => expect(deleteTransaction).toHaveBeenCalledWith(1));
+      lastUndo().action.onClick();
+      await waitFor(() => expect(insertTransaction).toHaveBeenCalledWith('2026-09', 1300, 'Rent', true, '2026-09-02', null));
+    });
+
+    it('offers no undo when the delete did not happen', async () => {
+      deleteTransaction.mockResolvedValueOnce(false);
+      await renderLoaded();
+      fireEvent.click(within(transactionSection()).getByRole('button', { name: /budget\.deleteNamed/ }));
+      await waitFor(() => expect(deleteTransaction).toHaveBeenCalled());
+      expect(toast.success).not.toHaveBeenCalled();
+    });
   });
 
   describe('data freshness banner', () => {

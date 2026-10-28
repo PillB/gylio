@@ -33,9 +33,9 @@
     "deleted": "\"{{title}}\" eliminada",
     "undoDelete": "Deshacer",
     "plannedDateLabel": "Fecha planificada",
-    "plannedDateHelper": "Programar una tarea te hace 2–3 veces más propenso a hacerla. Incluso \"hoy\" es suficiente — la especificidad es el punto.",
+    "plannedDateHelper": "Darle un día a una tarea hace más fácil empezarla. Incluso \"hoy\" es suficiente.",
     "subtasksLabel": "Micro-pasos",
-    "subtasksHelper": "Divide en micro-pasos. La investigación muestra que la iniciación de la tarea — no la ejecución — es la parte más difícil. Empezar el primer paso es el 80% del trabajo.",
+    "subtasksHelper": "Divídela en pasos pequeños. Empezar suele ser lo más difícil, así que haz que el primer paso sea algo que puedas hacer en pocos minutos.",
     "subtaskPlaceholder": "Agrega un micro-paso",
     "addSubtask": "Agregar paso",
     "removeSubtask": "Quitar",
@@ -44,7 +44,7 @@
     "confirmDelete": "¿Eliminar la tarea {{title}}?",
     "focusAreaAria": "Controles de Pomodoro y enfoque",
     "focusHeading": "Bloques de enfoque",
-    "focusHelper": "La técnica Pomodoro (sprints de 25 minutos) coincide con el ciclo ultradiánico natural del cerebro. Incluso una sesión al día se acumula significativamente en un mes.",
+    "focusHelper": "Pomodoro: 25 minutos de enfoque y luego un descanso corto. Cambia las duraciones en Configuración si otro ritmo te funciona mejor.",
     "focusDuration": "{{minutes}} min",
     "startFocus": "Iniciar enfoque de {{minutes}} minutos",
     "focusComplete": "Enfoque de {{minutes}} minutos para {{title}} finalizado.",
@@ -68,7 +68,7 @@
     "energyFilterAll": "Todas",
     "intentionLabel": "Cuándo / dónde",
     "intentionPlaceholder": "Cuando termine el desayuno, voy a…",
-    "intentionHelper": "Las intenciones de implementación (cuándo/dónde) duplican las tasas de seguimiento — probado en 94 estudios. Tu cerebro trata esto como un pre-compromiso.",
+    "intentionHelper": "Decidir cuándo y dónde lo harás (\"después del almuerzo, en mi escritorio\") ayuda a muchas personas a cumplir. Una revisión de 94 estudios encontró un efecto de mediano a grande.",
     "startHere": "Empieza aquí",
     "startTimerBtn": "🍅 {{minutes}} min",
     "startTimerAria": "Iniciar {{minutes}} min de enfoque para {{title}}",
@@ -313,7 +313,7 @@
         "step3": "Llama y di que estás considerando cambiar — pide una mejor tarifa",
         "step4": "Documenta el resultado y el tiempo ahorrado vs el dinero ahorrado"
       },
-      "showGallery": "Comenzar con tareas probadas",
+      "showGallery": "Empezar con una plantilla",
       "hideGallery": "Ocultar inicio rápido"
     }
   },
@@ -337,7 +337,11 @@
     "endAfterStart": "La hora de fin debe ser posterior a la hora de inicio.",
     "nonNegativeNumber": "Ingresa un número igual o mayor a cero.",
     "nonNegativeInteger": "Ingresa un número entero igual o mayor a cero.",
-    "dueDayRange": "Ingresa un día entero del 1 al 31, o déjalo en blanco."
+    "dueDayRange": "Ingresa un día entero del 1 al 31, o déjalo en blanco.",
+    "pointsWhole": "Usa un número entero de puntos.",
+    "pointsTooLarge": "Usa {{max}} puntos o menos.",
+    "amountTooLarge": "Ese monto parece demasiado grande. Revisa si sobran dígitos.",
+    "reminderTooFar": "Elige un recordatorio de hasta 4 semanas (40 320 minutos) antes."
   },
   "calendar": "Calendario",
   "theme": {
@@ -530,13 +534,16 @@
       "savings": "Ahorro",
       "emergency": "Fondo de emergencia"
     },
-    "dueDayLabel": "Día de vencimiento del mes (opcional)"
+    "dueDayLabel": "Día de vencimiento del mes (opcional)",
+    "removed": "Se eliminó \"{{name}}\"",
+    "undoRemove": "Deshacer",
+    "deleteNamed": "Eliminar {{name}}"
   },
   "rewards": {
     "title": "Recompensas",
     "confirmDelete": "¿Eliminar la recompensa {{title}}?",
     "gamificationLabel": "Gamificación",
-    "gamificationHelper": "La retroalimentación de progreso funciona mejor como una elección. Los XP y las rachas son opcionales, tú las controlas y puedes desactivarlas cuando quieras. Tus datos quedan en local.",
+    "gamificationHelper": "Activa o desactiva XP, rachas y desbloqueos. Tus puntos se quedan en este dispositivo.",
     "gamificationOn": "Activado",
     "gamificationOff": "Desactivado",
     "gamificationDisabled": "La gamificación está desactivada.",
@@ -545,7 +552,7 @@
     "levelSummary": "Nivel {{level}}",
     "xpSummary": "{{points}} XP / {{target}} XP",
     "skipTokensLabel": "Pases de omisión",
-    "skipTokensHelper": "La vida pasa. Un día perdido rompería tu racha. Los pases conservan tu impulso: úsalos cuando los necesites.",
+    "skipTokensHelper": "La vida pasa. Un pase conserva tu racha después de un día perdido, sin dar explicaciones.",
     "streakHeading": "Estado de rachas",
     "focusStreak": "Racha de enfoque diario: {{days}} días",
     "taskStreak": "Racha de tareas completadas: {{days}} días",
@@ -694,7 +701,9 @@
       "copy": "Copiar",
       "copyAria": "Copiar este mensaje",
       "useTemplate": "Usar este plan →",
-      "empty": "Sin plantillas para este filtro. Prueba otro nivel."
+      "empty": "Sin plantillas para este filtro. Prueba otro nivel.",
+      "copied": "Copiado",
+      "copyFailed": "No se pudo copiar"
     },
     "startFromScratch": "Saltar — empezar desde cero",
     "changeTemplate": "Cambiar",
@@ -775,14 +784,14 @@
       },
       "friend36q": {
         "title": "36 Preguntas",
-        "desc": "La conversación de Arthur Aron que construye cercanía — probada.",
+        "desc": "Las 36 preguntas de Arthur Aron, usadas por primera vez en un estudio de 1997 sobre cómo dos desconocidos se acercan.",
         "notes": "Haz las preguntas en orden. Los dos responden cada una.",
         "step1": "Elige un lugar cómodo con al menos 90 minutos",
         "step2": "Turno a turno, responden el Set 1 (preguntas 1–12)",
         "step3": "Pasan al Set 2 (13–24) cuando estén listos",
         "step4": "Terminan con el Set 3 (25–36) y los 4 minutos de contacto visual",
         "starter1": "Me encontré con algo llamado 'las 36 preguntas que generan cercanía' y parece muy interesante. ¿Lo intentamos juntos?",
-        "starter2": "Quiero hacer algo diferente cuando quedemos — hay un formato de conversación respaldado por investigación que me da curiosidad. ¿Te animas?"
+        "starter2": "Quiero probar algo diferente cuando quedemos. Hay una lista de 36 preguntas pensada para conocerse mejor. ¿Te animas?"
       },
       "friendSupport": {
         "title": "Estar para esa persona",
@@ -1010,12 +1019,16 @@
         "starter1": "¿Hacemos una videollamada pronto? Echo de menos verte la cara de verdad.",
         "starter2": "¿Te apetece un video hang de verdad? Podemos simplemente charlar y pasar el rato."
       }
-    }
+    },
+    "stepAria": "Paso {{n}}",
+    "removeStepAria": "Quitar paso {{n}}"
   },
   "settings": "Configuración",
   "loading": "Cargando…",
   "deleteLabel": "Eliminar",
   "editLabel": "Editar",
+  "editNamed": "Editar {{name}}",
+  "deleteNamed": "Eliminar {{name}}",
   "saveLabel": "Guardar",
   "confirmLabel": "Confirmar",
   "cancelLabel": "Cancelar",
@@ -1064,6 +1077,7 @@
   "calendarResetForm": "Reiniciar formulario",
   "calendarTasksToConvert": "Convertir tareas en eventos",
   "calendarConvertTask": "Convertir a evento",
+  "calendarConvertTaskNamed": "Convertir a evento: {{title}}",
   "calendarNoTasksToConvert": "No hay tareas listas para convertir.",
   "calendarEventsHeading": "Eventos programados",
   "calendarNoEvents": "Aún no hay eventos.",
@@ -1228,6 +1242,7 @@
     "reviewDetected": "Detectado: {{timestamp}}",
     "reviewKeepLocal": "Mantener mis cambios",
     "reviewUseRemote": "Usar versión del servidor",
+    "reviewServerUnreadable": "No se pudo leer la copia del servidor, así que solo se puede conservar la versión de este dispositivo.",
     "status": {
       "ariaLabel": "Estado de la sincronización",
       "offline": "Guardado en este dispositivo. Se sincronizará cuando vuelvas a tener conexión.",
@@ -1264,6 +1279,7 @@
   "calendarSuggestedFocusWindow": "{{window}} · {{minutes}} min",
   "calendarSuggestedFocusEmpty": "Por ahora no hay un bloque libre que encaje con tus tareas sin programar.",
   "calendarScheduleSuggestion": "Programar este bloque",
+  "calendarScheduleSuggestionNamed": "Programar este bloque para {{title}}",
   "routines": {
     "title": "Rutinas",
     "description": "Los hábitos se componen. Una rutina de 30 minutos hecha de forma constante durante 90 días crea más cambio que un plan perfecto hecho una vez.",
@@ -1297,11 +1313,11 @@
     "deleteLabel": "Eliminar {{title}}",
     "anchorLabel": "Encadenar a un hábito (opcional)",
     "anchorPlaceholder": "p. ej. Después del café de la mañana",
-    "anchorHelper": "Apilado de hábitos: vincula un nuevo comportamiento a uno que ya hagas automáticamente. La investigación de BJ Fogg muestra que esto duplica el éxito de implementación.",
+    "anchorHelper": "Apilar hábitos: vincula una rutina nueva a algo que ya haces cada día, así el hábito existente te sirve de recordatorio.",
     "anchorDisplay": "Después de {{habit}}, haré esta rutina",
     "streakDotsAria": "Últimos 21 días: {{completed}} completados",
     "tpl": {
-      "showGallery": "Ver protocolos respaldados por investigación",
+      "showGallery": "Ver plantillas de rutinas",
       "hideGallery": "Ocultar biblioteca de protocolos",
       "addRoutine": "→ Agregar esta rutina",
       "cat": {
@@ -1337,7 +1353,7 @@
       },
       "exerciseMorning": {
         "title": "Ejercicio Matutino",
-        "why": "El ejercicio por la mañana aumenta la dopamina, la serotonina y el BDNF durante las siguientes 4–6 horas. Hacerlo primero elimina la decisión por completo.",
+        "why": "El ejercicio se asocia con mejor ánimo y concentración después. Hacerlo a primera hora evita tener que decidirlo más tarde.",
         "step1": "Ponte la ropa de ejercicio antes de tomar ninguna decisión",
         "step2": "Haz 20–30 min de cardio o entrenamiento de fuerza",
         "step3": "NO revises el teléfono hasta terminar el entrenamiento",
@@ -1345,7 +1361,7 @@
       },
       "hubermanEvening": {
         "title": "Protocolo Nocturno de Huberman",
-        "why": "La luz brillante después del atardecer retrasa la melatonina hasta 3 horas. Atenuar las luces temprano acelera el inicio del sueño y mejora el sueño profundo.",
+        "why": "La luz intensa en la noche puede retrasar el sueño. Bajar las luces una o dos horas antes de dormir ayuda a muchas personas a dormirse antes.",
         "step1": "Observa el atardecer o atenúa las luces 2+ horas antes de dormir",
         "step2": "Sin luces brillantes de techo después de las 9pm — usa lámparas",
         "step3": "Sin cafeína después de las 2pm (si aún no lo has hecho)",
@@ -1354,14 +1370,14 @@
       },
       "powerDownHour": {
         "title": "Hora de Desconexión",
-        "why": "Una rutina de relajación estructurada indica al sistema nervioso que pase del simpático al parasimpático, haciendo el sueño más rápido y profundo.",
+        "why": "Una rutina de descanso predecible le da a tu cuerpo y mente una señal de que el día termina, lo que puede facilitar dormirse.",
         "step1": "Primeros 20 min: termina tareas pequeñas y la lista de mañana",
         "step2": "Siguientes 20 min: higiene (ducha, cepillado dental, cuidado de piel)",
         "step3": "Últimos 20 min: solo actividades relajantes — lectura, estiramientos, respiración"
       },
       "eveningReview": {
         "title": "Revisión Nocturna",
-        "why": "El diario estoico reduce la rumiación al externalizar los pensamientos, y la práctica de la gratitud mejora el estado de ánimo y la calidad del sueño de forma medible.",
+        "why": "Escribir lo que piensas puede evitar que le des vueltas, y anotar algunas cosas buenas se asocia con mejor ánimo.",
         "step1": "Escribe: ¿Qué hice bien hoy?",
         "step2": "Escribe: ¿Qué podría haber hecho mejor?",
         "step3": "Escribe: ¿Por qué estoy agradecido/a hoy?",
@@ -1394,7 +1410,7 @@
       },
       "pomodoroBlock": {
         "title": "Bloque de Enfoque Pomodoro",
-        "why": "El enfoque a intervalos fijos con descansos programados coincide con los ritmos ultradianos naturales y previene la fatiga mental de las sesiones de trabajo abiertas.",
+        "why": "Los bloques de enfoque fijos con descansos planeados le dan al trabajo un inicio y un final claros, lo que puede facilitar empezar y parar.",
         "step1": "Elige una tarea y escríbela",
         "step2": "Activa un temporizador de 25 min — trabaja solo en eso",
         "step3": "Toma un descanso de 5 min (levántate, camina)",
@@ -1409,14 +1425,14 @@
       },
       "zone2Cardio": {
         "title": "Cardio Zona 2",
-        "why": "El cardio de Zona 2 es el ejercicio con mayor ROI para la salud metabólica, la densidad mitocondrial y la longevidad. 3–4 sesiones por semana es la dosis mínima efectiva.",
+        "why": "El cardio suave y constante, en el que aún puedes conversar, es bueno para la salud del corazón y el metabolismo. Muchas guías sugieren unos 150 minutos de actividad moderada a la semana.",
         "step1": "Haz 30–45 min de cardio a un ritmo 'conversacional' — podrías hablar en oraciones",
         "step2": "Mantén la frecuencia cardíaca al 60–70% de tu máximo (aprox. 180 menos tu edad)",
         "step3": "Apunta a 3–4 sesiones por semana — esta es la dosis mínima efectiva para la longevidad"
       },
       "mobility": {
         "title": "Rutina Diaria de Movilidad",
-        "why": "Diez minutos de movilidad diaria previenen la rigidez crónica que lleva a lesiones. Hecho de forma constante, revierte años de postura de escritorio.",
+        "why": "Unos minutos de movimiento suave cada día pueden aliviar la rigidez que deja estar sentado mucho tiempo.",
         "step1": "Rotaciones de cuello: 5 círculos lentos en cada dirección",
         "step2": "Círculos de cadera: 10 en cada dirección",
         "step3": "Estiramiento espinal gato-vaca: 10 repeticiones",
@@ -1426,7 +1442,7 @@
     },
     "gallery": {
       "heading": "Biblioteca de Rutinas",
-      "subtitle": "Rutinas respaldadas por investigación. Elige una para agregarla a tu horario.",
+      "subtitle": "Rutinas listas para usar. Elige una para agregarla a tu horario.",
       "filterAria": "Filtrar por categoría",
       "allFilter": "Todas",
       "stepsPreview": "Vista previa de pasos",
@@ -1614,17 +1630,17 @@
     "tasks": {
       "section": "Tu centro de tareas: todo lo que necesitas hacer, dividido en pasos que puedes comenzar ahora mismo. Agrega lo que sea y márcalo al terminar.",
       "energy": "Filtra tareas según la energía mental que necesitas ahora. Elige Mínima/Baja en días difíciles. Guarda las de Alta para cuando estés en tu mejor momento.",
-      "quickStart": "Plantillas de tareas respaldadas por investigación que puedes agregar con un toque. Personaliza el título a tu situación — la estructura ya está lista.",
+      "quickStart": "Plantillas de tareas que puedes agregar con un toque. Cambia el título según tu situación; los pasos ya están listos.",
       "reliability": "Monitorea qué tan consistentemente se generan tus tareas recurrentes. Si se pierden instancias, puedes reconstruirlas aquí.",
-      "subtasks": "Divide una tarea grande en pasos pequeños. Las investigaciones muestran que el inicio — no la ejecución — es la parte más difícil. Comenzar el primer micro-paso es el 80% del trabajo.",
-      "plannedDate": "Programar una tarea hace que sea 2–3× más probable que la hagas. Incluso 'hoy' sirve — la especificidad es todo.",
-      "intention": "Una intención de implementación (cuándo + dónde) duplica el seguimiento — probado en 94 estudios. Tu cerebro lo trata como un precompromiso.",
-      "timer": "Sprints Pomodoro: trabajo enfocado + descansos cortos. La urgencia programada elimina el 'empiezo en un minuto' sin agregar presión.",
+      "subtasks": "Divide una tarea grande en pasos pequeños. Empezar suele ser lo más difícil, así que haz el primer paso lo bastante pequeño para comenzar ya.",
+      "plannedDate": "Darle un día a una tarea hace más fácil empezarla, y aparece en tu calendario y en la vista diaria. Incluso 'hoy' sirve.",
+      "intention": "Decidir cuándo y dónde lo harás (\"después del almuerzo, en mi escritorio\") ayuda a muchas personas a cumplir. Una revisión de 94 estudios encontró un efecto de mediano a grande.",
+      "timer": "Sprints Pomodoro: trabajo enfocado y luego un descanso corto. Un temporizador con un final claro puede hacer más fácil empezar.",
       "templates": "Estructuras de tarea listas para situaciones comunes — sesión de estudio, bloque de trabajo, autocuidado. Elige una y personaliza el título según tu contexto.",
       "title": "Dale a tu tarea un nombre claro y específico. Cuanto más concreto, más fácil es comenzar — 'Escribir correo a Dr. Santos' supera a 'Correos' cualquier día."
     },
     "calendar": {
-      "section": "Programa eventos y bloquea tiempo para tareas. Poner algo en el calendario hace que sea 2–3× más probable que realmente suceda.",
+      "section": "Programa eventos y reserva tiempo para tareas. Una tarea con horario es más fácil de empezar que una que espera a 'después'.",
       "suggestedFocus": "Basado en tus tareas abiertas y tiempo libre de hoy, estas ventanas son tus mejores oportunidades para trabajo enfocado. Prográmalas ahora mientras tienes la intención fresca.",
       "tasksToConvert": "Tareas sin franja horaria aún. 'Convertir a evento' le da a cada tarea un horario específico — convirtiendo una intención en un compromiso.",
       "events": "Todos tus eventos programados. Haz clic en cualquier evento para editarlo, agregar un recordatorio o vincularlo a una tarea. Eliminar un evento nunca elimina la tarea vinculada.",
@@ -1635,7 +1651,7 @@
       "description": "Detalles opcionales — puntos de agenda, notas de preparación, códigos de acceso. Los verás cuando hagas clic en el evento.",
       "taskLink": "Conecta este evento a una tarea existente. Al completar el evento, puede marcar la tarea como hecha también — manteniendo ambas listas sincronizadas.",
       "reminder": "Recibe una notificación antes de que comience el evento. Especialmente útil para citas que requieren tiempo de traslado o preparación.",
-      "addEvent": "Crea un nuevo evento en el calendario. Poner las tareas en el calendario las hace 3 veces más probables de realizarse — este es el paso entre planear y hacer."
+      "addEvent": "Crea un nuevo evento. Darle un horario a una tarea es el paso entre planear y hacer."
     },
     "budget": {
       "section": "Presupuesto base cero: cada sol tiene un destino antes de gastarlo. Ingresos menos todas las asignaciones debe ser cero — intencional, no accidental.",
@@ -1671,7 +1687,7 @@
     },
     "rewards": {
       "section": "Convierte los hábitos diarios en un juego de progreso. Gana XP completando tareas, mantén rachas de consistencia y define recompensas que realmente quieras ganar.",
-      "gamification": "Los esquemas de recompensa variable mantienen la motivación alta a lo largo del tiempo. Los XP y las rachas siguen ese modelo. Todos los datos son privados y locales.",
+      "gamification": "Activa o desactiva puntos XP, niveles y rachas. Tus puntos se quedan en este dispositivo y no se comparten.",
       "streak": "Una racha cuenta los días consecutivos que has sido constante. Las rachas de tareas, enfoque y presupuesto se siguen por separado — romper una no rompe las demás.",
       "skipTokens": "Usa un token de salto para tomarte un día de descanso sin culpa y sin romper tu racha. Los tokens se ganan siendo constante. Saltarse un día estratégicamente es planificación, no fracaso.",
       "rewardsList": "Premios personales que te has comprometido a ganar. Define un objetivo de puntos, nombra tu recompensa y canjéala sin culpa al alcanzar la meta. ¿Qué te genera realmente entusiasmo?",
@@ -1688,14 +1704,14 @@
       "planTitle": "Dale un nombre a este plan de conexión. Mantenlo simple: 'Brunch con Sofía' o 'Llamar a mamá semanalmente'. Cuanto más claro sea el plan, más fácil será seguirlo.",
       "planType": "¿Qué tipo de interacción es esta? Llamada = teléfono/video; Encuentro = en persona; Mensaje = texto/email; Evento = experiencia compartida. Cada tipo tiene diferente fricción — comienza con la opción de menor fricción.",
       "energyLevel": "¿Cuánta energía social requiere esta interacción? Ajústala a tu energía disponible — los días de baja energía son perfectos para un mensaje rápido, los de alta energía para un encuentro real.",
-      "dateTime": "¿Cuándo quieres que ocurra esto? Programar una fecha específica lo hace 10 veces más probable que 'en algún momento'.",
+      "dateTime": "¿Cuándo quieres que ocurra? Una fecha concreta es más fácil de cumplir que 'algún día de estos'.",
       "steps": "Divide el plan de conexión en pequeñas acciones: 'enviar mensaje para sugerir una fecha', 'reservar el restaurante', 'confirmar el día anterior'. Cada paso elimina una razón para posponerlo."
     },
     "routines": {
       "section": "Las rutinas son secuencias de pasos vinculadas a un momento del día. En lugar de decidir qué hacer, simplemente sigues los pasos — eliminando la fatiga de decisión.",
       "addRoutine": "Construye una nueva rutina: nómbrala, elige un ancla (mañana/trabajo/tarde), establece una hora de inicio y lista los pasos. Mantén cada paso pequeño — 5 minutos o menos.",
       "steps": "Una acción específica y concreta por paso. 'Prepararme' es demasiado vago. 'Cepillarme, lavarme la cara, tomar medicamentos' es accionable. Los pasos pequeños eliminan la barrera para empezar.",
-      "anchor": "Apilamiento de hábitos: vincula un nuevo comportamiento a uno que ya haces automáticamente. La investigación de BJ Fogg muestra que esto duplica el éxito de implementación.",
+      "anchor": "Apilar hábitos: vincula una rutina nueva a algo que ya haces cada día, así el hábito existente te sirve de recordatorio.",
       "title": "Nombra tu rutina con claridad: 'Relajación matutina' o 'Ritual de concentración previo al trabajo'. Un buen nombre la hace sentir intencional y digna de proteger en tu agenda.",
       "description": "Contexto opcional — para qué es esta rutina, cuándo la haces o cómo te hace sentir. Útil cuando la revisitas semanas después.",
       "frequency": "¿Con qué frecuencia debe ejecutarse esta rutina? Las rutinas diarias construyen automaticidad más rápido; las semanales son mejores para hábitos que necesitan más tiempo de recuperación.",
@@ -1707,7 +1723,7 @@
       "screenTint": "Agrega una capa ámbar cálida para reducir la luz azul por la tarde. Ayuda a señalar el modo de relajación a tu cerebro sin cambiar la configuración de pantalla del sistema.",
       "tts": "Lee los cambios y alertas de configuración en voz alta — útil para situaciones sin uso visual, gestionar distracciones o confirmar cambios sin mirar la pantalla.",
       "announce": "Anuncia en voz alta cada cambio que realizas en Configuración — ideal para verificar tus elecciones sin releer la pantalla.",
-      "timer": "Pomodoro: sprints de trabajo cronometrados seguidos de descansos cortos. La urgencia programada reduce la evasión sin agregar estrés — especialmente efectivo para cerebros con TDAH.",
+      "timer": "Pomodoro: sprints de trabajo cronometrados seguidos de descansos cortos. A algunas personas un temporizador les ayuda a empezar; ajusta las duraciones hasta que te resulten cómodas.",
       "shortcuts": "Los atajos de teclado te permiten navegar toda la app sin el mouse. Aprende 1–2 a la vez — la memoria muscular se acumula rápidamente.",
       "restartGuide": "Repite el tour interactivo de la app desde el principio. Útil para re-explorar una función que omitiste, o al presentar la app a alguien nuevo.",
       "dailyView": "Muestra un Centro de Comando Diario simplificado en la pestaña de Tareas: solo tus 3 tareas principales, el próximo evento y un recordatorio de presupuesto. Ideal para días en que la vista completa se siente abrumadora.",
@@ -1733,7 +1749,7 @@
   "timerLongBreakLabel": "Descanso largo",
   "timerSessionsLabel": "Sesiones antes del descanso largo",
   "timerAutoBreak": "Iniciar descansos automáticamente al terminar el enfoque",
-  "timerInsight": "La investigación muestra que el cerebro trabaja en ciclos ultradianos de ~90 minutos. Los sprints cortos (25 min) funcionan para la mayoría de tareas; los sprints largos (45–90 min) requieren descansos proporcionalmente más largos para evitar la fatiga cognitiva. Encuentra tu ventana.",
+  "timerInsight": "Los sprints cortos (25 min) sirven para la mayoría de tareas; los largos (45 a 90 min) funcionan mejor con descansos más largos. Prueba varias duraciones y quédate con la que te resulte cómoda.",
   "timerBreakInsight": "Los sprints de enfoque más largos necesitan descansos más largos: 45 min → 15 min de descanso; 90 min → 20 min de descanso. Saltarse los descansos acumula fatiga mental.",
   "dailyViewHeading": "Vista diaria",
   "dailyViewToggle": "Activar vista diaria",
@@ -1790,7 +1806,7 @@
     },
     "pomodoro": {
       "title": "Bloques de enfoque (Pomodoro)",
-      "content": "Trabaja en sprints cortos y cronometrados — 25 minutos de enfoque, luego un descanso. El ritmo natural de tu cerebro coincide con este ciclo, así que te mantienes en flujo más tiempo y te cansas menos."
+      "content": "Trabaja en sprints cortos y cronometrados: 25 minutos de enfoque y luego un descanso. Saber cuándo termina puede hacer más fácil empezar y seguir."
     },
     "calendar": {
       "title": "Tu calendario",
@@ -1881,7 +1897,7 @@
       },
       "date": {
         "title": "Paso 2: Prográmala",
-        "content": "Elige hoy u otra fecha. Programar una tarea te hace 2–3 veces más probable de realizarla."
+        "content": "Elige hoy u otra fecha. Una tarea con fecha es más fácil de empezar."
       },
       "energy": {
         "content": "Elige cuánta energía requiere. ¿Poca batería? Filtra por tareas Mínimas. ¿Energía alta? Afronta las difíciles.",
@@ -1903,8 +1919,8 @@
         "content": "Ya sabes capturar, programar, dividir y completar tareas. Abre el timer Pomodoro cuando quieras una sesión de enfoque."
       },
       "templates": {
-        "title": "Empieza con una tarea probada",
-        "content": "Toca aquí para explorar 28 plantillas respaldadas por investigación en 7 áreas de vida. Selecciona una y el título, nivel de energía y micro-pasos se completan al instante."
+        "title": "Empieza con una plantilla",
+        "content": "Toca aquí para ver 28 plantillas en 7 áreas de vida. Elige una y el título, el nivel de energía y los pasos se completan por ti."
       }
     },
     "calendarFlow": {
@@ -2005,8 +2021,8 @@
         "content": "Una rutina es una secuencia que ejecutas en piloto automático. La construiremos juntos — dale un horario de activación, micro-pasos y una frecuencia."
       },
       "gallery": {
-        "title": "Protocolos respaldados por investigación",
-        "content": "Explora plantillas de rutinas basadas en ciencia — rutinas matutinas, secuencias de descanso, protocolos de enfoque y más. Haz clic en 'Ver protocolos' para explorar."
+        "title": "Plantillas de rutinas",
+        "content": "Explora rutinas listas para usar: mañanas, descanso, bloques de enfoque y más. Haz clic en 'Ver plantillas de rutinas' para explorar."
       },
       "form": {
         "title": "Construye tu rutina",
@@ -2070,7 +2086,7 @@
     "barAria": "Cronómetro de tiempo",
     "elapsedAria": "Tiempo transcurrido {{clock}}",
     "start": "Medir tiempo",
-    "startAria": "Empezar a medir el tiempo de {{title}}",
+    "startAria": "Medir tiempo de {{title}}",
     "stop": "Parar",
     "stopAria": "Parar de medir el tiempo de {{title}}",
     "tracked": "Medido {{duration}}",
@@ -2099,7 +2115,8 @@
     "addLabel": "Agregar tiempo",
     "addSave": "Agregar",
     "entryLabel": "Minutos del tramo del {{when}}",
-    "removeEntryAria": "Quitar el tramo del {{when}}",
+    "removeEntryAria": "Eliminar el tramo del {{when}}",
+    "saveEntryAria": "Guardar el tramo del {{when}}",
     "actualAria": "¿Cuánto tardó {{title}}?",
     "actualQuestion": "¿Más o menos cuánto tardó? (opcional)",
     "actualSkip": "Omitir"
@@ -2113,5 +2130,16 @@
     "hintHistory": "Tus tareas suelen tardar unas {{ratio}}× lo que calculas. ¿Planificamos {{suggested}}?",
     "hintDefault": "A todos se nos queda corto el cálculo, así que un margen del 25% ayuda. ¿Planificamos {{suggested}}?",
     "useSuggestion": "Usar {{suggested}}"
+  },
+  "calendarDayEvents_one": "{{day}}, {{count}} evento",
+  "calendarDayEvents_other": "{{day}}, {{count}} eventos",
+  "device": {
+    "checkingSignIn": "Revisando tu sesión…",
+    "switching": "Guardando aparte los datos de la cuenta anterior en este dispositivo…",
+    "noRoom": {
+      "title": "Este dispositivo no tiene espacio",
+      "body": "No se pudieron guardar aparte los datos de la cuenta anterior, así que no se cambió nada y siguen ocultos. Cierra sesión o libera espacio en este navegador, y vuelve a iniciar sesión.",
+      "signOut": "Cerrar sesión"
+    }
   }
 }

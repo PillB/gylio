@@ -78,11 +78,8 @@ const makeEvent = (id: number, title: string, startDate: string, overrides: Part
 const eventsSection = () => screen.getByText('calendarEventsHeading').parentElement as HTMLElement;
 const convertSection = () => screen.getByText('calendarTasksToConvert').parentElement as HTMLElement;
 const dateInput = () => screen.getByLabelText('calendarSelectDate') as HTMLInputElement;
-const fieldIn = (scope: HTMLElement, label: string) =>
-  within(scope)
-    .getByText(label, { selector: 'label, label > span' })
-    .closest('label')
-    ?.querySelector('input, select') as HTMLInputElement;
+/** The control a label names, the way a screen reader finds it (label text only, not the help button). */
+const fieldIn = (scope: HTMLElement, label: string) => within(scope).getByLabelText(label, { exact: true }) as HTMLInputElement;
 
 const renderLoaded = async () => {
   render(<CalendarView />);
@@ -133,6 +130,24 @@ describe('CalendarView', () => {
     expect(within(convertSection()).queryByText('Write report')).toBeNull();
   });
 
+  it('says whether the add-event form is open, and names the toggle without its + or ✕ sign', async () => {
+    await renderLoaded();
+    const toggle = screen.getByRole('button', { name: 'calendarAddEvent' });
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    fireEvent.click(toggle);
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+  });
+
+  it('refuses a reminder more than four weeks ahead', async () => {
+    await renderLoaded();
+    const form = openAddForm();
+    fireEvent.change(fieldIn(form, 'titleLabel'), { target: { value: 'Dentist' } });
+    fireEvent.change(fieldIn(form, 'calendarReminderLabel'), { target: { value: '99999999' } });
+    fireEvent.click(within(form).getByRole('button', { name: 'calendarSaveEvent' }));
+    expect(await screen.findByText('validation.reminderTooFar')).toBeTruthy();
+    expect(insertEvent).not.toHaveBeenCalled();
+  });
+
   it('blocks an event that ends before it starts', async () => {
     await renderLoaded();
     const form = openAddForm();
@@ -151,7 +166,7 @@ describe('CalendarView', () => {
     ];
     db.events = [makeEvent(1, 'Standup', '2026-03-10T09:00', { taskId: 5 })];
     await renderLoaded();
-    fireEvent.click(within(eventsSection()).getByRole('button', { name: 'editLabel' }));
+    fireEvent.click(within(eventsSection()).getByRole('button', { name: 'editNamed {"name":"Standup"}' }));
     const editor = within(eventsSection()).getByRole('listitem');
     expect(fieldIn(editor, 'titleLabel').value).toBe('Standup');
     fireEvent.change(fieldIn(editor, 'titleLabel'), { target: { value: 'Team standup' } });
@@ -168,7 +183,7 @@ describe('CalendarView', () => {
     db.tasks = [{ id: 5, title: 'Linked', calendarEventId: 1, status: 'pending' }];
     db.events = [makeEvent(1, 'Standup', '2026-03-10T09:00', { taskId: 5 })];
     await renderLoaded();
-    fireEvent.click(within(eventsSection()).getByRole('button', { name: 'deleteLabel' }));
+    fireEvent.click(within(eventsSection()).getByRole('button', { name: 'deleteNamed {"name":"Standup"}' }));
     expect(deleteEvent).not.toHaveBeenCalled();
     fireEvent.click(within(eventsSection()).getByRole('button', { name: 'yesLabel' }));
 
@@ -181,7 +196,7 @@ describe('CalendarView', () => {
   it('turns an unscheduled task into an event linked to it', async () => {
     db.tasks = [{ id: 8, title: 'Call mom', calendarEventId: null, status: 'pending' }];
     await renderLoaded();
-    fireEvent.click(within(convertSection()).getByRole('button', { name: 'calendarConvertTask' }));
+    fireEvent.click(within(convertSection()).getByRole('button', { name: 'calendarConvertTaskNamed {"title":"Call mom"}' }));
     await waitFor(() => expect(updateTask).toHaveBeenCalledWith(8, { calendarEventId: 700 }));
     expect(insertEvent.mock.calls[0][0]).toBe('Call mom');
     expect(insertEvent.mock.calls[0][5]).toBe(8);
@@ -226,12 +241,13 @@ describe('CalendarView', () => {
     await renderLoaded();
     fireEvent.change(dateInput(), { target: { value: '2026-03-01' } });
     fireEvent.click(screen.getByRole('button', { name: 'calendarMonthView' }));
-    const cells = screen.getAllByRole('button', { name: /, \d+ events$/ });
+    const cells = screen.getAllByRole('button', { name: /^calendarDayEvents / });
     // March 2026 starts on a Sunday, so the Monday-first grid has 6 leading days.
     expect(cells).toHaveLength(42);
     const tenth = cells[6 + 9];
-    expect(tenth.getAttribute('aria-label')).toMatch(/, 1 events$/);
-    fireEvent.keyDown(tenth, { key: 'Enter' });
+    expect(tenth.getAttribute('aria-label')).toContain('"count":1');
+    // Space opens the day without also scrolling the page, as a real button would.
+    expect(fireEvent.keyDown(tenth, { key: ' ' })).toBe(false);
     expect(dateInput().value).toBe('2026-03-10');
     expect(screen.getByRole('button', { name: 'calendarDayView' }).getAttribute('aria-pressed')).toBe('true');
   });

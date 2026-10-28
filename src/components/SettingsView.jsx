@@ -75,7 +75,6 @@ const SettingsView = () => {
   return (
     <>
     <SectionCard
-      ariaLabel={`${t('settings')} module`}
       title={t('settings')}
       subtitle={t('settingsDescription') || ''}
       badge={<BudgetTooltip content={t('tooltips.settings.section', 'Customize how the app looks, sounds, and behaves. Changes apply everywhere instantly. All preferences are stored locally on your device.')} />}
@@ -370,10 +369,10 @@ const SettingsView = () => {
     </SectionCard>
 
     {/* Focus timer settings */}
-    <SectionCard ariaLabel={t('timerHeading', 'Focus timer')} title={t('timerHeading', 'Focus timer')} badge={<BudgetTooltip content={t('tooltips.settings.timer', 'Customize your Pomodoro focus sprints. Shorter sessions (25 min) work for most tasks; longer ones (45–90 min) suit deep work but need proportionally longer breaks.')} />}>
+    <SectionCard ariaLabel={t('timerHeading', 'Focus timer')} title={t('timerHeading', 'Focus timer')} badge={<BudgetTooltip content={t('tooltips.settings.timer', "Pomodoro: timed work sprints followed by short breaks. Some people find a timer makes it easier to start; adjust the lengths until they feel right.")} />}>
       <div style={{ display: 'grid', gap: theme.spacing.md, fontFamily: theme.typography.body.family }}>
         <p style={{ margin: 0, color: theme.colors.muted, fontSize: '0.875rem', lineHeight: 1.55 }}>
-          {t('timerInsight', 'Research shows the brain works in ~90-minute ultradian cycles. Shorter sprints (25 min) suit most tasks; longer sprints (45–90 min) require proportionally longer breaks to avoid cognitive fatigue. Find your window.')}
+          {t('timerInsight', "Shorter sprints (25 min) suit most tasks; longer ones (45 to 90 min) work better with longer breaks. Try a few lengths and keep the one that feels right.")}
         </p>
         {[
           { labelKey: 'timerFocusLabel', key: 'focusMinutes', options: [10, 15, 25, 45, 60, 90], unit: 'min' },
@@ -382,10 +381,11 @@ const SettingsView = () => {
           { labelKey: 'timerSessionsLabel', key: 'sessionsBeforeLongBreak', options: [2, 3, 4, 5, 6], unit: '' },
         ].map(({ labelKey, key, options, unit }) => (
           <div key={key}>
-            <p style={{ margin: '0 0 6px', fontWeight: 600, fontSize: '0.875rem', color: theme.colors.text }}>
+            <p id={`timer-${key}-label`} style={{ margin: '0 0 6px', fontWeight: 600, fontSize: '0.875rem', color: theme.colors.text }}>
               {t(labelKey, key)}
             </p>
-            <div style={{ display: 'flex', gap: theme.spacing.xs, flexWrap: 'wrap' }}>
+            {/* The group name tells a screen reader which length a "10min" button sets. */}
+            <div role="group" aria-labelledby={`timer-${key}-label`} style={{ display: 'flex', gap: theme.spacing.xs, flexWrap: 'wrap' }}>
               {options.map((val) => {
                 const active = timerSettings[key] === val;
                 return (
@@ -421,9 +421,9 @@ const SettingsView = () => {
             id="auto-break"
             checked={timerSettings.autoStartBreak}
             onChange={(e) => updateSettings({ autoStartBreak: e.target.checked })}
-            style={{ width: 18, height: 18, accentColor: theme.colors.primary, cursor: 'pointer' }}
+            style={{ width: 24, height: 24, accentColor: theme.colors.primary, cursor: 'pointer', flexShrink: 0 }}
           />
-          <label htmlFor="auto-break" style={{ fontSize: '0.875rem', color: theme.colors.text, cursor: 'pointer' }}>
+          <label htmlFor="auto-break" style={{ fontSize: '0.875rem', color: theme.colors.text, cursor: 'pointer', minHeight: 44, display: 'inline-flex', alignItems: 'center' }}>
             {t('timerAutoBreak', 'Auto-start breaks when focus ends')}
           </label>
         </div>

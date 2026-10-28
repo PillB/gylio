@@ -199,10 +199,20 @@ const TaskCard: React.FC<Props> = ({ task, actions }) => {
         actions={actions}
         trailing={
           <>
-            <button type="button" onClick={() => actions.startEditing(task.id)} style={cardButton}>
+            <button
+              type="button"
+              onClick={() => actions.startEditing(task.id)}
+              aria-label={t('tasks.editNamed', { title: task.title })}
+              style={cardButton}
+            >
               {t('editLabel')}
             </button>
-            <button type="button" onClick={() => actions.remove(task.id, task.title)} style={cardButton}>
+            <button
+              type="button"
+              onClick={() => actions.remove(task.id, task.title)}
+              aria-label={t('tasks.deleteNamed', { title: task.title })}
+              style={cardButton}
+            >
               {t('deleteLabel')}
             </button>
           </>

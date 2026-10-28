@@ -45,7 +45,7 @@ test.describe('time tracking', () => {
   test('start, stop, fix and review time on a task, with the keyboard', async ({ page }) => {
     await addTaskWithEstimate(page, 'Write report');
 
-    const start = page.getByRole('button', { name: /start tracking time on write report/i });
+    const start = page.getByRole('button', { name: /track time on write report/i });
     await start.focus();
     await page.keyboard.press('Enter');
 
@@ -71,7 +71,7 @@ test.describe('time tracking', () => {
   test('starting a second task saves the first and moves the timer', async ({ page }) => {
     await addTaskWithEstimate(page, 'First thing');
     await addTaskWithEstimate(page, 'Second thing');
-    await page.getByRole('button', { name: /start tracking time on first thing/i }).click();
+    await page.getByRole('button', { name: /track time on first thing/i }).click();
     // Pretend the first task has been running for ten minutes (the person was active a moment ago).
     await page.evaluate(() => {
       const run = JSON.parse(localStorage.getItem('gylio:timeTracker:v1') ?? '{}');
@@ -79,7 +79,7 @@ test.describe('time tracking', () => {
       localStorage.setItem('gylio:timeTracker:v1', JSON.stringify(run));
     });
     await page.reload({ waitUntil: 'networkidle' });
-    await page.getByRole('button', { name: /start tracking time on second thing/i }).click();
+    await page.getByRole('button', { name: /track time on second thing/i }).click();
     await expect(page.getByRole('region', { name: /time tracker/i })).toContainText('Second thing');
     await expect(page.getByText(/Tracked 10m/)).toBeVisible();
   });
@@ -114,7 +114,7 @@ test.describe('time tracking', () => {
     test(`bar and prompts fit a ${width}px screen without horizontal scroll`, async ({ page }) => {
       await page.setViewportSize({ width, height: 800 });
       await addTaskWithEstimate(page, 'A fairly long task title that should wrap rather than push the page sideways');
-      await page.getByRole('button', { name: /start tracking time on a fairly long/i }).click();
+      await page.getByRole('button', { name: /track time on a fairly long/i }).click();
       await expect(page.getByRole('region', { name: /time tracker/i })).toBeVisible();
       await expectNoHorizontalOverflow(page);
       await page.evaluate(() => {

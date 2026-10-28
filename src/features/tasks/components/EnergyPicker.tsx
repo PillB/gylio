@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../../core/context/ThemeContext';
 import { energyTone, type EnergyLevel } from '../utils/energyTone';
@@ -51,13 +51,14 @@ type PickerProps = { value: EnergyLevel; onChange: (level: EnergyLevel) => void 
 /** "Energy required" picker for the add and edit forms. */
 const EnergyPicker: React.FC<PickerProps> = ({ value, onChange }) => {
   const { t } = useTranslation();
+  const labelId = useId();
   return (
     <>
       <p style={{ margin: '0 0 0.5rem', fontWeight: 600, fontSize: '0.875rem', display: 'flex', alignItems: 'center' }}>
-        {t('tasks.energyLabel', 'Energy required')}
+        <span id={labelId}>{t('tasks.energyLabel', 'Energy required')}</span>
         <TaskHelp topic="energy" />
       </p>
-      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+      <div role="group" aria-labelledby={labelId} style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
         {ENERGY_LEVELS.map((level) => (
           <EnergyChip key={level} level={level} selected={value === level} onSelect={() => onChange(level)} />
         ))}
