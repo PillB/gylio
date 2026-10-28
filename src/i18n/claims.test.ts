@@ -25,9 +25,17 @@ const BANNED: RegExp[] = [
   /\d+ veces m[aá]s probable/i,
 ];
 
-const SHIPPED = ['en', 'es-PE', 'tasks.en', 'tasks.es-PE', 'pricing.en', 'pricing.es-PE', 'shell.en', 'shell.es-PE', 'onboarding.en', 'onboarding.es-PE'];
 const I18N_DIR = path.resolve(__dirname);
 const SRC_DIR = path.resolve(__dirname, '..');
+/** Every catalogue in this folder. i18n.js loads all of them, so all of them are scanned. */
+const CATALOGUES = fs.readdirSync(I18N_DIR).filter((name) => name.endsWith('.json')).map((name) => name.replace(/\.json$/, ''));
+/**
+ * Languages a person has reviewed: English and Peruvian Spanish. The unreviewed drafts (de, fr, hi, id, it, sw, zh)
+ * were stale machine translations that still carried the claims taken out of English ("2–3× more likely", "proven in
+ * 94 studies", "ultradian"), and were deleted on 2026-10-28. A new language starts from the current English, gets a
+ * native speaker's review, and adds its own phrases to BANNED before it joins this list.
+ */
+const REVIEWED = /^(?:[a-z]+\.)?(?:en|es-PE)$/;
 
 const strings = (value: unknown, at: string, out: Array<[string, string]>) => {
   if (typeof value === 'string') out.push([at, value]);
@@ -51,7 +59,13 @@ const sourceFiles = (dir: string): string[] =>
 const withoutComments = (code: string) => code.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"])\/\/.*$/gm, '$1');
 
 describe('claims in the interface', () => {
-  it.each(SHIPPED)('%s.json has no overclaiming phrases', (name) => {
+  it('holds only reviewed languages, all loaded by the app', () => {
+    expect(CATALOGUES.filter((name) => !REVIEWED.test(name))).toEqual([]);
+    const loader = fs.readFileSync(path.join(I18N_DIR, 'i18n.js'), 'utf8');
+    expect(CATALOGUES.filter((name) => !loader.includes(`'./${name}.json'`))).toEqual([]);
+  });
+
+  it.each(CATALOGUES)('%s.json has no overclaiming phrases', (name) => {
     const data = JSON.parse(fs.readFileSync(path.join(I18N_DIR, `${name}.json`), 'utf8'));
     expect(offending(strings(data, '', []))).toEqual([]);
   });
