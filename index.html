@@ -99,6 +99,29 @@
         padding: 0 8px;
         text-underline-offset: 3px;
       }
+      .legal-footer {
+        width: min(1100px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 18px 0 max(22px, env(safe-area-inset-bottom));
+        border-top: 1px solid #D9D7D0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px 18px;
+        flex-wrap: wrap;
+        font-size: 0.8125rem;
+      }
+      .legal-footer a {
+        color: #4F46E5;
+        font-weight: 600;
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        padding: 0 8px;
+        text-underline-offset: 3px;
+      }
+      .legal-table-wrap { overflow-x: auto; margin: 0 0 1em; }
+      .legal-table-wrap th, .legal-table-wrap td { text-align: start; vertical-align: top; padding: 6px 10px; border: 1px solid #D9D7D0; }
       @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
       /* iOS momentum scrolling for any overflow container */
       [data-scroll] {
