@@ -25,6 +25,11 @@ describe('buildCsp', () => {
     expect(buildCsp({ adsense: true })).toContain('https://pagead2.googlesyndication.com');
   });
 
+  it('loads fonts and styles from the app itself, not a font service', () => {
+    expect(directive(csp, 'font-src')).toEqual(["'self'", 'data:']);
+    expect(csp).not.toMatch(/fonts\.(googleapis|gstatic)\.com/);
+  });
+
   it('never loosens the defaults', () => {
     expect(directive(csp, 'object-src')).toEqual(["'none'"]);
     expect(directive(csp, 'default-src')).toEqual(["'self'"]);

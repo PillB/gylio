@@ -111,12 +111,12 @@ const spacing = {
 
 const typography = {
   body: {
-    family: "'Inter', 'Open Sans', system-ui, sans-serif",
+    family: "'Inter', system-ui, sans-serif",
     size: 16,
     lineHeight: 1.6,
   },
   heading: {
-    family: "'Inter', 'Open Sans', system-ui, sans-serif",
+    family: "'Inter', system-ui, sans-serif",
     weight: 700,
   },
 };

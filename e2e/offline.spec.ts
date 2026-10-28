@@ -4,7 +4,8 @@
  * The service worker cached only the start page: it read the web app manifest as if it were the build's file
  * list, and the scripts it did store were missed on lookup because the server answers `Vary: Origin`. Once
  * offline, every screen was blank. This opens the app once online, as a first visit, then goes offline and
- * opens screens that were never visited.
+ * opens screens that were never visited. The app's typeface used to come from Google Fonts, which the worker
+ * never cached, so offline text fell back to the system font; it is bundled now (src/styles/fonts.css).
  */
 import { test, expect } from '@playwright/test';
 import { builtSiteUrl } from './helpers/builtSite';
@@ -12,6 +13,11 @@ import { builtSiteUrl } from './helpers/builtSite';
 test.use({ serviceWorkers: 'allow' });
 
 test('opens screens never visited before, with no connection, after one online visit', async ({ page, context }) => {
+  const fontHosts: string[] = [];
+  page.on('request', (request) => {
+    const host = new URL(request.url()).host;
+    if (/fonts\.(googleapis|gstatic)\.com$/.test(host)) fontHosts.push(host);
+  });
   await page.addInitScript(() => {
     localStorage.setItem(
       'onboardingFlowState',
@@ -47,4 +53,9 @@ test('opens screens never visited before, with no connection, after one online v
     await expect(page.getByRole('navigation').getByRole('button', { name: landmark })).toBeVisible();
     await expect(page.getByRole('main')).not.toBeEmpty();
   }
+
+  // The typeface comes from the app's own cache, not a font service: the text keeps Inter offline.
+  const faces = await page.evaluate(async () => (await document.fonts.load('600 16px Inter', 'Plan')).map((face) => face.status));
+  expect(faces).toEqual(['loaded']);
+  expect(fontHosts).toEqual([]);
 });

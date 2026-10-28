@@ -1,5 +1,6 @@
 // First: finishes "remove my data from this device" before anything below reads storage.
 import './core/account/removeOnStart';
+import './styles/fonts.css';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { I18nextProvider } from 'react-i18next';
