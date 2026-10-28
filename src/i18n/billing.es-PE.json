@@ -1,7 +1,11 @@
 {
   "heading": "Precios simples y honestos",
-  "subheading": "Con el plan gratis tu día sigue funcionando y guardado en tu cuenta. Pro suma rutinas ilimitadas, apoyo social, ayuda con IA y cero anuncios.",
+  "subheading": "Con el plan gratis tu día sigue funcionando. Pro suma rutinas ilimitadas, apoyo social, ayuda con IA y cero anuncios.",
   "fineprint": "Cancela cuando quieras en un paso. Si cancelas, Pro sigue activo hasta el final del periodo que pagaste, y tus datos se quedan contigo en el plan gratis.",
+  "planned": {
+    "subheading": "Todo lo del plan gratis ya es tuyo, sin costo. Pro todavía no está a la venta: estos son los planes y precios que pensamos ofrecer, y pueden cambiar.",
+    "notYet": "Todavía no está a la venta"
+  },
   "error": {
     "generic": "Algo salió mal. Inténtalo de nuevo.",
     "checkoutNotConfigured": "El pago aún no está disponible. Vuelve a intentarlo pronto.",
@@ -41,8 +45,8 @@
     "budget": "Presupuesto base cero",
     "rewards": "Recompensas, rachas e insignias",
     "routines": "Hasta {{count}} rutinas",
-    "ads": "Un anuncio pequeño en Ajustes y en la página de pruebas",
-    "sync": "Guardado en tu cuenta, en todos tus dispositivos"
+    "ads": "Un anuncio pequeño en algunas páginas tranquilas, nunca junto a tus tareas, calendario, presupuesto o rutinas",
+    "sync": "Tareas, calendario y presupuesto guardados en tu cuenta, en todos tus dispositivos"
   },
   "pro": {
     "name": "Pro",

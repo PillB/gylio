@@ -1,6 +1,6 @@
 /** Pricing behaviour the review found broken, checked through the real page. */
 import React from 'react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import '../../i18n/i18n.js';
@@ -10,7 +10,8 @@ const auth = { userId: 'user_1' as string | null, authLoaded: true };
 vi.mock('../../core/context/AuthContext', () => ({ useAppAuth: () => auth }));
 const entitlementState = { entitlement: null as unknown, setEntitlement: vi.fn(), refresh: vi.fn() };
 vi.mock('../billing/EntitlementContext', () => ({ useEntitlement: () => entitlementState }));
-vi.mock('../../core/analytics', () => ({ track: vi.fn() }));
+const track = vi.hoisted(() => vi.fn());
+vi.mock('../../core/analytics', () => ({ track }));
 const api = vi.hoisted(() => ({ startTrial: vi.fn(), plans: vi.fn(), portal: vi.fn() }));
 vi.mock('../billing/billingApi', async (orig) => ({ ...(await orig<typeof import('../billing/billingApi')>()), billingApi: api }));
 
@@ -18,7 +19,8 @@ import { ThemeProvider } from '../../core/context/ThemeContext';
 import { ApiRequestError } from '../billing/billingApi';
 import PricingPage from './PricingPage';
 
-afterEach(() => { cleanup(); vi.clearAllMocks(); });
+beforeEach(() => { vi.stubEnv('VITE_BILLING_ENABLED', 'true'); });
+afterEach(() => { cleanup(); vi.clearAllMocks(); vi.unstubAllEnvs(); });
 
 const renderPage = async (url = '/pricing') => {
   render(<ThemeProvider><MemoryRouter initialEntries={[url]}><PricingPage /></MemoryRouter></ThemeProvider>);
@@ -79,5 +81,54 @@ describe('PricingPage', () => {
     await renderPage();
     expect((await screen.findByRole('status')).textContent).toMatch(/Payment received/);
     expect(window.location.search).toBe('');
+  });
+});
+
+describe('PricingPage where Pro is not on sale yet (billing off)', () => {
+  beforeEach(() => { vi.stubEnv('VITE_BILLING_ENABLED', 'false'); });
+
+  it('shows the planned plans and prices, says Pro is not on sale, and offers nothing to buy', async () => {
+    await i18n.changeLanguage('en');
+    for (const userId of [null, 'user_1']) {
+      auth.userId = userId;
+      entitlementState.entitlement = userId ? entitlement({}) : null;
+      await renderPage();
+      expect(screen.getByText(/Pro isn't on sale yet: these are the plans and prices we intend to offer/)).toBeTruthy();
+      expect(screen.getByText('Not on sale yet')).toBeTruthy();
+      expect(screen.getByRole('region', { name: /^Pro/ }).textContent).toMatch(/\$6\.99|S\/\s?14\.90/);
+      // No trial, subscribe, sign-up or pass buttons, and no cancelling terms.
+      expect(screen.queryAllByRole('button')).toEqual([]);
+      expect(screen.queryByText(/Cancel anytime/)).toBeNull();
+      cleanup();
+    }
+    auth.userId = 'user_1';
+    expect(track).toHaveBeenCalledWith('paywall_viewed', expect.objectContaining({ selling: false }));
+  });
+
+  it('lists account saving only where this build saves to an account, and no ads where none run', async () => {
+    await i18n.changeLanguage('en');
+    entitlementState.entitlement = entitlement({});
+    vi.stubEnv('VITE_SYNC_ENABLED', 'false');
+    await renderPage();
+    const free = () => screen.getByRole('region', { name: 'Free' }).textContent ?? '';
+    expect(free()).not.toContain('saved to your account');
+    expect(free()).not.toContain('A small ad');
+    cleanup();
+    vi.stubEnv('VITE_SYNC_ENABLED', 'true');
+    await renderPage();
+    expect(free()).toContain('Tasks, calendar and budget saved to your account, on all your devices');
+  });
+
+  it('lists the small ad where ads run beside Pro, and not where ads are switched off', async () => {
+    await i18n.changeLanguage('en');
+    vi.stubEnv('VITE_BILLING_ENABLED', 'true');
+    vi.stubEnv('VITE_ADS_PROVIDER', 'house');
+    entitlementState.entitlement = entitlement({});
+    await renderPage();
+    expect(screen.getByRole('region', { name: 'Free' }).textContent).toContain('A small ad on a few quiet pages');
+    cleanup();
+    vi.stubEnv('VITE_ADS_PROVIDER', 'off');
+    await renderPage();
+    expect(screen.getByRole('region', { name: 'Free' }).textContent).not.toContain('A small ad');
   });
 });

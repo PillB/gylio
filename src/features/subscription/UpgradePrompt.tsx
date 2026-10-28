@@ -1,11 +1,13 @@
 /**
  * UpgradePrompt
  *
- * Shown in-place when a free user tries to access a premium feature.
- * Encourages starting the 10-day trial with a gentle, non-punitive CTA.
+ * Shown in place when a free user opens a Pro feature. Where Pro can be bought it
+ * offers the trial with a gentle, non-punitive CTA and the price from the same
+ * catalogue as the pricing page. Where it can't (billing off: serverFeatures.ts)
+ * it says so plainly and offers nothing to buy.
  *
  * Optional props:
- *   outcomes        – up to ~3 concrete benefits the user gains with premium
+ *   outcomes        – up to ~3 concrete benefits the user gains with Pro
  *   freeAlternative – what they can still do without upgrading (calm framing)
  *   onTryOnce       – when provided, surfaces a one-shot "try this once, free"
  *                     button; the token is stored in localStorage so it only
@@ -16,6 +18,9 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../core/context/ThemeContext';
 import { track, Events } from '../../core/analytics';
+import { serverFeaturesEnabled } from '../../core/utils/serverFeatures';
+import { FALLBACK_CATALOG } from '../billing/billingApi';
+import { currencyForLocale, formatMoney } from '../billing/formatMoney';
 
 // ── try-once token helpers ────────────────────────────────────────────────────
 
@@ -43,7 +48,7 @@ function markTryOnceUsed(featureName: string): void {
 type Props = {
   featureName: string;
   compact?: boolean;
-  /** 2–3 concrete things the user gains with premium (optional). */
+  /** 2–3 concrete things the user gains with Pro (optional). */
   outcomes?: string[];
   /** What the user can still do without upgrading (optional, calm framing). */
   freeAlternative?: string;
@@ -75,6 +80,7 @@ export const UpgradePrompt: React.FC<Props> = ({
       hasOutcomes: Boolean(outcomes?.length),
       hasFreeAlternative: Boolean(freeAlternative),
       tryOnceAvailable,
+      selling: serverFeaturesEnabled(),
     });
     // Only fire once per mount; featureName is the stable identity.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -97,7 +103,7 @@ export const UpgradePrompt: React.FC<Props> = ({
     if (!outcomes?.length) return null;
     return (
       <ul
-        aria-label={t('upgrade.outcomesListAria', 'What you gain with premium')}
+        aria-label={t('upgrade.outcomesListAria', 'What you gain with Pro')}
         style={{
           margin: 0,
           padding: 0,
@@ -191,9 +197,9 @@ export const UpgradePrompt: React.FC<Props> = ({
         {/* Badge */}
         <span
           style={{ fontSize: '0.75rem', color: theme.colors.primary, fontWeight: 600 }}
-          aria-label={t('upgrade.premiumBadgeAria', 'Premium feature')}
+          aria-label={t('upgrade.premiumBadgeAria', 'Pro feature')}
         >
-          {t('upgrade.premiumBadge', '✦ Premium')}
+          {t('upgrade.premiumBadge', '✦ Pro')}
         </span>
 
         {/* First outcome as a one-liner hint */}
@@ -224,23 +230,7 @@ export const UpgradePrompt: React.FC<Props> = ({
           </button>
         )}
 
-        {/* Primary CTA */}
-        <button
-          type="button"
-          onClick={handleUpgradeClick}
-          style={{
-            fontSize: '0.75rem',
-            padding: `2px ${theme.spacing.xs}px`,
-            borderRadius: theme.shape.radiusFull,
-            background: theme.colors.primary,
-            color: theme.colors.primaryForeground,
-            border: 'none',
-            fontWeight: 600,
-            cursor: 'pointer',
-          }}
-        >
-          {t('upgrade.tryFree', 'Try free')}
-        </button>
+        <CompactUpgradeButton onUpgrade={handleUpgradeClick} />
       </div>
     );
   }
@@ -297,13 +287,10 @@ export const UpgradePrompt: React.FC<Props> = ({
             fontSize: '1.125rem',
           }}
         >
-          {t('upgrade.title', '{{feature}} is a premium feature', { feature: featureName })}
+          {t('upgrade.title', '{{feature}} is part of Pro', { feature: featureName })}
         </h2>
         <p style={{ margin: 0, color: theme.colors.muted, fontSize: '0.9375rem', lineHeight: 1.5 }}>
-          {t(
-            'upgrade.subtitle',
-            'This feature is part of Gylio Premium. Start a 10-day free trial — no pressure, cancel any time.',
-          )}
+          <UpgradeSubtitle />
         </p>
       </div>
 
@@ -338,13 +325,59 @@ export const UpgradePrompt: React.FC<Props> = ({
       {/* Free alternative note */}
       <FreeAlternativeNote />
 
-      {/* CTA row */}
-      <div style={{ display: 'flex', gap: theme.spacing.sm, flexWrap: 'wrap', justifyContent: 'center', width: '100%' }}>
-        <TryOnceButton />
+      {/* CTA row and price, only where Pro can be bought */}
+      <UpgradeActions tryOnce={<TryOnceButton />} onUpgrade={handleUpgradeClick} />
+    </div>
+  );
+};
 
+/** The trial offer where Pro can be bought; otherwise that Pro isn't on sale yet (serverFeatures.ts). */
+function UpgradeSubtitle() {
+  const { t } = useTranslation();
+  return <>{serverFeaturesEnabled() ? t('upgrade.subtitle', { days: FALLBACK_CATALOG.trialDays }) : t('upgrade.notOnSale')}</>;
+}
+
+/** The compact prompt's "Try free", only where Pro can be bought. */
+function CompactUpgradeButton({ onUpgrade }: { onUpgrade: () => void }) {
+  const { t } = useTranslation();
+  const { theme } = useTheme();
+  if (!serverFeaturesEnabled()) return null;
+  return (
+    <button
+      type="button"
+      onClick={onUpgrade}
+      style={{
+        fontSize: '0.75rem',
+        padding: `2px ${theme.spacing.xs}px`,
+        borderRadius: theme.shape.radiusFull,
+        background: theme.colors.primary,
+        color: theme.colors.primaryForeground,
+        border: 'none',
+        fontWeight: 600,
+        cursor: 'pointer',
+      }}
+    >
+      {t('upgrade.tryFree', 'Try free')}
+    </button>
+  );
+}
+
+/** Start the trial, see plans, and the price, from the same catalogue as the pricing page. Nothing where Pro can't be bought. */
+function UpgradeActions({ tryOnce, onUpgrade }: { tryOnce: React.ReactNode; onUpgrade: () => void }) {
+  const { t, i18n } = useTranslation();
+  const { theme } = useTheme();
+  if (!serverFeaturesEnabled()) return null;
+  const currency = currencyForLocale(i18n.language);
+  const monthly = FALLBACK_CATALOG.plans.find((plan) => plan.interval === 'month') ?? FALLBACK_CATALOG.plans[0];
+  const yearly = FALLBACK_CATALOG.plans.find((plan) => plan.interval === 'year') ?? FALLBACK_CATALOG.plans[0];
+  const money = (minor: number) => formatMoney(minor, currency, i18n.language);
+  return (
+    <>
+      <div style={{ display: 'flex', gap: theme.spacing.sm, flexWrap: 'wrap', justifyContent: 'center', width: '100%' }}>
+        {tryOnce}
         <button
           type="button"
-          onClick={handleUpgradeClick}
+          onClick={onUpgrade}
           style={{
             padding: `${theme.spacing.sm}px ${theme.spacing.xl}px`,
             minHeight: '44px',
@@ -359,12 +392,11 @@ export const UpgradePrompt: React.FC<Props> = ({
             flex: '1 1 auto',
           }}
         >
-          {t('upgrade.startTrial', 'Start 10-day free trial')}
+          {t('upgrade.startTrial', { days: FALLBACK_CATALOG.trialDays })}
         </button>
-
         <button
           type="button"
-          onClick={handleUpgradeClick}
+          onClick={onUpgrade}
           style={{
             padding: `${theme.spacing.sm}px ${theme.spacing.lg}px`,
             minHeight: '44px',
@@ -380,42 +412,13 @@ export const UpgradePrompt: React.FC<Props> = ({
           {t('upgrade.seePlans', 'See plans')}
         </button>
       </div>
-
       <p style={{ margin: 0, fontSize: '0.8125rem', color: theme.colors.muted }}>
-        {t('upgrade.pricing', '$12/month · or $10/month billed yearly')}
+        {t('upgrade.price', { monthly: money(monthly.prices[currency]), yearly: money(yearly.prices[currency]) })}
       </p>
-    </div>
+    </>
   );
-};
+}
 
-/*
- * ─── USAGE EXAMPLES FOR EXISTING CONSUMERS ────────────────────────────────
- *
- * ── Social tab ──────────────────────────────────────────────────────────────
- * <UpgradePrompt
- *   featureName="social"
- *   outcomes={[
- *     t('upgrade.social.outcome1', 'Share your streaks and wins with friends'),
- *     t('upgrade.social.outcome2', 'Join accountability groups and group challenges'),
- *   ]}
- *   freeAlternative={t('upgrade.social.freeAlt', 'track your own progress privately')}
- *   onTryOnce={() => navigate('/social?preview=true')}
- * />
- *
- * ── Routines tab ────────────────────────────────────────────────────────────
- * Not gated: routines are free up to a limit, and the screen says so itself
- * (src/features/routines/components/RoutineAllowanceNote.tsx).
- *
- * ── Rewards tab ─────────────────────────────────────────────────────────────
- * <UpgradePrompt
- *   featureName="rewards"
- *   outcomes={[
- *     t('upgrade.rewards.outcome1', 'Create your own custom rewards and milestones'),
- *     t('upgrade.rewards.outcome2', 'Unlock animated celebrations for big achievements'),
- *   ]}
- *   freeAlternative={t('upgrade.rewards.freeAlt', 'earn the three built-in milestone badges')}
- *   onTryOnce={() => dispatch(previewRewardsAction())}
- * />
- */
+// Used by PremiumGate in src/App.jsx, which passes each feature's outcomes and free alternative (PREMIUM_GATE_CONFIG).
 
 export default UpgradePrompt;

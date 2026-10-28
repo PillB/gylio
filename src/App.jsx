@@ -224,10 +224,13 @@ function SubscriptionBadge() {
           letterSpacing: '0.02em',
         }}
       >
-        {t('upgrade.premiumBadge', '✦ Premium')}
+        {t('upgrade.premiumBadge', '✦ Pro')}
       </span>
     );
   }
+
+  // Nothing to sell while Pro can't be bought (serverFeatures.ts): no Upgrade button.
+  if (!serverFeaturesEnabled()) return null;
 
   return (
     <button
@@ -425,10 +428,10 @@ const PREMIUM_GATE_CONFIG = {
   social: (t) => ({
     featureName: t('social.title'),
     outcomes: [
-      t('upgrade.social.outcome1', 'Share your streaks and wins with friends'),
-      t('upgrade.social.outcome2', 'Join accountability groups and group challenges'),
+      t('upgrade.social.outcome1', 'Plan time with people, with an energy level and small steps'),
+      t('upgrade.social.outcome2', 'Get a gentle reminder before each plan'),
     ],
-    freeAlternative: t('upgrade.social.freeAlt', 'track your own progress privately'),
+    freeAlternative: t('upgrade.social.freeAlt', 'add time with people as a task or a calendar event'),
   }),
   rewards: (t) => ({
     featureName: t('rewards.title'),

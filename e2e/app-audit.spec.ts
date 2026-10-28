@@ -114,7 +114,7 @@ test.describe('GYLIO App Visual Audit', () => {
 
     // Routines are free up to a limit (src/features/routines/routineAllowance.ts): a free account gets the editor,
     // with the count of routines in use, and no upgrade prompt.
-    await expect(page.getByRole('region', { name: /upgrade to access this feature/i })).toHaveCount(0);
+    await expect(page.getByRole('region', { name: /a pro feature/i })).toHaveCount(0);
     await expect(page.getByRole('heading', { name: /new routine/i })).toBeVisible();
     await expect(page.getByText(/^0 of [35] routines in use$/)).toBeVisible();
   });
@@ -182,18 +182,25 @@ test.describe('GYLIO App Visual Audit', () => {
     }
   });
 
-  test('13 - Premium social gate links to pricing', async ({ page }) => {
+  test('13 - Social shows the Pro prompt, with the trial only where Pro is on sale', async ({ page }) => {
     await completeOnboardingIfNeeded(page);
     await goto(page, '/social');
     await page.waitForLoadState('networkidle');
 
-    const gate = page.getByRole('region', { name: /upgrade to access this feature/i });
+    const gate = page.getByRole('region', { name: /a pro feature/i });
     await expect(gate).toBeVisible();
+    await page.screenshot({ path: `${SCREENSHOT_DIR}/13-social-pro-prompt.png`, fullPage: true });
+    // The dev server reads the same VITE_BILLING_ENABLED as this process (serverFeatures.ts).
+    if (process.env.VITE_BILLING_ENABLED !== 'true') {
+      await expect(gate).toContainText("which isn't on sale yet");
+      await expect(gate.getByRole('button')).toHaveCount(0);
+      await expect(gate).not.toContainText('$');
+      return;
+    }
     await gate.getByRole('button', { name: /see plans/i }).click();
     await page.waitForLoadState('networkidle');
     await expect(page).toHaveURL(/\/pricing$/);
     await expect(page.getByRole('heading', { name: /simple, honest pricing/i })).toBeVisible();
-    await page.screenshot({ path: `${SCREENSHOT_DIR}/13-pricing-from-social.png`, fullPage: true });
   });
 
   test('14 - Keyboard navigation on tasks', async ({ page }) => {

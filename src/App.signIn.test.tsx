@@ -161,6 +161,22 @@ describe('a build without the full server (the Cloudflare site, GitHub Pages)', 
     expect(screen.getByRole('button', { name: 'Feedback' })).toBeTruthy();
   });
 
+  it('shows no Upgrade button where Pro cannot be bought, and shows it where it can', async () => {
+    const openSignedIn = async () => {
+      localStorage.setItem(OWNER_KEY, 'user_a');
+      Object.assign(auth, { isLoaded: true, isSignedIn: true, userId: 'user_a' });
+      mountApp();
+      await waitFor(() => expect(document.querySelector('#new-task')).not.toBeNull(), { timeout: 3000 });
+    };
+    vi.stubEnv('VITE_BILLING_ENABLED', 'false');
+    await openSignedIn();
+    expect(screen.queryByRole('button', { name: '✦ Upgrade' })).toBeNull();
+    cleanup();
+    vi.stubEnv('VITE_BILLING_ENABLED', 'true');
+    await openSignedIn();
+    expect(await screen.findByRole('button', { name: '✦ Upgrade' })).toBeTruthy();
+  });
+
   it('sends an old link to the report or admin page to Tasks, and opens them in a build with the server', () => {
     vi.stubEnv('VITE_BILLING_ENABLED', 'false');
     const off = serverOnlyRoutes();

@@ -1563,32 +1563,33 @@
     "lastChecked": "Última verificación a las {{time}}"
   },
   "upgrade": {
-    "premiumBadge": "✦ Premium",
-    "premiumBadgeAria": "Función premium",
-    "regionAria": "Mejora tu plan para acceder a esta función",
+    "premiumBadge": "✦ Pro",
+    "premiumBadgeAria": "Función de Pro",
+    "regionAria": "Una función de Pro",
     "iconAria": "Destellos",
-    "title": "{{feature}} es una función premium",
-    "subtitle": "Esta función es parte de Gylio Premium. Comienza con 7 días gratis, sin compromiso y puedes cancelar cuando quieras.",
-    "startTrial": "Comenzar prueba de 7 días",
+    "title": "{{feature}} es parte de Pro",
+    "subtitle": "Esto es parte de Gylio Pro. Empieza una prueba gratis de {{days}} días, sin presión; puedes cancelar cuando quieras.",
+    "startTrial": "Comenzar prueba gratis de {{days}} días",
     "seePlans": "Ver planes",
     "tryFree": "Probar gratis",
     "tryOnce": "Probar esto una vez, gratis",
     "tryOnceAria": "Prueba esto una vez, gratis — {{featureName}}",
     "outcomesHeading": "Lo que podrás hacer",
-    "outcomesListAria": "Qué ganas con Premium",
+    "outcomesListAria": "Lo que ganas con Pro",
     "freeAlternativePrefix": "Por ahora puedes",
-    "pricing": "$12/mes · o $10/mes con facturación anual",
     "social": {
-      "outcome1": "Comparte tus rachas y logros con amigos",
-      "outcome2": "Únete a grupos de apoyo mutuo y retos en equipo",
-      "freeAlt": "registrar tu propio progreso de forma privada"
+      "outcome1": "Planear tiempo con otras personas, con nivel de energía y pasos pequeños",
+      "outcome2": "Recibir un recordatorio amable antes de cada plan",
+      "freeAlt": "añadir el tiempo con otras personas como tarea o evento del calendario"
     },
     "rewards": {
       "outcome1": "Diseña tus propias recompensas e hitos personales",
       "outcome2": "Celebra tus grandes logros con animaciones especiales",
       "freeAlt": "ganar las tres medallas de hitos prediseñadas"
     },
-    "upgradeCta": "✦ Mejorar"
+    "upgradeCta": "✦ Mejorar",
+    "notOnSale": "Esto es parte de Gylio Pro, que todavía no está a la venta. Todo lo demás en Gylio es gratis desde ya.",
+    "price": "{{monthly}} al mes, o {{yearly}} al año"
   },
   "pricing": {
     "heading": "Precios simples y transparentes",
@@ -1796,7 +1797,7 @@
     },
     "navBar": {
       "title": "Tu navegación principal",
-      "content": "Cambia entre Tareas, Calendario, Presupuesto y más usando esta barra. Las funciones marcadas con ✦ están disponibles en el plan Premium."
+      "content": "Cambia entre Tareas, Calendario, Presupuesto y más usando esta barra. Las funciones marcadas con ✦ son parte de Pro."
     },
     "taskInput": {
       "title": "Agrega una tarea",

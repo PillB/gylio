@@ -1,7 +1,11 @@
 {
   "heading": "Simple, honest pricing",
-  "subheading": "Free keeps your daily plan working and saved to your account. Pro adds unlimited routines, social support, AI help and no ads.",
+  "subheading": "Free keeps your daily plan working. Pro adds unlimited routines, social support, AI help and no ads.",
   "fineprint": "Cancel anytime in one step. If you cancel, Pro stays on until the end of the period you paid for, and your data stays yours on the free plan.",
+  "planned": {
+    "subheading": "Everything in Free is yours now, at no cost. Pro isn't on sale yet: these are the plans and prices we intend to offer, and they may change.",
+    "notYet": "Not on sale yet"
+  },
   "error": {
     "generic": "Something went wrong. Please try again.",
     "checkoutNotConfigured": "Checkout isn't available yet. Try again soon.",
@@ -41,8 +45,8 @@
     "budget": "Zero-based budget",
     "rewards": "Rewards, streaks and badges",
     "routines": "Up to {{count}} routines",
-    "ads": "A small ad on the Settings and QA pages",
-    "sync": "Saved to your account, on all your devices"
+    "ads": "A small ad on a few quiet pages, never next to your tasks, calendar, budget or routines",
+    "sync": "Tasks, calendar and budget saved to your account, on all your devices"
   },
   "pro": {
     "name": "Pro",

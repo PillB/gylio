@@ -16,7 +16,10 @@ export async function unlockPremium(page: Page) {
   });
 }
 
-/** Fails if the screen still shows the upgrade prompt, so a premium test cannot pass on the wrong screen. */
+/**
+ * Fails if the screen still shows the Pro prompt, so a premium test cannot pass on the wrong screen. It looks for the
+ * prompt itself: where Pro isn't on sale the prompt has no "See plans" button to look for.
+ */
 export async function expectPremiumScreen(page: Page) {
-  await expect(page.getByRole('button', { name: /^(see plans|ver planes)$/i })).toHaveCount(0);
+  await expect(page.getByRole('region', { name: /^(a pro feature|una función de pro)$/i })).toHaveCount(0);
 }

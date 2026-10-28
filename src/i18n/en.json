@@ -1563,32 +1563,33 @@
     "lastChecked": "Last checked at {{time}}"
   },
   "upgrade": {
-    "premiumBadge": "✦ Premium",
-    "premiumBadgeAria": "Premium feature",
-    "regionAria": "Upgrade to access this feature",
+    "premiumBadge": "✦ Pro",
+    "premiumBadgeAria": "Pro feature",
+    "regionAria": "A Pro feature",
     "iconAria": "Sparkles",
-    "title": "{{feature}} is a premium feature",
-    "subtitle": "This feature is part of Gylio Premium. Start a 7-day free trial — no pressure, cancel any time.",
-    "startTrial": "Start 7-day free trial",
+    "title": "{{feature}} is part of Pro",
+    "subtitle": "This is part of Gylio Pro. Start a {{days}}-day free trial: no pressure, cancel any time.",
+    "startTrial": "Start {{days}}-day free trial",
     "seePlans": "See plans",
     "tryFree": "Try free",
     "tryOnce": "Try this once, free",
     "tryOnceAria": "Try this once, free — {{featureName}}",
     "outcomesHeading": "What you'll be able to do",
-    "outcomesListAria": "What you gain with premium",
+    "outcomesListAria": "What you gain with Pro",
     "freeAlternativePrefix": "You can still",
-    "pricing": "$12/month · or $10/month billed yearly",
     "social": {
-      "outcome1": "Share your streaks and wins with friends",
-      "outcome2": "Join accountability groups and group challenges",
-      "freeAlt": "track your own progress privately"
+      "outcome1": "Plan time with people, with an energy level and small steps",
+      "outcome2": "Get a gentle reminder before each plan",
+      "freeAlt": "add time with people as a task or a calendar event"
     },
     "rewards": {
       "outcome1": "Create your own custom rewards and milestones",
       "outcome2": "Unlock animated celebrations for big achievements",
       "freeAlt": "earn the three built-in milestone badges"
     },
-    "upgradeCta": "✦ Upgrade"
+    "upgradeCta": "✦ Upgrade",
+    "notOnSale": "This is part of Gylio Pro, which isn't on sale yet. Everything else in Gylio is free to use now.",
+    "price": "{{monthly}} a month, or {{yearly}} a year"
   },
   "pricing": {
     "heading": "Simple, honest pricing",
@@ -1796,7 +1797,7 @@
     },
     "navBar": {
       "title": "Your main navigation",
-      "content": "Switch between Tasks, Calendar, Budget, and more using this bar. Features marked with ✦ are available on the Premium plan."
+      "content": "Switch between Tasks, Calendar, Budget, and more using this bar. Features marked with ✦ are part of Pro."
     },
     "taskInput": {
       "title": "Add a task",
