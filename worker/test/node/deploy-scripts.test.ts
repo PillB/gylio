@@ -317,7 +317,7 @@ describe('setup: the token check', () => {
 describe('setup: guards', () => {
   it('stops on a leftover TODO_ placeholder before applying migrations or deploying', async () => {
     const config = path.join(root, 'worker', 'wrangler.jsonc');
-    writeFileSync(config, readFileSync(config, 'utf8').replace('"CLERK_ISSUER": ""', '"CLERK_ISSUER": "TODO_FILL_ME"'));
+    writeFileSync(config, readFileSync(config, 'utf8').replace(/"CLERK_ISSUER": "[^"]*"/, '"CLERK_ISSUER": "TODO_FILL_ME"'));
     const result = await run('setup.sh', { env: creds });
     expect(result.code).toBe(1);
     expect(result.output).toContain('TODO_FILL_ME');
@@ -420,8 +420,7 @@ describe('setup: what the build is given', () => {
   });
 
   it('refuses a key from a different Clerk instance than CLERK_ISSUER names', async () => {
-    const config = path.join(root, 'worker', 'wrangler.jsonc');
-    writeFileSync(config, readFileSync(config, 'utf8').replace('"CLERK_ISSUER": ""', '"CLERK_ISSUER": "https://clerk.gylio.app"'));
+    expect(readFileSync(path.join(root, 'worker', 'wrangler.jsonc'), 'utf8')).toContain('"CLERK_ISSUER": "https://clerk.gylio.app"');
     const other = await run('setup.sh', { env: { ...creds, VITE_CLERK_PUBLISHABLE_KEY: clerkKey('clerk.other.example') } });
     expect(other.code).toBe(1);
     expect(other.output).toContain('same Clerk instance');
