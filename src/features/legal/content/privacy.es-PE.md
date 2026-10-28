@@ -1,6 +1,6 @@
 # Política de Privacidad
 
-En esta Política de Privacidad (“Política”), Gylio y sus entidades afiliadas (“Gylio”, “nosotros”, “nos” o “nuestro”) establecen cómo nosotros, como responsable del tratamiento de los datos, podemos recopilar, crear, compartir y utilizar información personal relativa a personas identificables (“Datos Personales”), otros detalles relativos al uso de los Servicios e información que recopilamos directamente relacionada con su uso del software de Gylio (conjuntamente “Datos del Usuario”).
+En esta Política de Privacidad (“Política”), Pablo Illescas y sus entidades afiliadas (“Gylio”, “nosotros”, “nos” o “nuestro”) establecen cómo nosotros, como responsable del tratamiento de los datos, podemos recopilar, crear, compartir y utilizar información personal relativa a personas identificables (“Datos Personales”), otros detalles relativos al uso de los Servicios e información que recopilamos directamente relacionada con su uso del software de Gylio (conjuntamente “Datos del Usuario”).
 
 Esta Política de Privacidad está integrada en los [Términos del Servicio](/terms) y forma parte de ellos, y al continuar utilizando los Servicios, usted acepta tanto esta Política de Privacidad como los Términos del Servicio.
 

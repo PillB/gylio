@@ -26,6 +26,10 @@ describe('legal documents', () => {
     expect(es.match(/\(\/(terms|privacy)\)/g)).toEqual(en.match(/\(\/(terms|privacy)\)/g));
   });
 
+  it('names the data holder in the Privacy Policy in both languages (the deploy gate greps for it)', () => {
+    for (const lang of LANGS) expect(textOf('privacy', lang)).toContain('Pablo Illescas');
+  });
+
   it('names Paddle and Mercado Pago as payment processors in both languages', () => {
     for (const lang of LANGS) expect(textOf('terms', lang)).toMatch(/Paddle (and|y) Mercado Pago/);
   });

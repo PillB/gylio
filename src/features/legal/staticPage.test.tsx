@@ -13,6 +13,10 @@ describe('staticLegalPage', () => {
     expect(html).not.toMatch(/<script|onclick|javascript:/i);
   });
 
+  it('puts the holder name in the built privacy page', () => {
+    expect(staticLegalPage('privacy', source('privacy'), '/')).toContain('Pablo Illescas');
+  });
+
   it('keeps names with markdown-sensitive characters readable and escapes markup', () => {
     const html = staticLegalPage('terms', { es: '# A <b>&', en: '# B' }, '/');
     expect(html).toContain('<h1>A &lt;b&gt;&amp;</h1>');

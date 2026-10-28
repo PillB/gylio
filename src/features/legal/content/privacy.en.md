@@ -1,6 +1,6 @@
 # Privacy Policy
 
-In this Privacy Policy (“Policy”), Gylio and its affiliated entities (“Gylio”, “we,” “us”, or “our”) set out how we, as data controller, may collect, create, share, and use personal information relating to identifiable individuals (“Personal Data”), other details regarding the use of the Services, and information we collect directly related to your use of the Gylio software (together “User Data”).
+In this Privacy Policy (“Policy”), Pablo Illescas and its affiliated entities (“Gylio”, “we,” “us”, or “our”) set out how we, as data controller, may collect, create, share, and use personal information relating to identifiable individuals (“Personal Data”), other details regarding the use of the Services, and information we collect directly related to your use of the Gylio software (together “User Data”).
 
 This Privacy Policy is integrated into and made part of the [Terms of Service](/terms) and by continuing to use the Services, you agree to both this Privacy Policy and the Terms of Service.
 

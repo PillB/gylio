@@ -59,6 +59,9 @@ else:
     sub('/policy/privacy', '/privacy')
     sub('(/privacy)', '(/privacy)')
 
+HOLDER = 'Pablo Illescas'  # change 11: data holder named in the Privacy Policy only
+if kind == 'privacy':
+    t = t.replace('{{CompanyLegalName}}', HOLDER)
 for ph, v in [('{{CompanyLegalName}}','Gylio'),('{{CompanyName}}','Gylio'),('{{AppName}}','Gylio'),('{{WebsiteName}}','Gylio'),
               ('{{PolicyEmail}}','support@gylio.app'),('{{SupportEmail}}','support@gylio.app'),('{{CopyrightEmail}}','support@gylio.app')]:
     t = t.replace(ph, v)

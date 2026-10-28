@@ -22,6 +22,9 @@ each was approved by the owner one at a time:
 9. All `<!-- ... -->` template comments removed.
 10. Counter-notice court wording: "the courts of Lima, Peru" in place of the US court / "District of {{YourState}}".
 
+11. The data holder named in the first sentence of the Privacy Policy (English and Spanish) is "Pablo Illescas",
+    the exact text of the deploy holder file, so the sign-up gate can match it. The Terms still say "Gylio".
+
 Smallest consequential edits, also listed for review: "Discord bot" became "app"; "bot and website"
 and "bot or website" lost the word "bot"; one clause about posting to "a public Discord server" was removed.
 Upstream has an unclosed comment in the counter-notice clause, which the script repairs.
