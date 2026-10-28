@@ -1,4 +1,5 @@
-try { require('dotenv').config({ path: require('path').join(__dirname, '.env') }); } catch (_) {}
+// Local configuration: `npm start` loads server/.env with Node's built-in --env-file-if-exists.
+// (dotenv was never installed, so the old require silently loaded nothing.)
 
 const express = require('express');
 const cors = require('cors');
@@ -12,17 +13,25 @@ const budgetsRouter = require('./routes/budgets');
 const transactionsRouter = require('./routes/transactions');
 const debtsRouter = require('./routes/debts');
 const aiRouter = require('./routes/ai');
-const billingRouter = require('./routes/billing');
+const { createBillingRouter, publicBillingRouter } = require('./routes/billing');
+const { createWebhookRouter } = require('./routes/webhooks');
+const { createAdminRouter } = require('./routes/admin');
+const { createFeedbackRouter } = require('./routes/feedback');
+const { createStateRouter } = require('./routes/state');
+const { createAnalyticsRouter } = require('./routes/analytics');
+const { initBilling, getBillingService } = require('./billing');
 
 const { sqlite } = require('./db/sqliteClient');
 const { ensureSqliteSchema } = require('./lib/sqlite');
 const { notFoundHandler, errorHandler } = require('./middleware/errorHandler');
-const { requireAuth, requirePlan } = require('./middleware/auth');
-const { authRateLimit, mutationRateLimit } = require('./middleware/rateLimit');
+const { requireAuth, optionalAuth, requireAdmin, requirePro } = require('./middleware/auth');
+const { authRateLimit, mutationRateLimit, feedbackRateLimit, analyticsRateLimit } = require('./middleware/rateLimit');
 
 // Startup env-var checks
 const requiredEnvVars = [
-  { name: 'CLERK_SECRET_KEY',  feature: 'billing API (trial activation/cancel)' },
+  { name: 'CLERK_SECRET_KEY',  feature: 'gift-by-email and admin email lookups' },
+  { name: 'ADMIN_USER_IDS',    feature: 'admin console (Pro gifts, QA inbox)' },
+  { name: 'PADDLE_API_KEY',    feature: 'subscription checkout' },
   { name: 'CLERK_JWKS_URL',    feature: 'JWT verification' },
   { name: 'CLERK_ISSUER',      feature: 'JWT verification' },
 ];
@@ -40,19 +49,7 @@ if (!process.env.CLERK_ISSUER) {
   console.warn('CLERK_ISSUER not set. Protected API routes will return AUTH_NOT_CONFIGURED.');
 }
 
-const configuredOrigins = (process.env.CORS_ORIGINS || '')
-  .split(',')
-  .map((value) => value.trim())
-  .filter(Boolean);
-
-const developmentOrigins = ['http://localhost:5173', 'http://127.0.0.1:5173'];
-const allowedOrigins = new Set(
-  configuredOrigins.length > 0
-    ? configuredOrigins
-    : process.env.NODE_ENV === 'production'
-      ? []
-      : developmentOrigins
-);
+const allowedOrigins = require('./lib/origins').allowedOrigins();
 
 const app = express();
 app.set('trust proxy', 1);
@@ -80,6 +77,11 @@ app.use(
     maxAge: 600,
   })
 );
+// Webhooks verify an HMAC over the exact bytes received, so they are mounted
+// before the JSON parser and read the body raw.
+app.use('/api/webhooks', createWebhookRouter());
+// Saved app snapshots can exceed the default limit, so this route parses its own body.
+app.use('/api/state', requireAuth, mutationRateLimit, createStateRouter());
 app.use(express.json({ limit: '256kb' }));
 
 const mongoUri = (process.env.MONGODB_URI || '').trim();
@@ -100,6 +102,7 @@ async function initializePersistence() {
     await mongoose.connect(mongoUri, {
       serverSelectionTimeoutMS: 10_000,
     });
+    await initBilling('mongodb');
     persistenceReady = true;
     console.log('Connected to MongoDB');
     return;
@@ -110,6 +113,7 @@ async function initializePersistence() {
   }
 
   await ensureSqliteSchema(sqlite);
+  await initBilling('sqlite');
   persistenceReady = true;
   console.log('SQLite schema is ready (development/local mode)');
 }
@@ -127,6 +131,8 @@ app.get('/api/health', (_req, res) => {
     status: databaseReady ? 'ok' : 'degraded',
     authConfigured: Boolean(process.env.CLERK_ISSUER),
     aiConfigured: Boolean(process.env.OPENAI_API_KEY),
+    paddleConfigured: Boolean(process.env.PADDLE_API_KEY && process.env.PADDLE_WEBHOOK_SECRET),
+    mercadoPagoConfigured: Boolean(process.env.MERCADOPAGO_ACCESS_TOKEN && process.env.MERCADOPAGO_WEBHOOK_SECRET),
     database: persistenceMode,
     databaseReady,
   });
@@ -140,8 +146,12 @@ app.use('/api/budgets',      requireAuth, budgetsRouter);
 app.use('/api/budget',       requireAuth, budgetsRouter);
 app.use('/api/transactions', requireAuth, transactionsRouter);
 app.use('/api/debts',        requireAuth, debtsRouter);
-app.use('/api/ai',           requireAuth, requirePlan('user_subscription'), mutationRateLimit, aiRouter);
-app.use('/api/billing',      requireAuth, billingRouter);
+app.use('/api/ai',           requireAuth, mutationRateLimit, requirePro(getBillingService), aiRouter);
+app.use('/api/billing',      publicBillingRouter);
+app.use('/api/billing',      requireAuth, mutationRateLimit, createBillingRouter());
+app.use('/api/feedback',     optionalAuth, createFeedbackRouter({ rateLimit: feedbackRateLimit }));
+app.use('/api/analytics',    optionalAuth, createAnalyticsRouter({ rateLimit: analyticsRateLimit }));
+app.use('/api/admin',        requireAuth, requireAdmin, createAdminRouter());
 
 app.use(notFoundHandler);
 app.use(errorHandler);

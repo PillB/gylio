@@ -3,6 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { buildCsp } from './csp.config.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -35,6 +36,25 @@ const applyDeploymentGuideShippingFixes = (html) => {
  * After build, apply the identical mobile-containment fix to the standalone
  * copied HTML in dist/ so the exact artifact deployed by Pages is validated.
  */
+/** Fills the CSP meta tag from the build's own environment (see csp.config.js). */
+const contentSecurityPolicy = () => {
+  let env: Record<string, string> = {};
+  return {
+    name: 'gylio-content-security-policy',
+    configResolved(config) {
+      env = config.env;
+    },
+    transformIndexHtml(html: string) {
+      const csp = buildCsp({
+        apiBaseUrl: env.VITE_API_BASE_URL,
+        clerkPublishableKey: env.VITE_CLERK_PUBLISHABLE_KEY,
+        adsense: env.VITE_ADS_PROVIDER === 'adsense',
+      });
+      return html.replace('__GYLIO_CSP__', csp);
+    },
+  };
+};
+
 const deploymentGuidePublicBaseBridge = () => ({
   name: 'deployment-guide-public-base-bridge',
   configureServer(server) {
@@ -91,7 +111,7 @@ export default defineConfig(({ mode }) => {
 
   return {
   base,
-  plugins: [react(), deploymentGuidePublicBaseBridge()],
+  plugins: [react(), contentSecurityPolicy(), deploymentGuidePublicBaseBridge()],
   build: {
     manifest: true,
     rollupOptions: {

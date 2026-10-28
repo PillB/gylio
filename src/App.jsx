@@ -41,6 +41,20 @@ import TourFlowSelector from './components/TourFlowSelector';
 import { useGuidedTour } from './core/context/GuidedTourContext';
 import { useDailyMode } from './features/dashboard/useDailyMode';
 import DailyCommandCenter from './features/dashboard/DailyCommandCenter';
+import { EntitlementProvider } from './features/billing/EntitlementContext';
+import TrialBanner from './features/billing/TrialBanner';
+import FeedbackButton from './features/feedback/FeedbackButton';
+import QaPage from './features/feedback/QaPage';
+import AdminPage from './features/admin/AdminPage';
+import { installErrorCapture } from './features/feedback/diagnostics';
+import { startAnalyticsUpload } from './core/analytics/upload';
+import { AccountSyncProvider } from './features/account/AccountSyncContext';
+import SyncConflictBanner from './features/account/SyncConflictBanner';
+
+// Phones reach feedback from Settings → Report a bug or idea, so the header stays one line.
+function HeaderFeedback({ isOnboarding, isMobile }) {
+  return isOnboarding || isMobile ? null : <FeedbackButton />;
+}
 
 function AppHeader({ clerkEnabled }) {
   const { t } = useTranslation();
@@ -127,6 +141,8 @@ function AppHeader({ clerkEnabled }) {
           </button>
         )}
         <LanguageToggle placement="header" />
+        {/* Phones reach feedback from Settings → Report a bug or idea; the header stays one line. */}
+        <HeaderFeedback isOnboarding={isOnboarding} isMobile={isMobile} />
         {/* Hidden on mobile — accessible from Settings */}
         {!isOnboarding && (
           <button
@@ -239,6 +255,8 @@ function AppLayout({ clerkEnabled }) {
         }}
       >
         <AppHeader clerkEnabled={clerkEnabled} />
+        {/* On every screen, onboarding included: a new device must see the choice before redoing setup. */}
+        <SyncConflictBanner />
         <Outlet />
       </div>
       <GuidedTourOverlay />
@@ -365,11 +383,13 @@ function TabsLayout() {
       />
       <main>
         <WelcomeBackBanner />
+        <TrialBanner />
         <Outlet />
       </main>
     </div>
   );
 }
+
 
 // --- Premium gate ---
 
@@ -455,6 +475,8 @@ function buildAuthRouter(clerkEnabled) {
             element: clerkEnabled ? <ProtectedLayoutAuthed /> : <ProtectedLayoutNoAuth />,
             children: [
               { path: 'onboarding', element: <OnboardingRoute /> },
+              { path: 'qa', element: <QaPage /> },
+              { path: 'admin', element: <AdminPage /> },
               {
                 element: <TabsLayout />,
                 children: [
@@ -480,7 +502,11 @@ function AppRouterAuthed() {
   if (!hydrated) return null;
   return (
     <AuthProvider clerkEnabled={true}>
-      <RouterProvider router={router} future={{ v7_startTransition: true }} />
+      <EntitlementProvider>
+        <AccountSyncProvider>
+          <RouterProvider router={router} future={{ v7_startTransition: true }} />
+        </AccountSyncProvider>
+      </EntitlementProvider>
     </AuthProvider>
   );
 }
@@ -491,17 +517,30 @@ function AppRouterNoAuth() {
   if (!hydrated) return null;
   return (
     <AuthProvider clerkEnabled={false}>
-      <RouterProvider router={router} future={{ v7_startTransition: true }} />
+      <EntitlementProvider>
+        <AccountSyncProvider>
+          <RouterProvider router={router} future={{ v7_startTransition: true }} />
+        </AccountSyncProvider>
+      </EntitlementProvider>
     </AuthProvider>
   );
 }
+
+let appOpenTracked = false;
 
 export default function App({ clerkEnabled = false }) {
   const { paperTheme } = useTheme();
   useBackgroundSync();
 
   React.useEffect(() => {
-    track(Events.APP_OPEN, { clerkEnabled });
+    installErrorCapture();
+    // Once per page load. StrictMode runs effects twice in development, which
+    // double-counted app_open on the analytics dashboard.
+    if (!appOpenTracked) {
+      appOpenTracked = true;
+      track(Events.APP_OPEN, { clerkEnabled });
+    }
+    return startAnalyticsUpload();
   }, [clerkEnabled]);
 
   if (!clerkEnabled) {

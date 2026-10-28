@@ -11,6 +11,10 @@
  */
 
 export type AnalyticsEvent = {
+  /** Unique per event, so a re-sent upload is stored once on the server. */
+  id?: string;
+  /** Whether someone was signed in when it happened (the upload may run before sign-in loads). */
+  signedIn?: boolean;
   name: string;
   props?: Record<string, unknown>;
   ts: number; // epoch ms
@@ -57,8 +61,31 @@ function writeQueue(events: AnalyticsEvent[]): void {
 
 // ── Core track function ────────────────────────────────────────────────────
 
+function newEventId(): string {
+  try {
+    return crypto.randomUUID();
+  } catch {
+    return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
+  }
+}
+
+function isSignedIn(): boolean {
+  try {
+    return Boolean((window as unknown as { Clerk?: { user?: unknown } }).Clerk?.user);
+  } catch {
+    return false;
+  }
+}
+
 export function track(name: string, props?: Record<string, unknown>): void {
-  const event: AnalyticsEvent = { name, props, ts: Date.now(), sessionId: getSessionId() };
+  const event: AnalyticsEvent = {
+    id: newEventId(),
+    signedIn: isSignedIn(),
+    name,
+    props,
+    ts: Date.now(),
+    sessionId: getSessionId(),
+  };
 
   // In development, log to console for observability.
   if (import.meta.env.DEV) {
@@ -69,10 +96,9 @@ export function track(name: string, props?: Record<string, unknown>): void {
   queue.push(event);
   writeQueue(queue);
 
-  // TODO: swap flush() below for your real provider, e.g.:
-  //   posthog.capture(name, props);
-  //   amplitude.track(name, props);
-  //   mixpanel.track(name, props);
+  // Delivery: upload.ts drains this queue to the Gylio API (POST
+  // /api/analytics/events) every 20s and on page hide when the build has a
+  // backend (VITE_BILLING_ENABLED=true). Static previews keep events local.
 }
 
 // ── Flush (call periodically or on page hide) ─────────────────────────────

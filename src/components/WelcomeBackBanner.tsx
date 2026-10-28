@@ -10,7 +10,7 @@
  *                   button is only rendered when this prop is provided
  */
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../core/context/ThemeContext';
 import { track, Events } from '../core/analytics';
@@ -47,6 +47,9 @@ export default function WelcomeBackBanner({ onFreshStart, onTinyStep }: Props) {
   const [gapDays, setGapDays]     = useState(0);
   const [msgIndex, setMsgIndex]   = useState(0);
   const [lastStreak, setLastStreak] = useState<number | null>(null);
+  // StrictMode re-runs effects on the same instance in development; a ref survives that re-run,
+  // so the event fires once per real mount (a module flag would also silence later mounts).
+  const trackedRef = useRef(false);
 
   useEffect(() => {
     const today      = todayISO();
@@ -69,10 +72,13 @@ export default function WelcomeBackBanner({ onFreshStart, onTinyStep }: Props) {
       setMsgIndex(Math.floor(Math.random() * MESSAGE_COUNT));
       if (parsed !== null && parsed > 0) setLastStreak(parsed);
       setShow(true);
-      track(Events.WELCOME_BACK_SHOWN, {
-        gapDays: gap,
-        lastStreak: parsed ?? null,
-      });
+      if (!trackedRef.current) {
+        trackedRef.current = true;
+        track(Events.WELCOME_BACK_SHOWN, {
+          gapDays: gap,
+          lastStreak: parsed ?? null,
+        });
+      }
     } else {
       // Within normal range — just refresh the last-active stamp.
       localStorage.setItem(LAST_ACTIVE_KEY, today);

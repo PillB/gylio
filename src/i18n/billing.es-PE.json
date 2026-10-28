@@ -1,0 +1,98 @@
+{
+  "heading": "Precios simples y honestos",
+  "subheading": "Con el plan gratis tu día sigue funcionando y guardado en tu cuenta. Pro suma rutinas, apoyo social, ayuda con IA y cero anuncios.",
+  "fineprint": "Cancela cuando quieras en un paso. Si cancelas, Pro sigue activo hasta el final del periodo que pagaste, y tus datos se quedan contigo en el plan gratis.",
+  "error": {
+    "generic": "Algo salió mal. Inténtalo de nuevo.",
+    "checkoutNotConfigured": "El pago aún no está disponible. Vuelve a intentarlo pronto.",
+    "trialUsed": "La prueba gratis ya se usó en esta cuenta.",
+    "provider": "El servicio de pagos no respondió. Inténtalo de nuevo en un minuto.",
+    "rateLimited": "Demasiados intentos en poco tiempo. Espera un minuto y vuelve a intentarlo.",
+    "signIn": "Vuelve a iniciar sesión para continuar.",
+    "network": "Sin conexión. Revisa tu internet e inténtalo de nuevo."
+  },
+  "trial": {
+    "started": "Tu prueba de Pro empezó. Termina el {{date}} y no se cobra nada."
+  },
+  "checkout": {
+    "completed": "Recibimos tu pago. Pro se activará en unos segundos."
+  },
+  "status": {
+    "trialIndefinite": "Tu prueba de Pro está activa.",
+    "gift": "Tienes Pro de regalo hasta el {{date}}.",
+    "giftIndefinite": "Tienes Pro de regalo, sin fecha de fin.",
+    "subscription": "Pro está activo hasta el {{date}}.",
+    "subscriptionIndefinite": "Pro está activo.",
+    "trial_one": "Tu prueba de Pro está activa hasta el {{date}} (queda {{count}} día).",
+    "trial_other": "Tu prueba de Pro está activa hasta el {{date}} (quedan {{count}} días)."
+  },
+  "interval": {
+    "legend": "Periodo de pago",
+    "monthly": "Mensual",
+    "yearly": "Anual",
+    "yearlySave": "Anual · ahorra {{percent}}%"
+  },
+  "free": {
+    "name": "Gratis",
+    "price": "Gratis",
+    "tagline": "Todo lo que necesitas para hoy.",
+    "tasks": "Tareas con micro-pasos y temporizador de enfoque",
+    "calendar": "Calendario y bloques de tiempo",
+    "budget": "Presupuesto base cero",
+    "rewards": "Recompensas, rachas e insignias",
+    "ads": "Un anuncio pequeño en Ajustes y en la página de pruebas",
+    "sync": "Guardado en tu cuenta, en todos tus dispositivos"
+  },
+  "pro": {
+    "name": "Pro",
+    "perYear": "al año",
+    "perMonth": "al mes",
+    "perMonthEquivalent": "Equivale a {{price}} al mes, en vez de {{monthly}}.",
+    "billedMonthly": "Se cobra cada mes.",
+    "everything": "Todo lo del plan Gratis",
+    "routines": "Creador de rutinas",
+    "social": "Planes sociales y recordatorios amables",
+    "ai": "Sugerencias con IA",
+    "noAds": "Sin anuncios",
+    "support": "Soporte prioritario"
+  },
+  "cta": {
+    "signUpForTrial": "Crea tu cuenta para probar Pro gratis {{days}} días",
+    "manage": "Gestionar o cancelar suscripción",
+    "subscribeYearly": "Suscribirme al plan anual",
+    "subscribeMonthly": "Suscribirme al plan mensual",
+    "trial": {
+      "start_trial": "Empieza tu prueba gratis de {{days}} días",
+      "try_free_no_card": "Prueba Pro gratis {{days}} días, sin tarjeta"
+    },
+    "trialNoCard": "La prueba no pide tarjeta. Termina sola y nunca te cobra."
+  },
+  "passes": {
+    "heading": "Paga con Yape o con tarjeta en soles",
+    "body": "Un pase de pago único. No se renueva solo; te avisamos antes de que termine.",
+    "buy": "{{days}} días · {{price}}",
+    "result": {
+      "approved": "Recibimos tu pago. Tu pase se activará en unos segundos.",
+      "pending": "Tu pago se está procesando. Pro se activará apenas se confirme.",
+      "failed": "El pago no se completó. No se cobró nada; puedes intentarlo de nuevo."
+    }
+  },
+  "ads": {
+    "houseLabel": "De Gylio",
+    "sponsoredLabel": "Anuncio",
+    "removeAds": "Quita los anuncios con Pro",
+    "house": {
+      "noAds": "Pro quita los anuncios y mantiene la app tranquila.",
+      "routines": "Pro incluye el creador de rutinas para tus mañanas y noches.",
+      "ai": "Pro suma ayuda con IA para dividir tareas grandes en pasos pequeños."
+    }
+  },
+  "banner": {
+    "ending_zero": "Tu acceso Pro termina hoy.",
+    "ending_one": "Tu acceso Pro termina en {{count}} día.",
+    "ending_other": "Tu acceso Pro termina en {{count}} días.",
+    "ended": "Tu prueba de Pro terminó. Todo lo que creaste sigue aquí.",
+    "seePlans": "Ver planes",
+    "dismiss": "Cerrar"
+  }
+}

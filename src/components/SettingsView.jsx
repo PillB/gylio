@@ -11,6 +11,25 @@ import { requestBackgroundSync } from '../core/utils/backgroundSync';
 import { enqueueSyncAction, listSyncConflicts, removeSyncConflict } from '../core/utils/offlineSync';
 import { useGuidedTour } from '../core/context/GuidedTourContext';
 import { useTaskTimer } from '../core/context/TaskTimerContext';
+import { Link } from 'react-router-dom';
+import AdSlot from '../features/ads/AdSlot';
+import YourDataSection from '../features/account/YourDataSection';
+import { useEntitlement } from '../features/billing/EntitlementContext';
+
+/** QA, plan and (for admins) admin links; its own component so SettingsView stays under the complexity ceiling. */
+function SettingsShortcuts() {
+  const { t } = useTranslation();
+  const { theme } = useTheme();
+  const { entitlement } = useEntitlement();
+  const linkStyle = { color: theme.colors.primary, fontWeight: 600, minHeight: 44, lineHeight: '44px' };
+  return (
+    <nav style={{ display: 'flex', flexWrap: 'wrap', gap: theme.spacing.md }}>
+      <Link to="/qa" style={linkStyle}>{t('feedback.settings.qaLink')}</Link>
+      <Link to="/pricing" style={linkStyle}>{t('feedback.settings.planLink')}</Link>
+      {entitlement?.isAdmin && <Link to="/admin" style={linkStyle}>{t('feedback.settings.adminLink')}</Link>}
+    </nav>
+  );
+}
 
 /**
  * SettingsView component
@@ -697,6 +716,17 @@ const SettingsView = () => {
         </p>
       </div>
     </SectionCard>
+
+    {/* Saved to the account, download, restore */}
+    <SectionCard ariaLabel={t('account.heading')} title={t('account.heading')}>
+      <YourDataSection />
+    </SectionCard>
+
+    {/* Testers and account shortcuts */}
+    <SectionCard ariaLabel={t('feedback.settings.heading')} title={t('feedback.settings.heading')}>
+      <SettingsShortcuts />
+    </SectionCard>
+    <AdSlot placement="settings" />
     </>
   );
 };

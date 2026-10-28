@@ -1,0 +1,86 @@
+{
+  "button": "Comentarios",
+  "dialogTitle": "Reporta un error o comparte una idea",
+  "close": "Cerrar",
+  "thanks": "Gracias. Leemos cada reporte.",
+  "seeMyReports": "Ver tus reportes y su estado",
+  "kindLegend": "¿Qué es?",
+  "kind": {
+    "bug": "Error",
+    "idea": "Idea",
+    "question": "Pregunta",
+    "praise": "Algo que me gusta"
+  },
+  "title": "Resumen corto",
+  "titleHint": "Por ejemplo: \"El temporizador se detiene cuando cambio de pestaña\"",
+  "descriptionLabel": {
+    "bug": "¿Qué pasó?",
+    "idea": "¿Qué te ayudaría?",
+    "question": "¿Qué te gustaría saber?",
+    "praise": "¿Qué te funciona bien?"
+  },
+  "privacyHint": "No incluyas contraseñas, números de tarjeta ni otros datos privados.",
+  "steps": "Pasos para que ocurra",
+  "stepsHint": "Un paso por línea: 1. Abre Tareas 2. …",
+  "expected": "¿Qué esperabas?",
+  "actual": "¿Qué pasó en cambio?",
+  "severity": "¿Cuánto te afecta?",
+  "severityOption": {
+    "low": "Baja · una molestia pequeña",
+    "medium": "Media · me estorba",
+    "high": "Alta · no puedo hacer algo",
+    "blocker": "Bloqueante · no puedo usar la app"
+  },
+  "includeDiagnostics": "Incluir datos técnicos (tamaño de pantalla, navegador, idioma, errores recientes)",
+  "whatIsIncluded": "Ver exactamente qué se incluye",
+  "error": "No se pudo enviar el reporte. Inténtalo de nuevo.",
+  "sending": "Enviando…",
+  "send": "Enviar",
+  "status": {
+    "new": "Nuevo",
+    "triaged": "Revisado",
+    "in_progress": "En curso",
+    "fixed": "Corregido",
+    "wont_fix": "No se corregirá",
+    "duplicate": "Duplicado"
+  },
+  "mine": {
+    "heading": "Tus reportes",
+    "loading": "Cargando tus reportes…",
+    "error": "No se pudieron cargar tus reportes.",
+    "empty": "Todavía no enviaste reportes."
+  },
+  "qa": {
+    "heading": "Ayúdanos a probar Gylio",
+    "intro": "Gracias por probar. Úsala como lo harías normalmente y cuéntanos cuando algo confunda, falle o falte.",
+    "whatToTest": "Qué probar",
+    "area": {
+      "onboarding": "Bienvenida y configuración inicial",
+      "tasks": "Crear, dividir y terminar tareas",
+      "calendar": "Eventos y bloques en el calendario",
+      "budget": "Presupuesto, movimientos y deudas",
+      "routines": "Rutinas (Pro)",
+      "rewards": "Recompensas, rachas e insignias",
+      "pricing": "Prueba, precios y pagos (modo prueba)",
+      "language": "Cambiar entre inglés y español",
+      "mobile": "Usarla en el celular"
+    },
+    "goodReportHeading": "Qué hace fácil corregir un reporte",
+    "tip": {
+      "one": "Un problema por reporte.",
+      "steps": "Los pasos que llevan al problema.",
+      "expected": "Qué esperabas y qué pasó en cambio.",
+      "screenshot": "Si puedes, indica la pantalla y tu dispositivo."
+    },
+    "reportHeading": "Envía un reporte",
+    "signInToReport": "Inicia sesión para enviar un reporte y seguir su estado."
+  },
+  "settings": {
+    "heading": "Pruebas y plan",
+    "qaLink": "Reportar un error o idea",
+    "planLink": "Tu plan",
+    "adminLink": "Consola de administración"
+  },
+  "errorRateLimited": "Enviaste varios reportes en poco tiempo. Espera unos minutos e inténtalo de nuevo.",
+  "errorTooShort": "Agrega un poco más: un resumen de al menos 3 caracteres y una descripción de al menos 10."
+}
