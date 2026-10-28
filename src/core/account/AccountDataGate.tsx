@@ -7,8 +7,8 @@ import { useAuth } from '@clerk/clerk-react';
 import React, { useEffect, useState, useSyncExternalStore, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../context/ThemeContext';
-import { applyStep, gateStep, type StepOutcome } from './accountGate';
-import { OWNER_CHANGED_EVENT, OWNER_KEY, readOwner } from './deviceOwner';
+import { applyStep, gateNotice, gateStep, type StepOutcome } from './accountGate';
+import { hasArchive, OWNER_CHANGED_EVENT, OWNER_KEY, readOwner } from './deviceOwner';
 
 const subscribe = (onChange: () => void) => {
   window.addEventListener(OWNER_CHANGED_EVENT, onChange);
@@ -76,15 +76,16 @@ export function AccountDataGate({ children }: { children: ReactNode }) {
   useEffect(() => {
     const result = applyStep(step, owner, userId, window.localStorage);
     // Until the page goes, keep the screens closed: they would start on the data that was just swapped in.
-    if (result === 'reload') window.location.reload();
-    setOutcome((current) => (current === 'reload' ? current : result));
+    if (result === 'reload' || result === 'restored') window.location.reload();
+    setOutcome((current) => (current === 'reload' || current === 'restored' ? current : result));
   }, [step, owner, userId]);
 
   if (outcome === 'no-room') return <NoRoom onSignOut={() => void signOut()} />;
-  if (step === 'switch' || outcome === 'reload') {
+  const notice = gateNotice(step, outcome, userId ? hasArchive(userId) : false);
+  if (notice) {
     return (
       <Notice>
-        <p role="status" style={{ margin: 0 }}>{t('device.switching')}</p>
+        <p role="status" style={{ margin: 0 }}>{t(notice)}</p>
       </Notice>
     );
   }

@@ -29,5 +29,24 @@
     "useAccount": "Usar los datos de mi cuenta",
     "keepDevice": "Conservar los de este dispositivo",
     "undoHint": "Si usas los datos de tu cuenta, los de este dispositivo quedan como copia que puedes restaurar desde Ajustes."
+  },
+  "signOut": {
+    "heading": "Cerrar sesión",
+    "intro": "Al cerrar sesión, tus datos se quedan en este dispositivo, así los encuentras al volver a entrar, incluso sin conexión. En un dispositivo compartido o prestado, mejor bórralos.",
+    "keep": "Cerrar sesión",
+    "remove": "Cerrar sesión y borrar mis datos de este dispositivo",
+    "menu": "Borrar mis datos de este dispositivo",
+    "confirmTitle": "¿Borrar tus datos de este dispositivo?",
+    "synced": "Tus tareas, eventos del calendario, presupuestos, movimientos y deudas se guardan en tu cuenta y vuelven cuando inicias sesión. El tiempo registrado, las rutinas, las recompensas y los planes sociales se guardan solo en este dispositivo y se borrarán.",
+    "pending_one": "1 cambio todavía no llegó a tu cuenta y se borrará.",
+    "pending_other": "{{count}} cambios todavía no llegaron a tu cuenta y se borrarán.",
+    "savedCopy": "Tu cuenta tiene una copia guardada el {{when}}. Lo que cambiaste después se borrará.",
+    "deviceOnly": "Tus datos se guardan solo en este dispositivo, así que no se podrán recuperar después.",
+    "staysHere": "Tu tema, idioma y ajustes de accesibilidad se quedan en este dispositivo.",
+    "downloadHint": "Si crees que los vas a necesitar, descarga una copia primero.",
+    "confirm": "Borrar y cerrar sesión",
+    "cancel": "Cancelar",
+    "busy": "Cerrando sesión…",
+    "failed": "No se pudo cerrar sesión, así que no se borró nada. Revisa tu conexión e inténtalo de nuevo."
   }
 }

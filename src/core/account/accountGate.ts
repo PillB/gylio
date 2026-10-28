@@ -1,7 +1,7 @@
 /**
  * The decisions behind AccountDataGate and the sign-in wait, kept free of React so each case is one line to test.
  */
-import { decideOwner, NoRoomToSetAside, setOwnerSignedIn, switchOwner, writeOwner, type OwnerDecision } from './deviceOwner';
+import { bringBack, decideOwner, hasArchive, NoRoomToSetAside, setOwnerSignedIn, switchOwner, writeOwner, type OwnerDecision } from './deviceOwner';
 
 export type GateStep = 'wait' | 'signed-out' | OwnerDecision;
 
@@ -14,34 +14,56 @@ export const gateStep = ({ isLoaded, isSignedIn, userId }: AuthSoFar, owner: str
   return decideOwner(owner, userId);
 };
 
-export type StepOutcome = 'show' | 'reload' | 'no-room';
+/** 'reload' after a switch; 'restored' after an account's data, set aside earlier, was put back on a device nobody owned. */
+export type StepOutcome = 'show' | 'reload' | 'restored' | 'no-room';
 
-/** The steps that only record who is here; gateStep returns 'claim' and 'same' only with a user id. */
-const RECORD: Partial<Record<GateStep, (storage: Storage, userId: string) => void>> = {
-  claim: (storage, userId) => {
+type Apply = (storage: Storage, owner: string, userId: string) => StepOutcome;
+
+/** gateStep returns 'switch' only with both ids, and 'claim' and 'same' only with a user id. */
+const STEPS: Partial<Record<GateStep, Apply>> = {
+  switch: (storage, owner, userId) => {
+    switchOwner(storage, owner, userId);
+    return 'reload';
+  },
+  // Nobody owns the device after "remove my data from this device", but this account's data may be set aside here.
+  claim: (storage, _owner, userId) => {
+    const archived = hasArchive(userId, storage);
+    bringBack(storage, userId);
     writeOwner(userId, storage);
     setOwnerSignedIn(true, storage);
+    return archived ? 'restored' : 'show';
   },
-  same: (storage) => setOwnerSignedIn(true, storage),
-  'signed-out': (storage) => setOwnerSignedIn(false, storage),
+  same: (storage) => {
+    setOwnerSignedIn(true, storage);
+    return 'show';
+  },
+  'signed-out': (storage) => {
+    setOwnerSignedIn(false, storage);
+    return 'show';
+  },
 };
 
 /**
- * Carries out a step. Only a switch changes what is on the device, and the page then reloads, because every screen
- * read the previous person's data when it started.
+ * Carries out a step. A switch, or data put back, changes what is on the device, and the page then reloads, because
+ * every screen read what was there when it started.
  */
 export const applyStep = (step: GateStep, owner: string | null, userId: string | null | undefined, storage: Storage): StepOutcome => {
   try {
-    if (step === 'switch' && owner && userId) {
-      switchOwner(storage, owner, userId);
-      return 'reload';
-    }
-    RECORD[step]?.(storage, userId ?? '');
+    return STEPS[step]?.(storage, owner ?? '', userId ?? '') ?? 'show';
   } catch (error) {
     // A full device can refuse the owner mark as well; only a refused switch must keep the data hidden.
-    if (error instanceof NoRoomToSetAside) return 'no-room';
+    return error instanceof NoRoomToSetAside ? 'no-room' : 'show';
   }
-  return 'show';
+};
+
+/**
+ * What the gate says instead of showing the app while the data on this device changes hands, or null to show it.
+ * A claim that will put data back says so from the start, rather than flashing an empty app first.
+ */
+export const gateNotice = (step: GateStep, outcome: StepOutcome, restorable: boolean): string | null => {
+  if (outcome === 'restored' || (step === 'claim' && restorable)) return 'device.restoring';
+  if (step === 'switch' || outcome === 'reload') return 'device.switching';
+  return null;
 };
 
 /** Most sign-in checks finish within this; saying "checking" sooner would only flash. */

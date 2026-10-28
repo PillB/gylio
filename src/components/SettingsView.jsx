@@ -14,6 +14,7 @@ import { useTaskTimer } from '../core/context/TaskTimerContext';
 import { Link } from 'react-router-dom';
 import AdSlot from '../features/ads/AdSlot';
 import YourDataSection from '../features/account/YourDataSection';
+import SignOutCard from '../features/account/SignOutSection';
 import { useEntitlement } from '../features/billing/EntitlementContext';
 
 /** QA, plan and (for admins) admin links; its own component so SettingsView stays under the complexity ceiling. */
@@ -531,6 +532,9 @@ const SettingsView = () => {
     <SectionCard ariaLabel={t('account.heading')} title={t('account.heading')}>
       <YourDataSection />
     </SectionCard>
+
+    {/* Sign out, keeping or removing the data on this device */}
+    <SignOutCard />
 
     {/* Testers and account shortcuts */}
     <SectionCard ariaLabel={t('feedback.settings.heading')} title={t('feedback.settings.heading')}>

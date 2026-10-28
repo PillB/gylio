@@ -189,3 +189,12 @@ export const removeSyncConflict = async (id: string): Promise<void> => {
     store.delete(id);
   });
 };
+
+/** Drops the queued changes and conflicts that belong to `owner` ("Remove my data from this device"). */
+export const removeQueuedFor = async (owner: string): Promise<void> => {
+  const [actions, conflicts] = await Promise.all([listSyncActions(), getAllFromStore<SyncConflict>(CONFLICT_STORE)]);
+  const remove = (storeName: string, ids: string[]) =>
+    ids.length ? withStore<void>(storeName, 'readwrite', (store) => ids.forEach((id) => store.delete(id))) : Promise.resolve();
+  await remove(QUEUE_STORE, actions.filter((entry) => belongsTo(entry, owner)).map((entry) => entry.id));
+  await remove(CONFLICT_STORE, conflicts.filter((entry) => belongsTo(entry, owner)).map((entry) => entry.id));
+};

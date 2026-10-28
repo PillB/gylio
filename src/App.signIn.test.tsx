@@ -21,7 +21,7 @@ vi.mock('@clerk/clerk-react', () => ({
   useAuth: () => auth,
   useUser: () => ({ isLoaded: auth.isLoaded, isSignedIn: auth.isSignedIn, user: null }),
   useClerk: () => ({ signOut: auth.signOut }),
-  UserButton: () => null,
+  UserButton: Object.assign(() => null, { MenuItems: () => null, Action: () => null, Link: () => null }),
   SignIn: () => <p>sign-in form</p>,
   SignUp: () => <p>sign-up form</p>,
 }));

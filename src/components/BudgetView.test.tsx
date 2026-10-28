@@ -256,6 +256,11 @@ describe('BudgetView', () => {
   });
 
   describe('undo after a delete', () => {
+    beforeEach(() => localStorage.removeItem('analytics:queue'));
+    const removalEvents = () =>
+      (JSON.parse(localStorage.getItem('analytics:queue') ?? '[]') as { name: string; props: unknown }[])
+        .filter((event) => event.name === 'budget_removal')
+        .map((event) => event.props);
     const lastUndo = () => {
       const [message, action] = toast.success.mock.calls[toast.success.mock.calls.length - 1] as [string, { label: string; onClick: () => void }];
       return { message, action };
@@ -271,6 +276,9 @@ describe('BudgetView', () => {
       expect(action.label).toBe('budget.undoRemove');
       action.onClick();
       await waitFor(() => expect(db.budgets[0].categories.map((c) => c.name)).toEqual(['Rent', 'Fun']));
+      // Counted for the funnel without the line's name or amount.
+      await waitFor(() => expect(removalEvents()).toEqual([{ kind: 'category', step: 'removed' }, { kind: 'category', step: 'undone' }]));
+      expect(localStorage.getItem('analytics:queue')).not.toContain('Rent');
     });
 
     it('restores into the budget as it is now, keeping lines added after the delete', async () => {

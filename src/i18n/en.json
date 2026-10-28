@@ -2141,6 +2141,8 @@
       "title": "This device is out of space",
       "body": "The previous account's data could not be set aside, so nothing was changed and it stays hidden. Sign out, or free some space in this browser, and sign in again.",
       "signOut": "Sign out"
-    }
+    },
+    "restoring": "Bringing back your data on this device…",
+    "removed": "Your data was removed from this device."
   }
 }

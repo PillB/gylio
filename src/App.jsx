@@ -175,7 +175,17 @@ function AppHeader({ clerkEnabled }) {
           <>
             {!isMobile && <SubscriptionBadge />}
             <div style={{ minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <UserButton afterSignOutUrl={`${import.meta.env.BASE_URL}sign-in`} />
+              <UserButton afterSignOutUrl={`${import.meta.env.BASE_URL}sign-in`}>
+                {/* Next to Clerk's own "Sign out", which keeps the data here: the way out for a shared device. */}
+                <UserButton.MenuItems>
+                  <UserButton.Action label="signOut" />
+                  <UserButton.Link
+                    label={t('account.signOut.menu')}
+                    labelIcon={<span aria-hidden="true">⌫</span>}
+                    href={`${import.meta.env.BASE_URL}settings#sign-out`}
+                  />
+                </UserButton.MenuItems>
+              </UserButton>
             </div>
           </>
         )}

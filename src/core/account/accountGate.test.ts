@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applyStep, gateStep, QUIET_MS, signInWait, SLOW_SIGN_IN_MS } from './accountGate';
+import { applyStep, gateNotice, gateStep, QUIET_MS, signInWait, SLOW_SIGN_IN_MS } from './accountGate';
 import { ARCHIVE_PREFIX, OWNER_KEY, OWNER_SIGNED_IN_KEY } from './deviceOwner';
 
 describe('gateStep', () => {
@@ -51,6 +51,17 @@ describe('applyStep', () => {
     expect(applyStep('claim', null, 'user_a', full)).toBe('show');
   });
 
+  it("puts back an account's data that was set aside, on a device nobody owns, and asks for a reload", () => {
+    localStorage.clear();
+    // A removed their data and signed out; B's data was set aside here earlier.
+    localStorage.setItem(`${ARCHIVE_PREFIX}user_b`, JSON.stringify({ gylio_sqlite: '{"tasks":{"rows":[{"title":"B"}]}}' }));
+    localStorage.setItem('onboardingFlowState', '{"isOnboardingComplete":false}');
+    expect(applyStep('claim', null, 'user_b', localStorage)).toBe('restored');
+    expect(localStorage.getItem('gylio_sqlite')).toContain('"title":"B"');
+    expect(localStorage.getItem(`${ARCHIVE_PREFIX}user_b`)).toBeNull();
+    expect(localStorage.getItem(OWNER_KEY)).toBe('user_b');
+  });
+
   it('does nothing while sign-in is still loading', () => {
     localStorage.clear();
     expect(applyStep('wait', 'user_a', null, localStorage)).toBe('show');
@@ -73,5 +84,17 @@ describe('signInWait', () => {
   it('never opens it after its owner signed out, however long sign-in takes', () => {
     expect(signInWait({ ownerSignedIn: false, online: true, waitedMs: 60_000 })).toBe('waiting');
     expect(signInWait({ ownerSignedIn: false, online: false, waitedMs: 60_000 })).toBe('offline');
+  });
+});
+
+describe('gateNotice', () => {
+  it('says what is happening while the data changes hands, and nothing otherwise', () => {
+    expect(gateNotice('switch', 'show', false)).toBe('device.switching');
+    expect(gateNotice('same', 'reload', false)).toBe('device.switching');
+    expect(gateNotice('claim', 'show', true)).toBe('device.restoring');
+    expect(gateNotice('same', 'restored', false)).toBe('device.restoring');
+    expect(gateNotice('claim', 'show', false)).toBeNull();
+    expect(gateNotice('same', 'show', true)).toBeNull();
+    expect(gateNotice('wait', 'show', false)).toBeNull();
   });
 });

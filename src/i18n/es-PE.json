@@ -2141,6 +2141,8 @@
       "title": "Este dispositivo no tiene espacio",
       "body": "No se pudieron guardar aparte los datos de la cuenta anterior, así que no se cambió nada y siguen ocultos. Cierra sesión o libera espacio en este navegador, y vuelve a iniciar sesión.",
       "signOut": "Cerrar sesión"
-    }
+    },
+    "restoring": "Recuperando tus datos en este dispositivo…",
+    "removed": "Tus datos se borraron de este dispositivo."
   }
 }

@@ -32,6 +32,8 @@ const DEVICE_KEYS = [
   /^gylio:owner$/,
   /^gylio:ownerSignedIn$/,
   /^gylio:archive:/,
+  // "Remove my data from this device", still to finish (removeDeviceData.ts).
+  /^gylio:remove/,
   /^__clerk/i,
   /^clerk/i,
 ];
@@ -87,7 +89,7 @@ export const setOwnerSignedIn = (signedIn: boolean, storage: Storage | null = sa
   }
 };
 
-const personalKeys = (storage: Storage): string[] => {
+export const personalKeys = (storage: Storage): string[] => {
   const keys: string[] = [];
   for (let index = 0; index < storage.length; index += 1) {
     const key = storage.key(index);
@@ -117,6 +119,14 @@ export const setAside = (storage: Storage, owner: string): void => {
     throw new NoRoomToSetAside();
   }
   keys.forEach((key) => storage.removeItem(key));
+};
+
+export const hasArchive = (owner: string, storage: Storage | null = safeStorage()): boolean => {
+  try {
+    return storage?.getItem(`${ARCHIVE_PREFIX}${owner}`) != null;
+  } catch {
+    return false;
+  }
 };
 
 /** Puts `owner`'s archived data back, if there is any, and removes the archive. */

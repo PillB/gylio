@@ -51,6 +51,17 @@ describe('the data on a shared device', () => {
     expect(localStorage.getItem(`${ARCHIVE_PREFIX}user_a`)).toContain('A: pay rent');
   });
 
+  it("brings back B's data, set aside earlier, after the previous owner removed theirs, before the app shows", async () => {
+    localStorage.setItem(`${ARCHIVE_PREFIX}user_b`, JSON.stringify({ gylio_sqlite: '{"tasks":{"rows":[{"title":"B: call mum"}]}}' }));
+    mount();
+    expect(screen.queryByText('app')).toBeNull();
+    expect(screen.getByRole('status').textContent).toBe('device.restoring');
+    await act(async () => undefined);
+    expect(reload).toHaveBeenCalledTimes(1);
+    expect(localStorage.getItem('gylio_sqlite')).toContain('B: call mum');
+    expect(localStorage.getItem(OWNER_KEY)).toBe('user_b');
+  });
+
   it('opens the app for the first account on a device, and remembers it', async () => {
     localStorage.setItem('gylio_sqlite', '{"tasks":{"rows":[]}}');
     mount();
