@@ -1,7 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
+import { openSeedPage } from './helpers/seedPage';
 
 async function openFreshTasks(page: Page) {
-  await page.goto('/gylio/deployment-guide.html', { waitUntil: 'domcontentloaded' });
+  await openSeedPage(page);
   await page.evaluate(() => {
     localStorage.clear();
     localStorage.setItem('gylio_lang', 'en');

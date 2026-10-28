@@ -1,8 +1,9 @@
 import { expect, test, type Page } from '@playwright/test';
+import { openSeedPage } from './helpers/seedPage';
 
 async function openFreshTasks(page: Page, language = 'en') {
   // Seed persistence before React mounts so the fixture cannot race provider hydration.
-  await page.goto('/gylio/deployment-guide.html', { waitUntil: 'domcontentloaded' });
+  await openSeedPage(page);
   await page.evaluate((lang) => {
     localStorage.clear();
     localStorage.setItem('gylio_lang', lang);
