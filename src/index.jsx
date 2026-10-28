@@ -12,6 +12,7 @@ import AccessibleMotionBoundary from './core/accessibility/AccessibleMotionBound
 import { ToastProvider } from './core/context/ToastContext';
 import ToastStack from './components/atoms/Toast';
 import SiteUtilityFooter from './components/SiteUtilityFooter';
+import LegalFooter from './features/legal/LegalFooter';
 import { GuidedTourProvider } from './core/context/GuidedTourContext';
 import { TaskTimerProvider } from './core/context/TaskTimerContext';
 import { TimeTrackerProvider } from './features/timetracking/TimeTrackerContext';
@@ -41,6 +42,7 @@ const providers = (
                   <AccessibleMotionBoundary>
                     <App clerkEnabled={Boolean(PUBLISHABLE_KEY)} />
                     <SiteUtilityFooter />
+                    <LegalFooter />
                     <ToastStack />
                   </AccessibleMotionBoundary>
                 </AccessibilityProvider>
