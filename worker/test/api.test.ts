@@ -1,4 +1,5 @@
-import { SELF } from 'cloudflare:test';
+import { createExecutionContext, SELF, waitOnExecutionContext } from 'cloudflare:test';
+import worker from '../src/index';
 import { env } from 'cloudflare:workers';
 import { importJWK, SignJWT } from 'jose';
 import { describe, expect, it } from 'vitest';
@@ -39,7 +40,7 @@ describe('health and auth', () => {
   it('answers health without a token and reports d1', async () => {
     const res = await call('/api/v1/health');
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ ok: true, worker: true, database: true, auth: true, usageOk: true, origin: 'https://app.test' });
+    expect(await res.json()).toEqual({ ok: true, worker: true, database: true, auth: true, usageOk: true, signupOpen: true, origin: 'https://app.test' });
   });
 
   it('rejects missing, malformed, expired, wrong-issuer and wrong-azp tokens', async () => {
@@ -295,7 +296,43 @@ describe('response headers', () => {
 
   it('health shows booleans and the allowed origin only', async () => {
     const body = (await (await call('/api/v1/health')).json()) as Record<string, unknown>;
-    expect(Object.keys(body).sort()).toEqual(['auth', 'database', 'ok', 'origin', 'usageOk', 'worker']);
+    expect(Object.keys(body).sort()).toEqual(['auth', 'database', 'ok', 'origin', 'signupOpen', 'usageOk', 'worker']);
     expect(Object.values(body).filter((v) => typeof v !== 'boolean')).toEqual(['https://app.test']);
+  });
+});
+
+/** The test environment with its own HOLDER_NAME. Defined directly so the shared bindings are never changed. */
+const envWithHolder = (value: string) => Object.create(env, { HOLDER_NAME: { value, enumerable: true } });
+
+describe('sign-up gate', () => {
+  /** Calls the Worker as if it had been deployed without the holder's name. */
+  const withoutHolder = async (path: string, as: string, init: RequestInit = {}) => {
+    const closedEnv = envWithHolder('');
+    const headers = new Headers(init.headers);
+    headers.set('Authorization', `Bearer ${await token(as)}`);
+    const ctx = createExecutionContext();
+    const res = await worker.fetch(new Request(`https://api.test${path}`, { ...init, headers }), closedEnv, ctx);
+    await waitOnExecutionContext(ctx);
+    return res;
+  };
+
+  it('turns a brand-new person away with a clear 503 while no holder is named, and stores nothing for them', async () => {
+    const res = await withoutHolder('/api/sync/pull?since=0', 'brand_new_closed');
+    expect(res.status).toBe(503);
+    expect(((await res.json()) as { error: { code: string } }).error.code).toBe('SIGNUP_CLOSED');
+    const stored = await e.DB.prepare("SELECT COUNT(*) AS n FROM identities WHERE subject = 'brand_new_closed'").first<{ n: number }>();
+    expect(stored!.n).toBe(0);
+  });
+
+  it('keeps existing accounts working while sign-up is closed', async () => {
+    await put('/api/debts/open1', debt, 'existing_person');
+    const res = await withoutHolder('/api/debts/open1', 'existing_person');
+    expect(res.status).toBe(200);
+  });
+
+  it('opens sign-up once a holder is named, and health says which state it is in', async () => {
+    expect((await call('/api/sync/pull?since=0', { as: 'brand_new_open' })).status).toBe(200);
+    const closed = (await (await worker.fetch(new Request('https://api.test/api/v1/health'), envWithHolder('  '), createExecutionContext())).json()) as { signupOpen: boolean };
+    expect(closed.signupOpen).toBe(false);
   });
 });

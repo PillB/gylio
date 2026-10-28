@@ -1,0 +1,8 @@
+# Paths that decide what reaches production or what the public site is allowed
+# to do. A change here needs the owner's review (GitHub: Settings > Rules should
+# require code-owner review on main; see docs/CLOUDFLARE_GO_LIVE_MANUAL.md).
+/.github/                      @PillB
+/worker/                       @PillB
+/server/                       @PillB
+/docs/CLOUDFLARE_*.md          @PillB
+/.nvmrc                        @PillB

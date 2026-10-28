@@ -11,6 +11,8 @@ type Env = AuthEnv &
     DB: D1Database;
     CORS_ORIGINS?: string;
     MAX_RECORDS_PER_USER?: string;
+    /** Who holds the personal data. Passed with `--var` at deploy from a private file; never committed. */
+    HOLDER_NAME?: string;
   };
 type Vars = { userId: string; db: MeteredDb };
 
@@ -18,6 +20,7 @@ const MAX_BODY_BYTES = 64 * 1024;
 const MAX_PULL = 200;
 const ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
 const HEALTH_PATH = '/api/v1/health';
+const signupOpen = (env: Env): boolean => Boolean(env.HOLDER_NAME?.trim());
 
 const app = new Hono<{ Bindings: Env; Variables: Vars }>();
 
@@ -63,7 +66,7 @@ app.get(HEALTH_PATH, async (c) => {
   const authConfigured = Boolean(c.env.CLERK_ISSUER);
   const ok = databaseReady && authConfigured && usageOk;
   return c.json(
-    { ok, worker: true, database: databaseReady, auth: authConfigured, usageOk, origin: (c.env.CORS_ORIGINS ?? '').split(',')[0]?.trim() ?? '' },
+    { ok, worker: true, database: databaseReady, auth: authConfigured, usageOk, signupOpen: signupOpen(c.env), origin: (c.env.CORS_ORIGINS ?? '').split(',')[0]?.trim() ?? '' },
     ok ? 200 : 503,
   );
 });
@@ -88,7 +91,11 @@ app.use('/api/*', async (c, next) => {
 app.use('/api/*', async (c, next) => {
   if (c.req.path === HEALTH_PATH) return next();
   const identity = await authenticate(c.env, c.req.header('Authorization'));
-  c.set('userId', await resolveUserId(c.get('db'), identity));
+  // Sign-up stays closed until the data holder is named in the deploy (and the privacy page names them).
+  // People who already have an account keep working.
+  const userId = await resolveUserId(c.get('db'), identity, { allowCreate: signupOpen(c.env) });
+  if (!userId) throw new AuthError(503, 'SIGNUP_CLOSED', 'Sign-up is not open yet');
+  c.set('userId', userId);
   return next();
 });
 

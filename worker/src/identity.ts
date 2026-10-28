@@ -11,7 +11,7 @@ const cache = new Map<string, { userId: string; at: number }>();
  * The mapping never changes once made, so caching it per isolate is safe; the cache expires so an
  * erased account is not resurrected for long by an isolate that still remembers it.
  */
-export const resolveUserId = async (db: MeteredDb, identity: Identity): Promise<string> => {
+export const resolveUserId = async (db: MeteredDb, identity: Identity, options: { allowCreate: boolean } = { allowCreate: true }): Promise<string | null> => {
   const key = `${identity.provider}\u0000${identity.subject}`;
   const hit = cache.get(key);
   if (hit && Date.now() - hit.at < CACHE_MS) return hit.userId;
@@ -19,6 +19,7 @@ export const resolveUserId = async (db: MeteredDb, identity: Identity): Promise<
   const find = () =>
     db.first<{ userId: string }>('SELECT userId FROM identities WHERE provider = ? AND subject = ?', identity.provider, identity.subject);
   let row = await find();
+  if (!row && !options.allowCreate) return null;
   if (!row) {
     // Two first requests can race; the primary key lets one insert win, and both then read the winner.
     await db.run(

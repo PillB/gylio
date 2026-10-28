@@ -1,0 +1,275 @@
+#!/usr/bin/env bash
+# Shared helpers for the operator scripts (setup, redeploy, export, secret).
+# Runs on the owner's Mac (bash 3.2): no associative arrays, mapfile or ${var,,}.
+# Rules (docs/CLOUDFLARE_GO_LIVE_MANUAL.md): the token lives for one run, is typed hidden, is never
+# printed, and wrangler's browser sign-in is never used. Nothing here prints a secret value.
+
+# The pinned wrangler, stated once. Tests replace the whole command with GYLIO_WRANGLER.
+WRANGLER_VERSION="4.153.0"
+# wrangler's engines field is node ">=22.0.0" (npm registry, checked 27 Oct 2026). The repo itself pins Node 24 in .nvmrc.
+NODE_MIN_MAJOR=22
+NODE_MIN_MINOR=18
+DATABASE_NAME="gylio"
+PLACEHOLDER_PREFIX="TODO_"
+CF_API_BASE="${GYLIO_CF_API_BASE:-https://api.cloudflare.com/client/v4}"
+
+LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+WORKER_DIR="$(cd "$LIB_DIR/.." && pwd)"
+REPO_ROOT="$(cd "$WORKER_DIR/.." && pwd)"
+CONFIG_FILE="$WORKER_DIR/wrangler.jsonc"
+
+say() { printf '%s\n' "$*"; }
+die() {
+  printf 'Stopped: %s\n' "$*" >&2
+  printf 'Nothing was deployed.\n' >&2
+  exit 1
+}
+
+interactive() { [ -t 0 ]; }
+
+wrangler() {
+  if [ -n "${GYLIO_WRANGLER:-}" ]; then
+    # shellcheck disable=SC2086
+    $GYLIO_WRANGLER "$@"
+  else
+    npx --yes "wrangler@${WRANGLER_VERSION}" "$@"
+  fi
+}
+
+check_node() {
+  local version rest major minor
+  version="${GYLIO_NODE_VERSION:-$(node -v 2>/dev/null || true)}"
+  rest="${version#v}"
+  major="${rest%%.*}"
+  minor="${rest#*.}"
+  minor="${minor%%.*}"
+  case "$major$minor" in
+    ''|*[!0-9]*) die "Node is not installed. Install Node 24 (nodejs.org), then run this again." ;;
+  esac
+  # wrangler needs 22 or newer; the build helper runs TypeScript directly, which Node has done by default since 22.18.
+  if [ "$major" -lt "$NODE_MIN_MAJOR" ] || { [ "$major" -eq "$NODE_MIN_MAJOR" ] && [ "$minor" -lt "$NODE_MIN_MINOR" ]; }; then
+    die "Node $version is too old (needs $NODE_MIN_MAJOR.$NODE_MIN_MINOR or newer for wrangler $WRANGLER_VERSION and the build helper; this repository uses 24)."
+  fi
+}
+
+ask_yes() {
+  # Default is yes; any answer starting with n or N is no.
+  local reply
+  read -r -p "$1 [Y/n] " reply || reply=""
+  case "$reply" in n*|N*) return 1 ;; *) return 0 ;; esac
+}
+
+read_account_id() {
+  local value
+  read -r -p "Cloudflare account id: " value || value=""
+  [ -n "$value" ] || die "No account id given."
+  CLOUDFLARE_ACCOUNT_ID="$value"
+}
+
+read_token() {
+  local value
+  read -rs -p "API token (typed hidden): " value || value=""
+  printf '\n'
+  [ -n "$value" ] || die "No token given."
+  CLOUDFLARE_API_TOKEN="$value"
+  say "Token received (${#value} characters)."
+}
+
+load_credentials() {
+  if interactive; then
+    if [ -n "${CLOUDFLARE_ACCOUNT_ID:-}" ] && ! ask_yes "Use the account id already in this window (${CLOUDFLARE_ACCOUNT_ID:0:4}...)?"; then
+      unset CLOUDFLARE_ACCOUNT_ID
+    fi
+    [ -n "${CLOUDFLARE_ACCOUNT_ID:-}" ] || read_account_id
+    if [ -n "${CLOUDFLARE_API_TOKEN:-}" ] && ! ask_yes "Use the token already in this window (${#CLOUDFLARE_API_TOKEN} characters)?"; then
+      unset CLOUDFLARE_API_TOKEN
+    fi
+    [ -n "${CLOUDFLARE_API_TOKEN:-}" ] || read_token
+  else
+    [ -n "${CLOUDFLARE_ACCOUNT_ID:-}" ] || die "No terminal and no CLOUDFLARE_ACCOUNT_ID in the environment."
+    [ -n "${CLOUDFLARE_API_TOKEN:-}" ] || die "No terminal and no CLOUDFLARE_API_TOKEN in the environment."
+  fi
+  export CLOUDFLARE_ACCOUNT_ID CLOUDFLARE_API_TOKEN
+}
+
+# Prints active, refused or foreign. The token goes to curl through a config on stdin, so it is
+# never on a command line where `ps` could show it.
+verify_once() {
+  local response
+  if ! response="$(printf 'header = "Authorization: Bearer %s"\n' "$CLOUDFLARE_API_TOKEN" |
+    curl -sS -m 20 -K - "$CF_API_BASE/accounts/$CLOUDFLARE_ACCOUNT_ID/tokens/verify" 2>/dev/null)"; then
+    printf 'unreachable'
+    return 0
+  fi
+  printf '%s' "$response" | node -e '
+    let text = "";
+    process.stdin.on("data", (d) => (text += d));
+    process.stdin.on("end", () => {
+      let body;
+      try { body = JSON.parse(text); } catch { return process.stdout.write("foreign"); }
+      const looksLikeCloudflare = body && typeof body.success === "boolean" && Array.isArray(body.errors);
+      if (!looksLikeCloudflare) return process.stdout.write("foreign");
+      process.stdout.write(body.success && body.result && body.result.status === "active" ? "active" : "refused");
+    });'
+}
+
+verify_token() {
+  local attempt=1 result
+  while [ "$attempt" -le 3 ]; do
+    result="$(verify_once)"
+    case "$result" in
+      active) say "Token checked: active."; return 0 ;;
+      unreachable) die "Could not reach Cloudflare to check the token. Check the internet connection and run again." ;;
+      foreign) die "The answer did not come from Cloudflare's API, so the token was not sent anywhere else. Stopping." ;;
+    esac
+    # refused
+    if ! interactive || [ "$attempt" -ge 3 ]; then
+      die "Cloudflare refused the token (wrong account id, expired, or missing permissions)."
+    fi
+    say "Cloudflare refused that token or account id. Try again ($attempt of 3 used)."
+    read_account_id
+    read_token
+    attempt=$((attempt + 1))
+  done
+}
+
+# Exact-name lookup: a database named gylio-old or my-gylio must never match.
+find_database_id() {
+  local json
+  json="$(wrangler d1 list --json)" || die "wrangler could not list the databases."
+  printf '%s' "$json" | node -e '
+    let text = "";
+    process.stdin.on("data", (d) => (text += d));
+    process.stdin.on("end", () => {
+      let list;
+      try { list = JSON.parse(text); } catch { process.exit(2); }
+      const match = Array.isArray(list) ? list.find((d) => d && d.name === process.argv[1]) : null;
+      process.stdout.write(match ? String(match.uuid || match.id || "") : "");
+    });' "$DATABASE_NAME"
+}
+
+config_database_id() {
+  node -e '
+    const text = require("fs").readFileSync(process.argv[1], "utf8").replace(/^\s*\/\/.*$/gm, "");
+    process.stdout.write(String((JSON.parse(text).d1_databases || [])[0]?.database_id || ""));' "$CONFIG_FILE"
+}
+
+config_var() {
+  node -e '
+    const text = require("fs").readFileSync(process.argv[1], "utf8").replace(/^\s*\/\/.*$/gm, "");
+    process.stdout.write(String((JSON.parse(text).vars || {})[process.argv[2]] ?? ""));' "$CONFIG_FILE" "$1"
+}
+
+# The Clerk publishable key is public by design (it ships inside the site), but it has to be the live
+# instance's key: a development key (pk_test_) would put the development sign-in on gylio.app. The key is
+# also the Frontend API host in base64, so it is checked against CLERK_ISSUER when that is already set.
+# vite.config.ts reads this from the environment only, so the build gets it through CLERK_KEY.
+CLERK_KEY=""
+load_clerk_key() {
+  local value="${VITE_CLERK_PUBLISHABLE_KEY:-}" file="${GYLIO_CLERK_KEY_FILE:-$HOME/.config/gylio/clerk_publishable_key}" host issuer
+  if [ -z "$value" ] && [ -f "$file" ]; then
+    value="$(head -n 1 "$file" | tr -d '\r\n[:space:]')"
+  fi
+  if [ -z "$value" ] && interactive; then
+    printf 'Clerk publishable key (Clerk dashboard, API keys; starts with pk_live_): '
+    IFS= read -r value
+    value="$(printf '%s' "$value" | tr -d '[:space:]')"
+  fi
+  [ -n "$value" ] || die "No Clerk publishable key. Copy it from the Clerk dashboard (API keys, Publishable key, starts with pk_live_) and run: export VITE_CLERK_PUBLISHABLE_KEY=pk_live_..."
+  case "$value" in
+    pk_test_*) die "That is a development key (pk_test_). The live site needs the key of the Clerk production instance (pk_live_)." ;;
+    pk_live_*[!A-Za-z0-9+/=_-]* | pk_live_) die "That does not look like a Clerk publishable key. Copy it again from the Clerk dashboard." ;;
+    pk_live_*) ;;
+    *) die "The Clerk publishable key must start with pk_live_." ;;
+  esac
+  host="$(node -e '
+    const decoded = Buffer.from(process.argv[1].slice("pk_live_".length), "base64").toString("utf8");
+    process.stdout.write(/^[a-z0-9.-]+\$$/.test(decoded) ? decoded.slice(0, -1) : "");' "$value")"
+  [ -n "$host" ] || die "The Clerk publishable key is not valid (it does not name a sign-in host). Copy it again from the Clerk dashboard."
+  issuer="$(config_var CLERK_ISSUER)"
+  if [ -n "$issuer" ] && [ "https://$host" != "${issuer%/}" ]; then
+    die "The Clerk key belongs to https://$host but worker/wrangler.jsonc says CLERK_ISSUER is $issuer. Both must come from the same Clerk instance."
+  fi
+  CLERK_KEY="$value"
+}
+
+ensure_database() {
+  local id configured
+  id="$(find_database_id)"
+  if [ -z "$id" ]; then
+    say "No database named $DATABASE_NAME yet: creating it."
+    wrangler d1 create "$DATABASE_NAME" || die "wrangler could not create the database."
+    id="$(find_database_id)"
+  fi
+  [ -n "$id" ] || die "The database $DATABASE_NAME was not found after creating it."
+  case "$id" in *[!0-9a-fA-F-]*) die "The database id looks wrong." ;; esac
+
+  configured="$(config_database_id)"
+  case "$configured" in
+    "$id") say "Database id already in the local config." ;;
+    "$PLACEHOLDER_PREFIX"*)
+      node -e '
+        const fs = require("fs");
+        const file = process.argv[1];
+        fs.writeFileSync(file, fs.readFileSync(file, "utf8").replace(/"database_id": "TODO_[A-Z0-9_]*"/, `"database_id": "${process.argv[2]}"`));' "$CONFIG_FILE" "$id"
+      say "LOCAL change: do not commit worker/wrangler.jsonc (it now holds the database id)." ;;
+    *) die "worker/wrangler.jsonc already holds a different database id. Restore it with: git checkout -- worker/wrangler.jsonc" ;;
+  esac
+}
+
+# Any leftover placeholder stops the run before the build or a deploy.
+guard_placeholders() {
+  if grep -n "$PLACEHOLDER_PREFIX" "$CONFIG_FILE" >/dev/null 2>&1; then
+    die "worker/wrangler.jsonc still has a $PLACEHOLDER_PREFIX placeholder: $(grep -o "$PLACEHOLDER_PREFIX[A-Z_]*" "$CONFIG_FILE" | head -1)"
+  fi
+}
+
+file_mode() {
+  # GNU stat first, then the BSD/macOS form.
+  stat -c %a "$1" 2>/dev/null || stat -f %Lp "$1"
+}
+
+# The holder of the personal data (a person, until a company exists) is a private value: it lives in a
+# file on this Mac, is passed to this one deploy with --var, and is never committed. Sets HOLDER_VALUE,
+# or leaves it empty (sign-up stays closed) with the reason in HOLDER_NOTE.
+HOLDER_VALUE=""
+HOLDER_NOTE=""
+load_holder() {
+  local file="${GYLIO_HOLDER_FILE:-$HOME/.config/gylio/holder}" dir value
+  dir="$(dirname "$file")"
+  if [ ! -f "$file" ]; then
+    HOLDER_NOTE="No holder file at $file."
+    return 0
+  fi
+  [ "$(file_mode "$dir")" = "700" ] || die "$dir must be accessible only by you. Run: chmod 700 $dir"
+  [ "$(file_mode "$file")" = "600" ] || die "$file must be readable only by you. Run: chmod 600 $file"
+  value="$(head -n 1 "$file" | tr -d '\r')"
+  value="${value#"${value%%[![:space:]]*}"}"
+  value="${value%"${value##*[![:space:]]}"}"
+  if [ -z "$value" ]; then
+    HOLDER_NOTE="The holder file at $file is empty."
+    return 0
+  fi
+  if interactive; then
+    ask_yes "Holder on file: \"$value\". Use it for this deploy?" || die "Edit $file and run again."
+  fi
+  HOLDER_VALUE="$value"
+}
+
+# Sign-up opens only when the holder is named AND the built privacy page names the same holder.
+check_privacy_page() {
+  [ -n "$HOLDER_VALUE" ] || return 0
+  local page="$REPO_ROOT/dist/privacy.html"
+  if [ ! -f "$page" ]; then
+    HOLDER_NOTE="The built site has no privacy page (dist/privacy.html)."
+    HOLDER_VALUE=""
+  elif ! grep -qF -- "$HOLDER_VALUE" "$page"; then
+    HOLDER_NOTE="The built privacy page does not name the holder."
+    HOLDER_VALUE=""
+  fi
+}
+
+remind_roll_token() {
+  say ""
+  say "Last step: roll (regenerate) the deploy token in the Cloudflare dashboard and close this window."
+}

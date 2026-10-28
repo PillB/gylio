@@ -32,6 +32,43 @@ updates:
         update-types:
           - version-update:semver-minor
 
+  - package-ecosystem: npm
+    directory: /worker
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    groups:
+      non-major-worker-updates:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+    # wrangler is pinned exactly in worker/scripts/lib.sh as well as package.json;
+    # a major bump of the deploy tool or the Workers test pool needs a planned
+    # change with a real deploy rehearsal, not an automatic grouped PR.
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-major
+
+  - package-ecosystem: npm
+    directory: /server
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    groups:
+      non-major-server-updates:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-major
+
   - package-ecosystem: github-actions
     directory: /
     schedule:
