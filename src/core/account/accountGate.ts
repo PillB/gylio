@@ -49,7 +49,7 @@ export const QUIET_MS = 600;
 /** Online but slow: after this long, the person who was signed in gets their data while sign-in carries on. */
 export const SLOW_SIGN_IN_MS = 4000;
 
-export type SignInWait = 'quiet' | 'waiting' | 'local';
+export type SignInWait = 'quiet' | 'waiting' | 'offline' | 'local';
 
 /**
  * While sign-in is still being checked. The data on this device opens at once offline (sign-in cannot be checked
@@ -58,5 +58,6 @@ export type SignInWait = 'quiet' | 'waiting' | 'local';
  */
 export const signInWait = ({ ownerSignedIn, online, waitedMs }: { ownerSignedIn: boolean; online: boolean; waitedMs: number }): SignInWait => {
   if (ownerSignedIn && (!online || waitedMs >= SLOW_SIGN_IN_MS)) return 'local';
-  return waitedMs >= QUIET_MS ? 'waiting' : 'quiet';
+  if (waitedMs < QUIET_MS) return 'quiet';
+  return online ? 'waiting' : 'offline';
 };

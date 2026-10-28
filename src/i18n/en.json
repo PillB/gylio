@@ -2135,6 +2135,7 @@
   "calendarDayEvents_other": "{{day}}, {{count}} events",
   "device": {
     "checkingSignIn": "Checking your sign-in…",
+    "offlineSignIn": "You're offline. Sign-in will finish when you're back online.",
     "switching": "Setting the previous account's data aside on this device…",
     "noRoom": {
       "title": "This device is out of space",

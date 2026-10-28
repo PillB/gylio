@@ -88,6 +88,16 @@ describe('switchOwner', () => {
     expect(storage.getItem('gylio_sqlite')).toContain('B: call mum');
   });
 
+  it("is safe to run twice: the second run cannot file B's data over A's archive", () => {
+    const storage = deviceWithA();
+    const aData = storage.getItem('gylio_sqlite');
+    switchOwner(storage, 'user_a', 'user_b');
+    storage.setItem('gylio_sqlite', '{"tasks":{"rows":[{"title":"B: call mum"}]}}');
+    switchOwner(storage, 'user_a', 'user_b');
+    expect(storage.getItem('gylio_sqlite')).toContain('B: call mum');
+    expect(JSON.parse(storage.getItem(`${ARCHIVE_PREFIX}user_a`) as string).gylio_sqlite).toBe(aData);
+  });
+
   it('changes nothing when there is no room to set the data aside', () => {
     const storage = deviceWithA(400);
     const before = storage.dump();

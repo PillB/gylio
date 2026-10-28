@@ -75,12 +75,13 @@ export function AccountDataGate({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const result = applyStep(step, owner, userId, window.localStorage);
+    // Until the page goes, keep the screens closed: they would start on the data that was just swapped in.
     if (result === 'reload') window.location.reload();
-    else setOutcome(result);
+    setOutcome((current) => (current === 'reload' ? current : result));
   }, [step, owner, userId]);
 
   if (outcome === 'no-room') return <NoRoom onSignOut={() => void signOut()} />;
-  if (step === 'switch') {
+  if (step === 'switch' || outcome === 'reload') {
     return (
       <Notice>
         <p role="status" style={{ margin: 0 }}>{t('device.switching')}</p>

@@ -19,12 +19,12 @@ export function useSignInWait(isLoaded: boolean, startedAt = PAGE_STARTED_AT): S
 
   useEffect(() => {
     if (isLoaded) return undefined;
-    const timers = [QUIET_MS, SLOW_SIGN_IN_MS].map((ms) => window.setTimeout(() => setNow(Date.now()), Math.max(0, startedAt + ms - Date.now())));
+    const timers = [QUIET_MS, SLOW_SIGN_IN_MS].map((ms) => setTimeout(() => setNow(Date.now()), Math.max(0, startedAt + ms - Date.now())));
     const update = () => setOnline(isOnline());
     window.addEventListener('online', update);
     window.addEventListener('offline', update);
     return () => {
-      timers.forEach((timer) => window.clearTimeout(timer));
+      timers.forEach((timer) => clearTimeout(timer));
       window.removeEventListener('online', update);
       window.removeEventListener('offline', update);
     };
@@ -33,13 +33,19 @@ export function useSignInWait(isLoaded: boolean, startedAt = PAGE_STARTED_AT): S
   return signInWait({ ownerSignedIn: ownerSignedIn(), online, waitedMs: now - startedAt });
 }
 
+const WORDS: Record<Exclude<SignInWait, 'local'>, string> = {
+  quiet: '',
+  waiting: 'device.checkingSignIn',
+  offline: 'device.offlineSignIn',
+};
+
 /** The live region is there from the start, empty, so the words are announced when they appear. */
-export function SignInWaitNotice({ quiet }: { quiet: boolean }) {
+export function SignInWaitNotice({ wait }: { wait: Exclude<SignInWait, 'local'> }) {
   const { t } = useTranslation();
   return (
     <main>
       <p role="status" style={{ margin: 0 }}>
-        {quiet ? '' : t('device.checkingSignIn')}
+        {WORDS[wait] ? t(WORDS[wait]) : ''}
       </p>
     </main>
   );

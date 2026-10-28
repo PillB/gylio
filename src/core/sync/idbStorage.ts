@@ -2,6 +2,13 @@ import { changeKey, coalesce } from './memoryStorage';
 import type { BucketName, KeptVersion, NewChange, OutboxEntry, SyncMeta, SyncStorage } from './types';
 
 const DB_NAME = 'gylio-sync-v2';
+
+/**
+ * One database per account. The outbox and the known versions belong to the account whose data is on the device
+ * (src/core/account/deviceOwner.ts sets the rest aside when someone else signs in), so they wait here, unsent, until
+ * that account signs in again, instead of being sent as the next person's.
+ */
+export const syncDatabaseName = (accountId?: string | null): string => (accountId ? `${DB_NAME}:${accountId}` : DB_NAME);
 const DB_VERSION = 1;
 const OUTBOX = 'outbox';
 const VERSIONS = 'versions';
@@ -26,9 +33,9 @@ const done = (tx: IDBTransaction): Promise<void> =>
     tx.onabort = () => reject(tx.error ?? new Error('Transaction aborted'));
   });
 
-const open = (factory: IDBFactory): Promise<IDBDatabase> =>
+const open = (factory: IDBFactory, name: string): Promise<IDBDatabase> =>
   new Promise((resolve, reject) => {
-    const request = factory.open(DB_NAME, DB_VERSION);
+    const request = factory.open(name, DB_VERSION);
     request.onupgradeneeded = () => {
       const db = request.result;
       db.createObjectStore(OUTBOX, { keyPath: 'key' });
@@ -48,10 +55,13 @@ const open = (factory: IDBFactory): Promise<IDBDatabase> =>
 export class IdbStorage implements SyncStorage {
   private db: Promise<IDBDatabase> | null = null;
 
-  constructor(private readonly factory: IDBFactory = indexedDB) {}
+  constructor(
+    private readonly factory: IDBFactory = indexedDB,
+    private readonly name: string = DB_NAME,
+  ) {}
 
   private connection() {
-    this.db ??= open(this.factory);
+    this.db ??= open(this.factory, this.name);
     return this.db;
   }
 

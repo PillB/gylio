@@ -29,6 +29,8 @@ import { getLocalDateKey } from './core/hooks/useClock';
 import useBackgroundSync from './core/hooks/useBackgroundSync';
 import { SyncRoot } from './core/sync/SyncRoot';
 import { WholeDeviceSaving } from './core/sync/WholeDeviceSaving';
+import { AccountDataGate } from './core/account/AccountDataGate';
+import { SignInWaitNotice, useSignInWait } from './core/account/SignInWait';
 import { SyncStatusChip } from './components/SyncStatus';
 import SignInPage from './features/auth/SignInPage';
 import SignUpPage from './features/auth/SignUpPage';
@@ -272,9 +274,11 @@ function AppLayout({ clerkEnabled }) {
 function RootRedirectAuthed() {
   const { isOnboardingComplete } = useOnboardingFlow();
   const { isLoaded, isSignedIn } = useAuth();
-  if (!isLoaded) return null;
+  const wait = useSignInWait(isLoaded);
+  const home = <Navigate to={isOnboardingComplete ? '/tasks' : '/onboarding'} replace />;
+  if (!isLoaded) return wait === 'local' ? home : <SignInWaitNotice wait={wait} />;
   if (!isSignedIn) return <Navigate to="/sign-in" replace />;
-  return <Navigate to={isOnboardingComplete ? '/tasks' : '/onboarding'} replace />;
+  return home;
 }
 
 function RootRedirectNoAuth() {
@@ -282,9 +286,11 @@ function RootRedirectNoAuth() {
   return <Navigate to={isOnboardingComplete ? '/tasks' : '/onboarding'} replace />;
 }
 
+/** While sign-in is checked, the person whose data this is gets it offline or on a slow line (see SignInWait.tsx). */
 function ProtectedLayoutAuthed() {
   const { isLoaded, isSignedIn } = useAuth();
-  if (!isLoaded) return null;
+  const wait = useSignInWait(isLoaded);
+  if (!isLoaded) return wait === 'local' ? <Outlet /> : <SignInWaitNotice wait={wait} />;
   if (!isSignedIn) return <Navigate to="/sign-in" replace />;
   return <Outlet />;
 }
@@ -506,13 +512,16 @@ function AppRouterAuthed() {
   if (!hydrated) return null;
   return (
     <AuthProvider clerkEnabled={true}>
-      <EntitlementProvider>
-        <WholeDeviceSaving>
-          <SyncRoot>
-            <RouterProvider router={router} future={{ v7_startTransition: true }} />
-          </SyncRoot>
-        </WholeDeviceSaving>
-      </EntitlementProvider>
+      {/* Outside everything that reads or sends data, so a different account never sees the previous one's. */}
+      <AccountDataGate>
+        <EntitlementProvider>
+          <WholeDeviceSaving>
+            <SyncRoot>
+              <RouterProvider router={router} future={{ v7_startTransition: true }} />
+            </SyncRoot>
+          </WholeDeviceSaving>
+        </EntitlementProvider>
+      </AccountDataGate>
     </AuthProvider>
   );
 }

@@ -142,6 +142,7 @@ const syncAction = async (action: SyncAction): Promise<SyncResult> => {
 
   if (statusCode === 409) {
     await addSyncConflict({
+      owner: action.owner,
       entityType: action.entityType,
       action: action.action,
       localData: action.payload,

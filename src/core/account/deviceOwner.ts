@@ -140,8 +140,13 @@ export const bringBack = (storage: Storage, owner: string): void => {
  * Sets the current data aside for `from`, brings back `to`'s, and records `to` as the owner. If `to`'s data
  * cannot be put back in full, `from`'s is restored and the owner stays `from`, so a later attempt never files
  * half of one account's data under the other's name.
+ *
+ * It does nothing unless the device still holds `from`'s data: a second run (React runs effects twice in
+ * development, and another tab may have switched first) would otherwise file `to`'s data under `from`'s name,
+ * over `from`'s real archive.
  */
 export const switchOwner = (storage: Storage, from: string, to: string): void => {
+  if (readOwner(storage) !== from) return;
   setAside(storage, from);
   try {
     bringBack(storage, to);

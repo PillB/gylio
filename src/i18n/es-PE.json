@@ -2135,6 +2135,7 @@
   "calendarDayEvents_other": "{{day}}, {{count}} eventos",
   "device": {
     "checkingSignIn": "Revisando tu sesión…",
+    "offlineSignIn": "Estás sin conexión. El inicio de sesión terminará cuando vuelvas a estar en línea.",
     "switching": "Guardando aparte los datos de la cuenta anterior en este dispositivo…",
     "noRoom": {
       "title": "Este dispositivo no tiene espacio",

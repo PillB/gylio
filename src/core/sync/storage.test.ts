@@ -1,6 +1,6 @@
 import { IDBFactory } from 'fake-indexeddb';
 import { describe, expect, it } from 'vitest';
-import { IdbStorage } from './idbStorage';
+import { IdbStorage, syncDatabaseName } from './idbStorage';
 import { MemoryStorage } from './memoryStorage';
 import type { NewChange, SyncStorage } from './types';
 
@@ -158,5 +158,21 @@ describe('IndexedDB storage keeps its data between page loads', () => {
     const after = new IdbStorage(factory);
     expect((await after.listOutbox())[0].data).toEqual({ title: 'saved before reload' });
     expect((await after.getMeta()).cursor).toBe(7);
+  });
+});
+
+describe('IndexedDB storage on a device two accounts use', () => {
+  it("keeps each account's waiting changes and position apart, so one is never sent as the other's", async () => {
+    const factory = new IDBFactory();
+    const a = new IdbStorage(factory, syncDatabaseName('user_a'));
+    await a.putChange(task('a', "A's task"));
+    await a.setMeta({ cursor: 9, owner: 'user_a' });
+    const b = new IdbStorage(factory, syncDatabaseName('user_b'));
+    expect(await b.listOutbox()).toEqual([]);
+    expect(await b.getMeta()).toEqual({ cursor: 0, owner: null });
+    // A comes back: everything is still there.
+    const aAgain = new IdbStorage(factory, syncDatabaseName('user_a'));
+    expect((await aAgain.listOutbox()).map((entry) => entry.data)).toEqual([{ title: "A's task" }]);
+    expect(syncDatabaseName(null)).toBe('gylio-sync-v2');
   });
 });
