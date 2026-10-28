@@ -16,7 +16,7 @@ Give particular focus to:
 
 ### Test discipline — every task, every round
 - **A test for every task and every round**, written with the code it verifies. Tautological tests (tests that pass by construction, restate the implementation, or assert the mock) are **considered harmful** and must not be merged; a test must be able to fail.
-- Include a `chore(lint)` commit enforcing a **cyclomatic complexity ceiling** (existing scripts: `npm run lint:complexity`, ceiling = 10). Extend the file list when new complex logic lands.
+- Include a `chore(lint)` commit enforcing a **cyclomatic complexity ceiling** of 10. `npm run lint` enforces it on all of `src` (`eslint.complexity.js`, with a shrinking baseline for legacy files); `npm run lint:complexity` covers the server billing, feedback and admin files. When new complex logic lands outside those, extend `lint:complexity`.
 - Test every UI change by **actually browsing it in Chrome** — not just unit tests. Each round must include a Chrome browsing pass over the affected flows, checking console for errors, network for failed requests, and interactions for broken flows.
 
 ### Error-fix discipline

@@ -6,8 +6,8 @@
 - Frontend: React 18 + Vite (`src/App.jsx`, `vite.config.ts`).
 - Language mix: JavaScript + TypeScript (`.jsx/.js` and `.tsx/.ts`).
 - Mobile bridge: Expo + React Native Web shims (`app.json`, `src/shims/*`).
-- Backend: Node.js + Express (`server/server.js`, `server/routes/*`).
-- Data: MongoDB (Mongoose) with SQLite fallback (`server/db/models.js`).
+- Production backend (planned): one Cloudflare Worker + D1 at `https://gylio.app` (`worker/`, `docs/CLOUDFLARE_SERVER_PLAN.md`, `docs/CLOUDFLARE_GO_LIVE_MANUAL.md`).
+- Legacy/local backend: Node.js + Express (`server/server.js`, `server/routes/*`), MongoDB (Mongoose) with SQLite fallback (`server/db/models.js`). Billing, feedback, admin and analytics ingestion were first built here (#89).
 - i18n: `react-i18next` with English + es-PE dictionaries (`src/i18n`).
 
 ## Architecture Snapshot

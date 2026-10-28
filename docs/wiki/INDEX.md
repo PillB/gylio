@@ -14,6 +14,11 @@
 ## Reviews
 - [Layout, structure and tour review, 2026-10-06](layout-review-2026-10-06.md): ratings, layout proxy, trade-offs, experiment designs (PR #95).
 
+## Related pages
+- [Audit, 2026-10-02](audit-2026-10-02.md): findings Q-001 onward from the Plan, test and improve thread.
+- [Browser audit](browser-audit.md): what was checked in a real browser, and how.
+- [Competitor research and feature ideas](research-competitors-ideas.md).
+
 ## Findings Log
 
 ### R0-5 · FIXED+VERIFIED · XP/streaks never persisted on web (silent data loss in SQLite shim)
@@ -57,7 +62,7 @@
 - **Finding:** Billing gates and A/B paywall UI cannot be fully exercised locally (Paddle/MercadoPago need live credentials). `VITE_BILLING_ENABLED=false` is the correct fail-closed posture; keep dev entitlement helpers for local E2E. Per AGENTS.md blocked-resource rule: surface, don't retry.
 
 ### R0-7 · Onboarding UX: reassurance copy repeats 4× per step
-- **Date:** 2026-09-30 · **Round:** 0 · **Severity:** P3 · **Status:** open
+- **Date:** 2026-09-30 · **Round:** 0 · **Severity:** P3 · **Status:** fixed in #92 (same finding as Q-008 in the 2026-10-02 audit)
 - **Finding:** Every onboarding step repeats 3–4 near-identical paragraphs ("Set up only what helps you…", "Saved on this device. You can leave now…", "Neutral defaults are already selected…", "Choose what feels comfortable…"). Violates the "short content blocks" principle; adds reading load for the exact users who struggle with text volume.
 - **Also:** Step 3 says "Nothing on this screen is a consent or eligibility requirement" — defensive-legalese-flavored copy with no user value; consider cutting.
 - **Minor:** A single Today task renders inside a "Chunk 1" header — grouping noise with one item.
@@ -82,7 +87,11 @@
 
 | Expt ID | Hypothesis | Primary metric | Control | Treatment | Result | Round | Status |
 |---|---|---|---|---|---|---|---|
-| (empty) | — | — | — | — | — | — | (populate when experiments are designed) |
+| paywall_default_interval | Pre-selecting yearly raises revenue per paywall viewer (the $0.50 fixed fee makes yearly keep more) | Revenue per paywall viewer at day 35 | yearly | monthly | — | R1 | built, waiting for traffic |
+| trial_cta_copy | Risk-reduction wording ("no card") starts more trials than benefit wording | Trial starts per paywall viewer | start_trial | try_free_no_card | — | R1 | built, waiting for traffic |
+| tour_length | A five-step tour of the free core is finished more often without hurting week-1 use | Tour completion; guardrail D7 retention | overview9 | overview5 | — | R2 | built, waiting for traffic |
+| budget_quick_add | Putting Transactions first raises transactions logged in week 1 | Transactions per budget user, week 1 | none | top | — | R2 | built, waiting for traffic |
+| calendar_default_phone | Phones opening on Day view raise calendar use | Calendar sessions per phone user, week 1 | day | week | — | R2 | built, waiting for traffic |
 
 ---
 
