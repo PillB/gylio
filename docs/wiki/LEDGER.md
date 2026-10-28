@@ -96,6 +96,21 @@
 
 ---
 
+## Finance model correctness + #89 merge readiness (2026-10-27)
+
+| Step | Finding / change | Evidence |
+|---|---|---|
+| F-1 | `conversionMultiplier` scaled payers but not the users leaving the free pool, so any multiplier ≠ 1 created or destroyed users. Now the multiplier scales the rates. | `financeModel.test.js` "conversion keeps the free pool honest": month-1 MAU = 300 sign-ups at ×0.5/×1/×2 (failed first) |
+| F-2 | Payout wire fee jumped from $0 to $15 at $100 revenue (a cliff). Now `min(fee, revenue)`. | `payoutFee` test, incl. $99.99 → $15 |
+| F-3 | Break-even weighted plans by sign-up mix; payers on any day lean yearly (12/(1−renewal) vs 1/churn months). | hand calc 6/11 yearly → 24 payers, sign-up mix said 23 |
+| F-4 | Income tax was a flat 10% on each positive month, no bracket, no loss offset. Now RMT: 10% to 15 UIT (S/ 82,500) and 29.5% above per calendar year, losses carried forward. | `incomeTax` test: [−200, 900, 600] → [0, 70, 120]; new year resets |
+| F-5 | Workbook builder mirrors all four; Numbers recalculation matches the code to the cent for NPV, cash, drawdown, payback, payers in all 3 scenarios, the 5×5 conversion×churn NPV grid and break-even (27/32/45). | `scripts/finance/build_workbook.py`, Numbers export |
+| M-1 | Merging main: #82 lint ratchet flagged 4 issues in #89's code; WelcomeBackBanner's module-level once-flag silenced every later mount (main's boundary tests caught it) → ref-based de-dupe. | lint 0, 511 + 210 unit, 131 e2e |
+
+Trade-offs stated: loss carry-forward is unlimited inside the 36-month horizon (Peru system A allows 4 years, so no difference here); RMT's UIT is held at the 2026 value; the payout fee cap assumes Paddle deducts the wire from the payout.
+
+---
+
 ## Backlog (queued, priority order)
 
 | ID | Item | Priority | Blocking on |
