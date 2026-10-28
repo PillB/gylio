@@ -70,6 +70,8 @@ const mountApp = () =>
 
 const setOnline = (online: boolean) => Object.defineProperty(navigator, 'onLine', { value: online, configurable: true });
 let reload: ReturnType<typeof vi.fn>;
+// The page's own address, kept before any test stands a copy in for it (to watch reload).
+const realLocation = window.location;
 
 beforeEach(async () => {
   localStorage.clear();
@@ -77,8 +79,10 @@ beforeEach(async () => {
   await i18n.changeLanguage('en');
   Object.assign(auth, { isLoaded: false, isSignedIn: false, userId: null });
   reload = vi.fn();
-  Object.defineProperty(window, 'location', { value: { ...window.location, reload }, writable: true, configurable: true });
+  // Open on /tasks itself: a copy made before the address changes would start the app on / and send it through an
+  // in-app redirect, which on Node 24 fails in jsdom (the router's Request rejects jsdom's AbortSignal).
   window.history.replaceState(null, '', '/tasks');
+  Object.defineProperty(window, 'location', { value: { ...realLocation, reload }, writable: true, configurable: true });
   setOnline(true);
   // jsdom has no matchMedia; the header asks it for the phone layout.
   window.matchMedia = ((query: string) => ({
