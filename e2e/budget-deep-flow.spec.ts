@@ -85,6 +85,11 @@ test('budget: debt simulator shows snowball vs avalanche payoff comparison', asy
   await gotoPage(page, '/budget');
 
   // ── 1. Add two debts with different balances and rates ──────────────────
+  // Debt payoff is an optional section that starts closed until a debt exists.
+  const debtDisclosure = page.locator('details').filter({ has: page.locator('summary', { hasText: /debt payoff/i }) });
+  if (!(await debtDisclosure.getAttribute('open').then((v) => v !== null))) {
+    await debtDisclosure.locator('summary').click();
+  }
   const addDebt = async (name: string, balance: string, rate: string, min: string) => {
     const debtSection = page.locator('h3, h4, label').filter({ hasText: new RegExp(`^${name}`) });
     void debtSection;
