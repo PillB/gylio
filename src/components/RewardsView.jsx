@@ -6,6 +6,7 @@ import useGamification from '../core/hooks/useGamification';
 import { useTheme } from '../core/context/ThemeContext';
 import SectionCard from './SectionCard.jsx';
 import BudgetTooltip from './atoms/BudgetTooltip';
+import AdSlot from '../features/ads/AdSlot';
 
 /**
  * RewardsView component
@@ -654,6 +655,7 @@ const RewardsView = () => {
           </>
         )}
       </div>
+      <AdSlot placement="rewards" />
     </SectionCard>
   );
 };
