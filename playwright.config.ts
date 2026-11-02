@@ -25,10 +25,20 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     trace: 'on-first-retry',
   },
+  // Every spec runs in all three engines. CI runs Chromium in one job and Firefox and WebKit (Safari's engine) in
+  // another; `npx playwright install` fetches all three for a local run, or pick one with --project.
   projects: [
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'firefox',
+      use: { ...devices['Desktop Firefox'] },
+    },
+    {
+      name: 'webkit',
+      use: { ...devices['Desktop Safari'] },
     },
   ],
   webServer: isRemoteTarget
