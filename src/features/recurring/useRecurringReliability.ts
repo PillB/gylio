@@ -114,6 +114,8 @@ export function useRecurringReliability(todayKey?: string) {
 
   // Prevent duplicate checks on the same calendar day
   const lastCheckDateRef = useRef<string | null>(null);
+  // The day a check was last started (it may still be running), so a re-render cannot start it twice.
+  const startedDateRef = useRef<string | null>(null);
 
   // ---------------------------------------------------------------------------
   // Resolve DB access methods — normalise the two common shapes
@@ -340,6 +342,7 @@ export function useRecurringReliability(todayKey?: string) {
     const store = readMeta();
     const lastGlobalCheckAt = deriveLastGlobalCheck(store);
     setState((s) => ({ ...s, lastGlobalCheckAt }));
+    startedDateRef.current = today;
     runCheck(false);
     // Runs once when the database becomes ready; the midnight effect below handles later days.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -348,11 +351,16 @@ export function useRecurringReliability(todayKey?: string) {
   // ---------------------------------------------------------------------------
   // Midnight crossover: re-check when the calendar day changes
   // ---------------------------------------------------------------------------
+  // Keyed on the day only: runCheck is rebuilt whenever the database object or the translator changes, and the
+  // check itself sets state, so depending on it re-ran the check on every render until it finished (a render loop).
+  const runCheckRef = useRef(runCheck);
+  runCheckRef.current = runCheck;
   useEffect(() => {
     if (!dbReady) return;
-    if (lastCheckDateRef.current === today) return;
-    runCheck(false);
-  }, [today, dbReady, runCheck]);
+    if (lastCheckDateRef.current === today || startedDateRef.current === today) return;
+    startedDateRef.current = today;
+    runCheckRef.current(false);
+  }, [today, dbReady]);
 
   return {
     ...state,
