@@ -20,13 +20,19 @@ No vendemos Datos del Usuario a terceros y solo recopilamos la información que 
 
 Recopilamos contenido que se nos proporciona directamente para su posterior consulta y visualización, como:
 
+- Contenido que usted crea o introduce en los Servicios.
+
 ### Identificadores de cuentas de terceros
 
 Recopilamos esta información para poder consultar los datos asociados a un usuario, servidor o mensaje determinado:
 
+- Identificadores de cuenta de los proveedores de inicio de sesión y de pago que utilizamos.
+
 ### Información de diagnóstico
 
 Recopilamos esta información porque nos ayuda enormemente a localizar problemas y a mejorar nuestros servicios:
+
+- Información técnica y de uso sobre su dispositivo y su uso de los Servicios.
 
 ### Identificadores personales
 

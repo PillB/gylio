@@ -36,6 +36,8 @@ if kind == 'privacy':
     cut_block('The best place to contact us regarding issues', 'If you have any questions regarding')
     cut_block('\n\nFor inquiries of a more formal nature', '@@END@@') if False else None
     i = t.index('For inquiries of a more formal nature'); log.append((t[i:], '')); t = t[:i].rstrip() + '\n'
+    for intro, item in {'We collect content provided directly to us for future lookup and display, such as:': '- Content you create or enter in the Services.', 'We collect this information in order to be able to look up the data associated with a particular user, server, or message:': '- Account identifiers from the sign-in and payment providers we use.', 'We collect this information because it greatly helps us track down issues and improve our services:': '- Technical and usage information about your device and your use of the Services.'}.items():
+        sub(intro, intro + '\n\n' + item)
     sub('(/policy/terms-of-service)', '(/terms)')
     sub('Normal operation of bot and website', 'Normal operation of website')
 else:

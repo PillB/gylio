@@ -20,13 +20,19 @@ We do not sell User Data to third parties and we only collect information that i
 
 We collect content provided directly to us for future lookup and display, such as:
 
+- Content you create or enter in the Services.
+
 ### Third-Party Account Identifiers
 
 We collect this information in order to be able to look up the data associated with a particular user, server, or message:
 
+- Account identifiers from the sign-in and payment providers we use.
+
 ### Diagnostic Information
 
 We collect this information because it greatly helps us track down issues and improve our services:
+
+- Technical and usage information about your device and your use of the Services.
 
 ### Personal Identifiers
 
