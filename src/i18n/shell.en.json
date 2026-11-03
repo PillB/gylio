@@ -3,5 +3,9 @@
   "notifications": "Notifications",
   "dismissNotification": "Dismiss notification",
   "information": "Information",
-  "premiumTab": "Pro feature"
+  "premiumTab": "Pro feature",
+  "termsOfService": "Terms of Service",
+  "privacyPolicy": "Privacy Policy",
+  "legalLinks": "Legal",
+  "legalLastUpdated": "Last updated: {{date}}"
 }

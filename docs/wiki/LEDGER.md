@@ -146,3 +146,12 @@ Trade-offs stated: loss carry-forward is unlimited inside the 36-month horizon (
 | What didn't? | No shim test existed at all — the web persistence layer, the product's only storage on its primary platform, was untested. Also: a11y snapshot tool quirks cost investigation time (accessible-name vs value confusion) — verify against DOM before concluding. |
 | What to change next round? | Add storage/persistence contract tests early; walk Budget deep flows next (highest-value untested surface); wire the analytics sink before reading any A/B results. |
 | Preemptions? | Silent-success fallthroughs in compatibility layers are now a known pattern here — grep for `_emptyResult()`-style returns when adding SQL; complexity gate now covers src/shims. |
+
+---
+
+### STEP-CI-001 · 2026-11-02 · CI review
+- **Action:** Root-caused the `sync-offline` e2e "after the pause ends by itself" failing after ~22:00 UTC. Not a test-timing issue: the fake clock's 2 h jump crosses midnight, `todayKey` changes, and `useRecurringReliability`'s day-change effect (which depended on `runCheck`, rebuilt whenever `useDB()`'s object changes) restarted the check on every render until it finished — "Maximum update depth exceeded", tab frozen. A real person leaving the Tasks screen open across midnight would have hit the same freeze. Fix: the effect is keyed on the day only and records the day it started.
+- **Artifacts:** src/features/recurring/useRecurringReliability.ts, useRecurringReliability.test.tsx (regression test: new `useDB` object each render + day rollover; it ran out of memory before the fix)
+- **Verification:** vitest recurring suite, full sync-offline e2e run at 22:4x UTC (7/7), lint, typecheck
+- **Status:** done
+- **Preemption:** effects that call a state-setting async function must not list that function's identity (built from unstable context objects) as a dependency; key them on the value that should trigger them and guard with a "started" ref.

@@ -1,8 +1,10 @@
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { buildCsp } from './csp.config.js';
+import { staticLegalPage } from './src/features/legal/staticPage';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -28,6 +30,21 @@ const contentSecurityPolicy = () => {
     },
   };
 };
+
+/** Emits privacy.html and terms.html (both languages) next to the app so the text is checkable in dist/. */
+const emitLegalPages = () => ({
+  name: 'gylio-emit-legal-pages',
+  generateBundle() {
+    const read = (file: string) => fs.readFileSync(path.resolve(__dirname, 'src/features/legal/content', file), 'utf-8');
+    for (const doc of ['privacy', 'terms'] as const) {
+      this.emitFile({
+        type: 'asset',
+        fileName: `${doc}.html`,
+        source: staticLegalPage(doc, { es: read(`${doc}.es-PE.md`), en: read(`${doc}.en.md`) }, base),
+      });
+    }
+  },
+});
 
 /**
  * Writes precache.json: every file the build emits, for the service worker to cache at install, so an
@@ -81,7 +98,7 @@ export default defineConfig(({ mode }) => {
   // The Cloudflare deploy (worker/scripts/setup.sh) points this at an empty folder and pins every VITE_ setting
   // itself, so a stray .env file on the Mac that deploys cannot change what ships.
   envDir: process.env.GYLIO_ENV_DIR || undefined,
-  plugins: [react(), contentSecurityPolicy(), precacheList()],
+  plugins: [react(), contentSecurityPolicy(), emitLegalPages(), precacheList()],
   build: {
     manifest: true,
     rollupOptions: {

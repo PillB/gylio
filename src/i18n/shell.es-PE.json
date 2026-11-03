@@ -3,5 +3,9 @@
   "notifications": "Notificaciones",
   "dismissNotification": "Cerrar notificación",
   "information": "Información",
-  "premiumTab": "Función de Pro"
+  "premiumTab": "Función de Pro",
+  "termsOfService": "Términos del Servicio",
+  "privacyPolicy": "Política de Privacidad",
+  "legalLinks": "Información legal",
+  "legalLastUpdated": "Última actualización: {{date}}"
 }
