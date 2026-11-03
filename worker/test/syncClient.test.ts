@@ -1,7 +1,7 @@
 import { createExecutionContext, SELF, waitOnExecutionContext } from 'cloudflare:test';
 import { env } from 'cloudflare:workers';
 import { importJWK, SignJWT } from 'jose';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import worker from '../src/index';
 import { SyncEngine, type Auth } from '../../src/core/sync/engine';
 import { MemoryStorage } from '../../src/core/sync/memoryStorage';
@@ -143,7 +143,18 @@ describe('a 503 from the real Worker', () => {
   });
 
   it('a person pausing for a whole day costs about one request an hour, and a pull at the end shows nothing was lost', async () => {
-    await seedUsage(4_600_000);
+    // The Worker answers "come back at 00:00 UTC, at most an hour from now" from its own clock, so near midnight it
+    // rightly asks for sooner returns. Pin that clock to midday so the count below does not depend on when this runs.
+    vi.useFakeTimers({ now: Date.UTC(2026, 9, 27, 12, 0, 0), toFake: ['Date'] });
+    try {
+      await seedUsage(4_600_000);
+      await pauseForAWholeDay();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  async function pauseForAWholeDay() {
     const d = device('shed_person_2');
     await change(d, 'tasks', 'a', { title: 'x' });
     for (let hour = 0; hour < 24; hour += 1) {
@@ -155,7 +166,7 @@ describe('a 503 from the real Worker', () => {
     await resetUsage();
     await d.time.advance(70 * MINUTE);
     expect(d.engine.snapshot().pending).toBe(0);
-  });
+  }
 
   it('the warning level (70 percent) makes the app send less often but still send', async () => {
     await seedUsage(3_600_000);

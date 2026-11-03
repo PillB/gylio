@@ -155,3 +155,10 @@ Trade-offs stated: loss carry-forward is unlimited inside the 36-month horizon (
 - **Verification:** vitest recurring suite, full sync-offline e2e run at 22:4x UTC (7/7), lint, typecheck
 - **Status:** done
 - **Preemption:** effects that call a state-setting async function must not list that function's identity (built from unstable context objects) as a dependency; key them on the value that should trigger them and guard with a "started" ref.
+
+### STEP-CI-002 · 2026-11-03 · CI review
+- **Action:** `worker/test/syncClient.test.ts` "a person pausing for a whole day" failed (35–36 requests vs bound 30) when run after ~23:00 UTC. Not an app bug: the Worker's `Retry-After` is `min(3600, seconds until 00:00 UTC)` from its real clock, which is correct (the allowance resets at midnight), while the device under test runs on a hand-moved fake clock. Near midnight the Worker rightly asks for sooner returns, so a simulated 24 h costs more requests. The test mixed the two clocks. Fix: pin the Worker's `Date` to midday for that test; the ≤ 30 bound is unchanged and still means "about one request an hour".
+- **Artifacts:** worker/test/syncClient.test.ts
+- **Verification:** failed 36 > 30 at 23:21 UTC before the change; 14/14 pass after; tsc clean
+- **Status:** done
+- **Preemption:** tests that drive a device with a fake clock against the real Worker must pin the Worker's `Date` too, or they depend on the time of day they run.
