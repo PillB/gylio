@@ -16,6 +16,7 @@ import CalendarView from './components/CalendarView.jsx';
 import BudgetView from './components/BudgetView.jsx';
 import RewardsView from './components/RewardsView.jsx';
 import SettingsView from './components/SettingsView.jsx';
+import LegalPage from './features/legal/LegalPage';
 import SocialPlansView from './features/social/components/SocialPlansView';
 import RoutinesView from './features/routines/components/RoutinesView';
 import OnboardingFlow from './onboarding/OnboardingFlow.jsx';
@@ -475,6 +476,8 @@ function buildAuthRouter(clerkEnabled) {
           { path: 'sign-in/*', element: <SignInPage /> },
           { path: 'sign-up/*', element: <SignUpPage /> },
           { path: 'pricing', element: <PricingPage /> },
+          { path: 'privacy', element: <LegalPage doc="privacy" /> },
+          { path: 'terms', element: <LegalPage doc="terms" /> },
           {
             element: clerkEnabled ? <ProtectedLayoutAuthed /> : <ProtectedLayoutNoAuth />,
             children: [

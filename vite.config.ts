@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { buildCsp } from './csp.config.js';
+import { staticLegalPage } from './src/features/legal/staticPage';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -54,6 +55,21 @@ const contentSecurityPolicy = () => {
     },
   };
 };
+
+/** Emits privacy.html and terms.html (both languages) next to the app so the text is checkable in dist/. */
+const emitLegalPages = () => ({
+  name: 'gylio-emit-legal-pages',
+  generateBundle() {
+    const read = (file: string) => fs.readFileSync(path.resolve(__dirname, 'src/features/legal/content', file), 'utf-8');
+    for (const doc of ['privacy', 'terms'] as const) {
+      this.emitFile({
+        type: 'asset',
+        fileName: `${doc}.html`,
+        source: staticLegalPage(doc, { es: read(`${doc}.es-PE.md`), en: read(`${doc}.en.md`) }, base),
+      });
+    }
+  },
+});
 
 const deploymentGuidePublicBaseBridge = () => ({
   name: 'deployment-guide-public-base-bridge',
@@ -111,7 +127,7 @@ export default defineConfig(({ mode }) => {
 
   return {
   base,
-  plugins: [react(), contentSecurityPolicy(), deploymentGuidePublicBaseBridge()],
+  plugins: [react(), contentSecurityPolicy(), deploymentGuidePublicBaseBridge(), emitLegalPages()],
   build: {
     manifest: true,
     rollupOptions: {

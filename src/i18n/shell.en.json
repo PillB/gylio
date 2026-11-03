@@ -6,5 +6,9 @@
   "productResources": "Product resources",
   "resourcesLabel": "GYLIO resources",
   "deploymentAcademy": "Production Deployment Academy",
-  "premiumTab": "Premium feature"
+  "premiumTab": "Premium feature",
+  "termsOfService": "Terms of Service",
+  "privacyPolicy": "Privacy Policy",
+  "legalLinks": "Legal",
+  "legalLastUpdated": "Last updated: {{date}}"
 }

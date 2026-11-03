@@ -1,6 +1,7 @@
 import React from 'react';
 import { SignUp } from '@clerk/clerk-react';
 import { useTheme } from '../../core/context/ThemeContext';
+import SignUpLegalLinks from './SignUpLegalLinks';
 
 const SignUpPage: React.FC = () => {
   const { theme } = useTheme();
@@ -8,8 +9,9 @@ const SignUpPage: React.FC = () => {
     <div
       style={{
         display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'flex-start',
+        flexDirection: 'column' as const,
+        alignItems: 'center',
+        gap: `${theme.spacing.md}px`,
         minHeight: '60dvh',
         maxHeight: 'calc(100dvh - 80px)',
         overflowY: 'auto',
@@ -24,6 +26,7 @@ const SignUpPage: React.FC = () => {
         fallbackRedirectUrl={`${import.meta.env.BASE_URL}onboarding`}
         signInUrl={`${import.meta.env.BASE_URL}sign-in`}
       />
+      <SignUpLegalLinks />
     </div>
   );
 };
