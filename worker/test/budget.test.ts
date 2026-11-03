@@ -2,6 +2,7 @@ import { SELF } from 'cloudflare:test';
 import { env } from 'cloudflare:workers';
 import { importJWK, SignJWT } from 'jose';
 import { describe, expect, it } from 'vitest';
+import { retryAfterSeconds } from '../src/usage';
 
 const e = env as unknown as { TEST_PRIVATE_JWK: string; DB: D1Database };
 const token = async (sub: string) =>
@@ -159,5 +160,18 @@ describe('usage meter and degraded mode', () => {
     await seed(0, 0, 95_000);
     expect((await SELF.fetch('https://api.test/api/sync/pull?since=0', { headers: auth })).status).toBe(503);
     await reset();
+  });
+});
+
+describe('retryAfterSeconds', () => {
+  const at = (iso: string) => new Date(iso);
+  it('asks for an hour when the reset is far off', () => {
+    expect(retryAfterSeconds(at('2026-11-02T12:00:00Z'))).toBe(3600);
+  });
+  it('asks for the time left when the reset is under an hour away', () => {
+    expect(retryAfterSeconds(at('2026-11-02T23:21:00Z'))).toBe(39 * 60);
+  });
+  it('never asks for less than a minute', () => {
+    expect(retryAfterSeconds(at('2026-11-02T23:59:59Z'))).toBe(60);
   });
 });
