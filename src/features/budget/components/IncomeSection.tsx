@@ -4,7 +4,7 @@ import { useTheme } from '../../../core/context/ThemeContext';
 import type { BudgetIncome } from '../../../core/hooks/useDB';
 import BudgetTooltip from '../../../components/atoms/BudgetTooltip';
 import { useValidatedForm } from '../hooks/useValidatedForm';
-import { parseNumber, validateIncome, type IncomeFields } from '../utils/budgetValidation';
+import { parseMoney, validateIncome, type IncomeFields } from '../utils/budgetValidation';
 import { BudgetInput, PrimaryButton, RemovableRowList, SectionHeading, stackStyle } from './BudgetControls';
 
 const EMPTY_INCOME: IncomeFields = { source: '', amount: '' };
@@ -32,7 +32,7 @@ const RemainingPanel: React.FC<{ remaining: number }> = ({ remaining }) => {
         {t('budget.remainingLabel', 'Remaining')}
         <BudgetTooltip content={t('budget.remainingExplain', 'The gap between what you earn and what you\'ve allocated. Your goal: reach zero before the month ends — not by spending more, but by planning more.')} />
       </div>
-      <div style={{ color: remaining === 0 ? theme.colors.primary : theme.colors.accent }}>{remaining.toFixed(2)}</div>
+      <div style={{ color: remaining === 0 ? theme.colors.primary : theme.colors.warningStrong }}>{remaining.toFixed(2)}</div>
       <small>{t('budget.remainingHint', 'Remaining should reach 0 for a zero-based budget.')}</small>
     </div>
   );
@@ -46,7 +46,7 @@ const IncomeSection: React.FC<Props> = ({ income, remaining, onAdd, onRemove }) 
 
   const handleAdd = () => {
     if (!form.submit()) return;
-    onAdd({ source: form.values.source.trim(), amount: parseNumber(form.values.amount) }).then((saved) => {
+    onAdd({ source: form.values.source.trim(), amount: parseMoney(form.values.amount) }).then((saved) => {
       if (saved) form.reset();
     });
   };
@@ -87,6 +87,7 @@ const IncomeSection: React.FC<Props> = ({ income, remaining, onAdd, onRemove }) 
         items={income}
         emptyText={t('budget.emptyIncome', 'No income added yet.')}
         getKey={(entry, index) => `${entry.source}-${index}`}
+        getName={(entry) => entry.source}
         renderLabel={(entry) => (
           <>
             <div style={{ fontSize: '0.875rem', wordBreak: 'break-word', overflowWrap: 'anywhere', color: theme.colors.text }}>

@@ -41,6 +41,7 @@ const ConvertTaskList: React.FC<Props> = ({ tasks, onConvert }) => {
               <button
                 type="button"
                 onClick={() => onConvert(task)}
+                aria-label={t('calendarConvertTaskNamed', { title: task.title })}
                 style={calendarButtonStyle(theme, 'outlinePrimary', {
                   alignSelf: 'flex-start',
                   minHeight: 44,

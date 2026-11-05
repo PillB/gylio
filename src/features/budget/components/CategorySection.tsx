@@ -5,7 +5,7 @@ import type { BudgetCategory } from '../../../core/hooks/useDB';
 import type { ThemeTokens } from '../../../core/themes';
 import { useValidatedForm } from '../hooks/useValidatedForm';
 import { CATEGORY_TYPES, categoryProgress, type SpendingStatus } from '../utils/budgetTotals';
-import { parseNumber, validateCategory, type CategoryFields } from '../utils/budgetValidation';
+import { parseMoney, validateCategory, type CategoryFields } from '../utils/budgetValidation';
 import { BudgetField, BudgetInput, PrimaryButton, SectionHeading, fieldStyle, stackStyle } from './BudgetControls';
 
 const EMPTY_CATEGORY: CategoryFields = { name: '', type: 'NEED', plannedAmount: '' };
@@ -89,13 +89,15 @@ const CategoryRow: React.FC<RowProps> = ({ entry, spent, onRemove }) => {
           </span>
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm, flexShrink: 0 }}>
-          <span style={{ fontSize: '0.8125rem', color: over ? theme.colors.error : theme.colors.muted, fontWeight: over ? 700 : 400, whiteSpace: 'nowrap' }}>
+          <span style={{ fontSize: '0.8125rem', color: over ? theme.colors.errorStrong : theme.colors.muted, fontWeight: over ? 700 : 400, whiteSpace: 'nowrap' }}>
             {spent.toFixed(2)} / {entry.plannedAmount.toFixed(2)}
           </span>
           <button
             type="button"
             onClick={onRemove}
+            aria-label={t('budget.deleteNamed', { name: entry.name })}
             style={{
+              minHeight: 32,
               padding: `2px ${theme.spacing.sm}px`,
               borderRadius: theme.shape.radiusSm,
               border: `1px solid ${theme.colors.border}`,
@@ -134,7 +136,7 @@ const CategorySection: React.FC<Props> = ({ categories, spentByCategory, onAdd, 
   const handleAdd = () => {
     if (!form.submit()) return;
     const { name, type, plannedAmount } = form.values;
-    onAdd({ name: name.trim(), type: type as BudgetCategory['type'], plannedAmount: parseNumber(plannedAmount) }).then(
+    onAdd({ name: name.trim(), type: type as BudgetCategory['type'], plannedAmount: parseMoney(plannedAmount) }).then(
       (saved) => {
         if (saved) form.reset();
       }

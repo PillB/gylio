@@ -58,6 +58,53 @@ function experiments(events) {
   }).sort((a, b) => a.experiment.localeCompare(b.experiment) || a.variant.localeCompare(b.variant));
 }
 
+const ROUTINE_TEST = 'routine_free_limit';
+
+/**
+ * The routine limit test (src/features/routines/routineAllowance.ts), per group. Exposure is by session; the day
+ * milestones are sent once per device, so "reached 7 → 28 days" is a per-device funnel without knowing who anyone is.
+ */
+function routineLimit(events) {
+  const groups = new Map();
+  const group = (variant) => {
+    const key = String(variant);
+    if (!groups.has(key)) {
+      groups.set(key, { variant: key, exposed: new Set(), days: { 1: 0, 7: 0, 28: 0 }, limitReached: new Set(), extraGiven: 0, seePro: 0, created: 0, deleted: 0 });
+    }
+    return groups.get(key);
+  };
+  const steps = {
+    experiment_exposure: (g, e) => g.exposed.add(e.sessionId),
+    routine_days: (g, e) => { if (e.props.days in g.days) g.days[e.props.days] += 1; },
+    routine_limit: (g, e) => {
+      if (e.props.step === 'reached') g.limitReached.add(e.sessionId);
+      if (e.props.step === 'extra_given') g.extraGiven += 1;
+      if (e.props.step === 'see_pro') g.seePro += 1;
+    },
+    routine_created: (g) => { g.created += 1; },
+    routine_deleted: (g) => { g.deleted += 1; },
+  };
+  for (const e of events) {
+    const step = steps[e.name];
+    if (!step || e.props?.variant === undefined) continue;
+    if (e.name === 'experiment_exposure' && e.props.experiment !== ROUTINE_TEST) continue;
+    step(group(e.props.variant), e);
+  }
+  return [...groups.values()].map((g) => ({
+    variant: g.variant,
+    exposed: g.exposed.size,
+    reached1Day: g.days[1],
+    reached7Days: g.days[7],
+    reached28Days: g.days[28],
+    from7To28: g.days[7] ? g.days[28] / g.days[7] : 0,
+    limitReachedSessions: g.limitReached.size,
+    extraGiven: g.extraGiven,
+    seePro: g.seePro,
+    created: g.created,
+    deleted: g.deleted,
+  })).sort((a, b) => a.variant.localeCompare(b.variant));
+}
+
 function ads(events) {
   const rows = new Map();
   for (const e of events) {
@@ -92,6 +139,7 @@ function summarize(events, { from, to }) {
     totals: totals(events),
     funnel: funnel(events),
     experiments: experiments(events),
+    routineLimit: routineLimit(events),
     ads: ads(events),
     daily: daily(events),
   };

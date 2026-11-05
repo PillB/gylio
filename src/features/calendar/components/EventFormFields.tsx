@@ -4,8 +4,10 @@ import { useTheme } from '../../../core/context/ThemeContext';
 import type { Task } from '../../../core/hooks/useDB';
 import type { EventForm } from '../hooks/useEventForm';
 import type { EventFields, ValidatedField } from '../utils/eventFields';
+import type { ThemeTokens } from '../../../core/themes';
 import { fieldControlStyle } from './calendarStyles';
 import CalendarHelp, { type CalendarHelpTopic } from './CalendarHelp';
+import HelpField from '../../../components/atoms/HelpField';
 
 const VALIDATED_LABELS: Record<ValidatedField, true> = { title: true, startDate: true, endDate: true, reminderMinutesBefore: true };
 
@@ -22,8 +24,7 @@ const FormField: React.FC<FieldProps> = ({ form, name, labelKey, help, type = 't
   const { theme } = useTheme();
   const error = name in VALIDATED_LABELS ? form.errorFor(name as ValidatedField) : '';
   return (
-    <label style={{ display: 'grid', gap: `${theme.spacing.xs}px` }}>
-      <FieldLabel text={t(labelKey)} help={help} />
+    <HelpField label={t(labelKey)} help={<CalendarHelp topic={help} />} error={error || undefined} style={fieldStackStyle(theme)} labelStyle={LABEL_STYLE}>
       <input
         type={type}
         min={type === 'number' ? '0' : undefined}
@@ -31,17 +32,17 @@ const FormField: React.FC<FieldProps> = ({ form, name, labelKey, help, type = 't
         onChange={(event) => form.setField(name, event.target.value)}
         style={fieldControlStyle(theme)}
       />
-      {error ? <span style={{ color: theme.colors.accent }}>{error}</span> : null}
-    </label>
+    </HelpField>
   );
 };
 
-const FieldLabel: React.FC<{ text: string; help: CalendarHelpTopic }> = ({ text, help }) => (
-  <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
-    {text}
-    <CalendarHelp topic={help} />
-  </span>
-);
+const LABEL_STYLE: React.CSSProperties = { fontWeight: 600 };
+const fieldStackStyle = (theme: ThemeTokens): React.CSSProperties => ({
+  display: 'grid',
+  gap: `${theme.spacing.xs}px`,
+  gridTemplateColumns: 'minmax(0, 1fr)',
+  minWidth: 0,
+});
 
 type Props = { form: EventForm; tasks: Task[] };
 
@@ -56,8 +57,7 @@ const EventFormFields: React.FC<Props> = ({ form, tasks }) => {
       <FormField form={form} name="endDate" labelKey="calendarEndLabel" help="endDate" type="datetime-local" />
       <FormField form={form} name="location" labelKey="calendarLocationLabel" help="location" />
       <FormField form={form} name="description" labelKey="calendarDescriptionLabel" help="description" />
-      <label style={{ display: 'grid', gap: `${theme.spacing.xs}px` }}>
-        <FieldLabel text={t('calendarTaskLinkLabel')} help="taskLink" />
+      <HelpField label={t('calendarTaskLinkLabel')} help={<CalendarHelp topic="taskLink" />} style={fieldStackStyle(theme)} labelStyle={LABEL_STYLE}>
         <select value={form.fields.taskId} onChange={(event) => form.setField('taskId', event.target.value)} style={fieldControlStyle(theme)}>
           <option value="">{t('calendarTaskLinkNone')}</option>
           {tasks.map((task) => (
@@ -66,7 +66,7 @@ const EventFormFields: React.FC<Props> = ({ form, tasks }) => {
             </option>
           ))}
         </select>
-      </label>
+      </HelpField>
       <FormField form={form} name="reminderMinutesBefore" labelKey="calendarReminderLabel" help="reminder" type="number" />
     </div>
   );

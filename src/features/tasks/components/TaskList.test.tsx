@@ -108,8 +108,8 @@ describe('TaskList', () => {
     state.tasks = [makeTask(1, 'Write report')];
     render(<TaskList />);
     const start = screen.getByRole('button', { name: /tasks\.startTwoAria/ });
-    expect(screen.getByRole('button', { name: 'editLabel' }).parentElement).toBe(start.parentElement);
-    expect(screen.getByRole('button', { name: 'deleteLabel' }).parentElement).toBe(start.parentElement);
+    expect(screen.getByRole('button', { name: /^tasks\.editNamed / }).parentElement).toBe(start.parentElement);
+    expect(screen.getByRole('button', { name: /^tasks\.deleteNamed / }).parentElement).toBe(start.parentElement);
     const date = screen.getByText(/tasks\.plannedDateLabel/);
     expect(date.parentElement?.textContent).toMatch(/medium|energy/i);
   });
@@ -153,10 +153,41 @@ describe('TaskList', () => {
     expect(screen.queryByText('Today task')).toBeNull();
   });
 
+  it('moves between the view tabs with the arrow keys, and keeps only the chosen tab in the Tab order', () => {
+    state.tasks = [makeTask(1, 'Today task'), makeTask(3, 'Someday task', { plannedDate: null })];
+    render(<TaskList />);
+    const today = screen.getByRole('tab', { name: 'tasks.viewToday' });
+    expect(today.tabIndex).toBe(0);
+    expect(screen.getByRole('tab', { name: 'tasks.viewWeek' }).tabIndex).toBe(-1);
+
+    today.focus();
+    fireEvent.keyDown(today, { key: 'ArrowRight' });
+    const week = screen.getByRole('tab', { name: 'tasks.viewWeek' });
+    expect(week.getAttribute('aria-selected')).toBe('true');
+    expect(document.activeElement).toBe(week);
+    expect(today.tabIndex).toBe(-1);
+
+    fireEvent.keyDown(week, { key: 'End' });
+    expect(document.activeElement).toBe(screen.getByRole('tab', { name: 'tasks.viewBacklog' }));
+    expect(screen.getByText('Someday task')).toBeTruthy();
+
+    fireEvent.keyDown(document.activeElement as HTMLElement, { key: 'ArrowRight' });
+    expect(document.activeElement).toBe(today);
+    expect(today.getAttribute('aria-selected')).toBe('true');
+  });
+
+  it('names the energy chips in the edit form as one group', () => {
+    state.tasks = [makeTask(1, 'Water plants')];
+    render(<TaskList />);
+    fireEvent.click(screen.getByRole('button', { name: /^tasks\.editNamed / }));
+    const group = screen.getByRole('group', { name: 'tasks.energyLabel' });
+    expect(within(group).getAllByRole('button')).toHaveLength(4);
+  });
+
   it('filters by energy level', () => {
     state.tasks = [makeTask(1, 'Easy one', { energyRequired: 'tiny' }), makeTask(2, 'Hard one', { energyRequired: 'high' })];
     render(<TaskList />);
-    const energyRow = screen.getByText('tasks.filterByEnergy').parentElement as HTMLElement;
+    const energyRow = screen.getByRole('group', { name: 'tasks.filterByEnergy' });
     fireEvent.click(within(energyRow).getByRole('button', { name: 'tasks.energyHigh' }));
     expect(screen.getByText('Hard one')).toBeTruthy();
     expect(screen.queryByText('Easy one')).toBeNull();
@@ -197,11 +228,19 @@ describe('TaskList', () => {
     expect(showSuccess).toHaveBeenCalledWith('tasks.taskAddedBacklog');
   });
 
+  it('names each card button after its task, so a list of Edit and Delete buttons can be told apart', () => {
+    state.tasks = [makeTask(1, 'Water plants'), makeTask(2, 'Call the bank')];
+    render(<TaskList />);
+    expect(screen.getByRole('button', { name: 'tasks.editNamed {"title":"Call the bank"}' })).toBeTruthy();
+    const remove = screen.getByRole('button', { name: 'tasks.deleteNamed {"title":"Water plants"}' });
+    expect(remove.textContent).toBe('deleteLabel');
+  });
+
   it('hides a deleted task at once, restores it on undo, and never removes it', () => {
     vi.useFakeTimers();
     state.tasks = [makeTask(1, 'Water plants')];
     render(<TaskList />);
-    fireEvent.click(screen.getByRole('button', { name: 'deleteLabel' }));
+    fireEvent.click(screen.getByRole('button', { name: /^tasks\.deleteNamed / }));
     expect(screen.queryByText('Water plants')).toBeNull();
 
     const undo = showSuccess.mock.calls[0][1] as { onClick: () => void };
@@ -215,7 +254,7 @@ describe('TaskList', () => {
     vi.useFakeTimers();
     state.tasks = [makeTask(1, 'Water plants')];
     render(<TaskList />);
-    fireEvent.click(screen.getByRole('button', { name: 'deleteLabel' }));
+    fireEvent.click(screen.getByRole('button', { name: /^tasks\.deleteNamed / }));
     await act(async () => {
       vi.advanceTimersByTime(4500);
     });
@@ -247,7 +286,7 @@ describe('TaskList', () => {
   it('saves an edit with the changed title', async () => {
     state.tasks = [makeTask(1, 'Old title')];
     render(<TaskList />);
-    fireEvent.click(screen.getByRole('button', { name: 'editLabel' }));
+    fireEvent.click(screen.getByRole('button', { name: /^tasks\.editNamed / }));
     const input = screen.getByDisplayValue('Old title');
     fireEvent.change(input, { target: { value: 'New title' } });
     fireEvent.click(screen.getByRole('button', { name: 'saveLabel' }));

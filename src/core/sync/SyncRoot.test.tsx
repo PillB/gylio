@@ -73,6 +73,17 @@ describe('switching sync on for a signed-in person', () => {
     expect(started[0].stop).toHaveBeenCalledTimes(1);
   });
 
+  it("keeps the engine's notes under the signed-in account, and opens another account's on a switch", async () => {
+    mount();
+    await act(async () => undefined);
+    expect(started[0].options.accountId).toBe('user_1');
+    Object.assign(auth, { userId: 'user_2' });
+    cleanup();
+    mount();
+    await act(async () => undefined);
+    expect(started[started.length - 1].options.accountId).toBe('user_2');
+  });
+
   it('gives the engine a fresh token on request, and the person\'s id', async () => {
     mount();
     await act(async () => undefined);

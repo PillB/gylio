@@ -45,3 +45,22 @@ Competitor complaints (still weak evidence):
 - Tiimo: described as soft reminders; limits are complex projects and a limited free tier ([review](https://yourappland.com/tiimo-app-review/)).
 - Finch: no complaint evidence found.
 These support, but do not prove, the "no-shame, simple, not paywalled" positioning. Next step is app-store review mining and 5-8 user sessions.
+
+## 6. Round 3: red team (2026-10-28)
+Checked on the web on 28 Oct 2026. Vendor pages and review blogs are marked as such.
+
+Holes in the earlier rounds:
+- **Tiimo won Apple's iPhone App of the Year 2025** ([Apple](https://developer.apple.com/app-store/app-store-awards-2025), [Daring Fireball](https://daringfireball.net/2025/12/2025_app_store_award_winners)). It is now the reference ADHD planner, at about $42 a year or $10 a month (Daring Fireball). It went freemium in 2023 after users objected to a paywall ([Tiimo blog](https://www.tiimoapp.com/blog/why-tiimo-went-freemium)); recent store reviews still complain that calendar import, widgets and repeating tasks are paid ([apptail](https://apptail.io/app/tiimo-to-do-list-ai-planner-nYs/united-kingdom), review aggregator).
+- **Lunatask was missing.** Tasks, habits, a mood and energy journal and a "people" section for relationships, with a free tier ([lunatask.app/adhd](https://lunatask.app/adhd), vendor). No budgeting, so the money link is still Gylio's, but "no competitor combines these" was too broad.
+- **AI planners missing:** Motion (auto-schedules), Akiflow, Amazing Marvin (about $8 to $12 a month), Saner.ai, Sunsama (about $16 a month yearly, $20 monthly) ([roundup](https://toolfinder.com/best/adhd-planner-apps), vendor-adjacent).
+- **Budget apps with free tiers missing:** Goodbudget (free envelopes), EveryDollar (free manual zero-based), Rocket Money (free tier), Actual Budget (open source). "Budget apps cost $100 to $110 a year with no free tier" holds for YNAB (about $109) and Monarch ($99.99), not the category. Copilot is about $95.
+- **Latin American competitors missing, although Peru is the launch market:** Mobills and Organizze (Brazil), Fintonic (Mexico, Spain), Wallet by BudgetBakers and Monefy (Spanish interface), and the banks' own apps (BCP, Interbank, BBVA). BBVA Peru reports that about 70 percent of Peruvians do not know how to make a family budget ([BBVA Peru](https://www.bbva.com/es/pe/cual-es-la-mejor-manera-de-controlar-los-gastos/)). No Peru download ranking was found; Sensor Tower or Appfigures data would settle it.
+
+Claims that needed correcting:
+- "70 percent of surveyed users would switch from Todoist" is a reader poll under an Android Authority article (about 123 self-selected votes), not a survey of Todoist customers ([Android Authority](https://www.androidauthority.com/best-todoist-alternatives-3615857/)). The price rise is real: Pro went from $48 to $60 a year and $5 to $7 a month on 10 December 2025 ([Todoist](https://www.todoist.com/help/articles/todoist-pro-pricing-update-in-2025-bxBvHZuJZ)).
+- Body doubling: still no controlled ADHD trial. Newer evidence is a 220-person survey (Eagle and Ringland, ACM TACCESS 2024), a 12-person VR preprint (Ara et al. 2025) and a small null result (CCSC 2025 poster). Keep it optional; do not claim it works.
+- Habit formation: Singh et al. 2024 (*Healthcare*, 20 studies) found medians of 59 to 66 days, a range of 4 to 335, and only 23 percent of participants reaching the threshold ([PubMed](https://pubmed.ncbi.nlm.nih.gov/39685110/)). "Repair, don't reset" is supported; any fixed-day promise is not.
+
+For the owner (not changed): Gylio puts Routines and Rewards behind the paywall. Paywalled basics are the main complaint about Tiimo and the reason it went freemium.
+
+Not done this round: full text of primary papers, app-store review mining at scale, user sessions, Peru download rankings.

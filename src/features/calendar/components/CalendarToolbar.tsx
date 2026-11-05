@@ -57,8 +57,8 @@ const CalendarToolbar: React.FC<Props> = ({ viewMode, onViewModeChange, selected
           ›
         </button>
       </div>
-      <label style={{ display: 'flex', gap: `${theme.spacing.xs}px`, alignItems: 'center', marginLeft: 'auto' }}>
-        {t('calendarSelectDate')}
+      <label style={{ display: 'flex', flexWrap: 'wrap', gap: `${theme.spacing.xs}px`, alignItems: 'center', marginLeft: 'auto', minWidth: 0 }}>
+        <span style={{ whiteSpace: 'nowrap' }}>{t('calendarSelectDate')}</span>
         <input type="date" value={selectedDate} onChange={(event) => onDateChange(event.target.value)} style={fieldControlStyle(theme)} />
       </label>
     </div>

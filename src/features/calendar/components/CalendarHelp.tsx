@@ -4,23 +4,29 @@ import BudgetTooltip from '../../../components/atoms/BudgetTooltip';
 
 const HELP = {
   section:
-    'Your visual timeline — schedule events, convert tasks to time blocks, and see suggestions for when to focus. Putting tasks on a calendar makes them 3× more likely to happen.',
-  title: "Give your event a clear name. Include who or what it's for: 'Team standup' or 'Dentist — Dr. Smith'. This appears in your calendar grid.",
-  startDate: 'When does this event begin? Setting an exact time blocks it in your calendar and prevents scheduling conflicts.',
-  endDate: 'When does this event end? Accurate end times help you see free windows for tasks and avoid back-to-back overload.',
-  location: 'Where is this happening? Optional, but useful for travel time reminders and context.',
-  description: 'Optional details — agenda items, prep notes, access codes. You will see this when you click the event.',
+    "Schedule events and block time for tasks. A task with a time slot is easier to start than one waiting for 'later'.",
+  title:
+    "Give your event a clear name. Include who or what it's for: 'Team standup' or 'Dentist — Dr. Smith'. This appears in your calendar grid.",
+  startDate:
+    "When does this event begin? Setting an exact time blocks it in your calendar and prevents scheduling conflicts.",
+  endDate:
+    "When does this event end? Accurate end times help you see free windows for tasks and avoid back-to-back overload.",
+  location:
+    "Where is this happening? Optional, but useful for travel time reminders and context.",
+  description:
+    "Optional details — agenda items, prep notes, access codes. You will see this when you click the event.",
   taskLink:
-    'Connect this event to an existing task. When you complete the event, it can mark the task done too — keeping both lists in sync.',
-  reminder: 'Get a notification before the event starts. Especially helpful for appointments that need travel time or preparation.',
+    "Connect this event to an existing task. When you complete the event, it can mark the task done too — keeping both lists in sync.",
+  reminder:
+    "Get a notification before the event starts. Especially helpful for appointments that need travel time or preparation.",
   addEvent:
-    'Create a new calendar event. Putting tasks on the calendar makes them 3× more likely to happen — this is the step between planning and doing.',
+    "Create a new calendar event. Giving a task a time slot is the step between planning and doing.",
   suggestedFocus:
-    'AI-generated windows based on your task list and available time. Accepting a suggestion creates a calendar event — your future self will thank you.',
+    "Based on your open tasks and free time today, these slots are your best windows for focused work. Schedule them now while your intentions are fresh.",
   tasksToConvert:
-    'Tasks without a scheduled time slot. Converting them to calendar events gives each task a dedicated time block — the key difference between a wish and a plan.',
+    "Tasks without a time slot yet. 'Convert to event' gives each task a specific time — turning an intention into a commitment.",
   events:
-    'All scheduled events in chronological order. Click an event to edit or delete it. Events linked to tasks keep your task list in sync.',
+    "All your scheduled events. Click any event to edit, add a reminder, or link it to a task. Deleting an event never deletes the linked task.",
 } as const;
 
 export type CalendarHelpTopic = keyof typeof HELP;

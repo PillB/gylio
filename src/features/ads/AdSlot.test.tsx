@@ -4,7 +4,7 @@
  * asserted without a backend.
  */
 import React from 'react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import '../../i18n/i18n.js';
@@ -29,7 +29,13 @@ vi.mock('../subscription/useSubscription', () => ({
 
 import AdSlot from './AdSlot';
 
+beforeEach(() => {
+  // Ads run only where Pro, which removes them, can be bought (AdSlot.tsx).
+  vi.stubEnv('VITE_BILLING_ENABLED', 'true');
+});
+
 afterEach(() => {
+  vi.unstubAllEnvs();
   cleanup();
   sessionStorage.clear();
   trackMock.mockClear();
@@ -68,6 +74,15 @@ describe('AdSlot', () => {
     renderSlot('rewards');
     await screen.findByTestId('theme-probe');
     // Give the mounted slot's effects a tick to (wrongly) fire if they would.
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(screen.queryByRole('complementary')).toBeNull();
+    expect(trackMock).not.toHaveBeenCalled();
+  });
+
+  it('renders nothing and tracks nothing where Pro, which removes ads, cannot be bought', async () => {
+    vi.stubEnv('VITE_BILLING_ENABLED', 'false');
+    renderSlot('rewards');
+    await screen.findByTestId('theme-probe');
     await new Promise((resolve) => setTimeout(resolve, 50));
     expect(screen.queryByRole('complementary')).toBeNull();
     expect(trackMock).not.toHaveBeenCalled();

@@ -25,8 +25,8 @@ import accountEsPE from './account.es-PE.json';
  *
  * Shipping locales must pass translation-key parity, interpolation-placeholder
  * parity, browser-layout tests and human review before they are exposed in the
- * language selector. Additional draft catalogs may remain in src/i18n without
- * being advertised as production-ready.
+ * language selector. Only reviewed catalogs live in src/i18n (claims.test.ts
+ * checks this); a new language starts from the current English catalog.
  *
  * English is the source/fallback catalog. Peruvian Spanish is the maintained
  * Spanish catalog. A generic browser locale of `es` intentionally resolves to

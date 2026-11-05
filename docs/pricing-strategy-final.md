@@ -10,6 +10,14 @@
 
 ---
 
+> **Red-team note (2026-10-28): this document disagrees with itself and with the app.**
+> - The summary says Flow is "$4.99/mo annual" and Flow Max "$8.99/mo annual"; the table says $4.08 and $7.42 ($49 and $89 a year).
+> - It says the annual discount "must be ≥35%"; its own table gives 32% (Flow) and 26% (Flow Max).
+> - The app ships one plan, Premium, at $12 a month or $10 a month billed yearly with a 10-day trial (`src/features/subscription/`), with billing switched off. Neither tier here exists in the app.
+> - It gates multi-device sync to paid tiers; the app syncs for every signed-in account, while the pricing page lists "Cross-device sync" under Premium only.
+> - Several inputs were wrong elsewhere: see `docs/competitor-gap-research.md` section 6 (Todoist "70% would switch" is a reader poll; budget apps do have free tiers; Tiimo, Lunatask and Latin American apps were missing).
+> Pricing is the owner's decision; nothing here was changed in the app.
+
 > **How to read this document:** Each recommendation is grounded in Phase 1 data, with section citations inline. Every formula is shown with actual numbers. Where live data was unavailable, assumptions are flagged explicitly. This document supersedes all prior pricing drafts.
 
 ---

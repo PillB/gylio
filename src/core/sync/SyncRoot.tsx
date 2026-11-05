@@ -28,6 +28,7 @@ export function SyncRoot({ children }: { children: ReactNode }) {
     let stop: (() => void) | null = null;
     startAppSync({
       baseUrl: baseUrl(),
+      accountId: userId,
       getAuth: async ({ forceRefresh }) => {
         const { userId: id, getToken: token } = session.current;
         const value = id ? await token({ skipCache: forceRefresh }) : null;

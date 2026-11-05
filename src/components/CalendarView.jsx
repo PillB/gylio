@@ -82,7 +82,6 @@ const CalendarView = () => {
 
   return (
     <SectionCard
-      ariaLabel={`${t('calendar')} module`}
       title={t('calendar')}
       subtitle={t('calendarIntro')}
       badge={<CalendarHelp topic="section" />}

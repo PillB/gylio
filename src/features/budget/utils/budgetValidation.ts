@@ -20,17 +20,29 @@ export const parseNumber = (value: string | number): number => {
   return Number.isFinite(parsed) ? parsed : Number.NaN;
 };
 
+/**
+ * Largest amount a money field takes. "99999999999999999999" was accepted and shown as a 21-digit
+ * figure; anything this big is a slip of the keyboard, so it is refused with a gentle note.
+ */
+export const MAX_AMOUNT = 1_000_000_000_000;
+
+/** A money amount rounded to cents, so 1234.567 is stored as 1234.57 and totals match what is shown. */
+export const parseMoney = (value: string | number): number => Math.round(parseNumber(value) * 100) / 100;
+
 const requiredText = (value: string, message: string): string => (value.trim() ? '' : message);
 
 const positiveAmount = (value: string, t: Translate): string => {
   const amount = parseNumber(value);
   if (Number.isNaN(amount)) return t('validation.invalidNumber');
-  return amount <= 0 ? t('validation.amountPositive') : '';
+  if (amount > MAX_AMOUNT) return t('validation.amountTooLarge');
+  // 0.004 rounds to 0.00, which would save a zero amount.
+  return parseMoney(amount) <= 0 ? t('validation.amountPositive') : '';
 };
 
 const nonNegativeAmount = (value: string, t: Translate): string => {
   const amount = parseNumber(value);
   if (Number.isNaN(amount)) return t('validation.invalidNumber');
+  if (amount > MAX_AMOUNT) return t('validation.amountTooLarge');
   return amount < 0 ? t('validation.nonNegativeNumber') : '';
 };
 

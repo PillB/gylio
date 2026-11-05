@@ -26,6 +26,21 @@ describe('collectSnapshot', () => {
   });
 });
 
+describe('a shared device', () => {
+  it("never puts other accounts' data, or whose device it is, into one person's copy, and a restore keeps them", () => {
+    const storage = memoryStorage({
+      gylio_sqlite: '{"tasks":["A"]}', 'gylio:owner': 'user_a', 'gylio:ownerSignedIn': 'true',
+      'gylio:archive:user_b': '{"gylio_sqlite":"B"}', 'gylio:removeDatabases': 'user_c',
+    });
+    expect(Object.keys(collectSnapshot(storage))).toEqual(['gylio_sqlite']);
+    applySnapshot(storage, { gylio_sqlite: '{"tasks":["A, restored"]}', 'gylio:owner': 'user_x' }, '2026-10-28T12:00:00Z', 'user_a');
+    expect(storage.dump()).toMatchObject({
+      gylio_sqlite: '{"tasks":["A, restored"]}', 'gylio:owner': 'user_a', 'gylio:archive:user_b': '{"gylio_sqlite":"B"}',
+      'gylio:removeDatabases': 'user_c',
+    });
+  });
+});
+
 describe('snapshotHash', () => {
   it('ignores key order but notices any value change', () => {
     expect(snapshotHash({ a: '1', b: '2' })).toBe(snapshotHash({ b: '2', a: '1' }));

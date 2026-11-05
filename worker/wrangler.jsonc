@@ -28,8 +28,10 @@
   ],
   // Public values only. Local overrides (localhost) go in the untracked worker/.dev.vars.
   "vars": {
-    // Empty fails closed: sign-in answers 503 and health reports auth: false until the Clerk issuer is set.
-    "CLERK_ISSUER": "",
+    // The Clerk production instance's Frontend API (its OpenID configuration names this issuer; checked 28 Oct 2026).
+    // Empty would fail closed: sign-in answers 503 and health reports auth: false. setup.sh refuses a publishable key
+    // from any other instance.
+    "CLERK_ISSUER": "https://clerk.gylio.app",
     "CLERK_AUTHORIZED_PARTIES": "https://gylio.app",
     "CORS_ORIGINS": "https://gylio.app",
     "MAX_RECORDS_PER_USER": "5000"

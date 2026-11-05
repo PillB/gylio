@@ -3,28 +3,32 @@
 declare const self: ServiceWorkerGlobalScope;
 export {};
 
-const STATIC_CACHE = 'gylio-static-v1';
-const MANIFEST_URL = new URL('manifest.json', self.registration.scope).toString();
+// v2: v1 caches held only the start page, because the worker read the wrong file list.
+const STATIC_CACHE = 'gylio-static-v2';
+/** Written by the build (vite.config.ts, precacheList): every script, style, font and image it emitted. */
+const PRECACHE_URL = new URL('precache.json', self.registration.scope).toString();
 
-const fetchManifestAssets = async () => {
+const fetchPrecacheList = async (): Promise<string[]> => {
   try {
-    const response = await fetch(MANIFEST_URL, { cache: 'no-store' });
+    const response = await fetch(PRECACHE_URL, { cache: 'no-store' });
     if (!response.ok) return [];
-    const manifest = (await response.json()) as Record<string, { file: string } | undefined>;
-    return Object.values(manifest)
-      .map((entry) => (entry?.file ? new URL(entry.file, self.registration.scope).toString() : null))
-      .filter((url): url is string => Boolean(url));
-  } catch (error) {
+    const files = (await response.json()) as unknown;
+    if (!Array.isArray(files)) return [];
+    return files.filter((file): file is string => typeof file === 'string').map((file) => new URL(file, self.registration.scope).toString());
+  } catch {
     return [];
   }
 };
 
+/**
+ * Caches each file on its own: `cache.addAll` fails the whole install when one file is missing, and a worker
+ * that never installs leaves the app with no offline copy at all.
+ */
 const precache = async () => {
   const cache = await caches.open(STATIC_CACHE);
-  const manifestAssets = await fetchManifestAssets();
-  const fallbackAssets = [self.registration.scope, new URL('index.html', self.registration.scope).toString()];
-  const assets = Array.from(new Set([...fallbackAssets, ...manifestAssets]));
-  await cache.addAll(assets);
+  const start = [self.registration.scope, new URL('index.html', self.registration.scope).toString()];
+  const assets = Array.from(new Set([...start, ...(await fetchPrecacheList())]));
+  await Promise.allSettled(assets.map((asset) => cache.add(asset)));
 };
 
 self.addEventListener('install', (event) => {
@@ -67,7 +71,10 @@ self.addEventListener('fetch', (event) => {
 
   if (isSameOriginRequest(request) && ['style', 'script', 'image', 'font'].includes(request.destination)) {
     event.respondWith(
-      caches.match(request).then((cached) =>
+      // ignoreVary: the precache stored these without the Origin header a module script sends, and a server that
+      // answers `Vary: Origin` then made every lookup miss, so the app could not start offline. File names
+      // carry a content hash, so any stored copy of the same URL is the right one.
+      caches.match(request, { ignoreVary: true }).then((cached) =>
         cached ||
         fetch(request).then((response) => {
           const responseClone = response.clone();

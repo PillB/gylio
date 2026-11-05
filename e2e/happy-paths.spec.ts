@@ -123,7 +123,8 @@ async function runFlowB(page: Page, iteration: number) {
   // ── 3. DataFreshnessBanner placeholder renders (no activeBudget yet) ──
   // Even without an active budget the component tree mounts without crashing.
   // We verify the budget module root is present and no runtime errors occurred.
-  const budgetModule = page.locator('[aria-label*="Presupuesto"], [aria-label*="Budget"]').first();
+  // The section is named by its visible heading (aria-labelledby), as a screen reader hears it.
+  const budgetModule = page.getByRole('region', { name: /presupuesto|budget/i }).first();
   await expect(budgetModule).toBeVisible({ timeout: 5000 });
 
   // ── 4. ReconciliationChecklist: create a budget month to trigger it ───

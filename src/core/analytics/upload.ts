@@ -7,6 +7,7 @@
  */
 import { authHeaders } from '../utils/authToken';
 import { apiUrl } from '../utils/apiUrl';
+import { serverFeaturesEnabled } from '../utils/serverFeatures';
 
 const QUEUE_KEY = 'analytics:queue';
 const BATCH = 50;
@@ -60,7 +61,7 @@ export async function uploadOnce(fetchImpl: typeof fetch = fetch): Promise<numbe
 }
 
 export function startAnalyticsUpload(): () => void {
-  if (import.meta.env.VITE_BILLING_ENABLED !== 'true') return () => undefined;
+  if (!serverFeaturesEnabled()) return () => undefined;
   const timer = window.setInterval(() => { void uploadOnce(); }, INTERVAL_MS);
   const onHide = () => { if (document.visibilityState === 'hidden') void uploadOnce(); };
   document.addEventListener('visibilitychange', onHide);

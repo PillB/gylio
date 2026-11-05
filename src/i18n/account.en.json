@@ -29,5 +29,24 @@
     "useAccount": "Use my account's data",
     "keepDevice": "Keep this device's data",
     "undoHint": "Using your account's data keeps this device's data as a backup you can restore from Settings."
+  },
+  "signOut": {
+    "heading": "Sign out",
+    "intro": "Signing out keeps your data on this device, so it's here when you sign in again, even offline. On a shared or borrowed device, remove it instead.",
+    "keep": "Sign out",
+    "remove": "Sign out and remove my data from this device",
+    "menu": "Remove my data from this device",
+    "confirmTitle": "Remove your data from this device?",
+    "synced": "Your tasks, calendar events, budgets, transactions and debts are kept in your account and come back when you sign in. Tracked time, routines, rewards and social plans are kept only on this device and will be gone.",
+    "pending_one": "1 change hasn't reached your account yet and will be gone.",
+    "pending_other": "{{count}} changes haven't reached your account yet and will be gone.",
+    "savedCopy": "Your account has a copy saved {{when}}. Anything you changed after that will be gone.",
+    "deviceOnly": "Your data is kept only on this device, so it can't be brought back after this.",
+    "staysHere": "Your theme, language and accessibility settings stay on this device.",
+    "downloadHint": "If you might want it later, download a copy first.",
+    "confirm": "Remove and sign out",
+    "cancel": "Cancel",
+    "busy": "Signing out…",
+    "failed": "Couldn't sign out, so nothing was removed. Check your connection and try again."
   }
 }

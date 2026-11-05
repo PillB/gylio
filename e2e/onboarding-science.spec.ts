@@ -1,7 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
+import { openSeedPage } from './helpers/seedPage';
 
 async function startFreshOnboarding(page: Page) {
-  await page.goto('/gylio/deployment-guide.html', { waitUntil: 'domcontentloaded' });
+  await openSeedPage(page);
   await page.evaluate(() => {
     localStorage.removeItem('onboardingFlowState');
     localStorage.setItem('gylio_lang', 'en');
@@ -11,7 +12,7 @@ async function startFreshOnboarding(page: Page) {
 }
 
 async function seedCompletedOnboarding(page: Page, tts = false) {
-  await page.goto('/gylio/deployment-guide.html', { waitUntil: 'domcontentloaded' });
+  await openSeedPage(page);
   await page.evaluate((ttsEnabled) => {
     localStorage.setItem('gylio_lang', 'en');
     localStorage.setItem('onboardingFlowState', JSON.stringify({
@@ -91,7 +92,7 @@ test.describe('evidence-calibrated onboarding', () => {
 
   test('reading, contrast and device-motion choices change behavior and are reversible', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce', colorScheme: 'dark' });
-    await page.goto('/gylio/deployment-guide.html', { waitUntil: 'domcontentloaded' });
+    await openSeedPage(page);
     await page.evaluate(() => localStorage.setItem('theme-mode', 'light'));
     await startFreshOnboarding(page);
 

@@ -8,17 +8,9 @@ import { useTheme } from '../../core/context/ThemeContext';
 import { useAppAuth } from '../../core/context/AuthContext';
 import { syncEnabled } from '../../core/sync/flag';
 import { useAccountSync } from './AccountSyncContext';
-import { applySnapshot, backupsFor, collectSnapshot, dropBackup, type Snapshot } from './accountSync';
-import { buildDataFile, parseDataFile } from './dataFile';
-
-function downloadText(filename: string, text: string) {
-  const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  link.click();
-  URL.revokeObjectURL(url);
-}
+import { applySnapshot, backupsFor, dropBackup, type Snapshot } from './accountSync';
+import { parseDataFile } from './dataFile';
+import { downloadDataFile } from './download';
 
 /** Tells other open tabs to reload so they don't write their stale copy back. */
 function markReplaced() {
@@ -107,10 +99,6 @@ export function YourDataSection() {
   // Only this person's own backups (or data made before anyone signed in), newest first.
   const backup = backupsFor(localStorage, userId)[0] ?? null;
 
-  const download = () => {
-    const stamp = new Date().toISOString();
-    downloadText(`gylio-data-${stamp.slice(0, 10)}.json`, buildDataFile(collectSnapshot(localStorage), stamp));
-  };
   const undo = () => {
     if (!backup) return;
     applySnapshot(localStorage, backup.data, new Date().toISOString(), userId);
@@ -124,7 +112,7 @@ export function YourDataSection() {
       {wholeDeviceSaving && <StatusLine />}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: theme.spacing.sm }}>
         {userId && wholeDeviceSaving && <button type="button" style={button} onClick={() => void saveNow()} disabled={status === 'saving'}>{t('account.saveNow')}</button>}
-        <button type="button" style={button} onClick={download}>{t('account.download')}</button>
+        <button type="button" style={button} onClick={() => downloadDataFile()}>{t('account.download')}</button>
         {backup && (
           <button type="button" style={button} onClick={undo}>
             {t('account.undoRestore', { date: new Date(backup.savedAt).toLocaleString(i18n.language) })}

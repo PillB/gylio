@@ -15,6 +15,7 @@ import DataFreshnessBanner from '../features/budget/components/DataFreshnessBann
 import ReconciliationChecklist from '../features/budget/components/ReconciliationChecklist';
 import { useLayoutVariant } from '../features/layoutVariants';
 import { useBudgetData } from '../features/budget/hooks/useBudgetData';
+import { useUndoableRemovals } from '../features/budget/hooks/useUndoableRemovals';
 import {
   actualByCategory,
   actualByType,
@@ -109,6 +110,7 @@ const BudgetView = () => {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const data = useBudgetData();
+  const removals = useUndoableRemovals(data);
   const { activeBudget } = data;
   const summary = useBudgetSummary(activeBudget, data.transactions);
   const quickAddFirst = useLayoutVariant('budget_quick_add') === 'top';
@@ -132,12 +134,12 @@ const BudgetView = () => {
       monthTransactions={summary.monthTransactions}
       onMissingBudget={() => data.setMonthTouched(true)}
       onAdd={data.addTransaction}
-      onRemove={data.removeTransaction}
+      onRemove={removals.removeTransaction}
     />
   );
 
   return (
-    <SectionCard ariaLabel={`${t('budget.title')} module`} title={t('budget.title')} subtitle={t('budget.placeholder')}>
+    <SectionCard title={t('budget.title')} subtitle={t('budget.placeholder')}>
       {data.loading ? (
         <p>{t('loading', 'Loading…')}</p>
       ) : (
@@ -168,7 +170,7 @@ const BudgetView = () => {
               income={activeBudget?.income ?? NO_ENTRIES}
               remaining={summary.remaining}
               onAdd={data.addIncome}
-              onRemove={data.removeIncome}
+              onRemove={removals.removeIncome}
             />
             <div data-tour="budget-summary" style={{ display: 'grid', gap: `${theme.spacing.lg}px`, alignContent: 'start', minWidth: 0 }}>
               {activeBudget && <SpendingChart bars={chartBars} theme={theme} />}
@@ -179,7 +181,7 @@ const BudgetView = () => {
               spentByCategory={summary.spentByCategory}
               onAdd={data.addCategory}
               onAddMany={data.addCategories}
-              onRemove={data.removeCategory}
+              onRemove={removals.removeCategory}
             />
             {!quickAddFirst && transactionSection}
             <OptionalSection summary={t('budget.debtsOptional', 'Debt payoff (optional)')} startOpen={data.debts.length > 0}>
@@ -187,7 +189,7 @@ const BudgetView = () => {
                 debts={data.debts}
                 extraPayment={Math.max(0, summary.remaining)}
                 onAdd={data.addDebt}
-                onRemove={data.removeDebt}
+                onRemove={removals.removeDebt}
                 onAddBillTask={data.addBillTask}
               />
             </OptionalSection>

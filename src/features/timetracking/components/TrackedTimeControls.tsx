@@ -63,7 +63,7 @@ const AddTime: React.FC<{ taskId: number }> = ({ taskId }) => {
       <button type="submit" style={controlStyle(theme)} disabled={minutes === null}>
         {t('timeTracker.addSave')}
       </button>
-      {invalid ? <span role="alert" style={{ color: theme.colors.accent }}>{t('timeTracker.fixInvalid')}</span> : null}
+      {invalid ? <span role="alert" style={{ color: theme.colors.errorStrong }}>{t('timeTracker.fixInvalid')}</span> : null}
     </form>
   );
 };
@@ -82,7 +82,7 @@ const EntryRow: React.FC<{ taskId: number; index: number; actualSeconds: number;
         {t('timeTracker.entryLabel', { when })}
       </label>
       <input id={`entry-${taskId}-${index}`} value={text} onChange={(e) => setText(e.target.value)} aria-invalid={minutes === null} style={textInputStyle(theme, { width: 90 })} />
-      <button type="button" style={controlStyle(theme)} disabled={minutes === null} onClick={() => minutes !== null && void tracker.editEntry(taskId, index, minutes)}>
+      <button type="button" style={controlStyle(theme)} disabled={minutes === null} onClick={() => minutes !== null && void tracker.editEntry(taskId, index, minutes)} aria-label={t('timeTracker.saveEntryAria', { when })}>
         {t('timeTracker.fixSave')}
       </button>
       <button type="button" style={controlStyle(theme)} onClick={() => void tracker.removeEntry(taskId, index)} aria-label={t('timeTracker.removeEntryAria', { when })}>

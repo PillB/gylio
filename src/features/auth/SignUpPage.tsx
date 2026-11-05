@@ -6,7 +6,7 @@ import SignUpLegalLinks from './SignUpLegalLinks';
 const SignUpPage: React.FC = () => {
   const { theme } = useTheme();
   return (
-    <div
+    <main
       style={{
         display: 'flex',
         flexDirection: 'column' as const,
@@ -27,7 +27,7 @@ const SignUpPage: React.FC = () => {
         signInUrl={`${import.meta.env.BASE_URL}sign-in`}
       />
       <SignUpLegalLinks />
-    </div>
+    </main>
   );
 };
 

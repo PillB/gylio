@@ -19,6 +19,11 @@ describe('_headers', () => {
     expect(() => checkHeadersFile(many)).toThrow(/rules/);
   });
 
+  it('never lets a CDN or browser keep an old service worker or its file list', () => {
+    const file = buildHeadersFile();
+    for (const path of ['/service-worker.js', '/precache.json']) expect(file).toContain(`${path}\n  Cache-Control: no-cache`);
+  });
+
   it('denies microphone, camera and geolocation until a feature needs one', () => {
     const policy = SECURITY_HEADERS['Permissions-Policy'];
     for (const feature of ['microphone', 'camera', 'geolocation']) expect(policy).toContain(`${feature}=()`);

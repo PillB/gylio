@@ -1,11 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import XpBar from '../features/rewards/XpBar';
+import { checkRewardPoints, MAX_REWARD_POINTS, POINTS_ERROR_KEYS } from '../features/rewards/rewardPoints';
 import useDB from '../core/hooks/useDB';
 import useGamification from '../core/hooks/useGamification';
 import { useTheme } from '../core/context/ThemeContext';
 import SectionCard from './SectionCard.jsx';
 import BudgetTooltip from './atoms/BudgetTooltip';
+import HelpField from './atoms/HelpField';
 import AdSlot from '../features/ads/AdSlot';
 
 /**
@@ -32,7 +34,7 @@ function daysSinceActivity(lastActivityDate) {
 }
 
 const RewardsView = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { ready, getRewards, getRewardsProgress, insertReward, updateReward, deleteReward } = useDB();
   const { theme } = useTheme();
   const { gamificationEnabled, setGamificationEnabled } = useGamification();
@@ -46,20 +48,18 @@ const RewardsView = () => {
   const validation = useMemo(() => {
     const errors = { title: '', pointsRequired: '' };
     const trimmedTitle = form.title.trim();
-    const points = Number.parseInt(form.pointsRequired, 10);
+    const points = checkRewardPoints(form.pointsRequired);
 
     if (!trimmedTitle) {
       errors.title = t('validation.titleRequired');
     }
 
-    if (Number.isNaN(points)) {
-      errors.pointsRequired = t('validation.invalidNumber');
-    } else if (points <= 0) {
-      errors.pointsRequired = t('validation.pointsPositive');
+    if (points.error) {
+      errors.pointsRequired = t(POINTS_ERROR_KEYS[points.error], { max: MAX_REWARD_POINTS.toLocaleString(i18n.language) });
     }
 
     return errors;
-  }, [form.pointsRequired, form.title, t]);
+  }, [form.pointsRequired, form.title, t, i18n.language]);
 
   const progressSummary = useMemo(() => {
     const points = progress?.points ?? 0;
@@ -142,7 +142,8 @@ const RewardsView = () => {
     const hasErrors = Object.values(validation).some(Boolean);
     if (hasErrors) return;
 
-    const points = Number.parseInt(form.pointsRequired, 10);
+    const { points } = checkRewardPoints(form.pointsRequired);
+    if (points === null) return;
 
     insertReward(form.title.trim(), points, form.description.trim() || null)
       .then((created) => {
@@ -180,7 +181,6 @@ const RewardsView = () => {
 
   return (
     <SectionCard
-      ariaLabel={`${t('rewards.title')} module`}
       title={t('rewards.title')}
       subtitle={t('rewardsPlaceholder') || ''}
       badge={<BudgetTooltip content={t('tooltips.rewards.section', 'Rewards give you gentle, consistent positive feedback for building habits. XP, streaks, and unlocks are optional — they are here to celebrate progress, not add pressure.')} />}
@@ -203,7 +203,7 @@ const RewardsView = () => {
           <div>
             <p style={{ margin: 0, fontWeight: 600, display: 'flex', alignItems: 'center' }}>
               {t('rewards.gamificationLabel') || 'Gamification'}
-              <BudgetTooltip content={t('tooltips.rewards.gamification', 'Toggle XP points, level-ups, and streaks on or off. When off, tasks and budgets still work — you just skip the game layer. Your data is never deleted.')} />
+              <BudgetTooltip content={t('tooltips.rewards.gamification', "Turn XP points, level-ups and streaks on or off. Your points stay on this device and are not shared.")} />
             </p>
             <small style={{ color: theme.colors.muted }}>
               {t('rewards.gamificationHelper') ||
@@ -391,11 +391,12 @@ const RewardsView = () => {
             )}
 
             <div data-tour="rewards-form" style={{ display: 'grid', gap: `${theme.spacing.sm}px`, marginBottom: `${theme.spacing.md}px` }}>
-              <label>
-                <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
-                  {t('titleLabel') || 'Title'}
-                  <BudgetTooltip content={t('tooltips.rewards.rewardTitle', "What reward do you want to unlock? Make it something you genuinely look forward to — a meal out, a new book, a guilt-free lazy day.")} />
-                </span>
+              <HelpField
+                label={t('titleLabel') || 'Title'}
+                labelStyle={{ fontWeight: 600 }}
+                help={<BudgetTooltip content={t('tooltips.rewards.rewardTitle', "What reward do you want to unlock? Make it something you genuinely look forward to — a meal out, a new book, a guilt-free lazy day.")} />}
+                error={touched.title && validation.title ? validation.title : undefined}
+              >
                 <input
                   type="text"
                   value={form.title}
@@ -413,15 +414,13 @@ const RewardsView = () => {
                     fontFamily: theme.typography.body.family,
                   }}
                 />
-                {touched.title && validation.title ? (
-                  <span style={{ color: theme.colors.accent }}>{validation.title}</span>
-                ) : null}
-              </label>
-              <label>
-                <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
-                  {t('pointsRequiredLabel') || 'Points required'}
-                  <BudgetTooltip content={t('tooltips.rewards.pointsRequired', 'How much XP to unlock this reward? You earn XP by completing tasks (10 pts each) and reviewing your budget weekly. Set thresholds you can realistically hit.')} />
-                </span>
+              </HelpField>
+              <HelpField
+                label={t('pointsRequiredLabel') || 'Points required'}
+                labelStyle={{ fontWeight: 600 }}
+                help={<BudgetTooltip content={t('tooltips.rewards.pointsRequired', 'How much XP to unlock this reward? You earn XP by completing tasks (10 pts each) and reviewing your budget weekly. Set thresholds you can realistically hit.')} />}
+                error={touched.pointsRequired && validation.pointsRequired ? validation.pointsRequired : undefined}
+              >
                 <input
                   type="number"
                   value={form.pointsRequired}
@@ -439,15 +438,12 @@ const RewardsView = () => {
                     fontFamily: theme.typography.body.family,
                   }}
                 />
-                {touched.pointsRequired && validation.pointsRequired ? (
-                  <span style={{ color: theme.colors.accent }}>{validation.pointsRequired}</span>
-                ) : null}
-              </label>
-              <label>
-                <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
-                  {t('descriptionLabel') || 'Description'}
-                  <BudgetTooltip content={t('tooltips.rewards.rewardDescription', 'Optional notes about the reward — where to go, what to order, what it costs.')} />
-                </span>
+              </HelpField>
+              <HelpField
+                label={t('descriptionLabel') || 'Description'}
+                labelStyle={{ fontWeight: 600 }}
+                help={<BudgetTooltip content={t('tooltips.rewards.rewardDescription', 'Optional notes about the reward — where to go, what to order, what it costs.')} />}
+              >
                 <textarea
                   value={form.description}
                   onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
@@ -461,7 +457,7 @@ const RewardsView = () => {
                     fontFamily: theme.typography.body.family,
                   }}
                 />
-              </label>
+              </HelpField>
               <button
                 type="button"
                 onClick={handleAdd}

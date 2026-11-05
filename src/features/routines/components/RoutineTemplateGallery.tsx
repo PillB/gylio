@@ -57,17 +57,17 @@ const WHY_FALLBACK: Record<string, string> = {
   'routines.tpl.hubermanMorning.why': 'Morning light exposure sets your circadian clock, cortisol peak drives alertness, and delaying caffeine prevents afternoon crashes.',
   'routines.tpl.morningPages.why':    'Longhand writing before screens clears mental noise, surfaces subconscious concerns, and trains creative thinking over time.',
   'routines.tpl.deepWorkLaunch.why':  'Protecting your peak cognitive hours for deep work — before reactive communication — compounds output over weeks.',
-  'routines.tpl.exerciseMorning.why': 'Morning exercise boosts dopamine, serotonin, and BDNF for the next 4–6 hours. Doing it first removes the decision entirely.',
-  'routines.tpl.hubermanEvening.why': 'Bright light after sunset delays melatonin by up to 3 hours. Dimming lights early accelerates sleep onset and improves deep-sleep quality.',
-  'routines.tpl.powerDownHour.why':   'A structured wind-down signals the nervous system to shift from sympathetic to parasympathetic — making sleep faster and deeper.',
-  'routines.tpl.eveningReview.why':   'Stoic journaling lowers rumination by externalizing thoughts, and gratitude practice measurably improves mood and sleep quality.',
+  'routines.tpl.exerciseMorning.why': "Exercise is linked to better mood and focus afterwards. Doing it first thing means there is no later decision to make.",
+  'routines.tpl.hubermanEvening.why': "Bright light late in the evening can delay sleepiness. Dimming the lights an hour or two before bed helps many people fall asleep sooner.",
+  'routines.tpl.powerDownHour.why':   "A predictable wind-down gives your body and mind a cue that the day is ending, which can make it easier to fall asleep.",
+  'routines.tpl.eveningReview.why':   "Writing thoughts down can stop them from going round in your head, and noting a few good things is linked to better mood.",
   'routines.tpl.tomorrowPrep.why':    'Pre-deciding tomorrow removes decision fatigue at the start of the next day and closes the Zeigarnik loop on open tasks.',
   'routines.tpl.weeklyReview.why':    'Weekly reviews catch drift before it compounds. Reviewing what blocked you turns repeated failures into system improvements.',
   'routines.tpl.healthAudit.why':     'What gets measured gets managed. A 15-min weekly audit creates accountability without adding shame or complexity.',
-  'routines.tpl.pomodoroBlock.why':   'Fixed-interval focus with scheduled breaks matches natural ultradian rhythms and prevents the mental fatigue of open-ended work sessions.',
+  'routines.tpl.pomodoroBlock.why':   "Fixed focus blocks with planned breaks give work a clear start and end, which can make it easier to begin and to stop.",
   'routines.tpl.noPhoneMorning.why':  'Checking your phone first thing puts you in reactive mode. One hour of phone-free time builds internal focus before external demands hit.',
-  'routines.tpl.zone2Cardio.why':     'Zone 2 cardio is the single highest-ROI exercise for metabolic health, mitochondrial density, and longevity. 3–4 sessions/week is the minimum effective dose.',
-  'routines.tpl.mobility.why':        'Ten minutes of daily mobility prevents the chronic tightness that leads to injury. Done consistently, it reverses years of desk posture.',
+  'routines.tpl.zone2Cardio.why':     "Steady, easy cardio where you can still talk is good for heart and metabolic health. Many guidelines suggest about 150 minutes of moderate activity a week.",
+  'routines.tpl.mobility.why':        "A few minutes of gentle movement each day can ease the stiffness that comes from sitting for long periods.",
 };
 
 // ── Main component ────────────────────────────────────────────────────────────
@@ -367,7 +367,7 @@ export default function RoutineTemplateGallery({ onSelect, theme }: Props) {
             fontFamily: theme.typography.body.family,
           }}
         >
-          {t('routines.gallery.subtitle', 'Research-backed routines. Pick one to add it to your schedule.')}
+          {t('routines.gallery.subtitle', "Ready-made routines. Pick one to add it to your schedule.")}
         </p>
       </div>
 
@@ -452,7 +452,8 @@ export default function RoutineTemplateGallery({ onSelect, theme }: Props) {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+            // min(320px, 100%): a 320px minimum overflowed the card on a 320px phone.
+            gridTemplateColumns: 'repeat(auto-fill, minmax(min(320px, 100%), 1fr))',
             gap: spacing.lg,
           }}
         >

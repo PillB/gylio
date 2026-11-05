@@ -51,7 +51,7 @@ Scope: every tab (Tasks, Calendar, Budget, Social, Routines, Rewards, Settings),
 - Locked-tab pages that show a preview of the feature: needs design assets.
 - Onboarding copy trim: owned by #92.
 - Header on desktop carries date, Guide, language, read-aloud toggle and (with accounts) plan badge and avatar; trimming it touches `App.jsx`, which #89 also edits. Proposed for after #89 lands.
-- The footer's "Production Deployment Academy" link is developer documentation shown to every user. Left as is because `e2e/deployment-guide.spec.ts` pins it; Pablo's call.
+- The footer's "Production Deployment Academy" link was developer documentation shown to every user. Removed on 2026-10-28 with the guide itself (red team P1-8); `src/build/publicSite.test.ts` keeps it out.
 
 ## Experiments (wired, off until #89 lands)
 

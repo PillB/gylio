@@ -4,7 +4,7 @@ import { useTheme } from '../../../core/context/ThemeContext';
 import type { Budget, Transaction } from '../../../core/hooks/useDB';
 import { useValidatedForm } from '../hooks/useValidatedForm';
 import type { NewTransaction } from '../hooks/useBudgetData';
-import { optionalText, parseNumber, validateTransaction, type TransactionFields } from '../utils/budgetValidation';
+import { optionalText, parseMoney, validateTransaction, type TransactionFields } from '../utils/budgetValidation';
 import { BudgetField, BudgetInput, PrimaryButton, RemovableRowList, SectionHeading, fieldStyle, stackStyle } from './BudgetControls';
 
 const EMPTY_TRANSACTION: TransactionFields = { amount: '', categoryName: '', date: '', note: '' };
@@ -34,7 +34,7 @@ const TransactionSection: React.FC<Props> = ({ activeBudget, monthTransactions, 
     const { amount, categoryName, date, note } = form.values;
     const category = categories.find((entry) => entry.name === categoryName);
     if (!category) return;
-    const entry = { amount: parseNumber(amount), categoryName, date, note: optionalText(note) };
+    const entry = { amount: parseMoney(amount), categoryName, date, note: optionalText(note) };
     onAdd(activeBudget, entry, category.type === 'NEED').then((saved) => {
       if (saved) form.reset();
     });
@@ -111,6 +111,7 @@ const TransactionSection: React.FC<Props> = ({ activeBudget, monthTransactions, 
         items={monthTransactions}
         emptyText={t('budget.emptyTransactions', 'No transactions yet.')}
         getKey={(entry) => entry.id}
+        getName={(entry) => `${entry.note?.trim() || entry.categoryName} ${entry.amount.toFixed(2)}`}
         renderLabel={(entry) => (
           <>
             <div style={{ display: 'flex', gap: `${theme.spacing.sm}px`, flexWrap: 'wrap', alignItems: 'baseline' }}>

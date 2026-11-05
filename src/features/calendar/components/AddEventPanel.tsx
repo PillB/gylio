@@ -28,6 +28,7 @@ const AddEventPanel: React.FC<Props> = ({ tasks, onCreate }) => {
         data-tour="calendar-add-btn"
         type="button"
         onClick={() => setOpen((prev) => !prev)}
+        aria-expanded={open}
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -37,14 +38,15 @@ const AddEventPanel: React.FC<Props> = ({ tasks, onCreate }) => {
           borderRadius: theme.shape.radiusFull,
           border: `1.5px solid ${open ? theme.colors.primary : theme.colors.border}`,
           background: open ? `${theme.colors.primary}12` : 'transparent',
-          color: open ? theme.colors.primary : theme.colors.muted,
+          // Text colour, not primary: primary text on the tinted background fell just short of 4.5:1.
+          color: open ? theme.colors.text : theme.colors.muted,
           cursor: 'pointer',
           fontSize: '0.875rem',
           fontWeight: 600,
           marginBottom: open ? `${theme.spacing.sm}px` : 0,
         }}
       >
-        {open ? '✕ ' : '+ '}
+        <span aria-hidden="true">{open ? '✕' : '+'}</span>
         {t('calendarAddEvent')}
       </button>
       <CalendarHelp topic="addEvent" />

@@ -1,7 +1,11 @@
 import type React from 'react';
 import type { ThemeTokens } from '../../../core/themes';
 
+/** Form controls may shrink below their built-in width (about 20 characters), which pushed them out of the card at 320px. */
 export const fieldControlStyle = (theme: ThemeTokens): React.CSSProperties => ({
+  minWidth: 0,
+  maxWidth: '100%',
+  boxSizing: 'border-box',
   padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
   border: `1px solid ${theme.colors.border}`,
   borderRadius: theme.shape.radiusSm,
@@ -16,7 +20,8 @@ const TONES: Record<ButtonTone, (theme: ThemeTokens) => React.CSSProperties> = {
   primary: (theme) => ({ border: `1px solid ${theme.colors.primary}`, backgroundColor: theme.colors.primary, color: theme.colors.primaryForeground }),
   outlinePrimary: (theme) => ({ border: `1px solid ${theme.colors.primary}`, backgroundColor: theme.colors.surface, color: theme.colors.text }),
   outlineAccent: (theme) => ({ border: `1px solid ${theme.colors.accent}`, backgroundColor: theme.colors.surface, color: theme.colors.text }),
-  danger: (theme) => ({ border: `1px solid ${theme.colors.accent}`, backgroundColor: theme.colors.accent, color: theme.colors.background, fontWeight: 600 }),
+  // errorStrong, not accent: page-coloured text on the pink accent was 3.3:1.
+  danger: (theme) => ({ border: `1px solid ${theme.colors.errorStrong}`, backgroundColor: theme.colors.errorStrong, color: theme.colors.background, fontWeight: 600 }),
 };
 
 /** Calendar buttons: small radius, xs vertical padding, one of a few colour tones. */

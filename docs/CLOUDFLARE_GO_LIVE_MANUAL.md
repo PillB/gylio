@@ -30,16 +30,16 @@ At the prompts: type the account id (visible) and paste the token (hidden; it pr
 3. Production instances need DNS records on `gylio.app` (Clerk's dashboard lists them: CNAMEs for the Frontend API, the account portal and mail). Send me nothing; send the setup thread the list so it adds them as DNS only.
 4. Google: Clerk shows the redirect URL to add in Google Cloud Console (APIs & Services, Credentials, OAuth client). Create a Web client, paste the redirect URL, then paste the client ID and secret back into Clerk.
 5. Microsoft: in Microsoft Entra, App registrations, New registration, supported account types "Accounts in any organizational directory and personal Microsoft accounts". Add the redirect URL Clerk shows, create a client secret, paste id and secret into Clerk.
-6. Send me: your Clerk "Frontend API URL" (public; for the production instance it is expected to be `https://clerk.gylio.app`).
+6. Your Clerk "Frontend API URL" is `https://clerk.gylio.app` (checked from its public OpenID configuration); nothing to send. If the dashboard ever shows a different one, send it to me.
 7. Copy the **Publishable key** from the same dashboard page (API keys). It starts with `pk_live_` and is public: it ships inside the site. The deploy script asks for it at a visible prompt, or reads it from the window (`export VITE_CLERK_PUBLISHABLE_KEY=pk_live_...`) or from a one-line file `~/.config/gylio/clerk_publishable_key`. It refuses a `pk_test_` key (that is the development sign-in) and a key from a different Clerk instance than `CLERK_ISSUER`. Never copy the **Secret key** (`sk_live_`) anywhere: nothing in Gylio uses it.
 
 Users are identified by Clerk's stable `sub`, never by email, so a Microsoft work account and a personal account with the same address stay separate people.
 
 ## 4. First deploy
-1. Send me the Clerk Frontend API URL (step 3.6). I put it in `worker/wrangler.jsonc` as `CLERK_ISSUER` (a public value) in a pull request, and you merge it. Until then health shows `auth: false`, and sign-in answers 503 on purpose.
+1. `CLERK_ISSUER` in `worker/wrangler.jsonc` is already `https://clerk.gylio.app`, the issuer your production instance publishes (read from `https://clerk.gylio.app/.well-known/openid-configuration` on 28 Oct 2026). The script stops if your publishable key belongs to a different instance. Were it empty, health would show `auth: false` and sign-in would answer 503 on purpose.
 2. `git checkout main && git pull`, then `bash worker/scripts/redeploy.sh`. Create the deploy token when it waits at the hidden prompt.
 3. Check, in a browser (the script prints these too):
-   - `https://gylio.app/api/v1/health` shows `{"ok":true,"worker":true,"database":true,"auth":true,"usageOk":true,"signupOpen":false,"origin":"https://gylio.app"}`. `database:false` means the migrations did not apply; `auth:false` means `CLERK_ISSUER` is empty; `signupOpen:false` is expected until section 4b is done.
+   - `https://gylio.app/api/v1/health` shows `{"ok":true,"worker":true,"database":true,"auth":true,"usageOk":true,"signupOpen":false,"origin":"https://gylio.app"}`. `database:false` means the migrations did not apply; `auth:false` means `CLERK_ISSUER` is empty in the deployed config; `signupOpen:false` is expected until section 4b is done.
    - `https://gylio.app/.well-known/security.txt` shows `Contact: mailto:security@gylio.app`.
    - `https://gylio.app/` loads the app, and a deep link such as `https://gylio.app/tasks` loads it too. No errors in the browser console.
    - The workers.dev address of `gylio-api` must not answer (it is switched off in the config).
@@ -66,7 +66,15 @@ Do not announce sign-up publicly before `signupOpen` shows `true` in the health 
 3. Once a week, open Workers & Pages, gylio-api, Metrics, and D1, gylio, Metrics. Requests should stay under 100,000 a day, rows read under 5,000,000, rows written under 100,000.
 
 ## 6. What I do after you finish
-The app is already connected to the Worker (device-generated ids, push and pull sync, sign-in token); the deploy script turns it on for the Cloudflare build only (`VITE_SYNC_ENABLED=true`), so the GitHub Pages site and previews still never call the Worker. What is left for me after your deploy is an end-to-end test with a real Clerk test user, which cannot be done before there is a live Clerk instance. If the Worker is paused (503) or unreachable, the app keeps working on the device and tries again by itself; `docs/sync-resilience.md` explains how.
+The app is already connected to the Worker (device-generated ids, push and pull sync, sign-in token); the deploy script turns it on for the Cloudflare build only (`VITE_SYNC_ENABLED=true`). What is left for me after your deploy is an end-to-end test with a real Clerk test user, which cannot be done before there is a live Clerk instance. If the Worker is paused (503) or unreachable, the app keeps working on the device and tries again by itself; `docs/sync-resilience.md` explains how.
+
+What the Cloudflare build calls, all on `https://gylio.app` and all under `/api/` (sign-in itself happens on Clerk's own host, so the rate-limit rule in section 5 covers every path we serve):
+- `GET /api/sync/pull?since=<cursor>&limit=<n>`: fetching changes, signed in only.
+- `PUT /api/<entity>/<id>` and `DELETE /api/<entity>/<id>`, for `tasks`, `events`, `budgets`, `transactions` and `debts`: sending changes, signed in only.
+- `GET /api/v1/health`: only the deploy scripts and your checks; the app never calls it.
+- `GET /api/me/export` and `DELETE /api/me` exist on the Worker for the account thread; the app does not call them yet.
+
+What it does not call, because the Worker has no route for them: Pro status, plans, trial and checkout (`/api/billing/*`), bug reports (`/api/feedback*`), the admin pages (`/api/admin/*`), the analytics upload (`/api/analytics/events`), AI suggestions (`/api/ai/*`), the old whole-device save (`/api/state`) and the old sync queue (`/api/tasks`, `/api/events`, `/api/transactions`). The build switches each of them off (`VITE_BILLING_ENABLED=false`, `VITE_SYNC_ENABLED=true`, an empty `VITE_API_BASE_URL`; `src/core/utils/serverFeatures.ts`), so the Feedback button, the report and admin pages and the AI suggestion box do not show there. The GitHub Pages site has no sign-in and calls none of these addresses.
 
 ## If something goes wrong
 - "Not on main" or "Uncommitted changes": the script is protecting you from deploying something that is not on `main`. The only change it allows is the database id in `worker/wrangler.jsonc`.

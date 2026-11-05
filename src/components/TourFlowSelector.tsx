@@ -84,6 +84,8 @@ export default function TourFlowSelector() {
             onClick={closeSelector}
             aria-label={t('tour.selector.close', 'Close')}
             style={{
+              minWidth: 44,
+              minHeight: 44,
               background: 'none',
               border: 'none',
               cursor: 'pointer',
@@ -141,7 +143,8 @@ export default function TourFlowSelector() {
                 <span
                   style={{
                     fontSize: '0.75rem',
-                    color: theme.colors.muted,
+                    // Body text: the overlay tint on a highlighted card left muted text under 4.5:1 in dark mode.
+                    color: theme.colors.text,
                     background: theme.colors.overlay,
                     borderRadius: theme.shape.radiusFull,
                     padding: '2px 8px',

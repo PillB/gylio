@@ -4,20 +4,21 @@ import BudgetTooltip from '../../../components/atoms/BudgetTooltip';
 
 const HELP = {
   section:
-    'Your task hub — add, prioritize, and complete tasks broken into manageable steps. Match tasks to your current energy level so progress feels possible every day.',
+    "Your central task hub — everything you need to do, broken into steps you can actually start. Add anything here, then check it off when done.",
   reliability:
-    'Tracks how consistently you complete recurring tasks. Use this to spot patterns, identify what is stalling, and build a more reliable routine over time.',
-  title: "Name your task concisely but specifically. 'Reply to Maria's project email' beats 'emails'. Specific tasks are easier to start.",
+    "Tracks how consistently your recurring tasks are being auto-generated. If instances are being missed, you can rebuild them here.",
+  title:
+    "Give your task a clear, specific name. The more concrete the title, the easier it is to start — 'Email Dr Santos' beats 'Emails' every time.",
   plannedDate:
-    'Pick a date to schedule this task. Tasks with a date appear in your calendar and daily view — helps you plan ahead and reduce last-minute stress.',
+    "Giving a task a day makes it easier to start, and it shows up in your calendar and daily view. Even 'today' works.",
   energy:
-    'Rate how much mental/physical energy this task needs. Filter by energy to find tasks that match how you feel right now — great for low-energy days.',
+    "Filter tasks by the mental fuel they need right now. Tiny/Low for rough days. Medium/High when you're in the zone. Match effort to capacity.",
   intention:
-    'Write a specific when/where implementation intention (e.g. "After lunch I will…"). Research shows this doubles follow-through on intentions.',
+    "Deciding when and where you'll do it (\"after lunch, at my desk\") helps many people follow through. A review of 94 studies found a medium-to-large effect.",
   subtasks:
-    'Break your task into small, concrete steps. Each step should take under 10 minutes — this makes starting easier and tracks your real progress.',
+    "Break a big task into small steps. Starting is often the hardest part, so make the first step small enough to begin right away.",
   timer:
-    'The Pomodoro technique uses focused 25-minute sprints with short breaks to protect your concentration and build a sustainable work rhythm.',
+    "Pomodoro sprints: focused work, then a short break. A timer with a clear end can make it easier to start.",
 } as const;
 
 export type TaskHelpTopic = keyof typeof HELP;

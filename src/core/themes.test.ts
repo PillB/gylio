@@ -2,6 +2,13 @@ import { describe, expect, it } from 'vitest';
 import { contrastRatio, readableTextOn, relativeLuminance, themes, type ThemeMode } from './themes';
 
 const MODES: ThemeMode[] = ['light', 'dark', 'highContrast'];
+
+/** `fg` laid over `bg` at `alpha`, as the app's `${color}12`-style tints render. */
+const over = (fg: string, bg: string, alpha: number): string => {
+  const channels = (hex: string) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+  const [f, b] = [channels(fg), channels(bg)];
+  return `#${f.map((c, i) => Math.round(c * alpha + b[i] * (1 - alpha)).toString(16).padStart(2, '0')).join('')}`;
+};
 const AA_TEXT = 4.5;
 const AA_NON_TEXT = 3;
 
@@ -82,6 +89,16 @@ describe.each(MODES)('%s theme tokens', (mode) => {
     expect(eventTints.length).toBeGreaterThan(0);
     for (const tint of eventTints) {
       expect(contrastRatio(colors.text, tint)).toBeGreaterThanOrEqual(AA_TEXT);
+    }
+  });
+
+  it('primary and muted text stay AA on every surface, including the primary tints of selected and open states', () => {
+    const surfaces = [colors.background, colors.surface, colors.surfaceElevated];
+    // Selected cards and open toggles lay 5 to 8% of primary over these surfaces.
+    const tints = surfaces.map((bg) => over(colors.primary, bg, 0.08));
+    for (const bg of [...surfaces, ...tints]) {
+      expect({ bg, primary: contrastRatio(colors.primary, bg) >= AA_TEXT }).toEqual({ bg, primary: true });
+      expect({ bg, muted: contrastRatio(colors.muted, bg) >= AA_TEXT }).toEqual({ bg, muted: true });
     }
   });
 

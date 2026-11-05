@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
   hasErrors,
+  MAX_AMOUNT,
   optionalText,
+  parseMoney,
   parseNumber,
   validateCategory,
   validateDebt,
@@ -18,6 +20,30 @@ describe('parseNumber', () => {
     expect(parseNumber('abc')).toBeNaN();
     expect(parseNumber('')).toBeNaN();
     expect(parseNumber('Infinity')).toBeNaN();
+  });
+});
+
+describe('parseMoney', () => {
+  it('rounds to cents so stored amounts match what is shown', () => {
+    expect(parseMoney('1234.567')).toBe(1234.57);
+    expect(parseMoney('0.1')).toBe(0.1);
+    expect(parseMoney('19.999')).toBe(20);
+  });
+});
+
+describe('amount limits', () => {
+  it('refuses an amount too large to be real instead of saving a 21-digit figure', () => {
+    expect(validateIncome({ source: 'Job', amount: '99999999999999999999' }, t).amount).toBe('validation.amountTooLarge');
+    expect(validateIncome({ source: 'Job', amount: String(MAX_AMOUNT) }, t).amount).toBe('');
+    expect(validateDebt({ name: 'Card', balance: '1e15', annualRate: '0', minPayment: '10', categoryName: '', dueDay: '' }, t).balance).toBe(
+      'validation.amountTooLarge'
+    );
+  });
+
+  it('refuses an amount that rounds to zero cents', () => {
+    expect(validateTransaction({ amount: '0.004', categoryName: 'Food', date: '2026-10-01', note: '' }, t).amount).toBe(
+      'validation.amountPositive'
+    );
   });
 });
 

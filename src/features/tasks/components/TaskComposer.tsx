@@ -10,6 +10,7 @@ import { TaskTemplateGallery } from './TaskTemplateGallery';
 import type { EstimateSample } from '../../planning/calibrateEstimate';
 import EstimatePicker from '../../timetracking/components/EstimatePicker';
 import TaskHelp from './TaskHelp';
+import { HelpLabel } from '../../../components/atoms/HelpField';
 import { controlStyle, primaryControlStyle, textInputStyle } from './taskStyles';
 
 type Props = {
@@ -49,7 +50,7 @@ const TemplateToggle: React.FC<{ onSelect: (template: TaskTemplate) => void }> =
           fontFamily: theme.typography.body.family,
         }}
       >
-        {open ? t('tasks.tpl.hideGallery', 'Hide quick-start tasks') : t('tasks.tpl.showGallery', 'Browse quick-start tasks')}
+        {open ? t('tasks.tpl.hideGallery', 'Hide quick-start tasks') : t('tasks.tpl.showGallery', "Start with a template")}
       </button>
       {open && (
         <div style={{ marginTop: `${theme.spacing.sm}px` }}>
@@ -72,10 +73,9 @@ const IntentionField: React.FC<{ draft: TaskDraft }> = ({ draft }) => {
   const { theme } = useTheme();
   return (
     <div>
-      <label htmlFor="new-task-intention" style={{ fontWeight: 600, fontSize: '0.875rem', display: 'flex', alignItems: 'center', marginBottom: 4 }}>
+      <HelpLabel htmlFor="new-task-intention" help={<TaskHelp topic="intention" />} style={{ fontWeight: 600, fontSize: '0.875rem', marginBottom: 4 }}>
         {t('tasks.intentionLabel', 'When / where')}
-        <TaskHelp topic="intention" />
-      </label>
+      </HelpLabel>
       <textarea
         id="new-task-intention"
         rows={2}
@@ -96,7 +96,7 @@ const IntentionField: React.FC<{ draft: TaskDraft }> = ({ draft }) => {
         }}
       />
       <p style={{ margin: '2px 0 0', color: theme.colors.muted, fontSize: '0.8rem' }}>
-        {t('tasks.intentionHelper', 'A specific when/where cue can make the next action clearer.')}
+        {t('tasks.intentionHelper', "Deciding when and where you'll do it (\"after lunch, at my desk\") helps many people follow through. A review of 94 studies found a medium-to-large effect.")}
       </p>
     </div>
   );
@@ -163,10 +163,9 @@ const TaskComposer: React.FC<Props> = ({ draft, todayKey, tomorrowKey, titleRef,
         // which overflowed 320px screens.
         style={{ marginBottom: '1rem', display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: `${theme.spacing.sm}px` }}
       >
-        <label htmlFor="new-task" style={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+        <HelpLabel htmlFor="new-task" help={<TaskHelp topic="title" />} style={{ fontWeight: 600 }}>
           {t('addTask')}
-          <TaskHelp topic="title" />
-        </label>
+        </HelpLabel>
         <input
           id="new-task"
           ref={titleRef}
@@ -198,7 +197,7 @@ const TaskComposer: React.FC<Props> = ({ draft, todayKey, tomorrowKey, titleRef,
         </div>
         {draft.detailsOpen ? <DraftDetails draft={draft} todayKey={todayKey} tomorrowKey={tomorrowKey} estimateSamples={estimateSamples} /> : null}
       </form>
-      {draft.formError ? <p style={{ color: theme.colors.accent, marginTop: 0 }}>{draft.formError}</p> : null}
+      {draft.formError ? <p style={{ color: theme.colors.errorStrong, marginTop: 0 }}>{draft.formError}</p> : null}
     </>
   );
 };

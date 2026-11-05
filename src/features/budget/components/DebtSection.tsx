@@ -4,7 +4,7 @@ import { useTheme } from '../../../core/context/ThemeContext';
 import type { Debt } from '../../../core/hooks/useDB';
 import { useValidatedForm } from '../hooks/useValidatedForm';
 import type { NewDebt } from '../hooks/useBudgetData';
-import { optionalText, parseNumber, validateDebt, type DebtFields } from '../utils/budgetValidation';
+import { optionalText, parseMoney, parseNumber, validateDebt, type DebtFields } from '../utils/budgetValidation';
 import { BudgetInput, PrimaryButton, RemovableRowList, SectionHeading, stackStyle } from './BudgetControls';
 import PayoffPanel from './PayoffPanel';
 import BillRemindersCard from './BillRemindersCard';
@@ -21,9 +21,9 @@ type Props = {
 
 const toNewDebt = (values: DebtFields): NewDebt => ({
   name: values.name.trim(),
-  balance: parseNumber(values.balance),
+  balance: parseMoney(values.balance),
   annualRate: parseNumber(values.annualRate),
-  minPayment: parseNumber(values.minPayment),
+  minPayment: parseMoney(values.minPayment),
   categoryName: optionalText(values.categoryName),
   dueDay: values.dueDay.trim() ? parseNumber(values.dueDay) : null,
 });
@@ -142,6 +142,7 @@ const DebtSection: React.FC<Props> = ({ debts, extraPayment, onAdd, onRemove, on
       <BillRemindersCard debts={debts} onAddTask={onAddBillTask} />
       <RemovableRowList
         items={debts}
+        getName={(entry) => entry.name}
         emptyText={t('budget.emptyDebts', 'No debts yet.')}
         getKey={(entry) => entry.id}
         renderLabel={(entry) => <DebtLabel entry={entry} />}

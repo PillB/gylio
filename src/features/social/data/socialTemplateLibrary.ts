@@ -1,6 +1,6 @@
 import type { DataVizHue } from '../../../core/themes';
 // Research basis:
-// - Arthur Aron (1997): Graduated self-disclosure doubles intimacy
+// - Arthur Aron (1997): graduated self-disclosure increased closeness between strangers in a lab study
 // - Dunbar (1992): Social brain - different relationship tiers need different interaction types
 // - Stafford & Canary (1991): Relationship maintenance via positivity, openness, assurances
 // - Gottman (1994): Positive interaction ratio; bids for connection
@@ -203,7 +203,7 @@ export const SOCIAL_TEMPLATE_LIBRARY: SocialTemplate[] = [
     stepKeys: ['social.tpl.friend36q.step1', 'social.tpl.friend36q.step2', 'social.tpl.friend36q.step3', 'social.tpl.friend36q.step4'],
     conversationStarters: [
       "I came across this thing called the '36 questions that build closeness' and it looked really interesting. Want to try it together?",
-      "I want to do something different when we hang out — there's this research-backed conversation format I'm curious about. Game?",
+      "I want to try something different when we hang out. There's a list of 36 questions meant to help people get to know each other. Game?",
     ],
   },
   {

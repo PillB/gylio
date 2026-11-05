@@ -1,6 +1,6 @@
 import { IDBFactory } from 'fake-indexeddb';
 import { describe, expect, it } from 'vitest';
-import { IdbStorage } from './idbStorage';
+import { IdbStorage, resolveSyncDatabase, syncDatabaseName } from './idbStorage';
 import { MemoryStorage } from './memoryStorage';
 import type { NewChange, SyncStorage } from './types';
 
@@ -158,5 +158,47 @@ describe('IndexedDB storage keeps its data between page loads', () => {
     const after = new IdbStorage(factory);
     expect((await after.listOutbox())[0].data).toEqual({ title: 'saved before reload' });
     expect((await after.getMeta()).cursor).toBe(7);
+  });
+});
+
+describe('IndexedDB storage on a device two accounts use', () => {
+  it("keeps each account's waiting changes and position apart, so one is never sent as the other's", async () => {
+    const factory = new IDBFactory();
+    const a = new IdbStorage(factory, syncDatabaseName('user_a'));
+    await a.putChange(task('a', "A's task"));
+    await a.setMeta({ cursor: 9, owner: 'user_a' });
+    const b = new IdbStorage(factory, syncDatabaseName('user_b'));
+    expect(await b.listOutbox()).toEqual([]);
+    expect(await b.getMeta()).toEqual({ cursor: 0, owner: null });
+    // A comes back: everything is still there.
+    const aAgain = new IdbStorage(factory, syncDatabaseName('user_a'));
+    expect((await aAgain.listOutbox()).map((entry) => entry.data)).toEqual([{ title: "A's task" }]);
+    expect(syncDatabaseName(null)).toBe('gylio-sync-v2');
+  });
+});
+
+describe('the sync notes kept before they were per account', () => {
+  it('stay with the account they were synced for, so nothing is sent again as new', async () => {
+    const factory = new IDBFactory();
+    const before = new IdbStorage(factory);
+    await before.putChange(task('a', 'edited offline'));
+    await before.setMeta({ cursor: 12, owner: 'user_a' });
+    await before.patchBucket('mirror', { 'tasks:b': 'seen' });
+
+    const name = await resolveSyncDatabase('user_a', factory);
+    expect(name).toBe('gylio-sync-v2');
+    const after = new IdbStorage(factory, name);
+    expect((await after.listOutbox()).map((entry) => entry.data)).toEqual([{ title: 'edited offline' }]);
+    expect(await after.getMeta()).toEqual({ cursor: 12, owner: 'user_a' });
+    expect(await after.getBucket('mirror')).toEqual({ 'tasks:b': 'seen' });
+    // Anyone else starts their own.
+    expect(await resolveSyncDatabase('user_b', factory)).toBe('gylio-sync-v2:user_b');
+  });
+
+  it('are looked for without creating an empty database where there was none', async () => {
+    const factory = new IDBFactory();
+    expect(await resolveSyncDatabase('user_a', factory)).toBe('gylio-sync-v2:user_a');
+    expect((await factory.databases()).map((db) => db.name)).toEqual([]);
+    expect(await resolveSyncDatabase(null, factory)).toBe('gylio-sync-v2');
   });
 });

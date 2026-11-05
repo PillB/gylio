@@ -19,7 +19,7 @@ export const COMPLEXITY_BASELINE = {
   'src/features/budget/components/ReconciliationChecklist.jsx': 13,
   'src/features/budget/utils/debtPayoff.ts': 11,
   'src/features/calendar/utils/scheduleSuggestions.ts': 13,
-  'src/features/dashboard/DailyCommandCenter.tsx': 27,
+  'src/features/dashboard/DailyCommandCenter.tsx': 26,
   'src/features/recurring/RecurringReliabilityPanel.tsx': 12,
   'src/features/recurring/useRecurringReliability.ts': 12,
   'src/features/routines/components/RoutinesView.tsx': 14,

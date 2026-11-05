@@ -103,7 +103,7 @@ Rows written is the binding limit, by a wide margin. Registered people are more 
 - CPU time per request (10 ms limit) is not measured by the test runtime. The expensive step is RS256 verification of the sign-in token. Not measured; the first deployed day's CPU graph is the check, and the fallback is verifying less often by caching a verified token for its remaining life.
 - `changes()` in the batched counter update is tested in the local database; it is standard SQLite behaviour but untested on production D1.
 - Whether the static assets service serves the `.well-known` folder is checked by the live security.txt test in the manual.
-- Clerk's sign-in host, the DNS records a production instance needs, and Clerk's free-tier limits: from documentation only, not from a live dashboard.
+- Clerk's free-tier limits: from documentation only, not from a live dashboard. The sign-in host was checked live on 28 Oct 2026: `clerk.gylio.app` (a DNS-only CNAME to Clerk) publishes the issuer `https://clerk.gylio.app` and its signing keys.
 
 ### 9.5 Sign-in is swappable (F-015)
 Records are keyed by an internal id (a random UUID in `identities`, keyed by `(provider, subject)`), not by Clerk's `sub`. Moving to another provider means adding mapping rows. Mapping is cached per instance for 60 seconds; erasure deletes the mapping, records and counters. A first request costs one extra row written.

@@ -4,6 +4,7 @@ import { useTheme } from '../core/context/ThemeContext';
 import useDB from '../core/hooks/useDB';
 import { requestBackgroundSync } from '../core/utils/backgroundSync';
 import { enqueueSyncAction, listSyncConflicts, removeSyncConflict } from '../core/utils/offlineSync';
+import { serverCopyOf } from '../core/utils/legacyConflict';
 
 const normalizeSubtasks = (value) => {
   if (!Array.isArray(value)) return [];
@@ -83,14 +84,17 @@ const LegacySyncReview = () => {
     [t]
   );
 
+  /** Saves the server's copy over this device's. Returns false when there is no usable copy to save. */
   const applyRemoteConflict = useCallback(
     async (conflict) => {
-      const remote = conflict.remoteData ?? null;
-      const entityId = Number(remote?.id ?? conflict.localData?.id);
+      const copy = serverCopyOf(conflict.entityType, conflict.remoteData);
+      // The local record's own id: the server may key the same record differently.
+      const entityId = Number(conflict.localData?.id);
       const actions = { task: { update: updateTask, remove: deleteTask }, event: { update: updateEvent, remove: deleteEvent }, transaction: { update: updateTransaction, remove: deleteTransaction } }[conflict.entityType];
-      if (!Number.isFinite(entityId) || !actions) return;
-      if (!remote) await actions.remove(entityId, { skipSync: true });
-      else await actions.update(entityId, REMOTE_FIELDS[conflict.entityType](remote), { skipSync: true });
+      if (!Number.isFinite(entityId) || !actions || copy.kind === 'unreadable') return false;
+      if (copy.kind === 'deleted') await actions.remove(entityId, { skipSync: true });
+      else await actions.update(entityId, REMOTE_FIELDS[conflict.entityType](copy.record), { skipSync: true });
+      return true;
     },
     [deleteEvent, deleteTask, deleteTransaction, updateEvent, updateTask, updateTransaction]
   );
@@ -107,8 +111,8 @@ const LegacySyncReview = () => {
             clientUpdatedAt: new Date().toISOString(),
           });
           await requestBackgroundSync();
-        } else {
-          await applyRemoteConflict(conflict);
+        } else if (!(await applyRemoteConflict(conflict))) {
+          return;
         }
         await removeSyncConflict(conflict.id);
         loadSyncConflicts();
@@ -140,7 +144,9 @@ const LegacySyncReview = () => {
             {syncConflicts.length === 0 ? (
               <p style={{ margin: 0, color: theme.colors.muted }}>{t('sync.reviewEmpty')}</p>
             ) : (
-              syncConflicts.map((conflict) => (
+              syncConflicts.map((conflict) => {
+                const serverUnreadable = serverCopyOf(conflict.entityType, conflict.remoteData).kind === 'unreadable';
+                return (
                 <div
                   key={conflict.id}
                   style={{
@@ -178,7 +184,8 @@ const LegacySyncReview = () => {
                     <button
                       type="button"
                       onClick={() => handleResolveConflict(conflict, 'remote')}
-                      disabled={isResolving === conflict.id}
+                      disabled={isResolving === conflict.id || serverUnreadable}
+                      aria-describedby={serverUnreadable ? `conflict-${conflict.id}-unreadable` : undefined}
                       style={{
                         padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
                         borderRadius: theme.shape.radiusSm,
@@ -190,8 +197,14 @@ const LegacySyncReview = () => {
                       {t('sync.reviewUseRemote')}
                     </button>
                   </div>
+                  {serverUnreadable ? (
+                    <small id={`conflict-${conflict.id}-unreadable`} style={{ display: 'block', marginTop: theme.spacing.xs, color: theme.colors.muted }}>
+                      {t('sync.reviewServerUnreadable')}
+                    </small>
+                  ) : null}
                 </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>

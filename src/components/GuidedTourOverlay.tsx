@@ -6,6 +6,7 @@ import useAccessibility from '../core/hooks/useAccessibility';
 import { useGuidedTour } from '../core/context/GuidedTourContext';
 import { useAppAuth } from '../core/context/AuthContext';
 import useDialogFocus from '../core/hooks/useDialogFocus';
+import { serverFeaturesEnabled } from '../core/utils/serverFeatures';
 import type { TourStep } from '../features/tour/tourSteps';
 import { placeTooltip, type TooltipSide } from '../features/tour/placeTooltip';
 
@@ -25,6 +26,39 @@ const ESTIMATED_TOOLTIP_HEIGHT = 340;
  * behind "Add details") is centred as a fallback but must leave the page reachable.
  */
 const isModalStep = (step: TourStep): boolean => step.placement === 'center' || !step.target;
+
+/** "Start the free trial to unlock", only where Pro can be bought (serverFeatures.ts). */
+export function TourProNudge({ onUnlock }: { onUnlock: () => void }) {
+  const { t } = useTranslation();
+  const { theme } = useTheme();
+  if (!serverFeaturesEnabled()) return null;
+  return (
+    <button
+      type="button"
+      onClick={onUnlock}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 6,
+        width: '100%',
+        marginBottom: theme.spacing.md,
+        padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
+        borderRadius: theme.shape.radiusMd,
+        border: `1.5px solid ${theme.colors.primary}`,
+        background: `${theme.colors.primary}12`,
+        color: theme.colors.primary,
+        fontSize: '0.8125rem',
+        fontWeight: 600,
+        cursor: 'pointer',
+        fontFamily: theme.typography.body.family,
+        textAlign: 'left',
+      }}
+    >
+      <span aria-hidden="true">✦</span>
+      {t('tour.unlockCta', 'Start 10-day free trial to unlock →')}
+    </button>
+  );
+}
 
 export default function GuidedTourOverlay() {
   const {
@@ -431,33 +465,8 @@ export default function GuidedTourOverlay() {
           </button>
         )}
 
-        {/* Premium upgrade nudge — shown when the spotlight resolved to the premium gate */}
-        {isPremiumGated && !needsSignIn && (
-          <button
-            type="button"
-            onClick={() => { completeTour(); navigate('/pricing'); }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              width: '100%',
-              marginBottom: theme.spacing.md,
-              padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
-              borderRadius: theme.shape.radiusMd,
-              border: `1.5px solid ${theme.colors.primary}`,
-              background: `${theme.colors.primary}12`,
-              color: theme.colors.primary,
-              fontSize: '0.8125rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-              fontFamily: theme.typography.body.family,
-              textAlign: 'left',
-            }}
-          >
-            <span aria-hidden="true">✦</span>
-            {t('tour.unlockCta', 'Start 10-day free trial to unlock →')}
-          </button>
-        )}
+        {/* Pro nudge, when the spotlight resolved to the Pro gate */}
+        {isPremiumGated && !needsSignIn && <TourProNudge onUnlock={() => { completeTour(); navigate('/pricing'); }} />}
 
         {/* Navigation buttons */}
         <div

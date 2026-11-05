@@ -15,5 +15,9 @@
   "pickDate": "Elegir fecha",
   "taskAddedToday": "Tarea agregada para hoy.",
   "taskAddedScheduled": "Tarea agregada.",
-  "taskAddedBacklog": "Tarea agregada a pendientes."
+  "taskAddedBacklog": "Tarea agregada a pendientes.",
+  "editNamed": "Editar {{title}}",
+  "deleteNamed": "Eliminar {{title}}",
+  "stepAria": "Paso {{n}}",
+  "removeStepAria": "Quitar paso {{n}}"
 }

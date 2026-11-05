@@ -257,7 +257,6 @@ const TaskList: React.FC = () => {
 
   return (
     <SectionCard
-      ariaLabel={`${t('tasks.title')} module`}
       title={t('tasks.title')}
       subtitle={t('tasks.description', '')}
       badge={<TaskHelp topic="section" />}

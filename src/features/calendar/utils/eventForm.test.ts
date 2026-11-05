@@ -76,4 +76,15 @@ describe('validateEventFormFields', () => {
     );
     expect(negativeValidation.reminderMinutesBefore).toBe('validation.nonNegativeInteger');
   });
+
+  it('accepts a reminder up to four weeks ahead and refuses one further out', () => {
+    const fourWeeks = validateEventFormFields({ ...validFields, reminderMinutesBefore: '40320' }, t);
+    expect(fourWeeks.reminderMinutesBefore).toBe('');
+
+    const tooFar = validateEventFormFields({ ...validFields, reminderMinutesBefore: '40321' }, t);
+    expect(tooFar.reminderMinutesBefore).toBe('validation.reminderTooFar');
+
+    const typo = validateEventFormFields({ ...validFields, reminderMinutesBefore: '99999999' }, t);
+    expect(typo.reminderMinutesBefore).toBe('validation.reminderTooFar');
+  });
 });

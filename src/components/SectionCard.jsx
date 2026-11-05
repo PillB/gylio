@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useId } from 'react';
 import PropTypes from 'prop-types';
 import useAccessibility from '../core/hooks/useAccessibility';
 import { useTheme } from '../core/context/ThemeContext';
@@ -12,6 +12,7 @@ import { useTheme } from '../core/context/ThemeContext';
 const SectionCard = ({ title, ariaLabel, subtitle, children, badge, action }) => {
   const { speak } = useAccessibility();
   const { theme } = useTheme();
+  const headingId = useId();
 
   useEffect(() => {
     speak(subtitle ? `${title}. ${subtitle}` : title);
@@ -19,7 +20,9 @@ const SectionCard = ({ title, ariaLabel, subtitle, children, badge, action }) =>
 
   return (
     <section
+      // Named by its visible heading unless a caller gives a different name; the heading is already translated.
       aria-label={ariaLabel}
+      aria-labelledby={ariaLabel ? undefined : headingId}
       style={{
         backgroundColor: theme.colors.surface,
         borderRadius: theme.shape.radiusLg,
@@ -48,6 +51,7 @@ const SectionCard = ({ title, ariaLabel, subtitle, children, badge, action }) =>
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm, minWidth: 0 }}>
           <h2
+            id={headingId}
             style={{
               margin: 0,
               fontFamily: theme.typography.heading.family,

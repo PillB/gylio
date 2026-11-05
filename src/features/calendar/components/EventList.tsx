@@ -53,7 +53,12 @@ const DeleteControl: React.FC<DeleteProps> = ({ event, actions }) => {
   const tall = { minHeight: '44px' };
   if (!confirming) {
     return (
-      <button type="button" onClick={() => setConfirming(true)} style={calendarButtonStyle(theme, 'outlineAccent', tall)}>
+      <button
+        type="button"
+        onClick={() => setConfirming(true)}
+        aria-label={t('deleteNamed', { name: event.title })}
+        style={calendarButtonStyle(theme, 'outlineAccent', tall)}
+      >
         {t('deleteLabel')}
       </button>
     );
@@ -104,7 +109,12 @@ const EventCard: React.FC<CardProps> = ({ event, color, linkedTask, format, acti
         >
           {t('calendarReadEvent')}
         </button>
-        <button type="button" onClick={() => actions.startEdit(event)} style={calendarButtonStyle(theme, 'plain', tall)}>
+        <button
+          type="button"
+          onClick={() => actions.startEdit(event)}
+          aria-label={t('editNamed', { name: event.title })}
+          style={calendarButtonStyle(theme, 'plain', tall)}
+        >
           {t('editLabel')}
         </button>
         <DeleteControl event={event} actions={actions} />

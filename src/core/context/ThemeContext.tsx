@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ThemeMode, ThemeTokens, mapToPaperTheme, themes } from '../themes';
+import { ThemeMode, ThemeTokens, themes } from '../themes';
 
 const STORAGE_KEY = 'theme-mode';
 
@@ -9,15 +9,13 @@ interface ThemeContextValue {
   mode: ThemeMode;
   setTheme: (mode: ThemeMode) => void;
   hydrated: boolean;
-  paperTheme: ReturnType<typeof mapToPaperTheme>;
 }
 
 const ThemeContext = createContext<ThemeContextValue>({
   theme: themes.light,
   mode: 'light',
   setTheme: () => undefined,
-  hydrated: false,
-  paperTheme: mapToPaperTheme(themes.light)
+  hydrated: false
 });
 
 const isThemeMode = (value: string): value is ThemeMode =>
@@ -56,7 +54,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [mode, hydrated]);
 
   const theme = useMemo(() => themes[mode] ?? themes.light, [mode]);
-  const paperTheme = useMemo(() => mapToPaperTheme(theme), [theme]);
 
   useEffect(() => {
     if (typeof document !== 'undefined') {
@@ -74,10 +71,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       theme,
       mode,
       setTheme: handleSetTheme,
-      hydrated,
-      paperTheme
+      hydrated
     }),
-    [hydrated, mode, paperTheme, theme]
+    [hydrated, mode, theme]
   );
 
   return <ThemeContext.Provider value={value}>{hydrated ? children : null}</ThemeContext.Provider>;

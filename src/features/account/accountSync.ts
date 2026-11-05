@@ -25,6 +25,12 @@ const DEVICE_ONLY: readonly RegExp[] = [
   /^gylio:lastActiveDate$/,
   /^gylio:welcomeBackDismissed$/,
   /^gylio:lastStreakBeforeBreak$/,
+  // Whose data is on this device, other accounts' data set aside here, a removal still to finish
+  // (src/core/account): never part of one person's copy, and a restore must not remove them.
+  /^gylio:owner$/,
+  /^gylio:ownerSignedIn$/,
+  /^gylio:archive:/,
+  /^gylio:remove/,
 ];
 
 const MAX_BACKUPS = 3;

@@ -158,7 +158,7 @@ describe('TimeLogEditor', () => {
     const input = screen.getByLabelText(/timeTracker.entryLabel/) as HTMLInputElement;
     expect(input.value).toBe('20');
     fireEvent.change(input, { target: { value: '35' } });
-    fireEvent.click(screen.getByText('timeTracker.fixSave'));
+    fireEvent.click(screen.getByRole('button', { name: /saveEntryAria/ }));
     expect(tracker.editEntry).toHaveBeenCalledWith(1, 1, 35);
     fireEvent.click(screen.getByRole('button', { name: /removeEntryAria/ }));
     expect(tracker.removeEntry).toHaveBeenCalledWith(1, 1);

@@ -1,6 +1,6 @@
 # Time tracking and estimates: design, evidence, trade-offs
 
-Status: built and unit-tested (see `src/features/timetracking/`). Not yet seen in a real browser (sign-in blocks automation in the build environment), so the layout of the sticky bar and the prompts still needs a human pass on a phone and a desktop.
+Status: built, unit-tested (see `src/features/timetracking/`) and run in a real browser: `e2e/time-tracking.spec.ts` starts, stops, fixes and reviews time with the keyboard, moves the timer between tasks, handles a timer left on overnight, and checks the bar and prompts fit 320 and 390 pixel screens. A person has still not tried it on a phone.
 
 ## 1. What was asked
 Estimate calibration, plus a timer that can be started and stopped seamlessly (Clockify as the reference), low effort, not intrusive, easy to fix, with a warning when a task takes too long, and a guard against the common failure: people forget the timer is on.
@@ -38,8 +38,8 @@ Non-punitive by design: no streaks, no counters of "lost" time, no red states; e
 - Analytics events are counts only: `time_tracker_started`, `time_tracker_stopped` (minutes), `time_tracker_prompt` (kind and answer).
 
 ## 5. What is not done or not validated
-- Not seen in a real browser; the sticky bar's stacking with the existing header and the mobile layout need a human look.
-- `timeLog` is not synced to the new server (only `estimateMin` is in its schema); tracked time stays on the device until the sync client is reworked. The legacy Express server is unchanged.
+- Checked by the browser suite at 320 and 390 pixels, not yet by a person on a real phone.
+- The estimate (`estimateMin`) syncs with the account; the time log (`timeLog`) does not yet, so tracked time stays on the device it was recorded on. The legacy Express server is unchanged.
 - No setting to turn the away or over-estimate checks off, and no browser notification when the tab is hidden (the tab title carries the clock instead). Both are cheap to add if people ask.
 - Thresholds (30 minutes away, 1.5x estimate, 2 hours without a guess) are reasoned defaults, not measured.
 - Calibration is not yet shown anywhere except the suggestion beside the estimate chips.

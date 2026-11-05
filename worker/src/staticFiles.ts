@@ -19,6 +19,8 @@ export const buildHeadersFile = (): string => {
     ruleLines('/*', SECURITY_HEADERS),
     ruleLines('/assets/*', { 'Cache-Control': 'public, max-age=31536000, immutable' }),
     ruleLines('/service-worker.js', { 'Cache-Control': 'no-cache' }),
+    // The service worker's file list changes with every build; a cached copy would name files that are gone.
+    ruleLines('/precache.json', { 'Cache-Control': 'no-cache' }),
     ruleLines('/.well-known/security.txt', { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-cache' }),
   ];
   const text = `${blocks.map((b) => b.join('\n')).join('\n\n')}\n`;

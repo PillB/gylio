@@ -21,7 +21,8 @@ const SECTION_LABEL_KEYS: Record<UpcomingGroup, string> = {
 };
 
 const sectionAccent = (theme: ThemeTokens, group: UpcomingGroup): string => {
-  if (group === 'overdue') return theme.colors.accent;
+  // Amber, not pink or red: readable (AA) and a nudge rather than an alarm.
+  if (group === 'overdue') return theme.colors.warningStrong;
   if (group === 'today') return theme.colors.primary;
   if (group === 'tomorrow' || group === 'thisWeek') return theme.colors.text;
   return theme.colors.muted;
@@ -44,7 +45,7 @@ const PlannedDate: React.FC<{ label: string; overdue: boolean }> = ({ label, ove
     <span
       style={{
         fontSize: '0.75rem',
-        color: overdue ? theme.colors.accent : theme.colors.muted,
+        color: overdue ? theme.colors.warningStrong : theme.colors.muted,
         whiteSpace: 'nowrap',
         fontWeight: overdue ? 600 : 400,
       }}
@@ -110,7 +111,7 @@ const UpcomingRow: React.FC<RowProps> = ({ task, overdue, actions }) => {
             flexShrink: 0,
           }}
         />
-        <button type="button" onClick={() => actions.startEditing(task.id)} style={{
+        <button type="button" onClick={() => actions.startEditing(task.id)} aria-label={t('tasks.editNamed', { title: task.title })} style={{
             ...smallButton(theme, '2px 8px', '0.75rem'),
             minHeight: 44,
             minWidth: 44,

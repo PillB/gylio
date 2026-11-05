@@ -18,6 +18,7 @@ import {
   type AdPlacement,
 } from './adConfig';
 import { track } from '../../core/analytics';
+import { serverFeaturesEnabled } from '../../core/utils/serverFeatures';
 
 const ADSENSE_SRC = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js';
 const HOUSE_ADS = ['billing.ads.house.noAds', 'billing.ads.house.routines', 'billing.ads.house.ai'];
@@ -136,7 +137,8 @@ export function AdSlot({ placement }: { placement: AdPlacement }) {
   if (!authLoaded || (userId && !entitlement)) return null;
   if (hasFeature('ad_free')) return null;
   const provider = resolveAdProvider(import.meta.env, placement);
-  if (provider === 'off') return null;
+  // Ads run only beside a way to remove them: where Pro can't be bought (serverFeatures.ts), none at all.
+  if (provider === 'off' || !serverFeaturesEnabled()) return null;
   if (provider === 'adsense' && !adsenseFailed) {
     return <AdSenseAd placement={placement} onFail={markFailed} />;
   }

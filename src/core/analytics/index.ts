@@ -130,6 +130,11 @@ export const Events = {
   ROUTINE_CREATED:                 'routine_created',
   ROUTINE_COMPLETED:               'routine_completed',
   ROUTINE_TEMPLATE_USED:           'routine_template_used',
+  // The free routine limit and its thank-you: step reached | see_pro | extra_given | extra_seen.
+  ROUTINE_LIMIT:                   'routine_limit',
+  ROUTINE_DELETED:                 'routine_deleted',
+  // First time this device reaches 1, 3, 7, 14, 28 or 56 different days with a routine done (routineAllowance.ts).
+  ROUTINE_DAYS:                    'routine_days',
 
   // Budget
   BUDGET_ACTION:                   'budget_action',
@@ -168,6 +173,13 @@ export const Events = {
   // Budget data freshness
   BUDGET_DATA_STALE_WARNING_SHOWN: 'budget_data_stale_warning_shown',
   BUDGET_RECONCILIATION_CONFIRMED: 'budget_reconciliation_confirmed',
+
+  // Budget deletes and their Undo: { kind: 'income' | 'category' | 'transaction' | 'debt', step: 'removed' | 'undone' | 'undo_failed' }
+  BUDGET_REMOVAL:                  'budget_removal',
+
+  // Signing out: { step, removeData }, and a removal finished as the next page started
+  SIGN_OUT:                        'sign_out',
+  DEVICE_DATA_REMOVED:             'device_data_removed',
 
   // Daily command center
   DAILY_MODE_ENABLED:              'daily_mode_enabled',

@@ -18,6 +18,12 @@ describe('GitHub Pages live smoke contract', () => {
     expect(workflow).toContain('[ -s "$asset_file" ]');
   });
 
+  it('fails the live check if the internal deployment guide is published again', () => {
+    expect(workflow).not.toContain('"$guide_file"');
+    expect(workflow).toContain('"${base}deployment-guide.html?sha=${VERIFIED_SHA}")"');
+    expect(workflow).toContain('if [ "$guide_status" != "404" ]; then');
+  });
+
   it('keeps the evidence-reviewed font comment diagnosis-neutral', () => {
     expect(indexHtml).not.toMatch(/dyslexia-friendly/i);
   });

@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
+import { builtSitePort, builtSiteUrl } from './e2e/helpers/builtSite';
 
 // PLAYWRIGHT_PORT lets a second checkout (for example a git worktree) run its own
 // dev server. Without it, a run would reuse another checkout's server on 5173 and
@@ -32,10 +33,19 @@ export default defineConfig({
   ],
   webServer: isRemoteTarget
     ? undefined
-    : {
-        command: `npm run dev -- --port ${port} --strictPort`,
-        url: localBaseUrl,
-        reuseExistingServer: !process.env.CI,
-        timeout: 60_000,
-      },
+    : [
+        {
+          command: `npm run dev -- --port ${port} --strictPort`,
+          url: localBaseUrl,
+          reuseExistingServer: !process.env.CI,
+          timeout: 60_000,
+        },
+        // A built copy, for what the dev server cannot show: the service worker and starting offline.
+        {
+          command: `npx vite build --outDir .playwright-dist --emptyOutDir --logLevel warn && npx vite preview --outDir .playwright-dist --port ${builtSitePort} --strictPort`,
+          url: builtSiteUrl,
+          reuseExistingServer: !process.env.CI,
+          timeout: 180_000,
+        },
+      ],
 });

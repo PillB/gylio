@@ -7,7 +7,7 @@ import { announceDataChanged, onDataChanged, onLocalWrite } from '../dataEvents'
 import { Bridge } from './bridge';
 import { attachBrowserSignals, webLockExclusive } from './browser';
 import { SyncEngine, type EngineOptions } from './engine';
-import { IdbStorage } from './idbStorage';
+import { IdbStorage, resolveSyncDatabase } from './idbStorage';
 import { createSqlStore, type LocalStore } from './localStore';
 import { MemoryStorage } from './memoryStorage';
 import { createFetchTransport } from './transport';
@@ -17,6 +17,8 @@ export type AppSyncOptions = {
   /** Where the API lives: empty for the same address as the site. */
   baseUrl: string;
   getAuth: EngineOptions['getAuth'];
+  /** The signed-in account: its outbox and versions are kept apart from any other account's on this device. */
+  accountId?: string | null;
   /** The rest exists so tests can stand in for the browser. */
   store?: LocalStore;
   storage?: SyncStorage;
@@ -36,9 +38,9 @@ export const SCAN_DELAY_MS = 800;
  * IndexedDB, or memory where the browser refuses it (some private windows). In memory the waiting list is lost on
  * reload, which is safe: the next look at the database finds the same changes again.
  */
-export const openStorage = async (factory?: IDBFactory): Promise<SyncStorage> => {
+export const openStorage = async (factory?: IDBFactory, name?: string): Promise<SyncStorage> => {
   try {
-    const storage = new IdbStorage(factory);
+    const storage = new IdbStorage(factory, name);
     await storage.getMeta();
     return storage;
   } catch (error) {
@@ -75,7 +77,7 @@ export const startAppSync = async (options: AppSyncOptions): Promise<AppSync> =>
     await initializeDatabase();
     store = createSqlStore(getDatabase());
   }
-  const storage = options.storage ?? (await openStorage());
+  const storage = options.storage ?? (await openStorage(undefined, await resolveSyncDatabase(options.accountId)));
   const engineRef: { current: SyncEngine | null } = { current: null };
   const engine = () => engineRef.current as SyncEngine;
   const bridge = new Bridge({
