@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   latestTransactionDate,
   actualByCategory,
@@ -78,5 +78,20 @@ describe('latestTransactionDate', () => {
 
   it('is null when nothing has a usable date', () => {
     expect(latestTransactionDate([{ date: '' }, {}])).toBeNull();
+  });
+
+  it('keeps a date-only transaction on the selected calendar day west of UTC', () => {
+    // Date-only strings represent a budget calendar date, not an instant at UTC midnight.
+    // In Peru, new Date('2026-11-06') would otherwise display as 5 November.
+    vi.stubEnv('TZ', 'America/Lima');
+    try {
+      const selected = latestTransactionDate([{ date: '2026-11-06' }]);
+      expect(selected?.getFullYear()).toBe(2026);
+      expect(selected?.getMonth()).toBe(10);
+      expect(selected?.getDate()).toBe(6);
+      expect(latestTransactionDate([{ date: '2026-02-30' }])).toBeNull();
+    } finally {
+      vi.unstubAllEnvs();
+    }
   });
 });

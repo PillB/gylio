@@ -57,6 +57,20 @@ describe('useSignInWait', () => {
     });
     expect(result.current).toBe('waiting');
   });
+
+  it('crosses each wait threshold even if the wall clock reads a millisecond early when its timer fires', () => {
+    // Browser timer scheduling and Date.now() need not agree to the millisecond.
+    // A short read used to leave the live region empty until the 4-second timer.
+    localStorage.setItem(OWNER_SIGNED_IN_KEY, 'false');
+    setOnline(false);
+    const start = Date.now();
+    const { result } = renderHook(() => useSignInWait(false, start));
+    const clock = vi.spyOn(Date, 'now');
+    clock.mockReturnValue(start + QUIET_MS - 1);
+    act(() => vi.advanceTimersByTime(QUIET_MS));
+    expect(result.current).toBe('offline');
+    clock.mockRestore();
+  });
 });
 
 describe('SignInWaitNotice', () => {

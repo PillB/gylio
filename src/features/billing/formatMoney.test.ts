@@ -26,6 +26,9 @@ describe('currency display', () => {
     expect(currencyForLocale('en', 'America/Lima')).toBe('PEN');
     expect(currencyForLocale('es', 'America/Mexico_City')).toBe('USD');
     expect(formatMoney(1490, 'PEN', 'es-PE')).toMatch(/S\/\s?14\.90/);
+    // English-speaking users in Peru should see the local currency symbol,
+    // rather than the ISO code (which English ICU formatting emits).
+    expect(formatMoney(1490, 'PEN', 'en')).toMatch(/S\/\s?14\.90/);
     expect(formatMoney(699, 'USD', 'en')).toBe('$6.99');
   });
 });
