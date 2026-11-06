@@ -64,10 +64,24 @@ export const buildSpendingBars = (
   return CATEGORY_TYPES.map((type) => ({ type, planned: planned[type], actual: actual[type] }));
 };
 
+/** A calendar-date-only value is local, whereas an ISO timestamp names an instant. */
+const transactionTime = (raw: string): number => {
+  const parts = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw);
+  if (!parts) return new Date(raw).getTime();
+  // Date('YYYY-MM-DD') means UTC midnight, which is the *previous* day in Peru.
+  // Local noon also avoids most daylight-saving gaps around midnight.
+  const local = new Date(`${raw}T12:00:00`);
+  return local.getFullYear() === Number(parts[1])
+    && local.getMonth() + 1 === Number(parts[2])
+    && local.getDate() === Number(parts[3])
+    ? local.getTime()
+    : Number.NaN;
+};
+
 /** The most recent valid transaction date, or null when none has one. */
 export const latestTransactionDate = (transactions: { date?: string | null }[]): Date | null => {
   const times = transactions
-    .map((entry) => (entry.date ? new Date(entry.date).getTime() : Number.NaN))
+    .map((entry) => (entry.date ? transactionTime(entry.date) : Number.NaN))
     .filter((time) => !Number.isNaN(time));
   return times.length ? new Date(Math.max(...times)) : null;
 };
