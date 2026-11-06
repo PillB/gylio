@@ -1,8 +1,11 @@
 import type { Currency } from './billingApi';
 
-/** Locale-aware price from minor units; es-PE shows "S/ 14.90", en shows "$6.99". */
+/** Locale-aware price from minor units; show PEN as "S/" even for an English-speaking Peruvian. */
 export function formatMoney(amountMinor: number, currency: Currency, locale: string): string {
-  return new Intl.NumberFormat(locale, { style: 'currency', currency, minimumFractionDigits: 2 }).format(amountMinor / 100);
+  // English ICU formats PEN as the ISO code "PEN", not the familiar symbol "S/".
+  // Use the Peruvian numeric convention whenever the catalogue charges in soles.
+  const displayLocale = currency === 'PEN' ? 'es-PE' : locale;
+  return new Intl.NumberFormat(displayLocale, { style: 'currency', currency, minimumFractionDigits: 2 }).format(amountMinor / 100);
 }
 
 /**

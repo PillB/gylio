@@ -19,7 +19,12 @@ export function useSignInWait(isLoaded: boolean, startedAt = PAGE_STARTED_AT): S
 
   useEffect(() => {
     if (isLoaded) return undefined;
-    const timers = [QUIET_MS, SLOW_SIGN_IN_MS].map((ms) => setTimeout(() => setNow(Date.now()), Math.max(0, startedAt + ms - Date.now())));
+    const timers = [QUIET_MS, SLOW_SIGN_IN_MS].map((ms) => setTimeout(() => {
+      // A timer can fire while Date.now() still reads just before its boundary.
+      // Advance to at least the milestone it was scheduled for, so the status
+      // cannot stay silent until the following timer (or regress if the clock moves).
+      setNow((previous) => Math.max(previous, Date.now(), startedAt + ms));
+    }, Math.max(0, startedAt + ms - Date.now())));
     const update = () => setOnline(isOnline());
     window.addEventListener('online', update);
     window.addEventListener('offline', update);
