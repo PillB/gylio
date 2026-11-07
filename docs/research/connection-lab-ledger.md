@@ -21,6 +21,16 @@ Labels follow `docs/research-manual.md`: **EVIDENCE** = empirical study with lim
 
 **Counterexample policy:** A high-confidence finding in one population must not become a universal rule. Every content update should record publication year, methods, sample, effect size where reliable, dissenting evidence, es-PE cultural review, and date checked.
 
+## What people value: evidence-informed synthesis
+
+- **Warmth and competence** are prominent dimensions in [Fiske et al. (2002)](https://doi.org/10.1037/0022-3514.82.6.878), but this work concerns *group stereotypes and social perception*, not a validated ranking of dating traits. Treat warmth, respect and reliability as a conversational design hypothesis, not a promise that everyone will like the same traits.
+- **Feeling heard and understood** is an actionable target: follow-up questions and perceived responsiveness appear in conversation/intimacy research (Q1, R1). Asking questions without listening, reciprocating or respecting a boundary is not the same behavior.
+- **Stated ideals are imperfect predictors of actual attraction**: [Eastwick & Finkel (2008)](https://doi.org/10.1037/0022-3514.94.2.245) found stated preferences did not predict initial desire in their speed-dating setting; D1 later found poor prediction of *pair-specific* desire from pre-meeting traits. Do not build an attractiveness or compatibility score.
+- **For established couples**, [Joel et al. (2020)](https://doi.org/10.1073/pnas.1917036117) pooled 43 longitudinal datasets (11,196 couples): perceived commitment, appreciation, sexual satisfaction, perceived satisfaction and conflict were prominent relationship-specific correlates of quality. Their models did **not** reliably predict who would improve versus decline over time. These are correlates, not proof that a single app exercise changes satisfaction.
+- **Preferences vary by person and context.** We will ask users to choose goals and values rather than prescribe a single charm, flirting or romance personality. Cross-cultural and LGBTQ+ applicability requires separate review; the speed-dating samples above are not universally representative.
+
+**Next research step:** locate systematic reviews and interventions specifically measuring teachable conversational behavior, respectful interest expression, couple communication and long-term skill transfer; pre-register what counts as evidence before expanding the claims.
+
 ## Curriculum: six independent, progressive lessons
 
 | Lesson / ID | Goal and dependency | 2-step simulation | Transfer and success metric |
