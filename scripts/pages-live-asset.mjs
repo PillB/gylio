@@ -29,9 +29,12 @@ export function assetUrl(html, base) {
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   try {
-    const [file, base] = process.argv.slice(2);
-    if (!file || !base) throw new Error('expected HTML file and deployment base URL');
-    process.stdout.write(assetUrl(readFileSync(file, 'utf8'), base) + '\n');
+    const [file, base, format] = process.argv.slice(2);
+    if (!file || !base || (format && format !== '--path')) {
+      throw new Error('expected HTML file, deployment base URL and optional --path');
+    }
+    const url = assetUrl(readFileSync(file, 'utf8'), base);
+    process.stdout.write((format === '--path' ? new URL(url).pathname : url) + '\n');
   } catch (error) {
     console.error('[pages-live]', error.message);
     process.exitCode = 2;
