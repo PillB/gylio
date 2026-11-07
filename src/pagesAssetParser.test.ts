@@ -7,12 +7,12 @@ import { describe, expect, it } from 'vitest';
 const base = 'https://pillb.github.io/gylio/';
 
 /** Execute the same CLI as the Pages runner, with realistic built HTML fixtures. */
-function runParser(html: string) {
+function runParser(html: string, option?: '--path') {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gylio-pages-'));
   const file = path.join(dir, 'index.html');
   try {
     fs.writeFileSync(file, html);
-    return spawnSync(process.execPath, ['scripts/pages-live-asset.mjs', file, base], { encoding: 'utf8' });
+    return spawnSync(process.execPath, ['scripts/pages-live-asset.mjs', file, base, ...(option ? [option] : [])], { encoding: 'utf8' });
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }
@@ -23,6 +23,12 @@ describe('Pages live JS asset discovery', () => {
     const result = runParser('<div id="root"></div><script type="module" crossorigin src="/gylio/assets/main-abc123.js"></script>');
     expect(result.status).toBe(0);
     expect(result.stdout.trim()).toBe('https://pillb.github.io/gylio/assets/main-abc123.js');
+  });
+
+  it('reports exact entry path for comparison to the uploaded artifact', () => {
+    const result = runParser('<script type="module" src="/gylio/assets/main-newhash.js"></script>', '--path');
+    expect(result.status).toBe(0);
+    expect(result.stdout.trim()).toBe('/gylio/assets/main-newhash.js');
   });
 
   it('handles relative paths, single quotes and reordered attributes', () => {
