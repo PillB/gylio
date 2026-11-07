@@ -176,8 +176,8 @@
               "response": "Podría sentir presión para contar más de lo que desea."
             },
             "c": {
-              "text": "Por lo menos no fue peor.",
-              "response": "Podría sentir que minimizas lo que vivió."
+              "text": "A mí también me fue difícil esta semana.",
+              "response": "Podría sentir que la charla cambió de tema antes de que lo escuches."
             }
           }
         },
@@ -186,8 +186,8 @@
           "tip": "Respetar un no puede ser más valioso que pedir detalles.",
           "options": {
             "a": {
-              "text": "Seguro te sentirás mejor si te desahogas.",
-              "response": "Quizás repita que no quiere hablar."
+              "text": "Está bien. ¿Quieres cambiar de tema?",
+              "response": "Podría agradecer la distracción o preferir un momento de tranquilidad."
             },
             "b": {
               "text": "Está bien. Aquí estoy si luego te provoca conversar.",
@@ -216,8 +216,8 @@
               "response": "Podría sentir que no respetas su respuesta."
             },
             "b": {
-              "text": "¡Pero nos llevamos tan bien!",
-              "response": "Podría sentir que tiene que justificar su decisión."
+              "text": "Entiendo. Me da pena, pero respeto tu decisión.",
+              "response": "Podría sentirse responsable de tus emociones, aunque aceptes su respuesta."
             },
             "c": {
               "text": "Gracias por decírmelo. Que estés bien.",
