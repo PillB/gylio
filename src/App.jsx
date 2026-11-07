@@ -17,6 +17,7 @@ import RewardsView from './components/RewardsView.jsx';
 import SettingsView from './components/SettingsView.jsx';
 import LegalPage from './features/legal/LegalPage';
 import SocialPlansView from './features/social/components/SocialPlansView';
+import ConnectionLabView from './features/connectionLab/components/ConnectionLabView';
 import RoutinesView from './features/routines/components/RoutinesView';
 import OnboardingFlow from './onboarding/OnboardingFlow.jsx';
 import useOnboardingFlow from './hooks/useOnboardingFlow.jsx';
@@ -394,6 +395,7 @@ function TabsLayout() {
       { key: 'calendar', label: t('calendar'), locked: false },
       { key: 'budget', label: t('budget.title'), locked: false },
       { key: 'social', label: t('social.title'), locked: !hasFeature('social') },
+      { key: 'connection-lab', label: t('connectionLab.title'), locked: false },
       { key: 'routines', label: t('routines.title'), locked: false },
       { key: 'rewards', label: t('rewards.title'), locked: !hasFeature('rewards') },
       { key: 'settings', label: t('settings'), locked: false },
@@ -505,6 +507,7 @@ function buildAuthRouter(clerkEnabled) {
                   { path: 'calendar', element: <CalendarView /> },
                   { path: 'budget', element: <BudgetView /> },
                   ...premiumRoutes,
+                  { path: 'connection-lab', element: <ConnectionLabView /> },
                   { path: 'settings', element: <SettingsView /> },
                 ],
               },
