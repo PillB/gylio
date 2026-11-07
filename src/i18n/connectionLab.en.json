@@ -1,0 +1,293 @@
+{
+  "title": "Connection Lab",
+  "intro": "Practice conversation, dating, and relationship skills through short, fictional choices. There is no perfect script or guaranteed outcome.",
+  "privacy": "Your practice choices and personal stories are not saved here. Usage analytics records lesson IDs and scene counts, not the response you picked. Skip freely.",
+  "choose": "Choose a skill to practice",
+  "back": "Back to skills",
+  "source": "Research context",
+  "timebox": "Suggested focus block",
+  "minutes_one": "{{count}} min",
+  "minutes_other": "{{count}} min",
+  "timeboxHint_one": "Plan for {{count}} minute. No countdown or reminder starts.",
+  "timeboxHint_other": "Plan for {{count}} minutes. No countdown or reminder starts.",
+  "finished": "Practice finished",
+  "practiced": "You tried {{done}} of {{total}} choices. Skipped steps carry no penalty.",
+  "repeat": "Try this lesson again",
+  "step": "Scene {{current}} of {{total}}",
+  "chooseResponse": "Which response would you try?",
+  "possibleResponse": "One possible reaction (not a prediction)",
+  "finish": "Finish practice",
+  "next": "Next scene",
+  "skip": "Skip without penalty",
+  "feedback": {
+    "strong": "This choice respects the other person's agency and leaves space for a reply.",
+    "mixed": "This could work in some contexts. Notice the other person's cues and make room for their perspective.",
+    "pressuring": "This risks pressure, dismissal, or crossing a boundary. Try a clearer and more respectful option."
+  },
+  "lessons": {
+    "approach": {
+      "title": "Approach and start",
+      "goal": "Open with context, curiosity, and an easy exit.",
+      "evidence": "Adapted from question-asking studies; these studies do not test a universal opening line.",
+      "transfer": "Tiny real-world step: greet someone in a low-stakes setting. No need to extend the exchange.",
+      "turns": {
+        "open": {
+          "prompt": "At a community event, someone is reading the activity schedule.",
+          "tip": "A context-based opener gives the other person an easy choice to engage or not.",
+          "options": {
+            "a": {
+              "text": "Hi! Have you tried any of these activities?",
+              "response": "They might say, 'Yes, I liked the last one.'"
+            },
+            "b": {
+              "text": "This place is great. Let me tell you all about my week.",
+              "response": "They might listen briefly, without much room to join in."
+            },
+            "c": {
+              "text": "You should stop looking at that and talk to me.",
+              "response": "They might turn away or feel uncomfortable."
+            }
+          }
+        },
+        "follow": {
+          "prompt": "They smile and say, 'I'm waiting for a friend.'",
+          "tip": "Sometimes the best continuation is a warm exit.",
+          "options": {
+            "a": {
+              "text": "I'll keep you company until they arrive.",
+              "response": "They might feel obligated to continue."
+            },
+            "b": {
+              "text": "Got it. Hope you both enjoy the event!",
+              "response": "They might smile and return to their plans."
+            },
+            "c": {
+              "text": "Then give me your number before they get here.",
+              "response": "They might feel pushed after explaining their situation."
+            }
+          }
+        }
+      }
+    },
+    "flow": {
+      "title": "Keep conversation flowing",
+      "goal": "Listen, ask a meaningful follow-up, and share a little of yourself.",
+      "evidence": "Follow-up questions were linked to liking in conversation studies; the speed-dating analysis has published critiques and a reply.",
+      "transfer": "Tiny step: ask one follow-up question about something someone already mentioned.",
+      "turns": {
+        "listen": {
+          "prompt": "Someone says, 'I started going on short hikes recently.'",
+          "tip": "Follow-ups show attention; don't turn the exchange into an interview.",
+          "options": {
+            "a": {
+              "text": "I hike all the time. Here is my entire gear list.",
+              "response": "They might lose their chance to tell their story."
+            },
+            "b": {
+              "text": "Hiking is pointless. You should try the gym.",
+              "response": "They might feel dismissed."
+            },
+            "c": {
+              "text": "What got you interested in hiking?",
+              "response": "They might share what motivated them."
+            }
+          }
+        },
+        "share": {
+          "prompt": "They add, 'I prefer easy trails and good views.'",
+          "tip": "Combine a brief personal detail with genuine curiosity.",
+          "options": {
+            "a": {
+              "text": "I like easy walks too. Have you found a favorite view?",
+              "response": "They might name a trail and ask about yours."
+            },
+            "b": {
+              "text": "That's boring. Hard trails are the only real hikes.",
+              "response": "They might stop sharing."
+            },
+            "c": {
+              "text": "Cool.",
+              "response": "They might pause, unsure where to go next."
+            }
+          }
+        }
+      }
+    },
+    "flirt": {
+      "title": "Express interest respectfully",
+      "goal": "Show romantic interest clearly without assuming it is returned.",
+      "evidence": "Attraction between specific people is difficult to predict from traits; these invitation scripts are practice heuristics, not validated formulas.",
+      "transfer": "Tiny step: write one invitation that makes yes and no equally easy. You do not have to send it.",
+      "turns": {
+        "interest": {
+          "prompt": "After an art class, you enjoyed chatting with someone and would like to meet again.",
+          "tip": "Be specific and easy to decline. A friendly exchange is not consent to a date.",
+          "options": {
+            "a": {
+              "text": "You owe me a date after that conversation.",
+              "response": "They might feel cornered."
+            },
+            "b": {
+              "text": "I enjoyed talking with you. Would you like coffee sometime? No pressure.",
+              "response": "They might accept, decline, or ask for time."
+            },
+            "c": {
+              "text": "You're really attractive.",
+              "response": "They might appreciate it, or find it too personal for the setting."
+            }
+          }
+        },
+        "unclear": {
+          "prompt": "They reply, 'Maybe. This week is busy.'",
+          "tip": "Uncertainty is not a yes. Leave control of the next step with them.",
+          "options": {
+            "a": {
+              "text": "I'll keep messaging until you pick a day.",
+              "response": "They might feel pursued despite their hesitation."
+            },
+            "b": {
+              "text": "No worries. If you want to, let me know.",
+              "response": "They might appreciate the space, regardless of what happens next."
+            },
+            "c": {
+              "text": "Okay, which day works best?",
+              "response": "They might clarify, or feel pushed to decide now."
+            }
+          }
+        }
+      }
+    },
+    "connect": {
+      "title": "Build emotional connection",
+      "goal": "Offer attention and gradual, mutual sharing without forcing intimacy.",
+      "evidence": "Structured mutual disclosure increased short-term closeness in one experimental comparison. It does not guarantee romance or long-term connection.",
+      "transfer": "Tiny step: ask someone you trust whether they want listening, advice, or a distraction.",
+      "turns": {
+        "disclose": {
+          "prompt": "A friend says, 'It's been a hard week.'",
+          "tip": "Support starts with the kind of help they want, not forced disclosure.",
+          "options": {
+            "a": {
+              "text": "That sounds tiring. Want to talk, or would a distraction help?",
+              "response": "They might choose what feels comfortable."
+            },
+            "b": {
+              "text": "Tell me everything right now.",
+              "response": "They might feel pressured to reveal more than they want."
+            },
+            "c": {
+              "text": "I had a tough week too.",
+              "response": "They might feel the focus moved before they were heard."
+            }
+          }
+        },
+        "support": {
+          "prompt": "They answer, 'I don't want to get into it.'",
+          "tip": "Respecting a no can strengthen trust more than asking for details.",
+          "options": {
+            "a": {
+              "text": "Okay. Want to change the subject?",
+              "response": "They might appreciate a distraction, or prefer a quiet moment."
+            },
+            "b": {
+              "text": "Okay. I'm here if that changes.",
+              "response": "They might feel understood and free to decide later."
+            },
+            "c": {
+              "text": "Why don't you trust me enough to tell me?",
+              "response": "They might feel blamed for having a boundary."
+            }
+          }
+        }
+      }
+    },
+    "rejection": {
+      "title": "Confidence and rejection",
+      "goal": "Respond to a no with dignity and recover without self-judgment.",
+      "evidence": "CBT helps many people with anxiety disorders; this short non-clinical practice is not a treatment or a tested rejection intervention.",
+      "transfer": "Tiny step: write one kind sentence you can tell yourself after an awkward interaction.",
+      "turns": {
+        "no": {
+          "prompt": "You invite someone to meet and they say, 'Thanks, but no.'",
+          "tip": "A clear no ends the invitation. You can still be warm.",
+          "options": {
+            "a": {
+              "text": "Why not? Just give me a chance.",
+              "response": "They might feel their answer was not respected."
+            },
+            "b": {
+              "text": "Okay. I'm disappointed, but I understand.",
+              "response": "They might feel responsible for your feelings, even though you accept their answer."
+            },
+            "c": {
+              "text": "Thanks for letting me know. Take care.",
+              "response": "They might appreciate the straightforward response."
+            }
+          }
+        },
+        "reset": {
+          "prompt": "Afterward, you feel disappointed and start replaying the moment.",
+          "tip": "Focus on the actions you control; other people's choices are not a score.",
+          "options": {
+            "a": {
+              "text": "Take a short break and return to something meaningful to you.",
+              "response": "You might regain perspective with time."
+            },
+            "b": {
+              "text": "Analyze every word until you find the mistake.",
+              "response": "You might get stuck in an unhelpful loop."
+            },
+            "c": {
+              "text": "Find another way to change their mind.",
+              "response": "You might cross a boundary already made clear."
+            }
+          }
+        }
+      }
+    },
+    "repair": {
+      "title": "Repair and stay connected",
+      "goal": "Listen to a concern, take responsibility, and agree on a specific next step.",
+      "evidence": "Responsiveness is an established relationship framework. These exact scripts have not been tested as an intervention.",
+      "transfer": "Tiny step: practice saying, 'I see why that mattered to you. What would help next time?'",
+      "turns": {
+        "listen": {
+          "prompt": "Your partner says, 'I felt unheard when we planned our weekend.'",
+          "tip": "Understand the concern before defending your intention.",
+          "options": {
+            "a": {
+              "text": "I was busy too, you know.",
+              "response": "They might feel you missed their concern."
+            },
+            "b": {
+              "text": "I missed that. What felt most frustrating?",
+              "response": "They might explain a specific moment."
+            },
+            "c": {
+              "text": "You're overreacting.",
+              "response": "They might feel dismissed or withdraw."
+            }
+          }
+        },
+        "repair": {
+          "prompt": "They ask, 'Can we make the next plan together?'",
+          "tip": "Repair works better with a concrete, mutually acceptable next step.",
+          "options": {
+            "a": {
+              "text": "Fine, whatever.",
+              "response": "They might doubt the agreement is sincere."
+            },
+            "b": {
+              "text": "I'll try, but no promises.",
+              "response": "They might not know what will change."
+            },
+            "c": {
+              "text": "Yes. Can we choose a time and each share our priorities?",
+              "response": "They might agree to a workable plan."
+            }
+          }
+        }
+      }
+    }
+  }
+}

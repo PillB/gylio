@@ -19,6 +19,8 @@ import adminEn from './admin.en.json';
 import adminEsPE from './admin.es-PE.json';
 import accountEn from './account.en.json';
 import accountEsPE from './account.es-PE.json';
+import connectionLabEn from './connectionLab.en.json';
+import connectionLabEsPE from './connectionLab.es-PE.json';
 
 /**
  * Production localization configuration.
@@ -59,6 +61,7 @@ const enCatalog = {
   feedback: feedbackEn,
   admin: adminEn,
   account: accountEn,
+  connectionLab: connectionLabEn,
 };
 
 const esPECatalog = {
@@ -83,6 +86,7 @@ const esPECatalog = {
   feedback: feedbackEsPE,
   admin: adminEsPE,
   account: accountEsPE,
+  connectionLab: connectionLabEsPE,
 };
 
 const resources = {
