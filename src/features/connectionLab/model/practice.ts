@@ -25,7 +25,7 @@ export function selectChoice(
 ): PracticeState {
   if (state.lessonId !== lesson.id || state.finished || state.selected) return state;
   const turn = lesson.turns[state.turnIndex];
-  if (!turn || !Object.hasOwn(turn.choices, choice)) return state;
+  if (!turn || !Object.prototype.hasOwnProperty.call(turn.choices, choice)) return state;
   return { ...state, selected: choice as ChoiceId, practiced: state.practiced + 1 };
 }
 
