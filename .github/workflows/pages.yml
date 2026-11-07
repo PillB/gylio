@@ -70,6 +70,12 @@ jobs:
     env:
       VERIFIED_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
     steps:
+      # The live verifier is versioned and tested alongside the exact deployed source.
+      - name: Checkout verified smoke script
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
@@ -81,47 +87,40 @@ jobs:
         run: |
           set -euo pipefail
           base="${PAGE_URL%/}/"
-          origin="$(printf '%s' "$base" | sed -E 's#(https?://[^/]+).*#\1#')"
           root_file="$(mktemp)"
           asset_file="$(mktemp)"
-          trap 'rm -f "$root_file" "$asset_file"' EXIT
 
-          # Pages/CDN propagation can lag the deploy API briefly. Retry the
-          # exact public artifact. Validate only facts that exist in static
-          # HTML here; React-rendered copy belongs in Playwright, not grep.
+          # Report which check failed on each retry. Do not treat every failure
+          # as propagation lag; a missing module script is a different defect.
+          parser_error="$(mktemp)"
+          trap 'rm -f "$root_file" "$asset_file" "$parser_error"' EXIT
           success=0
+          asset_url=""
           for attempt in $(seq 1 12); do
-            if curl --fail --silent --show-error --location \
-                "${base}?sha=${VERIFIED_SHA}" -o "$root_file" \
-              && grep -q '<div id="root"></div>' "$root_file"; then
-
-              # Vite rewrites the module entry to a hashed asset. Resolve and
-              # download that emitted JavaScript so the smoke test proves the
-              # deployed shell points at a real compiled application bundle.
-              script_src="$(grep -oE 'src="[^"]*assets/[^"]+\.js"' "$root_file" | head -n 1 | cut -d'"' -f2 || true)"
-              asset_url=""
-              if [ -n "$script_src" ]; then
-                case "$script_src" in
-                  http://*|https://*) asset_url="$script_src" ;;
-                  /*) asset_url="${origin}${script_src}" ;;
-                  *) asset_url="${base}${script_src#./}" ;;
-                esac
-              fi
-
-              if [ -n "$asset_url" ] \
-                && curl --fail --silent --show-error --location \
-                  "${asset_url}" -o "$asset_file" \
-                && [ -s "$asset_file" ]; then
-                success=1
-                break
+            root_status="$(curl --silent --show-error --location --output "$root_file" --write-out '%{http_code}' "${base}?sha=${VERIFIED_SHA}")" || root_status="curl-error"
+            reason="root HTTP ${root_status}"
+            if [ "$root_status" = "200" ]; then
+              if grep -q '<div id="root"></div>' "$root_file"; then
+                if asset_url="$(node scripts/pages-live-asset.mjs "$root_file" "$base" 2>"$parser_error")"; then
+                  asset_status="$(curl --silent --show-error --location --output "$asset_file" --write-out '%{http_code}' "$asset_url")" || asset_status="curl-error"
+                  reason="asset HTTP ${asset_status}; bytes $(wc -c < "$asset_file")"
+                  if [ "$asset_status" = "200" ] && [ -s "$asset_file" ]; then
+                    success=1
+                    break
+                  fi
+                else
+                  reason="module parser: $(cat "$parser_error")"
+                fi
+              else
+                reason="root marker missing (HTTP 200; bytes $(wc -c < "$root_file"))"
               fi
             fi
-            echo "Live Pages artifact not propagated yet (attempt ${attempt}/12)."
+            echo "Live Pages attempt ${attempt}/12: ${reason}"
             sleep 10
           done
 
           if [ "$success" -ne 1 ]; then
-            echo "Live Pages validation failed after propagation retries."
+            echo "Live Pages validation failed after retries; see per-attempt diagnosis above."
             exit 1
           fi
 
