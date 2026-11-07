@@ -16,6 +16,14 @@ describe('GitHub Pages live smoke contract', () => {
     expect(workflow).toContain('if [ "$root_status" = "200" ]; then');
   });
 
+  it('links a CI-verified artifact entry path to the deployed live entry', () => {
+    expect(workflow).toContain('expected_asset_path: ${{ steps.expected.outputs.path }}');
+    expect(workflow).toContain('dist/index.html https://example.invalid/gylio/ --path');
+    expect(workflow).toContain('EXPECTED_ASSET_PATH: ${{ needs.build.outputs.expected_asset_path }}');
+    expect(workflow).toContain('if [ "$live_path" != "$EXPECTED_ASSET_PATH" ]; then');
+    expect(workflow).toContain('stale or wrong JS entry; live');
+  });
+
   it('logs distinct root, marker, parser and asset failures rather than calling all of them CDN lag', () => {
     expect(workflow).toContain('reason="root HTTP');
     expect(workflow).toContain('reason="root marker missing');
