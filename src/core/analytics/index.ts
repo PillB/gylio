@@ -143,6 +143,12 @@ export const Events = {
 
   // Social
   SOCIAL_PLAN_CREATED:             'social_plan_created',
+  // Connection Lab: event props contain only lesson IDs and practice counts, never personal text.
+  CONNECTION_LAB_VIEWED:           'connection_lab_viewed',
+  CONNECTION_LAB_STARTED:          'connection_lab_started',
+  CONNECTION_LAB_CHOICE:           'connection_lab_choice',
+  CONNECTION_LAB_SKIPPED:          'connection_lab_skipped',
+  CONNECTION_LAB_FINISHED:         'connection_lab_finished',
 
   // Gamification
   STREAK_MILESTONE:                'streak_milestone',
