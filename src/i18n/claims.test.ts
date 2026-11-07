@@ -35,7 +35,8 @@ const CATALOGUES = fs.readdirSync(I18N_DIR).filter((name) => name.endsWith('.jso
  * 94 studies", "ultradian"), and were deleted on 2026-10-28. A new language starts from the current English, gets a
  * native speaker's review, and adds its own phrases to BANNED before it joins this list.
  */
-const REVIEWED = /^(?:[a-z]+\.)?(?:en|es-PE)$/;
+// Feature catalog names may be camelCase (e.g. connectionLab); language allowlist stays strict.
+const REVIEWED = /^(?:[a-z][a-zA-Z]*\.)?(?:en|es-PE)$/;
 
 const strings = (value: unknown, at: string, out: Array<[string, string]>) => {
   if (typeof value === 'string') out.push([at, value]);
