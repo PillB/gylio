@@ -72,3 +72,47 @@ test('Peruvian Spanish: mobile scene, timebox controls and consent feedback are 
   expect(width.page).toBeLessThanOrEqual(width.viewport + 1);
   expect(errors).toEqual([]);
 });
+
+/**
+ * Forensic visual inventory: capture every lesson before and after a choice in
+ * each shipped locale at two realistic viewport widths. The snapshots are
+ * uploaded to the CI playwright-audit artifact for manual review.
+ */
+test('screenshots: six English lesson scenes and feedback on desktop', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await openLab(page, 'en');
+  const catalog = (await import('../src/i18n/connectionLab.en.json')).default;
+  for (const lesson of ['approach', 'flow', 'flirt', 'connect', 'rejection', 'repair'] as const) {
+    const title = catalog.lessons[lesson].title;
+    await page.getByRole('button', { name: new RegExp(title) }).click();
+    await expect(page.getByRole('heading', { name: title })).toBeVisible();
+    await page.screenshot({ path: `e2e/screenshots/connection-lab-en-${lesson}-scene.png`, fullPage: true });
+    const first = Object.values(catalog.lessons[lesson].turns)[0];
+    await page.getByRole('button', { name: first.options.a.text }).click();
+    await expect(page.getByText(first.options.a.response)).toBeVisible();
+    await page.screenshot({ path: `e2e/screenshots/connection-lab-en-${lesson}-feedback.png`, fullPage: true });
+    await page.getByRole('button', { name: 'Back to skills' }).click();
+  }
+});
+
+test('screenshots: six es-PE lesson scenes and feedback at 320px', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 760 });
+  await openLab(page, 'es-PE');
+  const catalog = (await import('../src/i18n/connectionLab.es-PE.json')).default;
+  for (const lesson of ['approach', 'flow', 'flirt', 'connect', 'rejection', 'repair'] as const) {
+    const title = catalog.lessons[lesson].title;
+    await page.getByRole('button', { name: new RegExp(title) }).click();
+    await expect(page.getByRole('heading', { name: title })).toBeVisible();
+    await page.screenshot({ path: `e2e/screenshots/connection-lab-es-PE-${lesson}-scene.png`, fullPage: true });
+    const first = Object.values(catalog.lessons[lesson].turns)[0];
+    await page.getByRole('button', { name: first.options.a.text }).click();
+    await expect(page.getByText(first.options.a.response)).toBeVisible();
+    await page.screenshot({ path: `e2e/screenshots/connection-lab-es-PE-${lesson}-feedback.png`, fullPage: true });
+    const dimensions = await page.evaluate(() => ({
+      scrollWidth: document.documentElement.scrollWidth,
+      viewport: window.innerWidth,
+    }));
+    expect(dimensions.scrollWidth, `${lesson}: unexpected horizontal overflow`).toBeLessThanOrEqual(dimensions.viewport + 1);
+    await page.getByRole('button', { name: 'Volver a las habilidades' }).click();
+  }
+});
