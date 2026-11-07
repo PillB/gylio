@@ -13,7 +13,7 @@ import { premiumNeedsDevServer, unlockPremium } from './helpers/premium';
 
 const AXE_SOURCE = createRequire(import.meta.url).resolve('axe-core/axe.min.js');
 const WCAG_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'];
-const ROUTES = ['/tasks', '/calendar', '/budget', '/social', '/routines', '/rewards', '/settings', '/pricing'];
+const ROUTES = ['/tasks', '/calendar', '/budget', '/social', '/connection-lab', '/routines', '/rewards', '/settings', '/pricing'];
 // Routines are free up to a limit, so a free account reaches the real screen.
 const PREMIUM = new Set(['/social', '/rewards']);
 
