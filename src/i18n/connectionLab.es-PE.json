@@ -1,0 +1,293 @@
+{
+  "title": "Laboratorio de conexión",
+  "intro": "Practica conversaciones, citas y relaciones con decisiones breves y ficticias. No hay un guion perfecto ni resultados garantizados.",
+  "privacy": "Práctica privada en esta pantalla: tus respuestas no se guardan. Solo contamos acciones de las lecciones, no historias personales. Puedes omitir pasos.",
+  "choose": "Elige una habilidad para practicar",
+  "back": "Volver a las habilidades",
+  "source": "Contexto de investigación",
+  "timebox": "Bloque de tiempo sugerido",
+  "minutes_one": "{{count}} min",
+  "minutes_other": "{{count}} min",
+  "timeboxHint_one": "Reserva {{count}} minuto. No se inicia ningún cronómetro ni recordatorio.",
+  "timeboxHint_other": "Reserva {{count}} minutos. No se inicia ningún cronómetro ni recordatorio.",
+  "finished": "Práctica terminada",
+  "practiced": "Practicaste {{done}} de {{total}} decisiones. Omitir pasos no tiene penalización.",
+  "repeat": "Repetir esta lección",
+  "step": "Escena {{current}} de {{total}}",
+  "chooseResponse": "¿Qué respuesta intentarías?",
+  "possibleResponse": "Una posible reacción (no es una predicción)",
+  "finish": "Terminar práctica",
+  "next": "Siguiente escena",
+  "skip": "Omitir sin penalización",
+  "feedback": {
+    "strong": "Esta opción respeta la autonomía de la otra persona y le da espacio para responder.",
+    "mixed": "Podría funcionar según el contexto. Observa cómo se siente la otra persona y escucha su perspectiva.",
+    "pressuring": "Esto podría generar presión, descalificar o cruzar un límite. Prueba una opción más clara y respetuosa."
+  },
+  "lessons": {
+    "approach": {
+      "title": "Acercarte e iniciar",
+      "goal": "Empieza con algo del contexto, curiosidad y una salida sencilla.",
+      "evidence": "Adaptación de estudios sobre preguntas en conversaciones; no evalúan una frase universal para iniciar.",
+      "transfer": "Paso pequeño: saluda a alguien en una situación tranquila. No necesitas alargar la charla.",
+      "turns": {
+        "open": {
+          "prompt": "En una actividad comunitaria, alguien está leyendo el programa.",
+          "tip": "Una pregunta sobre el contexto permite que la otra persona elija si quiere conversar.",
+          "options": {
+            "a": {
+              "text": "¡Hola! ¿Has participado en alguna de estas actividades?",
+              "response": "Podría decir: «Sí, me gustó la anterior»."
+            },
+            "b": {
+              "text": "Este lugar es genial. Te voy a contar toda mi semana.",
+              "response": "Quizás escuche un momento, sin mucho espacio para participar."
+            },
+            "c": {
+              "text": "Deja de mirar eso y habla conmigo.",
+              "response": "Podría alejarse o sentirse incómoda."
+            }
+          }
+        },
+        "follow": {
+          "prompt": "Sonríe y dice: «Estoy esperando a una amistad».",
+          "tip": "A veces, lo mejor es despedirte con amabilidad.",
+          "options": {
+            "a": {
+              "text": "Te hago compañía hasta que llegue.",
+              "response": "Podría sentir que tiene que seguir conversando."
+            },
+            "b": {
+              "text": "Entiendo. ¡Que disfruten la actividad!",
+              "response": "Podría sonreír y seguir con sus planes."
+            },
+            "c": {
+              "text": "Entonces dame tu número antes de que llegue.",
+              "response": "Podría sentir presión después de explicar su situación."
+            }
+          }
+        }
+      }
+    },
+    "flow": {
+      "title": "Mantener una conversación",
+      "goal": "Escucha, pregunta por algo que mencionaron y comparte un poco de ti.",
+      "evidence": "En estudios de conversación, las preguntas de seguimiento se asociaron con mayor agrado; el análisis de citas rápidas recibió críticas y una respuesta publicada.",
+      "transfer": "Paso pequeño: haz una pregunta de seguimiento sobre algo que alguien ya mencionó.",
+      "turns": {
+        "listen": {
+          "prompt": "Alguien comenta: «Hace poco empecé a hacer caminatas cortas».",
+          "tip": "Preguntar demuestra atención; evita convertir la charla en un interrogatorio.",
+          "options": {
+            "a": {
+              "text": "Yo hago caminatas todo el tiempo. Te cuento sobre todo mi equipo.",
+              "response": "Quizás pierda la oportunidad de contar su experiencia."
+            },
+            "b": {
+              "text": "Caminar no sirve. Mejor ve al gimnasio.",
+              "response": "Podría sentirse descalificada."
+            },
+            "c": {
+              "text": "¿Qué te animó a empezar?",
+              "response": "Podría contarte qué le motivó."
+            }
+          }
+        },
+        "share": {
+          "prompt": "Agrega: «Prefiero rutas fáciles y buenas vistas».",
+          "tip": "Combina un detalle breve sobre ti con curiosidad genuina.",
+          "options": {
+            "a": {
+              "text": "A mí también me gustan las caminatas tranquilas. ¿Tienes una vista favorita?",
+              "response": "Podría recomendar una ruta y preguntarte por la tuya."
+            },
+            "b": {
+              "text": "Qué aburrido. Solo las rutas difíciles valen la pena.",
+              "response": "Podría dejar de compartir."
+            },
+            "c": {
+              "text": "Qué chévere.",
+              "response": "Quizás haga una pausa sin saber cómo seguir."
+            }
+          }
+        }
+      }
+    },
+    "flirt": {
+      "title": "Expresar interés con respeto",
+      "goal": "Muestra interés romántico con claridad sin asumir que es mutuo.",
+      "evidence": "La atracción entre dos personas concretas es difícil de predecir a partir de sus características; estas invitaciones son ejemplos prácticos, no fórmulas validadas.",
+      "transfer": "Paso pequeño: redacta una invitación en la que sea igual de fácil aceptar o rechazar. No tienes que enviarla.",
+      "turns": {
+        "interest": {
+          "prompt": "Después de una clase de arte, disfrutaste conversando con alguien y quisieras volver a verlo.",
+          "tip": "Sé específico y deja espacio para un no. Una charla agradable no equivale a aceptar una cita.",
+          "options": {
+            "a": {
+              "text": "Después de esa conversación me debes una cita.",
+              "response": "Podría sentirse acorralada."
+            },
+            "b": {
+              "text": "Me gustó conversar contigo. ¿Te gustaría tomar un café algún día? Sin compromiso.",
+              "response": "Podría aceptar, rechazar o pedir tiempo."
+            },
+            "c": {
+              "text": "Me pareces muy atractivo/a.",
+              "response": "Podría agradarle o parecerle demasiado personal en ese contexto."
+            }
+          }
+        },
+        "unclear": {
+          "prompt": "Responde: «Tal vez. Esta semana estoy con muchas cosas».",
+          "tip": "La incertidumbre no es un sí. Deja que la otra persona decida el siguiente paso.",
+          "options": {
+            "a": {
+              "text": "Te escribiré todos los días hasta que elijas una fecha.",
+              "response": "Podría sentir que insistes pese a sus dudas."
+            },
+            "b": {
+              "text": "No te preocupes. Si te provoca, me avisas.",
+              "response": "Podría agradecer el espacio, independientemente de lo que decida."
+            },
+            "c": {
+              "text": "Bueno, ¿qué día te queda mejor?",
+              "response": "Podría aclararlo o sentirse presionada a decidir ahora."
+            }
+          }
+        }
+      }
+    },
+    "connect": {
+      "title": "Crear conexión emocional",
+      "goal": "Ofrece atención y comparte de manera gradual y mutua, sin forzar la intimidad.",
+      "evidence": "Compartir experiencias de manera estructurada aumentó la cercanía a corto plazo en una comparación experimental. No garantiza romance ni vínculos duraderos.",
+      "transfer": "Paso pequeño: pregunta a alguien de confianza si prefiere que lo escuches, le des ideas o lo distraigas.",
+      "turns": {
+        "disclose": {
+          "prompt": "Una amistad te dice: «He tenido una semana difícil».",
+          "tip": "Apoyar empieza por respetar qué tipo de ayuda desea, no por exigir detalles.",
+          "options": {
+            "a": {
+              "text": "Suena agotador. ¿Quieres contarme o prefieres distraerte un rato?",
+              "response": "Podría elegir lo que le resulte cómodo."
+            },
+            "b": {
+              "text": "Cuéntame todo ahora mismo.",
+              "response": "Podría sentir presión para contar más de lo que desea."
+            },
+            "c": {
+              "text": "Por lo menos no fue peor.",
+              "response": "Podría sentir que minimizas lo que vivió."
+            }
+          }
+        },
+        "support": {
+          "prompt": "Responde: «Prefiero no hablar del tema».",
+          "tip": "Respetar un no puede ser más valioso que pedir detalles.",
+          "options": {
+            "a": {
+              "text": "Seguro te sentirás mejor si te desahogas.",
+              "response": "Quizás repita que no quiere hablar."
+            },
+            "b": {
+              "text": "Está bien. Aquí estoy si luego te provoca conversar.",
+              "response": "Podría sentirse comprendida y libre de decidir después."
+            },
+            "c": {
+              "text": "¿Por qué no confías en mí para contármelo?",
+              "response": "Podría sentirse culpable por poner un límite."
+            }
+          }
+        }
+      }
+    },
+    "rejection": {
+      "title": "Confianza y rechazo",
+      "goal": "Acepta un no con respeto y recupérate sin juzgarte.",
+      "evidence": "La terapia cognitivo-conductual ayuda a muchas personas con trastornos de ansiedad; esta práctica breve no es un tratamiento ni una intervención validada para el rechazo.",
+      "transfer": "Paso pequeño: escribe una frase amable para ti después de una interacción incómoda.",
+      "turns": {
+        "no": {
+          "prompt": "Invitas a alguien a salir y te responde: «Gracias, pero no».",
+          "tip": "Un no claro termina la invitación. Aun así, puedes responder con amabilidad.",
+          "options": {
+            "a": {
+              "text": "¿Por qué no? Dame una oportunidad.",
+              "response": "Podría sentir que no respetas su respuesta."
+            },
+            "b": {
+              "text": "¡Pero nos llevamos tan bien!",
+              "response": "Podría sentir que tiene que justificar su decisión."
+            },
+            "c": {
+              "text": "Gracias por decírmelo. Que estés bien.",
+              "response": "Podría apreciar una respuesta sencilla."
+            }
+          }
+        },
+        "reset": {
+          "prompt": "Después te sientes decepcionado/a y empiezas a repasar todo lo que pasó.",
+          "tip": "Enfócate en tus propias acciones; las decisiones ajenas no son una calificación.",
+          "options": {
+            "a": {
+              "text": "Toma un descanso breve y retoma algo importante para ti.",
+              "response": "Con tiempo, podrías recuperar la perspectiva."
+            },
+            "b": {
+              "text": "Analiza cada palabra hasta encontrar tu error.",
+              "response": "Podrías quedarte atrapado/a en pensamientos repetitivos."
+            },
+            "c": {
+              "text": "Busca otra manera de hacer que cambie de opinión.",
+              "response": "Podrías cruzar un límite que ya dejó claro."
+            }
+          }
+        }
+      }
+    },
+    "repair": {
+      "title": "Reparar y cuidar el vínculo",
+      "goal": "Escucha una preocupación, asume tu parte y acuerda un paso concreto.",
+      "evidence": "La receptividad hacia la pareja es un marco de investigación sobre relaciones. Estos guiones exactos no se han evaluado como intervención.",
+      "transfer": "Paso pequeño: practica decir: «Entiendo por qué eso fue importante para ti. ¿Qué ayudaría la próxima vez?»",
+      "turns": {
+        "listen": {
+          "prompt": "Tu pareja dice: «Sentí que no me escuchaste cuando organizamos el fin de semana».",
+          "tip": "Comprende la preocupación antes de explicar tus intenciones.",
+          "options": {
+            "a": {
+              "text": "Yo también estaba ocupado/a, ¿sabes?",
+              "response": "Podría sentir que no entendiste su preocupación."
+            },
+            "b": {
+              "text": "No me di cuenta. ¿Qué fue lo más frustrante?",
+              "response": "Podría explicar un momento concreto."
+            },
+            "c": {
+              "text": "Estás exagerando.",
+              "response": "Podría sentirse descalificada o dejar de hablar."
+            }
+          }
+        },
+        "repair": {
+          "prompt": "Te pregunta: «¿Podemos organizar juntos el próximo plan?».",
+          "tip": "Reparar es más fácil con un paso específico que funcione para ambos.",
+          "options": {
+            "a": {
+              "text": "Ya, como quieras.",
+              "response": "Podría dudar de tu disposición."
+            },
+            "b": {
+              "text": "Voy a intentar, pero no prometo nada.",
+              "response": "Quizás no sepa qué cambiará."
+            },
+            "c": {
+              "text": "Sí. ¿Elegimos un momento y cada uno comparte sus prioridades?",
+              "response": "Podría aceptar un plan que funcione para ambos."
+            }
+          }
+        }
+      }
+    }
+  }
+}
