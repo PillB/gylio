@@ -87,10 +87,8 @@ jobs:
         run: |
           set -euo pipefail
           base="${PAGE_URL%/}/"
-          origin="$(printf '%s' "$base" | sed -E 's#(https?://[^/]+).*#\1#')"
           root_file="$(mktemp)"
           asset_file="$(mktemp)"
-          trap 'rm -f "$root_file" "$asset_file"' EXIT
 
           # Report which check failed on each retry. Do not treat every failure
           # as propagation lag; a missing module script is a different defect.
