@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import fs from 'node:fs';
 
 /** Seed before boot so onboarding cannot overwrite the fixture during hydration. */
 async function openLab(page: Page, locale: 'en' | 'es-PE') {
@@ -81,7 +82,7 @@ test('Peruvian Spanish: mobile scene, timebox controls and consent feedback are 
 test('screenshots: six English lesson scenes and feedback on desktop', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await openLab(page, 'en');
-  const catalog = (await import('../src/i18n/connectionLab.en.json')).default;
+  const catalog = JSON.parse(fs.readFileSync('src/i18n/connectionLab.en.json', 'utf8'));
   for (const lesson of ['approach', 'flow', 'flirt', 'connect', 'rejection', 'repair'] as const) {
     const title = catalog.lessons[lesson].title;
     await page.getByRole('button', { name: new RegExp(title) }).click();
@@ -98,7 +99,7 @@ test('screenshots: six English lesson scenes and feedback on desktop', async ({ 
 test('screenshots: six es-PE lesson scenes and feedback at 320px', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 760 });
   await openLab(page, 'es-PE');
-  const catalog = (await import('../src/i18n/connectionLab.es-PE.json')).default;
+  const catalog = JSON.parse(fs.readFileSync('src/i18n/connectionLab.es-PE.json', 'utf8'));
   for (const lesson of ['approach', 'flow', 'flirt', 'connect', 'rejection', 'repair'] as const) {
     const title = catalog.lessons[lesson].title;
     await page.getByRole('button', { name: new RegExp(title) }).click();
