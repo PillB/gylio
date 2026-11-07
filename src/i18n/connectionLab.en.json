@@ -176,8 +176,8 @@
               "response": "They might feel pressured to reveal more than they want."
             },
             "c": {
-              "text": "At least it wasn't worse.",
-              "response": "They might feel their experience was minimized."
+              "text": "I had a tough week too.",
+              "response": "They might feel the focus moved before they were heard."
             }
           }
         },
@@ -186,8 +186,8 @@
           "tip": "Respecting a no can strengthen trust more than asking for details.",
           "options": {
             "a": {
-              "text": "I'm sure you'll feel better if you vent.",
-              "response": "They might repeat that they do not want to talk."
+              "text": "Okay. Want to change the subject?",
+              "response": "They might appreciate a distraction, or prefer a quiet moment."
             },
             "b": {
               "text": "Okay. I'm here if that changes.",
@@ -216,8 +216,8 @@
               "response": "They might feel their answer was not respected."
             },
             "b": {
-              "text": "But we get along so well!",
-              "response": "They might feel they need to defend their decision."
+              "text": "Okay. I'm disappointed, but I understand.",
+              "response": "They might feel responsible for your feelings, even though you accept their answer."
             },
             "c": {
               "text": "Thanks for letting me know. Take care.",
