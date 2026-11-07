@@ -14,6 +14,10 @@ import ConnectionLabView from './ConnectionLabView';
 beforeEach(() => localStorage.clear());
 afterEach(cleanup);
 
+type LocalizedScene = { prompt: string; options: Record<string, { text: string; response: string }> };
+type LocalizedLesson = { title: string; transfer: string; turns: Record<string, LocalizedScene> };
+const catalogs: { lessons: Record<string, LocalizedLesson> }[] = [en, es];
+
 describe('Connection Lab UI', () => {
   it('plays an offline two-scene practice, gives feedback and allows a no-penalty skip', () => {
     render(<ConnectionLabView />);
@@ -42,12 +46,12 @@ describe('Connection Lab UI', () => {
 
   it('has complete human-readable English and Peruvian Spanish copy for every playable choice', () => {
     for (const lesson of LESSONS) {
-      for (const catalog of [en, es]) {
+      for (const catalog of catalogs) {
         const entry = catalog.lessons[lesson.id];
         expect(entry.title.trim().length).toBeGreaterThan(0);
         expect(entry.transfer.trim().length).toBeGreaterThan(0);
         for (const turn of lesson.turns) {
-          const scene = entry.turns[turn.id as keyof typeof entry.turns];
+          const scene = entry.turns[turn.id];
           expect(scene?.prompt).toBeTruthy();
           for (const choice of ['a', 'b', 'c'] as const) {
             expect(scene.options[choice].text).toBeTruthy();
