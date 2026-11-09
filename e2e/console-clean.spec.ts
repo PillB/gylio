@@ -2,9 +2,11 @@
  * The main screens open with nothing in the browser console: no warnings, no errors. React Native Paper's provider
  * (wrapping an app that used no Paper component) printed "props.pointerEvents is deprecated" on every load, and the
  * dev server logged a failed service worker registration on every page. A new message should be seen and fixed, not
- * scrolled past.
+ * scrolled past. The only exceptions are browser notices about the page's markup, listed with their reasons in
+ * helpers/browserNotices.ts.
  */
 import { expect, test } from '@playwright/test';
+import { isKnownBrowserNotice } from './helpers/browserNotices';
 
 const SCREENS = ['tasks', 'calendar', 'budget', 'routines', 'rewards', 'social', 'settings', 'pricing'];
 
@@ -26,7 +28,8 @@ test('the main screens open with no console warnings or errors', async ({ page }
 
   const messages: string[] = [];
   page.on('console', (message) => {
-    if (message.type() === 'warning' || message.type() === 'error') messages.push(`${message.type()}: ${message.text()}`);
+    if (message.type() !== 'warning' && message.type() !== 'error') return;
+    if (!isKnownBrowserNotice(message.text())) messages.push(`${message.type()}: ${message.text()}`);
   });
   page.on('pageerror', (error) => messages.push(`pageerror: ${error.message}`));
 

@@ -1,6 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
 import { fileURLToPath } from 'url';
 import path from 'path';
+import { isKnownBrowserNotice } from './helpers/browserNotices';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -237,7 +238,8 @@ test.describe('GYLIO App Visual Audit', () => {
         !e.includes('MIME type') &&
         !e.includes('ServiceWorker') &&
         !e.includes('service-worker') &&
-        !e.includes('SecurityError')
+        !e.includes('SecurityError') &&
+        !isKnownBrowserNotice(e)
     );
     if (appErrors.length > 0) console.log('App errors:', appErrors);
     else console.log('No app-level errors detected across all routes.');

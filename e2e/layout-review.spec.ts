@@ -93,9 +93,12 @@ test.describe('layout review', () => {
         const sideways = room === target.x || room === 1280 - (target.x + target.w);
         if (room >= (sideways ? dialog!.width : dialog!.height) + 20) {
           checked += 1;
-          const overlap = dialog!.x < target.x + target.w && dialog!.x + dialog!.width > target.x &&
-            dialog!.y < target.y + target.h && dialog!.y + dialog!.height > target.y;
-          expect(overlap, `step ${i + 1} card covers its target`).toBe(false);
+          // The card keeps a visible gap from the highlight ring, not just a shared edge: a card that only
+          // touches the ring is one extra line of copy (WebKit, Spanish, larger text) away from covering it.
+          const gap = 4;
+          const overlap = dialog!.x < target.x + target.w + gap && dialog!.x + dialog!.width > target.x - gap &&
+            dialog!.y < target.y + target.h + gap && dialog!.y + dialog!.height > target.y - gap;
+          expect(overlap, `step ${i + 1} card covers or touches its target`).toBe(false);
         }
       }
       const next = page.getByRole('button', { name: /next step|finish tour/i });

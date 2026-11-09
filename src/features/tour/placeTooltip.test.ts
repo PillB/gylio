@@ -46,6 +46,18 @@ describe('placeTooltip', () => {
     expect(top.top).toBe(800 - 330 - 12);
   });
 
+  it('uses the real card height: a 309px card fits below a target an over-estimate would dock against', () => {
+    // Rewards at 1280x800: the toggle row sits at 336-440, leaving 360px below it.
+    const toggle = rect(336, 440, 155, 1125);
+    const estimated = placeTooltip({ ...base, tipH: 340, target: toggle });
+    expect(estimated.side).toBe('dock');
+    expect(estimated.top).toBe(448); // 8px under the target: one more line in another browser and it covers it
+    const measured = placeTooltip({ ...base, tipH: 309, target: toggle });
+    expect(measured.side).toBe('below');
+    expect(measured.top).toBe(440 + 14);
+    expect(measured.top + 309).toBeLessThanOrEqual(800 - 12);
+  });
+
   it('honours a preferred side only if it fits', () => {
     const r = rect(400, 450);
     expect(placeTooltip({ ...base, target: r, prefer: 'top' }).side).toBe('above');
