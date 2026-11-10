@@ -15,10 +15,10 @@ The owner is set once, in the middleware at line 91 (`c.set('userId', userId)`, 
 | `GET /api/me/export` | 131 | 133 | `WHERE userId = ? AND deleted = 0`, owner bound at 134. |
 | `DELETE /api/me` | 140 | 143 | Three deletes, each `WHERE userId = ?` (records, counters, sign-in mapping). |
 | `GET /api/:entity/:id` | 153 | 157 | `WHERE userId = ? AND entity = ? AND id = ? AND deleted = 0`. Someone else's id answers 404, the same as an id that does not exist. |
-| `PUT /api/:entity/:id` | 208 | 184 | The read (`currentRow`) is `WHERE userId = ? AND entity = ? AND id = ?`. |
-| | | 244 | The update is `WHERE userId = ? AND entity = ? AND id = ? AND version = ?`. |
-| | | 249 | The insert is keyed `(userId, entity, id)`: the same id under another person is a different row. |
-| `DELETE /api/:entity/:id` | 262 | 271 | `WHERE userId = ? AND entity = ? AND id = ? AND deleted = 0`. Deleting an id you do not own changes nothing and still answers 204. |
+| `PUT /api/:entity/:id` | 197 | 173 | The read (`currentRow`) is `WHERE userId = ? AND entity = ? AND id = ?`. |
+| | | 233 | The update is `WHERE userId = ? AND entity = ? AND id = ? AND version = ?`. |
+| | | 238 | The insert is keyed `(userId, entity, id)`: the same id under another person is a different row. |
+| `DELETE /api/:entity/:id` | 251 | 260 | `WHERE userId = ? AND entity = ? AND id = ? AND deleted = 0`. Deleting an id you do not own changes nothing and still answers 204. |
 
 Choices worth knowing about:
 - The same record id may exist under two people. Ids are chosen by the app, so they are only unique per person; a stranger cannot collide with or overwrite yours.

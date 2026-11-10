@@ -121,9 +121,6 @@ export default defineConfig(({ mode }) => {
           ) {
             return 'vendor-react';
           }
-          if (id.includes('node_modules/react-native-web')) {
-            return 'vendor-rnw';
-          }
           if (id.includes('node_modules/react-router-dom') || id.includes('node_modules/react-router/')) {
             return 'vendor-router';
           }
@@ -139,18 +136,6 @@ export default defineConfig(({ mode }) => {
       {
         find: '/gylio/',
         replacement: `${path.resolve(__dirname, '.')}/`,
-      },
-      {
-        find: 'react-native-web/Libraries/Utilities/codegenNativeComponent',
-        replacement: path.resolve(__dirname, 'src/shims/codegenNativeComponent.js'),
-      },
-      {
-        find: 'react-native/Libraries/Utilities/codegenNativeComponent',
-        replacement: path.resolve(__dirname, 'src/shims/codegenNativeComponent.js'),
-      },
-      {
-        find: '@react-native/assets-registry/registry',
-        replacement: path.resolve(__dirname, 'src/shims/assets-registry.js'),
       },
       { find: 'react-native', replacement: 'react-native-web' },
       {
@@ -168,14 +153,6 @@ export default defineConfig(({ mode }) => {
       {
         find: 'expo-sqlite',
         replacement: path.resolve(__dirname, 'src/shims/expo-sqlite.ts'),
-      },
-      {
-        find: 'react-native-safe-area-context',
-        replacement: path.resolve(__dirname, 'src/shims/react-native-safe-area-context.js'),
-      },
-      {
-        find: 'expo-modules-core',
-        replacement: path.resolve(__dirname, 'src/shims/expo-modules-core.ts'),
       },
     ],
   },

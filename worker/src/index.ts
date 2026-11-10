@@ -2,6 +2,7 @@ import { Hono, type Context } from 'hono';
 import { authenticate, AuthError, type AuthEnv } from './auth';
 import { MeteredDb } from './db';
 import { forgetIdentities, resolveUserId } from './identity';
+import { readJson } from './readJson';
 import { SCHEMAS, validateRecord } from './schemas';
 import { API_CSP, SECURITY_HEADERS } from './securityHeaders';
 import { recordUsage, retryAfterSeconds, usageState, type UsageEnv } from './usage';
@@ -16,7 +17,6 @@ type Env = AuthEnv &
   };
 type Vars = { userId: string; db: MeteredDb };
 
-const MAX_BODY_BYTES = 64 * 1024;
 const MAX_PULL = 200;
 const ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
 const HEALTH_PATH = '/api/v1/health';
@@ -161,17 +161,6 @@ app.get('/api/:entity/:id', async (c) => {
   );
   return row ? c.json(toRecord(row)) : c.json({ error: { code: 'NOT_FOUND', message: 'Record not found' } }, 404);
 });
-
-const readJson = async (req: Request): Promise<Record<string, unknown> | null> => {
-  const text = await req.text();
-  if (text.length > MAX_BODY_BYTES) return null;
-  try {
-    const parsed = JSON.parse(text);
-    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : null;
-  } catch {
-    return null;
-  }
-};
 
 const TOMBSTONE_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
 const BUMP_SEQ = 'INSERT INTO user_seq (userId, seq, rows) VALUES (?, 1, 0) ON CONFLICT (userId) DO UPDATE SET seq = seq + 1';

@@ -11,7 +11,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { gzipSync } from 'node:zlib';
 
-const DEFAULT_BUDGET_KB = 420;
+const DEFAULT_BUDGET_KB = 380;
 
 /** The entry module and the chunks preloaded with it, as written in index.html. */
 export function initialScripts(html) {

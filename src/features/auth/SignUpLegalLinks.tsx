@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { track } from '../../core/analytics';
-import { legalPath, type LegalDocId } from '../legal/legalDocs';
+import { legalPath, type LegalDocId } from '../legal/legalPath';
 
 const DOCS: { doc: LegalDocId; key: string }[] = [
   { doc: 'terms', key: 'shell.termsOfService' },

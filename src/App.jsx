@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { Suspense, lazy, useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Navigate,
   Outlet,
@@ -15,7 +15,6 @@ import CalendarView from './components/CalendarView.jsx';
 import BudgetView from './components/BudgetView.jsx';
 import RewardsView from './components/RewardsView.jsx';
 import SettingsView from './components/SettingsView.jsx';
-import LegalPage from './features/legal/LegalPage';
 import SocialPlansView from './features/social/components/SocialPlansView';
 import ConnectionLabView from './features/connectionLab/components/ConnectionLabView';
 import RoutinesView from './features/routines/components/RoutinesView';
@@ -37,7 +36,6 @@ import SignInPage from './features/auth/SignInPage';
 import SignUpPage from './features/auth/SignUpPage';
 import { AuthProvider } from './core/context/AuthContext';
 import { useSubscription } from './features/subscription/useSubscription';
-import PricingPage from './features/subscription/PricingPage';
 import UpgradePrompt from './features/subscription/UpgradePrompt';
 import { useAppAuth } from './core/context/AuthContext';
 import WelcomeBackBanner from './components/WelcomeBackBanner';
@@ -50,8 +48,6 @@ import DailyCommandCenter from './features/dashboard/DailyCommandCenter';
 import { EntitlementProvider } from './features/billing/EntitlementContext';
 import TrialBanner from './features/billing/TrialBanner';
 import FeedbackButton from './features/feedback/FeedbackButton';
-import QaPage from './features/feedback/QaPage';
-import AdminPage from './features/admin/AdminPage';
 import { serverFeaturesEnabled } from './core/utils/serverFeatures';
 import { installErrorCapture } from './features/feedback/diagnostics';
 import { startAnalyticsUpload } from './core/analytics/upload';
@@ -65,9 +61,23 @@ function HeaderFeedback({ isOnboarding, isMobile }) {
   return isOnboarding || isMobile || !serverFeaturesEnabled() ? null : <FeedbackButton />;
 }
 
+// Pages most visits never open (the legal texts alone are 90 kB) are downloaded when first opened.
+// The service worker caches them at install, so they open offline too; one whose file is gone after
+// a deploy shows the "update available" page (RouteProblem).
+const LegalPage = lazy(() => import('./features/legal/LegalPage'));
+const PricingPage = lazy(() => import('./features/subscription/PricingPage'));
+const QaPage = lazy(() => import('./features/feedback/QaPage'));
+const AdminPage = lazy(() => import('./features/admin/AdminPage'));
+
+/** Holds the place of a page that is still downloading. */
+function OnDemand({ children }) {
+  const { t } = useTranslation();
+  return <Suspense fallback={<p role="status" style={{ padding: 16 }}>{t('loading')}</p>}>{children}</Suspense>;
+}
+
 // The report page and the admin pages only work with the full server; without it, an old link opens Tasks.
 export function serverOnlyRoutes() {
-  const pages = { qa: <QaPage />, admin: <AdminPage /> };
+  const pages = { qa: <OnDemand><QaPage /></OnDemand>, admin: <OnDemand><AdminPage /></OnDemand> };
   return Object.entries(pages).map(([path, page]) => ({ path, element: serverFeaturesEnabled() ? page : <Navigate to="/tasks" replace /> }));
 }
 
@@ -505,9 +515,9 @@ function buildAuthRouter(clerkEnabled) {
           { index: true, element: clerkEnabled ? <RootRedirectAuthed /> : <RootRedirectNoAuth /> },
           { path: 'sign-in/*', element: <SignInPage /> },
           { path: 'sign-up/*', element: <SignUpPage /> },
-          { path: 'pricing', element: <PricingPage /> },
-          { path: 'privacy', element: <LegalPage doc="privacy" /> },
-          { path: 'terms', element: <LegalPage doc="terms" /> },
+          { path: 'pricing', element: <OnDemand><PricingPage /></OnDemand> },
+          { path: 'privacy', element: <OnDemand><LegalPage doc="privacy" /></OnDemand> },
+          { path: 'terms', element: <OnDemand><LegalPage doc="terms" /></OnDemand> },
           {
             element: clerkEnabled ? <ProtectedLayoutAuthed /> : <ProtectedLayoutNoAuth />,
             children: [
