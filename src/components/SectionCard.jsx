@@ -2,6 +2,7 @@ import React, { useEffect, useId } from 'react';
 import PropTypes from 'prop-types';
 import useAccessibility from '../core/hooks/useAccessibility';
 import { useTheme } from '../core/context/ThemeContext';
+import { HelpTopic } from './atoms/HelpTopic';
 
 /**
  * SectionCard — redesigned 2025
@@ -63,7 +64,7 @@ const SectionCard = ({ title, ariaLabel, subtitle, children, badge, action }) =>
           >
             {title}
           </h2>
-          {badge && badge}
+          {badge && <HelpTopic topic={title}>{badge}</HelpTopic>}
         </div>
         {action && action}
       </div>

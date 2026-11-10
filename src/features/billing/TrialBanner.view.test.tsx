@@ -2,8 +2,8 @@
 import React from 'react';
 import { cleanup, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import '../../i18n/i18n.js';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import { ready as languageReady } from '../../i18n/i18n.js';
 
 vi.mock('../../core/context/ThemeContext', async () => {
   const { themes } = await import('../../core/themes');
@@ -17,6 +17,9 @@ vi.mock('./EntitlementContext', () => ({
 }));
 
 import { TrialBanner } from './TrialBanner';
+
+// The English text is fetched when the language module starts; wait for it before drawing anything.
+beforeAll(() => languageReady);
 
 afterEach(() => { cleanup(); localStorage.clear(); vi.unstubAllEnvs(); });
 

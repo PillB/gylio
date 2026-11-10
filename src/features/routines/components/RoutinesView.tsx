@@ -381,7 +381,7 @@ const RoutinesView: React.FC = () => {
           <fieldset style={{ border: 'none', padding: 0, margin: 0 }}>
             <legend style={{ color: theme.colors.text, marginBottom: `${theme.spacing.xs}px`, display: 'flex', alignItems: 'center' }}>
               {t('routines.stepsLabel')}
-              <BudgetTooltip content={t('tooltips.routines.steps', 'Break your routine into small, specific actions. Each step becomes a checkbox you tick off — this reduces decision fatigue and makes it clear exactly what "done" looks like.')} />
+              <BudgetTooltip about={t('routines.stepsLabel')} content={t('tooltips.routines.steps', 'Break your routine into small, specific actions. Each step becomes a checkbox you tick off — this reduces decision fatigue and makes it clear exactly what "done" looks like.')} />
             </legend>
             {renderStepFields(form.steps, setForm, 'new')}
           </fieldset>

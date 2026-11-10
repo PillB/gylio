@@ -1,8 +1,8 @@
 import React from 'react';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { RouterProvider, createMemoryRouter } from 'react-router-dom';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import '../../i18n/i18n';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { ready as languageReady } from '../../i18n/i18n';
 
 vi.mock('../../core/context/ThemeContext', async () => {
   const { themes } = await import('../../core/themes');
@@ -35,6 +35,8 @@ const open = (path: string, crash = 'boom') => {
   );
   return render(<RouterProvider router={router} />);
 };
+
+beforeAll(() => languageReady);
 
 describe('problemKind', () => {
   it('tells a missing page, a stale build and any other failure apart', () => {

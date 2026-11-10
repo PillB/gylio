@@ -30,7 +30,7 @@ const RemainingPanel: React.FC<{ remaining: number }> = ({ remaining }) => {
     >
       <div style={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
         {t('budget.remainingLabel', 'Remaining')}
-        <BudgetTooltip content={t('budget.remainingExplain', 'The gap between what you earn and what you\'ve allocated. Your goal: reach zero before the month ends — not by spending more, but by planning more.')} />
+        <BudgetTooltip about={t('budget.remainingLabel', 'Remaining')} content={t('budget.remainingExplain', 'The gap between what you earn and what you\'ve allocated. Your goal: reach zero before the month ends — not by spending more, but by planning more.')} />
       </div>
       <div style={{ color: remaining === 0 ? theme.colors.primary : theme.colors.warningStrong }}>{remaining.toFixed(2)}</div>
       <small>{t('budget.remainingHint', 'Remaining should reach 0 for a zero-based budget.')}</small>

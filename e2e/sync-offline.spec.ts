@@ -164,9 +164,10 @@ test.describe('sync in a real browser', () => {
 
     await page.evaluate(() => localStorage.removeItem('gylio_sqlite'));
     await page.reload({ waitUntil: 'networkidle' });
-    await expect(page.getByText('Seed task 1', { exact: true })).toBeVisible({ timeout: 20_000 });
-    await showAll(page);
-    await expect(page.getByText('Seed task 6', { exact: true })).toBeVisible();
+    // All six come back, in whatever order the fetches finish; Focus mode then shows three of them, so the list is
+    // opened before looking for any one by name.
+    await page.getByRole('button', { name: 'Show all 6' }).click({ timeout: 20_000 });
+    for (let i = 1; i <= 6; i += 1) await expect(page.getByText(`Seed task ${i}`, { exact: true })).toBeVisible();
     expect(worker.requests((r) => r.method === 'DELETE')).toHaveLength(0);
     expect(worker.titles).toHaveLength(6);
   });

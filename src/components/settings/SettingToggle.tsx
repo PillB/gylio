@@ -45,7 +45,7 @@ export default function SettingToggle({ label, helper, tooltip, checked, onChang
           />
           <span style={{ fontWeight: 600 }}>{label}</span>
         </label>
-        {tooltip ? <BudgetTooltip content={tooltip} /> : null}
+        {tooltip ? <BudgetTooltip content={tooltip} about={label} /> : null}
       </div>
       {helper ? (
         <small id={helperId} style={{ color: theme.colors.muted }}>

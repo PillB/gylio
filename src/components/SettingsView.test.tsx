@@ -13,6 +13,7 @@ const state = {
   dailyMode: false,
   isAdmin: false,
   serverFeatures: true,
+  isTinted: false,
 };
 const setAnimationsEnabled = vi.fn();
 const setTtsEnabled = vi.fn();
@@ -21,12 +22,14 @@ const setDailyMode = vi.fn();
 const resetTour = vi.fn();
 const speak = vi.fn();
 
-vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({ t: (key: string, options?: { topic?: string }) => (options?.topic ? `${key}(${options.topic})` : key) }),
+}));
 vi.mock('../core/context/ThemeContext', () => ({ useTheme: () => ({ theme: themes.light, mode: 'light', setTheme: vi.fn() }) }));
 vi.mock('../core/hooks/useAccessibility', () => ({
   default: () => ({
     toggleTint: vi.fn(),
-    isTinted: false,
+    isTinted: state.isTinted,
     speak,
     isSpeaking: false,
     motionPreference: 'system',
@@ -70,11 +73,23 @@ const box = (name: string) => screen.getByRole('checkbox', { name }) as HTMLInpu
 
 describe('SettingsView', () => {
   beforeEach(() => {
-    Object.assign(state, { animationsEnabled: true, ttsEnabled: false, gamificationEnabled: true, dailyMode: false, isAdmin: false, serverFeatures: true });
+    Object.assign(state, { animationsEnabled: true, ttsEnabled: false, gamificationEnabled: true, dailyMode: false, isAdmin: false, serverFeatures: true, isTinted: false });
     vi.clearAllMocks();
     localStorage.removeItem('analytics:queue');
   });
   afterEach(cleanup);
+
+  it('names the help beside the tint button after the setting, the same whether the tint is on or off', () => {
+    const helpName = 'shell.informationAbout(shell.screenTint)';
+    show();
+    expect(screen.getByRole('button', { name: 'enableTint' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: helpName })).toBeTruthy();
+    cleanup();
+    state.isTinted = true;
+    show();
+    expect(screen.getByRole('button', { name: 'disableTint' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: helpName })).toBeTruthy();
+  });
 
   it('counts each switch that is changed, by its name and new state, and nothing before one is', () => {
     show();

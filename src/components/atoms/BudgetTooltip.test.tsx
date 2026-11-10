@@ -1,10 +1,11 @@
 import React from 'react';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import BudgetTooltip, { clampShift } from './BudgetTooltip';
+import { HelpTopic } from './HelpTopic';
 
 vi.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
+  useTranslation: () => ({ t: (key: string, options?: { topic?: string }) => (options?.topic ? `${key}(${options.topic})` : key) }),
 }));
 vi.mock('../../core/context/ThemeContext', async () => {
   const { themes } = await import('../../core/themes');
@@ -21,6 +22,35 @@ describe('BudgetTooltip', () => {
     expect(button.getAttribute('aria-describedby')).toBe(bubble().id);
     expect(bubble().textContent).toBe('What this field is for');
     expect(isOpen()).toBe(false);
+  });
+
+  it('is named after what it explains: by the caller, or by the heading or label it sits beside', () => {
+    render(<BudgetTooltip content="Money left to plan" about="Remaining" />);
+    expect(screen.getByRole('button', { name: 'shell.informationAbout(Remaining)' })).toBeTruthy();
+    cleanup();
+
+    render(
+      <HelpTopic topic="  Income  ">
+        <BudgetTooltip content="Take-home pay" />
+      </HelpTopic>
+    );
+    expect(screen.getByRole('button', { name: 'shell.informationAbout(Income)' })).toBeTruthy();
+    cleanup();
+
+    // What the caller says wins over the surrounding heading; an empty or non-text topic names nothing.
+    render(
+      <HelpTopic topic="Budget">
+        <BudgetTooltip content="Snowball" about="Snowball" />
+        <HelpTopic topic={<b>Bold</b>}>
+          <BudgetTooltip content="No topic" />
+        </HelpTopic>
+        <HelpTopic topic="   ">
+          <BudgetTooltip content="Blank topic" />
+        </HelpTopic>
+      </HelpTopic>
+    );
+    expect(screen.getByRole('button', { name: 'shell.informationAbout(Snowball)' })).toBeTruthy();
+    expect(screen.getAllByRole('button', { name: 'shell.information' })).toHaveLength(2);
   });
 
   it('is a 44px target', () => {

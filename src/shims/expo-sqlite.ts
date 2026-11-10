@@ -300,10 +300,10 @@ function _exec(sql: string, args: unknown[]): SQLResultSet {
 
 // ─── Public API ───────────────────────────────────────────────────────────────
 
-// Initialise store on module load (client-side only)
-if (typeof localStorage !== 'undefined') {
-  _loadStore();
-}
+// Read the saved copy as the module loads. Not behind `typeof localStorage`: where the browser refuses site data,
+// even that look throws, and here it would stop the whole app from starting. `_loadStore` catches it (and the
+// missing global outside a browser) and starts empty.
+_loadStore();
 
 const _createTransaction = (): SQLTransaction => ({
   executeSql(statement, args = [], success, error) {

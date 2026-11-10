@@ -1816,6 +1816,10 @@
       "title": "Planes sociales",
       "content": "Planifica llamadas, encuentros y mensajes con las personas que importan. Elige un tipo de relación, selecciona una plantilla y agrega tu plan."
     },
+    "connectionLab": {
+      "title": "Laboratorio de conexión",
+      "content": "Practica habilidades de conversación con escenas breves y ficticias. Elige una habilidad, elige una respuesta y mira una reacción posible. Tus elecciones no se guardan."
+    },
     "routines": {
       "title": "Rutinas",
       "content": "Construye hábitos diarios que se mantienen. Crea rutinas con horarios de activación y micro-pasos — la constancia supera a la intensidad."

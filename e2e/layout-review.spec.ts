@@ -185,6 +185,36 @@ test.describe('layout review', () => {
     });
   }
 
+  // The overview used to pass over this tab: seven tabs had a step and Connection Lab had none.
+  for (const [width, height] of [[1280, 800], [320, 568]] as const) {
+    test(`the overview stops at Connection Lab at ${width}x${height}, with its introduction highlighted and the card beside it`, async ({ page }) => {
+      await page.setViewportSize({ width, height });
+      await seedOnboarded(page);
+      await page.goto('./tasks');
+      await page.getByRole('button', { name: /guide/i }).first().click();
+      await page.getByRole('dialog').getByRole('button', { name: /Quick overview/i }).click();
+      const card = page.getByRole('dialog');
+      // The card's own Next: a lesson on this page is also a button whose name ends in "next step".
+      const next = card.getByRole('button', { name: /next step/i });
+      for (let i = 0; i < 10 && !(await card.getByRole('heading', { name: 'Connection Lab', exact: true }).isVisible()); i++) {
+        await next.click();
+      }
+      await expect(card.getByRole('heading', { name: 'Connection Lab', exact: true })).toBeVisible();
+      await expect(card.getByText('Step 7 of 10')).toBeVisible();
+      await expect(page).toHaveURL(/\/connection-lab$/);
+      const intro = page.locator('[data-tour="connection-lab-intro"]');
+      await expect(intro).toBeInViewport({ ratio: 1 });
+      // Wait for the page to stop scrolling to the step, then compare the two boxes.
+      await expect.poll(async () => {
+        const [a, b] = [await intro.boundingBox(), await card.boundingBox()];
+        return a && b ? b.y >= a.y + a.height || b.y + b.height <= a.y : false;
+      }, { message: 'the card covers the introduction it describes' }).toBe(true);
+      // The step after it is the next tab in the bar.
+      await next.click();
+      await expect(page).toHaveURL(/\/routines$/);
+    });
+  }
+
   test('the Tasks walkthrough points at "Add details" for a hidden field, then at the field once it is open', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await seedOnboarded(page);
@@ -249,7 +279,7 @@ test.describe('layout review', () => {
     expect(pageChanges).toBeLessThanOrEqual(4);
     await expect(page).toHaveURL(/\/onboarding$/);
     // The tour is still there and still answers.
-    await expect(page.getByRole('dialog').getByText('Step 2 of 9')).toBeVisible();
+    await expect(page.getByRole('dialog').getByText('Step 2 of 10')).toBeVisible();
     await page.getByRole('button', { name: /pause tour/i }).click();
     await expect(page.getByRole('dialog')).toHaveCount(0);
   });
@@ -270,8 +300,8 @@ test.describe('layout review', () => {
     expect(await headingY('Transactions')).toBeLessThanOrEqual(await headingY('Income'));
   });
 
-  test('the short-tour experiment shows five steps; the default shows nine', async ({ browser }) => {
-    for (const [query, total] of [['', 9], ['?exp_tour_length=overview5', 5]] as const) {
+  test('the short-tour experiment shows five steps; the default shows all ten', async ({ browser }) => {
+    for (const [query, total] of [['', 10], ['?exp_tour_length=overview5', 5]] as const) {
       // A fresh context each time: an unfinished tour is restored on reload.
       const context = await browser.newContext();
       const page = await context.newPage();

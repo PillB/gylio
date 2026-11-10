@@ -8,6 +8,7 @@
  */
 import React, { useId } from 'react';
 import { useTheme } from '../../core/context/ThemeContext';
+import { HelpTopic } from './HelpTopic';
 
 type LabelProps = {
   htmlFor: string;
@@ -21,7 +22,7 @@ type LabelProps = {
 export const HelpLabel: React.FC<LabelProps> = ({ htmlFor, help, children, style }) => (
   <span style={{ display: 'flex', alignItems: 'center', ...style }}>
     <label htmlFor={htmlFor}>{children}</label>
-    {help}
+    <HelpTopic topic={children}>{help}</HelpTopic>
   </span>
 );
 

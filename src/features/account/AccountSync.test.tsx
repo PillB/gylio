@@ -3,9 +3,12 @@
  * written to this device and what is sent to the account on first sign-in.
  */
 import React from 'react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import '../../i18n/i18n.js';
+import { ready as languageReady } from '../../i18n/i18n.js';
+
+// The language file arrives after the module loads; render only once it has.
+beforeAll(() => languageReady);
 import i18n from 'i18next';
 
 vi.mock('../../core/context/AuthContext', () => ({ useAppAuth: () => ({ userId: 'user_1' }) }));

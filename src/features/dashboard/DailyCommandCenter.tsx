@@ -97,7 +97,7 @@ const Panel: React.FC<PanelProps> = ({ title, icon, children, theme }) => (
       marginBottom: theme.spacing.md,
     }}
   >
-    <h2
+    <h3
       style={{
         margin: `0 0 ${theme.spacing.sm}px`,
         fontSize: '0.8125rem',
@@ -112,7 +112,7 @@ const Panel: React.FC<PanelProps> = ({ title, icon, children, theme }) => (
       }}
     >
       <span aria-hidden="true">{icon}</span> {title}
-    </h2>
+    </h3>
     {children}
   </section>
 );
@@ -412,7 +412,8 @@ const DailyCommandCenter: React.FC<DailyCommandCenterProps> = ({ onExitSimplifie
         >
           {dateLabel}
         </p>
-        <h1
+        {/* The app name in the header is the page's title, as on every tab; this is the screen's heading under it. */}
+        <h2
           style={{
             margin: `${theme.spacing.xs}px 0 0`,
             fontSize: '1.75rem',
@@ -423,7 +424,7 @@ const DailyCommandCenter: React.FC<DailyCommandCenterProps> = ({ onExitSimplifie
           }}
         >
           {t('dailyMode.heading', 'Daily Command Center')}
-        </h1>
+        </h2>
       </header>
 
       {/* ── Today's Focus ── */}

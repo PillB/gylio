@@ -5,6 +5,7 @@ import {
   RouterProvider,
   createBrowserRouter,
   useLocation,
+  useMatches,
   useNavigate
 } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -25,6 +26,7 @@ import DateTimeWidget from './components/atoms/DateTimeWidget.tsx';
 import { useTheme } from './core/context/ThemeContext';
 import TintLayer from './components/TintLayer.jsx';
 import useDB from './core/hooks/useDB';
+import { useMediaQuery } from './core/hooks/useMediaQuery';
 import { getLocalDateKey } from './core/hooks/useClock';
 import useBackgroundSync from './core/hooks/useBackgroundSync';
 import { SyncRoot } from './core/sync/SyncRoot';
@@ -75,10 +77,35 @@ function OnDemand({ children }) {
   return <Suspense fallback={<p role="status" style={{ padding: 16 }}>{t('loading')}</p>}>{children}</Suspense>;
 }
 
+// A page that opens with its own title. There the app name in the header is a label, not a second page title,
+// so a screen reader's list of headings starts with the page the person is on.
+const OWN_TITLE = { handle: { ownTitle: true } };
+
 // The report page and the admin pages only work with the full server; without it, an old link opens Tasks.
 export function serverOnlyRoutes() {
   const pages = { qa: <OnDemand><QaPage /></OnDemand>, admin: <OnDemand><AdminPage /></OnDemand> };
-  return Object.entries(pages).map(([path, page]) => ({ path, element: serverFeaturesEnabled() ? page : <Navigate to="/tasks" replace /> }));
+  return Object.entries(pages).map(([path, page]) => ({ path, ...OWN_TITLE, element: serverFeaturesEnabled() ? page : <Navigate to="/tasks" replace /> }));
+}
+
+/** The app name: the page's title on screens that have no title of their own, plain text on those that do. */
+function AppName() {
+  const { t } = useTranslation();
+  const { theme } = useTheme();
+  const Tag = useMatches().some((match) => match.handle?.ownTitle) ? 'p' : 'h1';
+  return (
+    <Tag
+      style={{
+        margin: 0,
+        color: theme.colors.text,
+        fontFamily: theme.typography.heading.family,
+        fontWeight: theme.typography.heading.weight,
+        fontSize: '1.125rem',
+        letterSpacing: '-0.02em',
+      }}
+    >
+      {t('appName')}
+    </Tag>
+  );
 }
 
 function AppHeader({ clerkEnabled }) {
@@ -88,7 +115,8 @@ function AppHeader({ clerkEnabled }) {
   const location = useLocation();
   const { tourState, openSelector } = useGuidedTour();
   const isOnboarding = location.pathname === '/onboarding';
-  const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 520px)').matches;
+  // The same width at which index.html hides the clock and the read-aloud button.
+  const isMobile = useMediaQuery('(max-width: 520px)');
 
   const ttsEnabled = selections?.accessibility?.tts ?? false;
   const toggleTts = () => updateSelections('accessibility', { tts: !ttsEnabled });
@@ -125,18 +153,7 @@ function AppHeader({ clerkEnabled }) {
         >
           G
         </div>
-        <h1
-          style={{
-            margin: 0,
-            color: theme.colors.text,
-            fontFamily: theme.typography.heading.family,
-            fontWeight: theme.typography.heading.weight,
-            fontSize: '1.125rem',
-            letterSpacing: '-0.02em',
-          }}
-        >
-          {t('appName')}
-        </h1>
+        <AppName />
       </div>
 
       <div style={{ display: 'flex', gap: theme.spacing.sm, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -515,9 +532,9 @@ function buildAuthRouter(clerkEnabled) {
           { index: true, element: clerkEnabled ? <RootRedirectAuthed /> : <RootRedirectNoAuth /> },
           { path: 'sign-in/*', element: <SignInPage /> },
           { path: 'sign-up/*', element: <SignUpPage /> },
-          { path: 'pricing', element: <OnDemand><PricingPage /></OnDemand> },
-          { path: 'privacy', element: <OnDemand><LegalPage doc="privacy" /></OnDemand> },
-          { path: 'terms', element: <OnDemand><LegalPage doc="terms" /></OnDemand> },
+          { path: 'pricing', ...OWN_TITLE, element: <OnDemand><PricingPage /></OnDemand> },
+          { path: 'privacy', ...OWN_TITLE, element: <OnDemand><LegalPage doc="privacy" /></OnDemand> },
+          { path: 'terms', ...OWN_TITLE, element: <OnDemand><LegalPage doc="terms" /></OnDemand> },
           {
             element: clerkEnabled ? <ProtectedLayoutAuthed /> : <ProtectedLayoutNoAuth />,
             children: [

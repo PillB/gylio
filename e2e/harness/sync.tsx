@@ -5,7 +5,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { I18nextProvider } from 'react-i18next';
 import { MemoryRouter } from 'react-router-dom';
-import i18n from '../../src/i18n/i18n.js';
+import i18n, { ready as languageReady } from '../../src/i18n/i18n.js';
 import { ThemeProvider } from '../../src/core/context/ThemeContext';
 import { ToastProvider } from '../../src/core/context/ToastContext';
 import { TaskTimerProvider } from '../../src/core/context/TaskTimerContext';
@@ -46,7 +46,9 @@ function Harness() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
+// Drawn once the first language file has arrived, as src/index.jsx does for the app.
+void languageReady.then(() =>
+  ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <I18nextProvider i18n={i18n}>
     <ThemeProvider>
       <ToastProvider>
@@ -64,4 +66,5 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
       </ToastProvider>
     </ThemeProvider>
   </I18nextProvider>,
+  ),
 );

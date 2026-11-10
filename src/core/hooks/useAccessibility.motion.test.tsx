@@ -17,8 +17,8 @@ vi.mock('../../hooks/useOnboardingFlow.jsx', () => ({
     selections: { accessibility: { motion: flow.motion, animations: flow.animations, textStyle: 'standard', tts: false } },
   }),
 }));
-vi.mock('@react-native-async-storage/async-storage', () => ({
-  default: {
+vi.mock('../utils/deviceStorage', () => ({
+  deviceStorage: {
     getItem: async (key: string) => stored[key] ?? null,
     setItem: async (key: string, value: string) => {
       writes.push([key, value]);

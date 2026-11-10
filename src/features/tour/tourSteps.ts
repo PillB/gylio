@@ -29,7 +29,7 @@ export interface TourFlow {
   steps: TourStep[];
 }
 
-// ─── Overview flow (quick 9-step tour of the whole app) ───────────────────────
+// ─── Overview flow (a quick tour with one step for each tab) ──────────────────
 
 export const OVERVIEW_FLOW: TourFlow = {
   id: 'overview',
@@ -84,6 +84,14 @@ export const OVERVIEW_FLOW: TourFlow = {
       tab: 'social',
       titleKey: 'tour.social.title',
       contentKey: 'tour.social.content',
+      placement: 'bottom',
+    },
+    {
+      id: 'overview-connection-lab',
+      target: '[data-tour="connection-lab-intro"]',
+      tab: 'connection-lab',
+      titleKey: 'tour.connectionLab.title',
+      contentKey: 'tour.connectionLab.content',
       placement: 'bottom',
     },
     {
@@ -543,7 +551,11 @@ export const FLOW_MAP: Record<string, TourFlow> = Object.fromEntries(
 /** Backward-compat: points at the overview steps */
 export const TOUR_STEPS = OVERVIEW_FLOW.steps;
 
-/** The five steps kept by the `overview5` experiment: the free core (tasks, calendar, budget). */
+/**
+ * The five steps kept by the `overview5` experiment: the free core (tasks, calendar, budget). The other variant,
+ * `overview9`, is the whole overview; it has had ten steps since Connection Lab joined it, and keeps its name so
+ * links that force a variant (`?exp_tour_length=`) go on working.
+ */
 const OVERVIEW_SHORT_IDS = ['overview-welcome', 'overview-tasks', 'overview-calendar', 'overview-budget', 'overview-done'];
 
 export type TourLength = 'overview9' | 'overview5';

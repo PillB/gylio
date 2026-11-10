@@ -3,9 +3,12 @@
   "notifications": "Notifications",
   "dismissNotification": "Dismiss notification",
   "information": "Information",
+  "informationAbout": "Information: {{topic}}",
+  "screenTint": "Screen tint",
   "premiumTab": "Pro feature",
   "termsOfService": "Terms of Service",
   "privacyPolicy": "Privacy Policy",
   "legalLinks": "Legal",
-  "legalLastUpdated": "Last updated: {{date}}"
+  "legalLastUpdated": "Last updated: {{date}}",
+  "languageLoadFailed": "Could not load that language. Check your connection and try again."
 }

@@ -60,9 +60,9 @@ const DayPlanCard: React.FC<Props> = ({ tasks, variant: forced }) => {
       aria-labelledby="day-plan-heading"
       style={{ background: theme.colors.surface, borderRadius: 12, padding: 16, marginBottom: 12 }}
     >
-      <h2 id="day-plan-heading" style={{ margin: 0, fontSize: '1rem', color: theme.colors.text }}>
+      <h3 id="day-plan-heading" style={{ margin: 0, fontSize: '1rem', color: theme.colors.text }}>
         {t('dayPlan.heading', 'What fits today')}
-      </h2>
+      </h3>
       <div role="group" aria-label={t('dayPlan.energyGroup', 'How much energy do you have?')} style={{ display: 'flex', gap: 8, margin: '12px 0', flexWrap: 'wrap' }}>
         {LEVELS.map((level) => (
           <button

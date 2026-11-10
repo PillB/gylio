@@ -96,7 +96,7 @@ const renderLoaded = async () => {
 };
 
 const openAddForm = () => {
-  fireEvent.click(screen.getByRole('button', { name: /calendarAddEvent/ }));
+  fireEvent.click(screen.getByRole('button', { name: 'calendarAddEvent' }));
   return screen.getByRole('button', { name: 'calendarSaveEvent' }).parentElement?.parentElement as HTMLElement;
 };
 

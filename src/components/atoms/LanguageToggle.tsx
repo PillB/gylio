@@ -1,15 +1,18 @@
 /**
  * LanguageToggle — production-language selector.
  *
- * Only locales that have passed translation and UX QA are exposed. Draft
- * catalogs may exist in src/i18n without appearing here until they meet the
- * same release gate. Language names use autonyms instead of country flags:
- * languages and countries are not a one-to-one relationship.
+ * Only locales that have passed translation and UX QA are exposed. Language names use autonyms instead of country
+ * flags: languages and countries are not a one-to-one relationship.
+ *
+ * A language's text is fetched the first time it is chosen (src/i18n/catalogs.js). The app changes language once
+ * the text has arrived; if it cannot be fetched, the language stays as it was and the person is told.
  */
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../core/context/ThemeContext';
 import type { ThemeTokens } from '../../core/themes';
+import { track, Events } from '../../core/analytics';
+import { catalogFor, loadCatalog } from '../../i18n/catalogs.js';
 
 export type LanguageToggleProps = {
   ariaLabel?: string;
@@ -19,54 +22,9 @@ export type LanguageToggleProps = {
   style?: React.CSSProperties;
 };
 
-// Parsed once at module load — standard browser APIs, no permissions required.
-const _browserLang   = typeof navigator !== 'undefined' ? navigator.language : '';
-const _browserRegion = _browserLang.split('-')[1]?.toUpperCase() ?? '';
-const _browserBase   = _browserLang.split('-')[0].toLowerCase();
-
-/** Region-to-flag maps for each supported base language. */
-const _REGION_FLAGS: Record<string, Record<string, string>> = {
-  en: {
-    US: '🇺🇸', CA: '🇨🇦', AU: '🇦🇺', NZ: '🇳🇿', IE: '🇮🇪', ZA: '🇿🇦',
-  },
-  es: {
-    MX: '🇲🇽', CO: '🇨🇴', AR: '🇦🇷', CL: '🇨🇱', EC: '🇪🇨', VE: '🇻🇪', PE: '🇵🇪',
-    BO: '🇧🇴', PY: '🇵🇾', UY: '🇺🇾', CR: '🇨🇷', GT: '🇬🇹', CU: '🇨🇺', DO: '🇩🇴',
-    ES: '🇪🇸',
-  },
-  de: {
-    AT: '🇦🇹', CH: '🇨🇭',
-  },
-  fr: {
-    CA: '🇨🇦', BE: '🇧🇪', CH: '🇨🇭', SN: '🇸🇳', CI: '🇨🇮',
-  },
-  it: {
-    CH: '🇨🇭',
-  },
-  zh: {
-    TW: '🇹🇼', HK: '🇭🇰', SG: '🇸🇬', MO: '🇲🇴',
-  },
-  sw: {
-    KE: '🇰🇪', TZ: '🇹🇿', UG: '🇺🇬',
-  },
-};
-
-/**
- * Returns the most locally-relevant flag for a language entry.
- * Only overrides the flag when the browser's base language matches
- * the entry's base language — other entries keep their defaults.
- */
-function getLocalizedFlag(langCode: string, defaultFlag: string): string {
-  const base = langCode.split('-')[0].toLowerCase();
-  if (base !== _browserBase) return defaultFlag; // different language → keep default
-  const regionMap = _REGION_FLAGS[base];
-  if (!regionMap) return defaultFlag;            // no region map (hi, id) → keep default
-  return regionMap[_browserRegion] ?? defaultFlag;
-}
-
 const LANGUAGES = [
-  { code: 'en',    flag: getLocalizedFlag('en',    '🇬🇧'), label: 'English' },
-  { code: 'es-PE', flag: getLocalizedFlag('es-PE', '🇵🇪'), label: 'Español (Perú)' },
+  { code: 'en', label: 'English' },
+  { code: 'es-PE', label: 'Español (Perú)' },
 ];
 
 const placementStyles: Record<NonNullable<LanguageToggleProps['placement']>, React.CSSProperties> = {
@@ -81,15 +39,37 @@ const LanguageToggle: React.FC<LanguageToggleProps> = ({
   className,
   style,
 }) => {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { theme } = useTheme();
+  // The language being fetched, shown as chosen while it loads so the control does not snap back.
+  const [pending, setPending] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
+  // Counts the choices made. A language chosen and then replaced by another choice before its text arrived must not
+  // take effect when it finally does: the last choice is the one the person wants.
+  const choices = useRef(0);
 
   // Generic browser Spanish intentionally maps to the reviewed es-PE catalog.
-  const currentCode = i18n.language.toLowerCase().startsWith('es') ? 'es-PE' : 'en';
+  const currentCode = catalogFor(i18n.language);
   const defaultAriaLabel = currentCode === 'es-PE' ? 'Seleccionar idioma' : 'Select language';
 
-  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    void i18n.changeLanguage(event.target.value);
+  const handleChange = async (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const next = event.target.value;
+    const choice = ++choices.current;
+    const replaced = () => choice !== choices.current;
+    setPending(next);
+    setFailed(false);
+    try {
+      await loadCatalog(next);
+      if (replaced()) return;
+      await i18n.changeLanguage(next);
+      track(Events.LANGUAGE_CHANGED, { to: next });
+    } catch {
+      if (replaced()) return;
+      setFailed(true);
+      track(Events.LANGUAGE_LOAD_FAILED, { to: next });
+    } finally {
+      if (!replaced()) setPending(null);
+    }
   };
 
   const selectStyle: React.CSSProperties = {
@@ -106,19 +86,27 @@ const LanguageToggle: React.FC<LanguageToggleProps> = ({
   };
 
   return (
-    <select
-      value={currentCode}
-      onChange={handleChange}
-      aria-label={ariaLabel ?? defaultAriaLabel}
-      className={className}
-      style={selectStyle}
-    >
-      {LANGUAGES.map(({ code, label }) => (
-        <option key={code} value={code}>
-          {label}
-        </option>
-      ))}
-    </select>
+    <>
+      <select
+        value={pending ?? currentCode}
+        onChange={(event) => void handleChange(event)}
+        aria-label={ariaLabel ?? defaultAriaLabel}
+        aria-busy={pending !== null}
+        className={className}
+        style={selectStyle}
+      >
+        {LANGUAGES.map(({ code, label }) => (
+          <option key={code} value={code}>
+            {label}
+          </option>
+        ))}
+      </select>
+      {failed && (
+        <span role="alert" style={{ fontSize: '0.8125rem', color: theme.colors.text, alignSelf: 'center' }}>
+          {t('shell.languageLoadFailed')}
+        </span>
+      )}
+    </>
   );
 };
 

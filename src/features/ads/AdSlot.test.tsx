@@ -4,10 +4,13 @@
  * asserted without a backend.
  */
 import React from 'react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import '../../i18n/i18n.js';
+import { ready as languageReady } from '../../i18n/i18n.js';
+
+// The language file arrives after the module loads; render only once it has.
+beforeAll(() => languageReady);
 import { ThemeProvider } from '../../core/context/ThemeContext';
 
 const trackMock = vi.fn();
@@ -49,7 +52,7 @@ function renderSlot(placement: 'settings' | 'qa' | 'rewards' = 'rewards') {
   render(
     <ThemeProvider>
       <MemoryRouter initialEntries={['/rewards']}>
-        {/* Probe: ThemeProvider holds children until AsyncStorage hydrates.
+        {/* Probe: ThemeProvider holds children until the saved theme is read.
             This confirms the tree (and AdSlot's effects) actually mounted. */}
         <div data-testid="theme-probe" />
         <AdSlot placement={placement} />

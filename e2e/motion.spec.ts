@@ -113,10 +113,10 @@ test.describe('motion setting', () => {
       }));
     });
     await page.goto('./settings');
-    await page.getByRole('button', { name: 'Enable screen tint' }).click();
-    await expect(page.getByRole('button', { name: 'Disable screen tint' })).toBeVisible();
+    await page.getByRole('button', { name: 'Enable screen tint', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Disable screen tint', exact: true })).toBeVisible();
     await page.reload();
-    await expect(page.getByRole('button', { name: 'Disable screen tint' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Disable screen tint', exact: true })).toBeVisible();
   });
 
   test('with motion reduced, a progress bar jumps to its new width instead of growing', async ({ page }) => {

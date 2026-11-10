@@ -1,4 +1,5 @@
 import React from 'react';
+import { HelpTopic } from './HelpTopic';
 
 type Props = {
   /** The help button, if the section has one. */
@@ -16,7 +17,7 @@ type Props = {
 const HelpHeading: React.FC<Props> = ({ help, spaceBelow = 0, children }) => (
   <div style={{ display: 'flex', alignItems: 'center', marginBottom: spaceBelow, minWidth: 0 }}>
     <h3 style={{ margin: 0 }}>{children}</h3>
-    {help}
+    <HelpTopic topic={children}>{help}</HelpTopic>
   </div>
 );
 

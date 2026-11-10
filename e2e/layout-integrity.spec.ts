@@ -321,7 +321,7 @@ test.describe('layout integrity — task edit form — small-mobile', () => {
       await seedCompletedOnboarding(page, locale);
       await page.goto('./calendar');
       await page.waitForLoadState('networkidle');
-      await page.getByRole('button', { name: /add event|agregar evento/i }).click();
+      await page.getByRole('button', { name: /^(add event|agregar evento)$/i }).click();
       await expect(page.getByRole('button', { name: /save event|guardar evento/i })).toBeVisible();
 
       await assertNoDocumentOverflow(page);

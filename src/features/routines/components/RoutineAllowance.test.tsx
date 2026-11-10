@@ -6,8 +6,8 @@
 import React from 'react';
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import '../../../i18n/i18n.js';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { ready as languageReady } from '../../../i18n/i18n.js';
 
 vi.mock('../../../core/context/ThemeContext', async () => {
   const { themes } = await import('../../../core/themes');
@@ -28,6 +28,9 @@ vi.mock('../../../core/analytics', async (importOriginal) => ({
 import { DAYS_COUNTED_KEY, EXTRA_KEY } from '../routineAllowance';
 import { useRoutineAllowance } from '../hooks/useRoutineAllowance';
 import { RoutineExtraNotice, RoutineFormGate, RoutineLimitCount } from './RoutineAllowanceNote';
+
+// The English text is fetched when the language module starts; wait for it before drawing anything.
+beforeAll(() => languageReady);
 
 type Routine = { completionLog?: string[] | null };
 

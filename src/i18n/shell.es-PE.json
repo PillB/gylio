@@ -3,9 +3,12 @@
   "notifications": "Notificaciones",
   "dismissNotification": "Cerrar notificación",
   "information": "Información",
+  "informationAbout": "Información: {{topic}}",
+  "screenTint": "Tinte de pantalla",
   "premiumTab": "Función de Pro",
   "termsOfService": "Términos del Servicio",
   "privacyPolicy": "Política de Privacidad",
   "legalLinks": "Información legal",
-  "legalLastUpdated": "Última actualización: {{date}}"
+  "legalLastUpdated": "Última actualización: {{date}}",
+  "languageLoadFailed": "No se pudo cargar ese idioma. Revisa tu conexión e inténtalo de nuevo."
 }

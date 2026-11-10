@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { deviceStorage } from '../utils/deviceStorage';
 
 const GAMIFICATION_STORAGE_KEY = 'settings:gamification';
 
@@ -10,7 +10,7 @@ const useGamification = () => {
   useEffect(() => {
     const hydrate = async () => {
       try {
-        const stored = await AsyncStorage.getItem(GAMIFICATION_STORAGE_KEY);
+        const stored = await deviceStorage.getItem(GAMIFICATION_STORAGE_KEY);
         if (stored !== null) {
           setGamificationEnabledState(stored === 'true');
         }
@@ -26,7 +26,7 @@ const useGamification = () => {
 
   useEffect(() => {
     if (!hydratedRef.current) return;
-    AsyncStorage.setItem(GAMIFICATION_STORAGE_KEY, gamificationEnabled ? 'true' : 'false').catch(() => {
+    deviceStorage.setItem(GAMIFICATION_STORAGE_KEY, gamificationEnabled ? 'true' : 'false').catch(() => {
       // Ignore persistence failures to keep UI responsive.
     });
   }, [gamificationEnabled]);

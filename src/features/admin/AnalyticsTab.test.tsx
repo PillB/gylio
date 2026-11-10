@@ -1,8 +1,11 @@
 /** The routine limit test's results in the admin analytics tab, with the real English catalogue. */
 import React from 'react';
 import { cleanup, render, screen, within } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import '../../i18n/i18n.js';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import { ready as languageReady } from '../../i18n/i18n.js';
+
+// The language file arrives after the module loads; render only once it has.
+beforeAll(() => languageReady);
 
 vi.mock('../../core/context/ThemeContext', async () => {
   const { themes } = await import('../../core/themes');

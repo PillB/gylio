@@ -5,7 +5,7 @@
 ## Tech Stack (file-grounded)
 - Frontend: React 18 + Vite (`src/App.jsx`, `vite.config.ts`).
 - Language mix: JavaScript + TypeScript (`.jsx/.js` and `.tsx/.ts`).
-- Mobile bridge: Expo + React Native Web shims (`app.json`, `src/shims/*`).
+- Browser stand-ins for the Expo modules the code was first written against (`src/shims/*`); no Expo or React Native package is installed.
 - Backend: Node.js + Express (`server/server.js`, `server/routes/*`).
 - Data: MongoDB (Mongoose) with SQLite fallback (`server/db/models.js`).
 - i18n: `react-i18next` with English + es-PE dictionaries (`src/i18n`).

@@ -203,7 +203,7 @@ const RewardsView = () => {
           <div>
             <p style={{ margin: 0, fontWeight: 600, display: 'flex', alignItems: 'center' }}>
               {t('rewards.gamificationLabel') || 'Gamification'}
-              <BudgetTooltip content={t('tooltips.rewards.gamification', "Turn XP points, level-ups and streaks on or off. Your points stay on this device and are not shared.")} />
+              <BudgetTooltip about={t('rewards.gamificationLabel')} content={t('tooltips.rewards.gamification', "Turn XP points, level-ups and streaks on or off. Your points stay on this device and are not shared.")} />
             </p>
             <small style={{ color: theme.colors.muted }}>
               {t('rewards.gamificationHelper') ||
@@ -247,7 +247,7 @@ const RewardsView = () => {
                 <div>
                   <p style={{ margin: 0, fontWeight: 600, display: 'flex', alignItems: 'center' }}>
                     {t('rewards.levelLabel') || 'Level'}
-                    <BudgetTooltip content={t('tooltips.rewards.level', 'Your level reflects cumulative XP across all completed tasks and budget reviews. Levels are purely cosmetic — they show long-term consistency, not short-term performance.')} />
+                    <BudgetTooltip about={t('rewards.levelLabel')} content={t('tooltips.rewards.level', 'Your level reflects cumulative XP across all completed tasks and budget reviews. Levels are purely cosmetic — they show long-term consistency, not short-term performance.')} />
                   </p>
                   <p style={{ margin: '0.25rem 0 0' }}>
                     {t('rewards.levelSummary', { level: progressSummary.level }) || `Level ${progressSummary.level}`}
@@ -267,7 +267,7 @@ const RewardsView = () => {
                 <div>
                   <p style={{ margin: 0, fontWeight: 600, display: 'flex', alignItems: 'center' }}>
                     {t('rewards.skipTokensLabel') || 'Skip tokens'}
-                    <BudgetTooltip content={t('tooltips.rewards.skipTokens', 'Skip tokens protect your streak when life gets in the way. Earn them by completing tasks or budget reviews. Use them on days you miss — no guilt, no reset.')} />
+                    <BudgetTooltip about={t('rewards.skipTokensLabel')} content={t('tooltips.rewards.skipTokens', 'Skip tokens protect your streak when life gets in the way. Earn them by completing tasks or budget reviews. Use them on days you miss — no guilt, no reset.')} />
                   </p>
                   <p style={{ margin: '0.25rem 0 0' }}>{progressSummary.skipTokens}</p>
                   <small style={{ color: theme.colors.muted }}>
@@ -279,7 +279,7 @@ const RewardsView = () => {
               <div style={{ display: 'grid', gap: theme.spacing.xs }}>
                 <p style={{ margin: 0, fontWeight: 600, display: 'flex', alignItems: 'center' }}>
                   {t('rewards.streakHeading') || 'Streak status'}
-                  <BudgetTooltip content={t('tooltips.rewards.streak', 'Streaks track how many consecutive days you\'ve completed tasks, focused, or reviewed your budget. Consistency beats intensity — even 1 task a day counts.')} />
+                  <BudgetTooltip about={t('rewards.streakHeading')} content={t('tooltips.rewards.streak', 'Streaks track how many consecutive days you\'ve completed tasks, focused, or reviewed your budget. Consistency beats intensity — even 1 task a day counts.')} />
                 </p>
 
                 {/* Task streak — prominent counter */}
