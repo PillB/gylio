@@ -6,6 +6,7 @@
  */
 import { test, expect } from '@playwright/test';
 import { builtSiteUrl } from './helpers/builtSite';
+import { openSeedPage } from './helpers/seedPage';
 
 const ONBOARDED = JSON.stringify({
   isOnboardingComplete: true,
@@ -20,9 +21,9 @@ const ONBOARDED = JSON.stringify({
 
 test('removes the tasks, answers and sync data of the person who asked, and keeps the device settings', async ({ page }) => {
   const tasks = new URL('tasks', builtSiteUrl).toString();
-  await page.goto(tasks);
+  await openSeedPage(page, builtSiteUrl);
   await page.evaluate((onboarded) => localStorage.setItem('onboardingFlowState', onboarded), ONBOARDED);
-  await page.reload();
+  await page.goto(tasks);
 
   const title = page.locator('#new-task');
   await expect(title).toBeVisible();

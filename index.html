@@ -8,7 +8,9 @@
     <!-- Icons -->
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/icons/icon-192.png" />
-    <!-- Viewport: viewport-fit=cover for notch/Dynamic Island; interactive-widget for iOS keyboard -->
+    <!-- Viewport: viewport-fit=cover for notch/Dynamic Island. interactive-widget=resizes-content makes Chrome and
+         Firefox on Android shrink the page above the keyboard, so viewport-sized dialogs keep their buttons in reach;
+         Safari ignores the key and logs a notice (accepted in e2e/helpers/browserNotices.ts). -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
     <!-- iOS PWA -->
     <meta name="mobile-web-app-capable" content="yes" />

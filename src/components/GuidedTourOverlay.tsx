@@ -8,7 +8,8 @@ import { useAppAuth } from '../core/context/AuthContext';
 import useDialogFocus from '../core/hooks/useDialogFocus';
 import { serverFeaturesEnabled } from '../core/utils/serverFeatures';
 import type { TourStep } from '../features/tour/tourSteps';
-import { placeTooltip, type TooltipSide } from '../features/tour/placeTooltip';
+import { placeTooltip } from '../features/tour/placeTooltip';
+import { useCardHeight } from '../features/tour/useCardHeight';
 
 const TOOLTIP_WIDTH = 320;
 const TOOLTIP_GAP = 14;
@@ -16,8 +17,8 @@ const SPOTLIGHT_PAD = 8;
 const LOCATE_RETRIES = 20;
 const LOCATE_RETRY_MS = 100;
 const VIEWPORT_PAD = 12;
-// Measured card heights run 290-350px (title, 4 lines of copy, progress, buttons);
-// the old 230px estimate let the card slide onto the element it was explaining.
+// Used only until the card has been measured (useCardHeight). Cards run 280-350px
+// (title, 4 lines of copy, progress, buttons) depending on browser, language and text size.
 const ESTIMATED_TOOLTIP_HEIGHT = 340;
 
 /**
@@ -205,6 +206,9 @@ export default function GuidedTourOverlay() {
   // highlighted element reachable for "Try it". The step index lets a spotlight step that
   // hands over to a centred card pull focus back in from the page.
   useDialogFocus(dialogRef, currentStep !== null, stepIndex);
+  // Placement uses the card's real height: an estimate either docks a card that would fit beside
+  // its target, or puts one on top of the target in a browser that sets the copy in more lines.
+  const cardHeight = useCardHeight(dialogRef, ESTIMATED_TOOLTIP_HEIGHT, `${stepIndex}:${Boolean(targetRect)}:${isPremiumGated}`);
 
   if (!isActive || !currentStep) return null;
 
@@ -222,7 +226,6 @@ export default function GuidedTourOverlay() {
   let tooltipStyle: React.CSSProperties;
   let top = 0;
   let left = 0;
-  let side: TooltipSide = 'dock';
 
   if (isCenter) {
     tooltipStyle = {
@@ -237,12 +240,12 @@ export default function GuidedTourOverlay() {
       zIndex: theme.zIndex.tour + 1,
     };
   } else {
-    ({ top, left, side } = placeTooltip({
+    ({ top, left } = placeTooltip({
       target: targetRect,
       viewportW: vw,
       viewportH: vh,
       tipW: tooltipWidth,
-      tipH: ESTIMATED_TOOLTIP_HEIGHT,
+      tipH: cardHeight,
       gap: TOOLTIP_GAP,
       pad: VIEWPORT_PAD,
       prefer: currentStep.placement,
@@ -259,34 +262,6 @@ export default function GuidedTourOverlay() {
       zIndex: theme.zIndex.tour + 1,
     };
   }
-
-  // ── Arrow pointer ─────────────────────────────────────────────────────────
-  const arrowStyle: React.CSSProperties | null =
-    !isCenter && targetRect
-      ? (() => {
-          const tipLeft = (tooltipStyle.left as number) ?? 0;
-          if (side !== 'below' && side !== 'above') return null; // beside or docked: no pointer
-          const isBelow = side === 'below';
-          const arrowLeft = Math.max(
-            16,
-            Math.min(
-              targetRect.left + targetRect.width / 2 - tipLeft,
-              Math.max(16, tooltipWidth - 16)
-            )
-          );
-          return {
-            position: 'absolute' as const,
-            left: arrowLeft,
-            width: 12,
-            height: 8,
-            borderLeft: '6px solid transparent',
-            borderRight: '6px solid transparent',
-            ...(isBelow
-              ? { top: -8, borderBottom: `8px solid ${theme.colors.surfaceElevated}` }
-              : { bottom: -8, borderTop: `8px solid ${theme.colors.surfaceElevated}` }),
-          };
-        })()
-      : null;
 
   return (
     <>
@@ -340,8 +315,6 @@ export default function GuidedTourOverlay() {
           color: theme.colors.text,
         }}
       >
-        {arrowStyle && <div aria-hidden="true" style={arrowStyle} />}
-
         <div
           style={{
             display: 'flex',

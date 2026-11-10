@@ -528,7 +528,8 @@ const RoutinesView: React.FC = () => {
                     <div
                       style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: `${theme.spacing.xs}px` }}
                     >
-                      <div style={{ minWidth: 0, flex: 1 }}>
+                      {/* A 12rem basis, so the buttons wrap below a narrow title instead of squeezing it to one letter a line. */}
+                      <div style={{ minWidth: 0, flex: '1 1 12rem' }}>
                         <strong style={{ color: theme.colors.text, fontFamily: theme.typography.heading.family, wordBreak: 'break-word' }}>
                           {routine.title}
                         </strong>
@@ -539,6 +540,8 @@ const RoutinesView: React.FC = () => {
                         )}
                         <span
                           style={{
+                            display: 'inline-block',
+                            whiteSpace: 'nowrap',
                             marginLeft: `${theme.spacing.sm}px`,
                             fontSize: '0.75rem',
                             padding: '2px 8px',
