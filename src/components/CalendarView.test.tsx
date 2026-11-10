@@ -1,6 +1,6 @@
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import CalendarView from './CalendarView.jsx';
 
 // Characterization tests for the Calendar screen. They pin user-visible
@@ -75,15 +75,24 @@ const makeEvent = (id: number, title: string, startDate: string, overrides: Part
   ...overrides,
 });
 
-const eventsSection = () => screen.getByText('calendarEventsHeading').parentElement as HTMLElement;
-const convertSection = () => screen.getByText('calendarTasksToConvert').parentElement as HTMLElement;
+/** A section is the box around its heading row (the heading and its help button) and its list. */
+const sectionOf = (heading: string) => screen.getByRole('heading', { level: 3, name: heading }).parentElement?.parentElement as HTMLElement;
+const eventsSection = () => sectionOf('calendarEventsHeading');
+const convertSection = () => sectionOf('calendarTasksToConvert');
+const sentAs = (name: string) =>
+  (JSON.parse(localStorage.getItem('analytics:queue') ?? '[]') as { name: string; props: unknown }[])
+    .filter((event) => event.name === name)
+    .map((event) => event.props);
 const dateInput = () => screen.getByLabelText('calendarSelectDate') as HTMLInputElement;
 /** The control a label names, the way a screen reader finds it (label text only, not the help button). */
 const fieldIn = (scope: HTMLElement, label: string) => within(scope).getByLabelText(label, { exact: true }) as HTMLInputElement;
 
 const renderLoaded = async () => {
   render(<CalendarView />);
-  await waitFor(() => expect(within(eventsSection()).queryByText('loading')).toBeNull());
+  // Events and tasks arrive a tick after the first render.
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
 };
 
 const openAddForm = () => {
@@ -127,7 +136,56 @@ describe('CalendarView', () => {
     await waitFor(() => expect(updateTask).toHaveBeenCalledWith(5, { calendarEventId: 700 }));
     expect(insertEvent).toHaveBeenCalledWith('Deep work', null, '2026-03-10T09:00', '2026-03-10T10:00', null, 5, 15);
     expect(fieldIn(form, 'titleLabel').value).toBe('');
-    expect(within(convertSection()).queryByText('Write report')).toBeNull();
+    // The task has a time now, so there is nothing left to convert and the section is gone.
+    expect(screen.queryByText('Write report', { selector: 'span' })).toBeNull();
+    expect(screen.queryByRole('heading', { name: 'calendarTasksToConvert' })).toBeNull();
+  });
+
+  it('shows no empty sections on a calendar with nothing in it', async () => {
+    await renderLoaded();
+    // Only the grid and "Add event": no heading over "nothing here", three times.
+    expect(screen.queryAllByRole('heading', { level: 3 })).toHaveLength(0);
+    expect(screen.getByRole('button', { name: 'calendarAddEvent' })).toBeTruthy();
+  });
+
+  it('counts an empty calendar and one with events, once each, after they have loaded', async () => {
+    localStorage.removeItem('analytics:queue');
+    const empty = render(<CalendarView />);
+    expect(sentAs('screen_state')).toEqual([]);
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(sentAs('screen_state')).toEqual([{ screen: 'calendar', state: 'empty' }]);
+    empty.unmount();
+
+    localStorage.removeItem('analytics:queue');
+    db.events = [makeEvent(1, 'Standup', '2026-03-10T09:00')];
+    await renderLoaded();
+    expect(sentAs('screen_state')).toEqual([{ screen: 'calendar', state: 'has_items' }]);
+  });
+
+  it('shows each section once it has something in it', async () => {
+    db.tasks = [{ id: 5, title: 'Write report', calendarEventId: null, status: 'pending' }];
+    db.events = [makeEvent(1, 'Standup', '2026-03-10T09:00')];
+    await renderLoaded();
+    expect(within(convertSection()).getByText('Write report')).toBeTruthy();
+    expect(within(eventsSection()).getByText('Standup')).toBeTruthy();
+  });
+
+  it('names a section heading without its help button', async () => {
+    db.events = [makeEvent(1, 'Standup', '2026-03-10T09:00')];
+    await renderLoaded();
+    const heading = screen.getByRole('heading', { level: 3, name: 'calendarEventsHeading' });
+    expect(within(heading).queryByRole('button')).toBeNull();
+    // The help button sits beside the heading, in the same row.
+    expect(within(heading.parentElement as HTMLElement).getAllByRole('button')).toHaveLength(1);
+  });
+
+  it('keeps the help for "Add event" on the same row as the button', async () => {
+    await renderLoaded();
+    const row = screen.getByRole('button', { name: 'calendarAddEvent' }).parentElement as HTMLElement;
+    expect(within(row).getAllByRole('button')).toHaveLength(2);
+    expect(row.style.display).toBe('flex');
   });
 
   it('says whether the add-event form is open, and names the toggle without its + or ✕ sign', async () => {
@@ -187,7 +245,9 @@ describe('CalendarView', () => {
     expect(deleteEvent).not.toHaveBeenCalled();
     fireEvent.click(within(eventsSection()).getByRole('button', { name: 'yesLabel' }));
 
-    await waitFor(() => expect(within(eventsSection()).queryByText('Standup')).toBeNull());
+    // It was the only event, so the list goes with it.
+    await waitFor(() => expect(screen.queryByRole('heading', { name: 'calendarEventsHeading' })).toBeNull());
+    expect(screen.queryByText('Standup')).toBeNull();
     expect(deleteEvent).toHaveBeenCalledWith(1);
     expect(updateTask).toHaveBeenCalledWith(5, { calendarEventId: null });
     expect(deleteTask).not.toHaveBeenCalled();

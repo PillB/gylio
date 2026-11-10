@@ -1,5 +1,8 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { join, relative } from 'node:path';
 import { legalText, type LegalDocId } from './legalDocs';
+import { legalPath } from './legalPath';
 
 const DOCS: LegalDocId[] = ['privacy', 'terms'];
 const LANGS = ['en', 'es-PE'];
@@ -45,5 +48,38 @@ describe('legal documents', () => {
     expect(legalText('terms', 'fr')).toBe(legalText('terms', 'en'));
     expect(legalText('terms', undefined)).toBe(legalText('terms', 'en'));
     expect(legalText('terms', 'en')).not.toBe(legalText('terms', 'es'));
+  });
+});
+
+describe('where the legal text is loaded', () => {
+  const SRC = join(__dirname, '..', '..');
+  const walk = (dir: string): string[] =>
+    readdirSync(dir).flatMap((name) => {
+      const full = join(dir, name);
+      if (statSync(full).isDirectory()) return walk(full);
+      return /\.(jsx?|tsx?)$/.test(name) && !/\.test\./.test(name) ? [full] : [];
+    });
+
+  it('only the legal page imports the text, so the 90 kB of documents stay out of the first download', () => {
+    const importers = walk(SRC)
+      .filter((file) => /from\s+['"][^'"]*legalDocs['"]/.test(readFileSync(file, 'utf8')))
+      .map((file) => relative(SRC, file).replace(/\\/g, '/'));
+    expect(importers).toEqual(['features/legal/LegalPage.tsx']);
+  });
+
+  it('the app loads the legal page on demand', () => {
+    const app = readFileSync(join(SRC, 'App.jsx'), 'utf8');
+    expect(app).toMatch(/lazy\(\(\) => import\('\.\/features\/legal\/LegalPage'\)\)/);
+    expect(app).not.toMatch(/^import .*LegalPage/m);
+  });
+
+  it('gives each document its address under the app\'s base path', () => {
+    vi.stubEnv('BASE_URL', '/gylio/');
+    try {
+      expect(legalPath('privacy')).toBe('/gylio/privacy');
+      expect(legalPath('terms')).toBe('/gylio/terms');
+    } finally {
+      vi.unstubAllEnvs();
+    }
   });
 });

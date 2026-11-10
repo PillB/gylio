@@ -12,6 +12,7 @@ import ConvertTaskList from '../features/calendar/components/ConvertTaskList';
 import EventList from '../features/calendar/components/EventList';
 import CalendarHelp from '../features/calendar/components/CalendarHelp';
 import { useCalendarData } from '../features/calendar/hooks/useCalendarData';
+import { listState, useScreenState } from '../core/analytics/useScreenState';
 import { useLayoutVariant } from '../features/layoutVariants';
 import { useCalendarFormat } from '../features/calendar/hooks/useCalendarFormat';
 import { buildScheduleSuggestions } from '../features/calendar/utils/scheduleSuggestions';
@@ -44,6 +45,7 @@ const CalendarView = () => {
 
   const palette = theme.eventTints;
   const sortedEvents = useMemo(() => sortByStart(data.events), [data.events]);
+  useScreenState('calendar', listState(data.loading, data.events.length));
   const eventsByDay = useMemo(() => groupByDay(sortedEvents, palette), [palette, sortedEvents]);
   const availableTasks = useMemo(() => data.tasks.filter((task) => !task.calendarEventId), [data.tasks]);
   const suggestions = useMemo(
@@ -94,23 +96,23 @@ const CalendarView = () => {
         onStep={(direction) => setSelectedDate((current) => stepDate(current, viewMode, direction))}
         onToday={() => setSelectedDate(toDateKey(new Date()))}
       />
-      {viewMode === 'week' && (
-        <div data-tour="calendar-grid">
+      {/* The tour points here in every view: phones open on Day, where a week-only target left the step with nothing to show. */}
+      <div data-tour="calendar-grid">
+        {viewMode === 'week' && (
           <WeeklyGrid
             events={data.events}
             weekStartDate={weekStartOf(selectedDate)}
             theme={theme}
             onEventClick={listActions.startEdit}
-            reduceMotion={false}
           />
-        </div>
-      )}
-      {viewMode === 'day' && selectedDay && (
-        <DayView date={selectedDay} events={eventsByDay.get(selectedDate) ?? []} format={format} onEventClick={listActions.startEdit} />
-      )}
-      {viewMode === 'month' && (
-        <MonthView selectedDate={selectedDate} eventsByDay={eventsByDay} format={format} onOpenDay={openDay} />
-      )}
+        )}
+        {viewMode === 'day' && selectedDay && (
+          <DayView date={selectedDay} events={eventsByDay.get(selectedDate) ?? []} format={format} onEventClick={listActions.startEdit} />
+        )}
+        {viewMode === 'month' && (
+          <MonthView selectedDate={selectedDate} eventsByDay={eventsByDay} format={format} onOpenDay={openDay} />
+        )}
+      </div>
       <div style={{ display: 'grid', gap: `${theme.spacing.md}px`, gridTemplateColumns: 'minmax(0, 1fr)' }}>
         <AddEventPanel tasks={data.tasks} onCreate={data.createEvent} />
         <SuggestionList suggestions={suggestions} format={format} onSchedule={scheduleSuggestion} />
@@ -119,7 +121,6 @@ const CalendarView = () => {
           onConvert={(task) => data.scheduleTask(buildQuickTaskEventInput(task), 'convert task')}
         />
         <EventList
-          loading={data.loading}
           events={sortedEvents}
           tasks={data.tasks}
           palette={palette}

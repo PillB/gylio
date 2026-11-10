@@ -73,6 +73,10 @@
           font-size: 0.8125rem !important;
         }
       }
+      /* Keyboard help (the tour's "← → navigate · Esc pause" line, the shortcut list in Settings) is hidden on touch-only devices. */
+      @media (hover: none) and (pointer: coarse) {
+        .tour-keyboard-hint, .keyboard-only { display: none; }
+      }
       /* Safari ignores list-style on <summary>; keep the native marker from doubling a custom chevron. */
       summary::-webkit-details-marker { display: none; }
       .legal-footer {
@@ -98,7 +102,30 @@
       }
       .legal-table-wrap { overflow-x: auto; margin: 0 0 1em; }
       .legal-table-wrap th, .legal-table-wrap td { text-align: start; vertical-align: top; padding: 6px 10px; border: 1px solid #D9D7D0; }
-      @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+      /* Motion setting. The app writes it on <html> (src/core/accessibility/motion.ts); !important because
+         components set their transitions inline. "reduced": fades stay, nothing changes size or position
+         gradually. "off": no transitions. Until the app has written it, the device's preference stands in.
+         The page itself scrolls smoothly only in "full". */
+      html[data-motion="full"] { scroll-behavior: smooth; }
+      html[data-motion="reduced"] *, html[data-motion="reduced"] *::before, html[data-motion="reduced"] *::after {
+        transition-property: color, background-color, border-color, outline-color, opacity, box-shadow !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+      }
+      html[data-motion="off"] *, html[data-motion="off"] *::before, html[data-motion="off"] *::after {
+        transition: none !important;
+        animation: none !important;
+        scroll-behavior: auto !important;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html:not([data-motion]) *, html:not([data-motion]) *::before, html:not([data-motion]) *::after {
+          transition-property: color, background-color, border-color, outline-color, opacity, box-shadow !important;
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          scroll-behavior: auto !important;
+        }
+      }
       /* iOS momentum scrolling for any overflow container */
       [data-scroll] {
         -webkit-overflow-scrolling: touch;

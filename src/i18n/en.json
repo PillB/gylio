@@ -356,12 +356,10 @@
   "announceSettings": "Announce settings",
   "speaking": "Speaking…",
   "settingsAnimationLabel": "Allow animations",
-  "settingsAnimationOn": "Animations enabled",
-  "settingsAnimationOff": "Animations limited",
   "settingsAnimationHelper": "Disable non-essential animations to keep the interface calm.",
   "budget": {
     "title": "Budget",
-    "placeholder": "Budget tools will track income and expenses, categorize them and simulate debt payoff.",
+    "placeholder": "Plan the month: what comes in, what each part is for, and what you spent.",
     "debtSnowball": "Debt snowball coaching and payoff projections will appear here alongside your budget overview.",
     "confirmDelete": "Delete {{category}}? This cannot be undone.",
     "monthHeading": "Budget month",
@@ -384,10 +382,12 @@
     "selectCategory": "Select category",
     "addTransaction": "Add transaction",
     "emptyTransactions": "No transactions yet.",
+    "transactionsNeedCategory": "Add a category first. Then you can log what you spend here.",
     "plannedActualHeading": "Planned vs actual",
     "needsLabel": "Needs",
     "wantsLabel": "Wants",
     "planActualHint": "Top bar shows planned, bottom bar shows actual.",
+    "planActualEmpty": "Add a category with a planned amount, and the plan and your spending are compared here.",
     "debtsHeading": "Debts",
     "balanceLabel": "Balance",
     "annualRateLabel": "Annual rate (%)",
@@ -572,7 +572,7 @@
       "game": "20 min of gaming"
     }
   },
-  "rewardsPlaceholder": "Points and streaks will appear here. Gamification is optional.",
+  "rewardsPlaceholder": "Points and streaks for what you get done. They are optional: turn them off any time.",
   "social": {
     "title": "Social",
     "description": "Plan social moments with gentle prompts and reminders.",
@@ -1078,9 +1078,7 @@
   "calendarTasksToConvert": "Convert tasks to events",
   "calendarConvertTask": "Convert to event",
   "calendarConvertTaskNamed": "Convert to event: {{title}}",
-  "calendarNoTasksToConvert": "No tasks ready to convert.",
   "calendarEventsHeading": "Scheduled events",
-  "calendarNoEvents": "No events yet.",
   "calendarEmptyDay": "No events scheduled.",
   "calendarReadEvent": "Read this event",
   "calendarLinkedTask": "Linked task: {{title}}",
@@ -1099,9 +1097,7 @@
   "settingsFontHelper": "Switch to dyslexia-friendly fonts or larger text for steadier reading.",
   "settingsMotionLabel": "Motion preference",
   "settingsMotionHelper": "Reduce motion to lower sensory load; we only animate essentials.",
-  "settingsTtsLabel": "Text-to-speech reminders",
   "settingsTtsHelper": "Keep audible cues on if you prefer reminders read aloud.",
-  "settingsCurrentValue": "Current: {{value}}",
   "onboarding": {
     "intro": "Complete this quick onboarding to unlock Tasks, Calendar, Budget, Rewards, and Settings.",
     "progress": "Step {{current}} of {{total}}",
@@ -1277,15 +1273,13 @@
   "calendarSuggestedFocusHeading": "Suggested focus windows",
   "calendarSuggestedFocusHelper": "We auto-place up to three unscheduled tasks into open time blocks for this day.",
   "calendarSuggestedFocusWindow": "{{window}} · {{minutes}} min",
-  "calendarSuggestedFocusEmpty": "No open window fits your unscheduled tasks right now.",
   "calendarScheduleSuggestion": "Schedule this window",
   "calendarScheduleSuggestionNamed": "Schedule this window for {{title}}",
   "routines": {
     "title": "Routines",
     "description": "Habits compound. A 30-minute morning routine done consistently for 90 days creates more change than a perfect plan done once.",
     "empty": "No routines yet.",
-    "emptyBody": "A single consistent routine — even 10 minutes — is more valuable than any app, book, or plan. Start with one thing you want to do every day. Build from there.",
-    "emptyCta": "Build your first routine",
+    "emptyHint": "The first one you add shows up here.",
     "addHeading": "New routine",
     "titleLabel": "Routine name",
     "titlePlaceholder": "Morning routine",
@@ -1308,6 +1302,8 @@
     "doneBadge": "Done",
     "errorTitleRequired": "Routine name is required.",
     "stepsHeading": "Steps",
+    "sequenceLabel": "See the order of steps",
+    "sequenceAria": "{{title}}: steps in order",
     "toggleStep": "Toggle step {{label}}",
     "editLabel": "Edit {{title}}",
     "deleteLabel": "Delete {{title}}",
@@ -1682,11 +1678,7 @@
       "incomeSource": "Where this money comes from — salary, freelance, transfer, etc. Labelling income sources helps you see which streams are reliable.",
       "incomeAmount": "The amount you received or expect to receive from this source. Accurate figures here set the ceiling for your whole month's plan.",
       "plannedAmount": "How much you intend to spend in this category this month. Set a realistic number — you can always adjust as the month unfolds.",
-      "transactionDate": "When the expense or payment happened. Logging the real date keeps your timeline accurate for end-of-month reviews.",
-      "transactionAmount": "The exact amount spent or paid. Enter what actually left your account — no rounding. Small differences add up fast.",
       "transactionCategory": "Which budget category this expense belongs to. Assigning every transaction to a category is what makes the chart reflect reality.",
-      "transactionNote": "Optional context for this entry — e.g. 'lunch with team' or 'annual renewal'. Notes make future you grateful during reviews.",
-      "period": "Enter the month you want to budget for in YYYY-MM format (e.g. 2026-04 for April 2026). Each month is a fresh zero-based plan — your income and categories carry meaning within that window.",
       "debtName": "Name this debt clearly so you can identify it at a glance — e.g. 'Chase Visa', 'Student Loan', 'Car Finance'. Use the lender name + account type for easy matching with your bank statements.",
       "debtBalance": "Your current outstanding balance — not the original loan amount. Check your latest statement for the exact figure. This is the number the payoff calculator works from, so accuracy matters.",
       "debtCategory": "Optionally link this debt to a DEBT-type budget category. This lets your transaction log flow into the payoff tracker automatically. Leave blank if you prefer to track debt separately.",
@@ -1746,8 +1738,6 @@
   "shortcutDismiss": "Dismiss notification / close overlay",
   "aboutHeading": "About",
   "appVersion": "Version",
-  "buildDate": "Build",
-  "stack": "Stack",
   "aboutDescription": "GYLIO is a neurodivergent-friendly productivity app built with accessibility, low cognitive load, and gentle UX at its core.",
   "tourDescription": "Take the interactive tour again to rediscover features or show the app to someone new.",
   "timerHeading": "Focus timer",
@@ -1759,7 +1749,6 @@
   "timerInsight": "Shorter sprints (25 min) suit most tasks; longer ones (45 to 90 min) work better with longer breaks. Try a few lengths and keep the one that feels right.",
   "timerBreakInsight": "Longer focus sprints need longer breaks: 45 min → 15 min break; 90 min → 20 min break. Skipping breaks compounds mental fatigue.",
   "dailyViewHeading": "Daily view",
-  "dailyViewToggle": "Enable daily view",
   "dailyViewDescription": "Show a simplified Daily Command Center on the Tasks tab — just your top 3 tasks, next event, and a budget nudge.",
   "clock": {
     "about": "about {{time}}",
@@ -1928,16 +1917,17 @@
       "templates": {
         "title": "Start with a template",
         "content": "Tap here to browse 28 templates across 7 life areas. Pick one and the title, energy level and steps are filled in for you."
-      }
+      },
+      "revealDetails": "Open “Add details” below the title to see this field."
     },
     "calendarFlow": {
       "welcome": {
         "title": "Calendar — interactive walkthrough",
-        "content": "See your full schedule and create events. We'll navigate the week view and add an event together."
+        "content": "See your full schedule and create events. We'll look at your calendar and add an event together."
       },
       "grid": {
-        "title": "Your weekly view",
-        "content": "Each column is a day. Click any event to edit it. You can link calendar events to tasks so nothing falls through the cracks."
+        "title": "Your schedule",
+        "content": "Day, Week and Month show the same events — switch with the buttons above. Select any event to edit it. You can link events to tasks so nothing falls through the cracks."
       },
       "add": {
         "title": "Add an event",
@@ -2151,5 +2141,22 @@
     },
     "restoring": "Bringing back your data on this device…",
     "removed": "Your data was removed from this device."
-  }
+  },
+  "routeProblem": {
+    "notFound": {
+      "title": "This page does not exist",
+      "body": "The link may be old or mistyped. Nothing was changed, and your data is where you left it."
+    },
+    "error": {
+      "title": "This screen ran into a problem",
+      "body": "Your data is still saved on this device. Reloading usually fixes it."
+    },
+    "update": {
+      "title": "A newer version is ready",
+      "body": "This screen needs the latest version of GYLIO. Reload to get it. Your data stays on this device."
+    },
+    "reload": "Reload",
+    "goToTasks": "Go to Tasks"
+  },
+  "settingsHelpHeading": "Help"
 }

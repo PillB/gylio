@@ -26,10 +26,12 @@ vi.mock('@clerk/clerk-react', () => ({
   SignUp: () => <p>sign-up form</p>,
 }));
 
+// Stand-ins for the two pages that need the full server: this file only checks which one a link opens.
+vi.mock('./features/feedback/QaPage', () => ({ default: () => <p>report page</p> }));
+vi.mock('./features/admin/AdminPage', () => ({ default: () => <p>admin page</p> }));
+
 import App, { serverOnlyRoutes } from './App.jsx';
 import { Navigate } from 'react-router-dom';
-import QaPage from './features/feedback/QaPage';
-import AdminPage from './features/admin/AdminPage';
 import { OnboardingFlowProvider } from './hooks/useOnboardingFlow.jsx';
 import { ThemeProvider } from './core/context/ThemeContext';
 import { AccessibilityProvider } from './core/hooks/useAccessibility';
@@ -176,7 +178,7 @@ describe('a build without the full server (the Cloudflare site, GitHub Pages)', 
     expect(await screen.findByRole('button', { name: '✦ Upgrade' })).toBeTruthy();
   });
 
-  it('sends an old link to the report or admin page to Tasks, and opens them in a build with the server', () => {
+  it('sends an old link to the report or admin page to Tasks, and opens them in a build with the server', async () => {
     vi.stubEnv('VITE_BILLING_ENABLED', 'false');
     const off = serverOnlyRoutes();
     expect(off.map((route) => route.path)).toEqual(['qa', 'admin']);
@@ -185,6 +187,10 @@ describe('a build without the full server (the Cloudflare site, GitHub Pages)', 
       expect(route.element.props.to).toBe('/tasks');
     });
     vi.stubEnv('VITE_BILLING_ENABLED', 'true');
-    expect(serverOnlyRoutes().map((route) => route.element.type)).toEqual([QaPage, AdminPage]);
+    // Each page is downloaded when it is opened, so it shows a moment after its route does.
+    const [qa, admin] = serverOnlyRoutes();
+    render(<>{qa.element}{admin.element}</>);
+    expect(await screen.findByText('report page')).toBeTruthy();
+    expect(await screen.findByText('admin page')).toBeTruthy();
   });
 });

@@ -16,7 +16,6 @@
     "baseUrl": ".",
     "paths": {
       "expo-av": ["src/shims/expo-av.ts"],
-      "expo-modules-core": ["src/shims/expo-modules-core.ts"],
       "expo-notifications": ["src/shims/expo-notifications.ts"],
       "expo-speech": ["src/shims/expo-speech.ts"],
       "expo-sqlite": ["src/shims/expo-sqlite.ts"]

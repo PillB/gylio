@@ -17,22 +17,67 @@ import YourDataSection from '../features/account/YourDataSection';
 import SignOutCard from '../features/account/SignOutSection';
 import { useEntitlement } from '../features/billing/EntitlementContext';
 import { serverFeaturesEnabled } from '../core/utils/serverFeatures';
+import SettingToggle from './settings/SettingToggle';
+import { Events, track } from '../core/analytics';
+import { version as packageVersion } from '../../package.json';
+
+// The version the deploy script stamps on a release; the package version on any other build.
+const APP_VERSION = import.meta.env.VITE_APP_VERSION ?? packageVersion;
 
 /**
- * QA (where reports can be sent: serverFeatures.ts), plan and (for admins) admin links; its own component so
- * SettingsView stays under the complexity ceiling.
+ * Links out of Settings, in the section they belong to: reporting a problem (where reports can be
+ * sent: serverFeatures.ts) under Help; the plan and, for admins, the admin console under About.
  */
-function SettingsShortcuts() {
+function SettingsLinks({ only }) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { entitlement } = useEntitlement();
   const linkStyle = { color: theme.colors.primary, fontWeight: 600, minHeight: 44, lineHeight: '44px' };
+  const links = only === 'help'
+    ? [serverFeaturesEnabled() && { to: '/qa', label: t('feedback.settings.qaLink') }]
+    : [{ to: '/pricing', label: t('feedback.settings.planLink') }, entitlement?.isAdmin && { to: '/admin', label: t('feedback.settings.adminLink') }];
+  const shown = links.filter(Boolean);
+  if (shown.length === 0) return null;
   return (
-    <nav style={{ display: 'flex', flexWrap: 'wrap', gap: theme.spacing.md }}>
-      {serverFeaturesEnabled() && <Link to="/qa" style={linkStyle}>{t('feedback.settings.qaLink')}</Link>}
-      <Link to="/pricing" style={linkStyle}>{t('feedback.settings.planLink')}</Link>
-      {entitlement?.isAdmin && <Link to="/admin" style={linkStyle}>{t('feedback.settings.adminLink')}</Link>}
+    <nav aria-label={t(only === 'help' ? 'settingsHelpHeading' : 'aboutHeading')} style={{ display: 'flex', flexWrap: 'wrap', gap: theme.spacing.md }}>
+      {shown.map(({ to, label }) => <Link key={to} to={to} style={linkStyle}>{label}</Link>)}
     </nav>
+  );
+}
+
+/** For a keyboard: index.html hides `.keyboard-only` on touch-only devices. */
+function KeyboardShortcuts() {
+  const { t } = useTranslation();
+  const { theme } = useTheme();
+  const shortcuts = [
+    { keys: 'N', description: t('shortcutAddTask', 'Focus "Add task" input') },
+    { keys: 'Esc', description: t('shortcutDismiss', 'Dismiss notification / close modal') },
+  ];
+  return (
+    <div className="keyboard-only">
+      <h3 style={{ margin: `0 0 ${theme.spacing.xs}px`, fontSize: '0.9375rem', color: theme.colors.text }}>{t('shortcutsHeading', 'Keyboard shortcuts')}</h3>
+      <div style={{ display: 'grid', gap: theme.spacing.sm }}>
+        {shortcuts.map(({ keys, description }) => (
+          <div key={keys} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: theme.spacing.sm, padding: `${theme.spacing.xs}px 0`, borderBottom: `1px solid ${theme.colors.border}` }}>
+            <span style={{ color: theme.colors.text }}>{description}</span>
+            <kbd style={{
+              display: 'inline-block',
+              flexShrink: 0,
+              whiteSpace: 'nowrap',
+              padding: '2px 8px',
+              borderRadius: theme.shape.radiusSm,
+              border: `1px solid ${theme.colors.border}`,
+              backgroundColor: theme.colors.surfaceElevated,
+              color: theme.colors.text,
+              fontFamily: 'monospace',
+              fontSize: '0.8125rem',
+              fontWeight: 600,
+              boxShadow: '0 1px 0 rgba(0,0,0,0.15)',
+            }}>{keys}</kbd>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -73,6 +118,12 @@ const SettingsView = () => {
     [t]
   );
 
+  /** Saves an on/off setting and counts the change. */
+  const switchTo = (setting, save) => (on) => {
+    save(on);
+    track(Events.SETTING_CHANGED, { setting, on });
+  };
+
   const announceSettings = () => {
     speak(t('settingsDescription'));
   };
@@ -81,7 +132,7 @@ const SettingsView = () => {
     <>
     <SectionCard
       title={t('settings')}
-      subtitle={t('settingsDescription') || ''}
+      subtitle={t('settingsDescription')}
       badge={<BudgetTooltip content={t('tooltips.settings.section', 'Customize how the app looks, sounds, and behaves. Changes apply everywhere instantly. All preferences are stored locally on your device.')} />}
     >
       <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -91,7 +142,7 @@ const SettingsView = () => {
             onClick={toggleTint}
             style={{ padding: '0.5rem 0.75rem', minHeight: 44, borderRadius: theme.shape.radiusSm, border: `1px solid ${theme.colors.border}` }}
           >
-            {isTinted ? t('disableTint') || 'Disable screen tint' : t('enableTint') || 'Enable screen tint'}
+            {isTinted ? t('disableTint') : t('enableTint')}
           </button>
           <BudgetTooltip content={t('tooltips.settings.tint', 'Applies a warm color overlay to reduce blue light and harsh contrast. Many neurodivergent users find this reduces eye strain and sensory overwhelm during long sessions.')} />
         </span>
@@ -102,7 +153,7 @@ const SettingsView = () => {
             disabled={isSpeaking}
             style={{ padding: '0.5rem 0.75rem', minHeight: 44, borderRadius: theme.shape.radiusSm, border: `1px solid ${theme.colors.border}` }}
           >
-            {isSpeaking ? t('speaking') || 'Speaking…' : t('announceSettings') || 'Announce settings'}
+            {isSpeaking ? t('speaking') : t('announceSettings')}
           </button>
           <BudgetTooltip content={t('tooltips.settings.announceSettings', 'Reads your current settings aloud so you can confirm everything is configured as expected without reading through the list.')} />
         </span>
@@ -111,7 +162,6 @@ const SettingsView = () => {
         {t('onboarding.accessibility.helper')}
       </p>
       <div
-        data-tour="settings-theme"
         style={{
           display: 'grid',
           gap: theme.spacing.md,
@@ -122,6 +172,7 @@ const SettingsView = () => {
         }}
       >
         <div
+          data-tour="settings-theme"
           style={{
             border: `1px solid ${theme.colors.border}`,
             borderRadius: theme.shape.radiusMd,
@@ -135,20 +186,17 @@ const SettingsView = () => {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: theme.spacing.md, flexWrap: 'wrap' }}>
             <div>
               <p style={{ margin: 0, fontWeight: 600, display: 'flex', alignItems: 'center' }}>
-                {t('settingsThemeLabel') || 'Theme mode'}
+                {t('settingsThemeLabel')}
                 <BudgetTooltip content={t('tooltips.settings.theme', 'Choose a visual theme that feels comfortable. Dark mode reduces glare in low-light environments; light mode improves contrast for many users. Auto follows your device setting.')} />
               </p>
               <small style={{ color: theme.colors.muted }}>
                 {t('onboarding.accessibility.contrastHelper')}
               </small>
-              <p style={{ margin: '0.25rem 0', color: theme.colors.text }}>
-                {t('settingsCurrentValue', { value: themeLabels[mode] }) || `Current: ${themeLabels[mode]}`}
-              </p>
             </div>
             <select
               value={mode}
               onChange={(e) => setTheme(e.target.value)}
-              aria-label={t('settingsThemeLabel') || 'Theme mode'}
+              aria-label={t('settingsThemeLabel')}
               style={{
                 padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
                 borderRadius: theme.shape.radiusSm,
@@ -179,27 +227,17 @@ const SettingsView = () => {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: theme.spacing.md, flexWrap: 'wrap', minWidth: 0 }}>
             <div style={{ minWidth: 0, flex: '1 1 220px' }}>
               <p style={{ margin: 0, fontWeight: 600, display: 'flex', alignItems: 'center' }}>
-                {t('settingsFontLabel') || 'Reading style'}
+                {t('settingsFontLabel')}
                 <BudgetTooltip content={t('tooltips.settings.font', 'Larger text reduces cognitive load when scanning long lists. The default size is designed for readability; increase it if you find yourself squinting or losing your place.')} />
               </p>
               <small style={{ color: theme.colors.muted }}>
                 {t('onboarding.accessibility.textStyleHelper')}
               </small>
-              <p style={{ margin: '0.25rem 0', color: theme.colors.text }}>
-                {t('settingsCurrentValue', {
-                  value:
-                    textStylePreference === 'large'
-                      ? t('onboarding.accessibility.largeText')
-                      : textStylePreference === 'spaced'
-                        ? t('onboarding.accessibility.spacedText')
-                        : t('onboarding.accessibility.standardText')
-                })}
-              </p>
             </div>
             <select
               value={['standard', 'large', 'spaced'].includes(textStylePreference) ? textStylePreference : 'standard'}
               onChange={(e) => setTextStylePreference(e.target.value)}
-              aria-label={t('settingsFontLabel') || 'Reading style'}
+              aria-label={t('settingsFontLabel')}
               style={{
                 padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
                 borderRadius: theme.shape.radiusSm,
@@ -232,7 +270,7 @@ const SettingsView = () => {
           <div style={{ display: 'grid', gap: theme.spacing.sm, minWidth: 0 }}>
             <div>
               <p style={{ margin: 0, fontWeight: 600, display: 'flex', alignItems: 'center' }}>
-                {t('settingsMotionLabel') || 'Motion preference'}
+                {t('settingsMotionLabel')}
                 <BudgetTooltip content={t('tooltips.settings.motion', 'Disabling animations removes all sliding, fading, and bouncing effects. Essential if motion causes distraction, dizziness, or sensory overload.')} />
               </p>
               <small id="motion-helper" style={{ color: theme.colors.muted }}>
@@ -242,7 +280,7 @@ const SettingsView = () => {
             <select
               value={motionPreference || 'system'}
               onChange={(e) => setMotionPreference(e.target.value)}
-              aria-label={t('settingsMotionLabel') || 'Motion preference'}
+              aria-label={t('settingsMotionLabel')}
               aria-describedby="motion-helper"
               style={{
                 width: '100%',
@@ -259,113 +297,38 @@ const SettingsView = () => {
               <option value="reduced">{t('onboarding.accessibility.reducedMotion')}</option>
               <option value="standard">{t('onboarding.accessibility.standardMotion')}</option>
             </select>
-            <small style={{ color: theme.colors.muted }}>
-              {t('settingsCurrentValue', {
-                value:
-                  motionPreference === 'reduced'
-                    ? t('onboarding.accessibility.reducedMotion')
-                    : motionPreference === 'standard'
-                      ? t('onboarding.accessibility.standardMotion')
-                      : t('onboarding.accessibility.motionSystem')
-              })}
-            </small>
-            <label style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm, minWidth: 0 }}>
-              <input
-                type="checkbox"
-                checked={animationsEnabled}
-                onChange={(e) => setAnimationsEnabled(e.target.checked)}
-                aria-label={t('settingsAnimationLabel') || 'Allow animations'}
-                aria-describedby="animation-helper"
-                style={{ width: 20, height: 20 }}
-              />
-              <span>
-                {animationsEnabled
-                  ? t('settingsAnimationOn') || 'Animations enabled'
-                  : t('settingsAnimationOff') || 'Animations limited'}
-              </span>
-            </label>
-            <small id="animation-helper" style={{ color: theme.colors.muted }}>
-              {t('settingsAnimationHelper') || 'Disable non-essential animations to keep the interface calm.'}
-            </small>
+            <SettingToggle
+              bare
+              label={t('settingsAnimationLabel')}
+              helper={t('settingsAnimationHelper')}
+              checked={animationsEnabled}
+              onChange={switchTo('animations', setAnimationsEnabled)}
+            />
           </div>
         </div>
 
-        <div
-          style={{
-            border: `1px solid ${theme.colors.border}`,
-            borderRadius: theme.shape.radiusMd,
-            padding: theme.spacing.md,
-            background: theme.colors.surface,
-            minWidth: 0,
-            maxWidth: '100%',
-            boxSizing: 'border-box'
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: theme.spacing.md, flexWrap: 'wrap' }}>
-            <div>
-              <p style={{ margin: 0, fontWeight: 600, display: 'flex', alignItems: 'center' }}>
-                {t('settingsTtsLabel') || t('onboarding.accessibility.tts')}
-                <BudgetTooltip content={t('tooltips.settings.tts', 'When on, important status messages are read aloud. Useful for hands-free use, low-vision accessibility, or if reading long lists is tiring.')} />
-              </p>
-              <small style={{ color: theme.colors.muted }}>
-                {t('onboarding.accessibility.ttsHelper')}
-              </small>
-              <p style={{ margin: '0.25rem 0', color: theme.colors.text }}>
-                {t('settingsCurrentValue', {
-                  value: ttsEnabled ? t('onboarding.summary.enabled') : t('onboarding.summary.disabled')
-                }) || `Current: ${ttsEnabled ? 'Enabled' : 'Disabled'}`}
-              </p>
-            </div>
-            <label style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm }}>
-              <input
-                type="checkbox"
-                checked={ttsEnabled}
-                onChange={(e) => setTtsEnabled(e.target.checked)}
-                aria-label={t('onboarding.accessibility.tts')}
-                style={{ width: 20, height: 20 }}
-              />
-              <span>{ttsEnabled ? t('onboarding.summary.enabled') : t('onboarding.summary.disabled')}</span>
-            </label>
-          </div>
-        </div>
-
-        <div
-          data-tour="settings-gamification"
-          style={{
-            border: `1px solid ${theme.colors.border}`,
-            borderRadius: theme.shape.radiusMd,
-            padding: theme.spacing.md,
-            background: theme.colors.surface
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: theme.spacing.md, flexWrap: 'wrap' }}>
-            <div>
-              <p style={{ margin: 0, fontWeight: 600, display: 'flex', alignItems: 'center' }}>
-                {t('settingsGamificationLabel') || 'Gamification'}
-                <BudgetTooltip content={t('tooltips.settings.gamification', 'Turns XP, levels, and streaks on or off globally. Your progress data is preserved either way — you can re-enable anytime.')} />
-              </p>
-              <small style={{ color: theme.colors.muted }}>
-                {t('settingsGamificationHelper') ||
-                  'Opt in to XP, streaks, and cosmetic unlocks. You can disable this any time.'}
-              </small>
-              <p style={{ margin: '0.25rem 0', color: theme.colors.text }}>
-                {t('settingsCurrentValue', {
-                  value: gamificationEnabled ? t('onboarding.summary.enabled') : t('onboarding.summary.disabled')
-                }) || `Current: ${gamificationEnabled ? 'Enabled' : 'Disabled'}`}
-              </p>
-            </div>
-            <label style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm }}>
-              <input
-                type="checkbox"
-                checked={gamificationEnabled}
-                onChange={(e) => setGamificationEnabled(e.target.checked)}
-                aria-label={t('settingsGamificationLabel') || 'Gamification'}
-                style={{ width: 20, height: 20 }}
-              />
-              <span>{gamificationEnabled ? t('onboarding.summary.enabled') : t('onboarding.summary.disabled')}</span>
-            </label>
-          </div>
-        </div>
+        <SettingToggle
+          label={t('onboarding.accessibility.tts')}
+          helper={t('onboarding.accessibility.ttsHelper')}
+          tooltip={t('tooltips.settings.tts', 'When on, important status messages are read aloud. Useful for hands-free use, low-vision accessibility, or if reading long lists is tiring.')}
+          checked={ttsEnabled}
+          onChange={switchTo('read_aloud', setTtsEnabled)}
+        />
+        <SettingToggle
+          dataTour="settings-gamification"
+          label={t('settingsGamificationLabel')}
+          helper={t('settingsGamificationHelper')}
+          tooltip={t('tooltips.settings.gamification', 'Turns XP, levels, and streaks on or off globally. Your progress data is preserved either way — you can re-enable anytime.')}
+          checked={gamificationEnabled}
+          onChange={switchTo('rewards', setGamificationEnabled)}
+        />
+        <SettingToggle
+          label={t('dailyViewHeading')}
+          helper={t('dailyViewDescription')}
+          tooltip={t('tooltips.settings.dailyView', 'Daily view simplifies the Tasks tab to show only your top 3 priorities, next event, and a budget nudge — ideal for mornings when you need a quick plan without overwhelm.')}
+          checked={dailyMode}
+          onChange={switchTo('daily_view', setDailyMode)}
+        />
 
         {/* Sync with the account (builds that have it), or the older review list (builds with a separate API). */}
         <SyncSettingsSection />
@@ -438,100 +401,6 @@ const SettingsView = () => {
       </div>
     </SectionCard>
 
-    {/* Keyboard shortcuts reference */}
-    <SectionCard ariaLabel={t('shortcutsHeading', 'Keyboard shortcuts')} title={t('shortcutsHeading', 'Keyboard shortcuts')} badge={<BudgetTooltip content={t('tooltips.settings.shortcuts', 'Keyboard shortcuts let you navigate the app without a mouse. Press N anywhere to jump to the task input. More shortcuts are added as the app grows.')} />}>
-      <div style={{ display: 'grid', gap: theme.spacing.sm, fontFamily: theme.typography.body.family }}>
-        {[
-          { keys: 'N', description: t('shortcutAddTask', 'Focus "Add task" input') },
-          { keys: 'Esc', description: t('shortcutDismiss', 'Dismiss notification / close modal') },
-        ].map(({ keys, description }) => (
-          <div key={keys} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: `${theme.spacing.xs}px 0`, borderBottom: `1px solid ${theme.colors.border}` }}>
-            <span style={{ color: theme.colors.text }}>{description}</span>
-            <kbd style={{
-              display: 'inline-block',
-              padding: '2px 8px',
-              borderRadius: theme.shape.radiusSm,
-              border: `1px solid ${theme.colors.border}`,
-              backgroundColor: theme.colors.surfaceElevated,
-              color: theme.colors.text,
-              fontFamily: 'monospace',
-              fontSize: '0.8125rem',
-              fontWeight: 600,
-              boxShadow: '0 1px 0 rgba(0,0,0,0.15)',
-            }}>{keys}</kbd>
-          </div>
-        ))}
-      </div>
-    </SectionCard>
-
-    {/* Guided tour */}
-    <SectionCard ariaLabel={t('tour.restartButton', 'Restart guide')} title={t('tour.restartButton', 'Restart guide')} badge={<BudgetTooltip content={t('tooltips.settings.restartGuide', 'Replay the interactive walkthrough that introduced the app. Useful if you want to rediscover a feature or show someone else how it works.')} />}>
-      <div data-tour="settings-tour" style={{ fontFamily: theme.typography.body.family }}>
-        <p style={{ margin: `0 0 ${theme.spacing.sm}px`, color: theme.colors.muted, fontSize: '0.875rem' }}>
-          {t('tourDescription', 'Take the interactive tour again to rediscover features or share the app with someone new.')}
-        </p>
-        <button
-          type="button"
-          onClick={resetTour}
-          style={{
-            padding: `${theme.spacing.xs + 2}px ${theme.spacing.md}px`,
-            minHeight: 44,
-            borderRadius: theme.shape.radiusMd,
-            border: `1px solid ${theme.colors.primary}`,
-            background: theme.colors.overlay,
-            color: theme.colors.text,
-            cursor: 'pointer',
-            fontSize: '0.875rem',
-            fontWeight: 600,
-            fontFamily: theme.typography.body.family,
-          }}
-        >
-          {t('tour.restartButton', 'Restart guide')} →
-        </button>
-      </div>
-    </SectionCard>
-
-    {/* Daily View */}
-    <SectionCard ariaLabel={t('dailyViewHeading', 'Daily view')} title={t('dailyViewHeading', 'Daily view')} badge={<BudgetTooltip content={t('tooltips.settings.dailyView', 'Daily view simplifies the Tasks tab to show only your top 3 priorities, next event, and a budget nudge — ideal for mornings when you need a quick plan without overwhelm.')} />}>
-      <div style={{ display: 'grid', gap: theme.spacing.sm, fontFamily: theme.typography.body.family }}>
-        <p style={{ margin: 0, color: theme.colors.muted, fontSize: '0.875rem', lineHeight: 1.55 }}>
-          {t('dailyViewDescription', 'Show a simplified Daily Command Center on the Tasks tab — just your top 3 tasks, next event, and a budget nudge.')}
-        </p>
-        <label style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm, cursor: 'pointer' }}>
-          <input
-            type="checkbox"
-            checked={dailyMode}
-            onChange={(e) => setDailyMode(e.target.checked)}
-            style={{ width: 18, height: 18 }}
-          />
-          <span style={{ fontSize: '0.875rem', color: theme.colors.text }}>
-            {t('dailyViewToggle', 'Enable daily view')}
-          </span>
-        </label>
-      </div>
-    </SectionCard>
-
-    {/* About */}
-    <SectionCard ariaLabel={t('aboutHeading', 'About')} title={t('aboutHeading', 'About')}>
-      <div style={{ display: 'grid', gap: theme.spacing.sm, fontFamily: theme.typography.body.family, fontSize: '0.875rem', color: theme.colors.muted }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span>{t('appVersion', 'Version')}</span>
-          <span style={{ color: theme.colors.text, fontWeight: 600 }}>0.1.0</span>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span>{t('buildDate', 'Build')}</span>
-          <span style={{ color: theme.colors.text }}>2026-03-30</span>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span>{t('stack', 'Stack')}</span>
-          <span style={{ color: theme.colors.text }}>React 18 · Vite · i18n · IndexedDB</span>
-        </div>
-        <p style={{ margin: 0, marginTop: theme.spacing.xs, lineHeight: 1.5 }}>
-          {t('aboutDescription', 'GYLIO is a neurodivergent-friendly productivity app built with accessibility, low cognitive load, and gentle UX at its core.')}
-        </p>
-      </div>
-    </SectionCard>
-
     {/* Saved to the account, download, restore */}
     <SectionCard ariaLabel={t('account.heading')} title={t('account.heading')}>
       <YourDataSection />
@@ -540,9 +409,49 @@ const SettingsView = () => {
     {/* Sign out, keeping or removing the data on this device */}
     <SignOutCard />
 
-    {/* Testers and account shortcuts */}
-    <SectionCard ariaLabel={t('feedback.settings.heading')} title={t('feedback.settings.heading')}>
-      <SettingsShortcuts />
+    {/* Help: the guide, where to report a problem, keyboard shortcuts */}
+    <SectionCard ariaLabel={t('settingsHelpHeading')} title={t('settingsHelpHeading')} badge={<BudgetTooltip content={t('tooltips.settings.restartGuide', 'Replay the interactive walkthrough that introduced the app. Useful if you want to rediscover a feature or show someone else how it works.')} />}>
+      <div style={{ display: 'grid', gap: theme.spacing.md, fontFamily: theme.typography.body.family }}>
+        <div data-tour="settings-tour">
+          <p style={{ margin: `0 0 ${theme.spacing.sm}px`, color: theme.colors.muted, fontSize: '0.875rem' }}>
+            {t('tourDescription', 'Take the interactive tour again to rediscover features or share the app with someone new.')}
+          </p>
+          <button
+            type="button"
+            onClick={resetTour}
+            style={{
+              padding: `${theme.spacing.xs + 2}px ${theme.spacing.md}px`,
+              minHeight: 44,
+              borderRadius: theme.shape.radiusMd,
+              border: `1px solid ${theme.colors.primary}`,
+              background: theme.colors.overlay,
+              color: theme.colors.text,
+              cursor: 'pointer',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              fontFamily: theme.typography.body.family,
+            }}
+          >
+            {t('tour.restartButton', 'Restart guide')} →
+          </button>
+        </div>
+        <SettingsLinks only="help" />
+        <KeyboardShortcuts />
+      </div>
+    </SectionCard>
+
+    {/* About */}
+    <SectionCard ariaLabel={t('aboutHeading', 'About')} title={t('aboutHeading', 'About')}>
+      <div style={{ display: 'grid', gap: theme.spacing.sm, fontFamily: theme.typography.body.family, fontSize: '0.875rem', color: theme.colors.muted }}>
+        <p style={{ margin: 0, lineHeight: 1.5 }}>
+          {t('aboutDescription', 'GYLIO is a neurodivergent-friendly productivity app built with accessibility, low cognitive load, and gentle UX at its core.')}
+        </p>
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <span>{t('appVersion', 'Version')}</span>
+          <span style={{ color: theme.colors.text, fontWeight: 600 }}>{APP_VERSION}</span>
+        </div>
+        <SettingsLinks only="account" />
+      </div>
     </SectionCard>
     <AdSlot placement="settings" />
     </>

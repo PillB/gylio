@@ -9,9 +9,7 @@ export const COMPLEXITY_CEILING = 10;
 // src/test/complexityBaseline.test.ts fails if a cap is looser than needed.
 export const COMPLEXITY_BASELINE = {
   'src/App.jsx': 23,
-  'src/components/GuidedTourOverlay.tsx': 38,
   'src/components/RewardsView.jsx': 51,
-  'src/components/SettingsView.jsx': 39,
   'src/components/atoms/DateTimeWidget.tsx': 14,
   'src/core/hooks/useDB.ts': 11,
   'src/core/hooks/useRewards.ts': 17,
@@ -24,7 +22,6 @@ export const COMPLEXITY_BASELINE = {
   'src/features/recurring/useRecurringReliability.ts': 12,
   'src/features/routines/components/RoutinesView.tsx': 14,
   'src/features/social/components/SocialPlansView.tsx': 14,
-  'src/features/tasks/components/PomodoroTimer.tsx': 15,
   'src/features/tasks/components/TaskTimerInline.tsx': 13,
   'src/hooks/useOnboardingFlow.jsx': 11,
   'src/onboarding/steps/AccessibilityPrefs.jsx': 11,

@@ -2,6 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useR
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import i18n from 'i18next';
 import useOnboardingFlow from '../../hooks/useOnboardingFlow.jsx';
+import { applyMotionMode, motionModeFor } from '../accessibility/motion';
 
 const TINT_STORAGE_KEY = 'accessibility:tint';
 const REDUCE_MOTION_STORAGE_KEY = 'accessibility:reduceMotion';
@@ -51,7 +52,6 @@ function useAccessibilityInternal(): AccessibilityContextValue {
   const initialMotion = (selections?.accessibility?.motion ?? 'system') as MotionPreference;
   const [isTinted, setIsTinted] = useState(false);
   const [reduceMotionEnabled, setReduceMotionEnabled] = useState(() => resolveReducedMotion(initialMotion));
-  const [animationsEnabled, setAnimationsEnabled] = useState(true);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const speechModuleRef = useRef<SpeechModule | null>(null);
   const activeUtteranceRef = useRef(0);
@@ -62,6 +62,10 @@ function useAccessibilityInternal(): AccessibilityContextValue {
     () => (selections?.accessibility?.motion ?? 'system') as MotionPreference,
     [selections]
   );
+  // The saved setting is the source of truth, as for motion. A separate copy used to be read back at
+  // start-up, after the start-up default had already been written over it: "animations off" was
+  // forgotten on every reload.
+  const animationsEnabled = selections?.accessibility?.animations !== false;
   const textStylePreference = useMemo<TextStylePreference>(
     () => (selections?.accessibility?.textStyle ?? 'standard') as TextStylePreference,
     [selections]
@@ -72,30 +76,17 @@ function useAccessibilityInternal(): AccessibilityContextValue {
 
     const hydratePreferences = async () => {
       try {
-        const storedEntries = await AsyncStorage.multiGet([
-          TINT_STORAGE_KEY,
-          ANIMATIONS_STORAGE_KEY
-        ]);
-
-        const storedTint = storedEntries.find(([key]) => key === TINT_STORAGE_KEY)?.[1];
-        const storedAnimations = storedEntries.find(([key]) => key === ANIMATIONS_STORAGE_KEY)?.[1];
-
+        const storedTint = await AsyncStorage.getItem(TINT_STORAGE_KEY);
         setIsTinted(storedTint === 'true');
-        setReduceMotionEnabled(resolveReducedMotion(motionPreference));
-        setAnimationsEnabled(
-          storedAnimations === null || storedAnimations === undefined
-            ? selections?.accessibility?.animations ?? true
-            : storedAnimations === 'true'
-        );
-        hasHydratedPrefsRef.current = true;
       } catch (error) {
-        setReduceMotionEnabled(resolveReducedMotion(motionPreference));
-        hasHydratedPrefsRef.current = true;
+        // Storage is unavailable: the tint stays off.
       }
+      setReduceMotionEnabled(resolveReducedMotion(motionPreference));
+      hasHydratedPrefsRef.current = true;
     };
 
     hydratePreferences();
-  }, [hydrated, motionPreference, selections]);
+  }, [hydrated, motionPreference]);
 
   // When the user chooses "follow device", keep the app synchronized with the
   // operating-system preference instead of taking a one-time snapshot.
@@ -109,7 +100,9 @@ function useAccessibilityInternal(): AccessibilityContextValue {
     return () => media.removeEventListener?.('change', sync);
   }, [motionPreference]);
 
+  // Saved only once the stored value has been read: the start-up default must not overwrite it.
   useEffect(() => {
+    if (!hasHydratedPrefsRef.current) return;
     AsyncStorage.setItem(TINT_STORAGE_KEY, isTinted ? 'true' : 'false').catch(() => {
       // Ignore persistence issues to avoid blocking UI.
     });
@@ -123,11 +116,20 @@ function useAccessibilityInternal(): AccessibilityContextValue {
     });
   }, [reduceMotionEnabled]);
 
+  // Legacy copy, kept in step for older releases; nothing reads it back here.
   useEffect(() => {
+    if (!hydrated) return;
     AsyncStorage.setItem(ANIMATIONS_STORAGE_KEY, animationsEnabled ? 'true' : 'false').catch(() => {
       // Ignore persistence issues to avoid blocking UI.
     });
-  }, [animationsEnabled]);
+  }, [animationsEnabled, hydrated]);
+
+  // Written on <html> so index.html's rules apply the setting to every transition and to scrolling:
+  // most components style themselves inline and never read it.
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    applyMotionMode(motionModeFor(reduceMotionEnabled, animationsEnabled));
+  }, [reduceMotionEnabled, animationsEnabled]);
 
   useEffect(() => {
     isSpeakingRef.current = isSpeaking;
@@ -240,10 +242,7 @@ function useAccessibilityInternal(): AccessibilityContextValue {
   );
 
   const setAnimationPreference = useCallback(
-    (enabled: boolean) => {
-      setAnimationsEnabled(enabled);
-      updateSelections('accessibility', { animations: enabled });
-    },
+    (enabled: boolean) => updateSelections('accessibility', { animations: enabled }),
     [updateSelections]
   );
 

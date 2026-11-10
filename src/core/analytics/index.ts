@@ -187,6 +187,16 @@ export const Events = {
   SIGN_OUT:                        'sign_out',
   DEVICE_DATA_REMOVED:             'device_data_removed',
 
+  // A link that matches no screen, a screen that failed, or one that needs the newer build: { kind }
+  ROUTE_PROBLEM:                   'route_problem',
+
+  // Which state of a screen was shown: { screen: 'calendar' | 'routines', state: 'empty' | 'has_items' },
+  // { screen: 'budget_transactions', state: 'needs_category' | 'form' }. Sent once per state (useScreenState).
+  SCREEN_STATE:                    'screen_state',
+
+  // An on/off switch in Settings: { setting: 'animations' | 'read_aloud' | 'rewards' | 'daily_view', on }
+  SETTING_CHANGED:                 'setting_changed',
+
   // Daily command center
   DAILY_MODE_ENABLED:              'daily_mode_enabled',
   DAILY_MODE_TASK_COMPLETED:       'daily_mode_task_completed',

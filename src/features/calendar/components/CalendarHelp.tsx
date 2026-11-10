@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import BudgetTooltip from '../../../components/atoms/BudgetTooltip';
+import SectionHelpHeading from '../../../components/atoms/HelpHeading';
 
 const HELP = {
   section:
@@ -37,12 +38,9 @@ const CalendarHelp: React.FC<{ topic: CalendarHelpTopic }> = ({ topic }) => {
   return <BudgetTooltip content={t(`tooltips.calendar.${topic}`, HELP[topic])} />;
 };
 
-/** An h3 with its help button. */
+/** An h3 with its help button beside it. */
 export const HelpHeading: React.FC<{ topic: CalendarHelpTopic; children: React.ReactNode }> = ({ topic, children }) => (
-  <h3 style={{ marginTop: 0, display: 'flex', alignItems: 'center' }}>
-    {children}
-    <CalendarHelp topic={topic} />
-  </h3>
+  <SectionHelpHeading spaceBelow="1em" help={<CalendarHelp topic={topic} />}>{children}</SectionHelpHeading>
 );
 
 export default CalendarHelp;

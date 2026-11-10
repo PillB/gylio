@@ -1,3 +1,5 @@
+import type { FeatureKey } from '../subscription/useSubscription';
+
 export interface TourStep {
   id: string;
   /** CSS selector via data-tour attribute, or null for center-screen modal */
@@ -9,10 +11,17 @@ export interface TourStep {
   placement: 'bottom' | 'top' | 'left' | 'right' | 'center';
   /** When true, shows a "Try it" badge — the highlighted element is live and interactive */
   interactive?: boolean;
+  /**
+   * Shown while the step's own target is hidden and the spotlight is on the control that reveals it
+   * (the second selector in `target`), so the person knows to open it.
+   */
+  revealHintKey?: string;
 }
 
 export interface TourFlow {
   id: string;
+  /** Listed only for people whose plan includes this feature; a walkthrough of a locked screen has nothing to show. */
+  feature?: FeatureKey;
   nameKey: string;
   descKey: string;
   durationKey: string;
@@ -141,7 +150,8 @@ export const TASKS_FLOW: TourFlow = {
     },
     {
       id: 'tasks-date',
-      target: '[data-tour="task-date"]',
+      target: '[data-tour="task-date"], [data-tour="task-details-toggle"]',
+      revealHintKey: 'tour.tasksFlow.revealDetails',
       tab: 'tasks',
       titleKey: 'tour.tasksFlow.date.title',
       contentKey: 'tour.tasksFlow.date.content',
@@ -150,7 +160,8 @@ export const TASKS_FLOW: TourFlow = {
     },
     {
       id: 'tasks-energy',
-      target: '[data-tour="task-energy"]',
+      target: '[data-tour="task-energy"], [data-tour="task-details-toggle"]',
+      revealHintKey: 'tour.tasksFlow.revealDetails',
       tab: 'tasks',
       titleKey: 'tour.tasksFlow.energy.title',
       contentKey: 'tour.tasksFlow.energy.content',
@@ -353,6 +364,7 @@ export const SETTINGS_FLOW: TourFlow = {
 
 export const SOCIAL_FLOW: TourFlow = {
   id: 'social',
+  feature: 'social',
   nameKey: 'tour.flows.social.name',
   descKey: 'tour.flows.social.desc',
   durationKey: 'tour.flows.social.duration',

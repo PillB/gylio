@@ -58,6 +58,12 @@ describe('health and auth', () => {
 });
 
 describe('records', () => {
+  it('refuses a body over 64 KB of bytes even when it is under 64 K characters', async () => {
+    const res = await put('/api/debts/big', { ...debt, name: '語'.repeat(30_000) }, 'user_big');
+    expect(res.status).toBe(400);
+    expect(((await res.json()) as { error: { message: string } }).error.message).toBe('Body must be a JSON object under 64 KB');
+  });
+
   it('stores a debt with a due day, reads it back, and keeps users apart', async () => {
     expect((await put('/api/debts/d1', debt)).status).toBe(201);
     const mine = (await (await call('/api/debts/d1', { as: 'user_a' })).json()) as { id: string; data: typeof debt };

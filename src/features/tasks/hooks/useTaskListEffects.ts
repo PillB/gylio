@@ -1,5 +1,6 @@
 import { useEffect, type RefObject } from 'react';
 import type { PendingEntry, TimeLogEntry } from '../../../core/context/TaskTimerContext';
+import { scrollBehavior } from '../../../core/accessibility/motion';
 
 const isTypingTarget = (target: EventTarget | null): boolean => {
   const element = target as HTMLElement | null;
@@ -16,7 +17,7 @@ export const useNewTaskShortcut = (titleRef: RefObject<HTMLInputElement>) => {
       if (isTypingTarget(event.target) || !isPlainN(event)) return;
       event.preventDefault();
       titleRef.current?.focus();
-      titleRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      titleRef.current?.scrollIntoView({ behavior: scrollBehavior(), block: 'center' });
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);

@@ -102,7 +102,7 @@ describe('tour dialogs manage keyboard focus', () => {
   // Guard, not a before/after test: spotlight steps are not modal, so Tab must
   // still be able to leave the tooltip for the highlighted "Try it" element.
   it('does not trap Tab on a spotlight step', async () => {
-    Element.prototype.scrollIntoView = vi.fn();
+    window.scrollBy = vi.fn();
     renderTour();
     fireEvent.click(within(screen.getByRole('dialog')).getAllByRole('button')[1]);
     fireEvent.click(screen.getByRole('button', { name: 'Next step' }));
@@ -149,7 +149,7 @@ describe('tour dialogs manage keyboard focus', () => {
   // field sits behind the collapsed "Add details") is centred as a fallback. It must not
   // trap Tab, or a keyboard user cannot reach "Add details" to do what the step asks.
   it('does not trap Tab on a targeted step whose element is not on the page yet', async () => {
-    Element.prototype.scrollIntoView = vi.fn();
+    window.scrollBy = vi.fn();
     const stepIndex = TASKS_FLOW.steps.findIndex((s) => s.id === 'tasks-date');
     localStorage.setItem('gylio_tour', JSON.stringify({ active: true, stepIndex, completed: false, flowId: 'tasks' }));
     render(
@@ -175,7 +175,7 @@ describe('tour dialogs manage keyboard focus', () => {
   // would press a control that is hidden behind it.
   describe('when ArrowRight moves on from a control on the page', () => {
     const advanceFromPage = async (fromStep: string, page: React.ReactNode, controlName: string) => {
-      Element.prototype.scrollIntoView = vi.fn();
+      window.scrollBy = vi.fn();
       const stepIndex = TASKS_FLOW.steps.findIndex((s) => s.id === fromStep);
       localStorage.setItem('gylio_tour', JSON.stringify({ active: true, stepIndex, completed: false, flowId: 'tasks' }));
       render(

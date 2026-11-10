@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import SectionCard from '../../../components/SectionCard.jsx';
 import BudgetTooltip from '../../../components/atoms/BudgetTooltip';
 import HelpField from '../../../components/atoms/HelpField';
+import HelpHeading from '../../../components/atoms/HelpHeading';
 import { useAppAuth } from '../../../core/context/AuthContext';
 import { useTheme } from '../../../core/context/ThemeContext';
 import type { SocialPlan, SocialStep } from '../../../core/hooks/useDB';
@@ -650,10 +651,9 @@ const SocialPlansView: React.FC = () => {
 
         {/* ── Plans list ─────────────────────────────────────────────── */}
         <section data-tour="social-plans-list">
-          <h3 style={{ marginTop: 0, display: 'flex', alignItems: 'center' }}>
+          <HelpHeading spaceBelow="1em" help={<BudgetTooltip content={t('tooltips.social.plansList', 'Your saved connection plans. Edit or delete any plan, mark steps complete, and add reflection notes after the meetup — closing the loop makes future plans easier.')} />}>
             {t('social.plansHeading')}
-            <BudgetTooltip content={t('tooltips.social.plansList', 'Your saved connection plans. Edit or delete any plan, mark steps complete, and add reflection notes after the meetup — closing the loop makes future plans easier.')} />
-          </h3>
+          </HelpHeading>
           {loading ? <p style={{ color: theme.colors.muted }}>{t('loading')}</p> : null}
           {!loading && plans.length === 0 ? (
             <p style={{ color: theme.colors.muted }}>{t('social.empty')}</p>

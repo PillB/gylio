@@ -37,13 +37,29 @@ describe('placeTooltip', () => {
     expect(p.left + 320).toBeLessThanOrEqual(1280 - 12);
   });
 
-  it('docks at the edge away from the target centre when nothing fits (full-width calendar)', () => {
+  it('docks at the bottom when nothing fits, so the top of a large target stays readable (full-width calendar)', () => {
     const wide = placeTooltip({ ...base, target: rect(120, 700, 145, 1135) });
     expect(wide.side).toBe('dock');
-    expect(wide.top).toBe(12); // target centre is below mid-screen -> card at the top
+    expect(wide.top).toBe(800 - 330 - 12);
     const top = placeTooltip({ ...base, target: rect(20, 500, 145, 1135) });
     expect(top.side).toBe('dock');
     expect(top.top).toBe(800 - 330 - 12);
+  });
+
+  it('docks at the bottom over a form taller than a phone screen whose top is in view', () => {
+    const phone = { ...base, viewportW: 320, viewportH: 568, tipW: 296, tipH: 309 };
+    const form = placeTooltip({ ...phone, target: rect(20, 1093, 57, 263) });
+    expect(form.side).toBe('dock');
+    expect(form.top).toBe(568 - 309 - 12);
+  });
+
+  it('docks at the top only when the target top has scrolled off and its lower part is on screen', () => {
+    const scrolledPast = placeTooltip({ ...base, target: rect(-300, 500, 145, 1135) });
+    expect(scrolledPast.side).toBe('dock');
+    expect(scrolledPast.top).toBe(12);
+    // Both edges off screen: nothing to protect at the bottom, so the usual bottom dock applies.
+    const through = placeTooltip({ ...base, target: rect(-300, 1200, 145, 1135) });
+    expect(through.top).toBe(800 - 330 - 12);
   });
 
   it('uses the real card height: a 309px card fits below a target an over-estimate would dock against', () => {
@@ -56,6 +72,32 @@ describe('placeTooltip', () => {
     expect(measured.side).toBe('below');
     expect(measured.top).toBe(440 + 14);
     expect(measured.top + 309).toBeLessThanOrEqual(800 - 12);
+  });
+
+  describe('a card that fits to within a pixel or two', () => {
+    // The Calendar day on a 320x568 phone: target 200px, card 330px, and exactly 356px above the target on
+    // paper. The page scrolls in whole pixels, so the target arrived at 355.59 and the card was docked onto it.
+    const phone = { ...base, viewportW: 320, viewportH: 568, tipW: 296, tipH: 330, prefer: 'top' as const };
+
+    it('goes above a target that landed a fraction of a pixel short', () => {
+      const day = rect(355.59, 555.59, 65, 255);
+      const p = placeTooltip({ ...phone, target: day });
+      expect(p.side).toBe('above');
+      expect(p.top + 330).toBeLessThanOrEqual(day.top - 14);
+      expect(p.top).toBeGreaterThan(10);
+    });
+
+    it('goes below, right or left on the same terms', () => {
+      expect(placeTooltip({ ...phone, prefer: 'bottom', target: rect(12, 213.5, 65, 255) }).side).toBe('below');
+      const wide = { ...base, viewportW: 700, viewportH: 300, tipW: 320, tipH: 330 };
+      expect(placeTooltip({ ...wide, target: rect(40, 260, 20, 355.5) }).side).toBe('right');
+      expect(placeTooltip({ ...wide, target: rect(40, 260, 344.5, 680) }).side).toBe('left');
+    });
+
+    it('still docks when the card is three pixels short', () => {
+      expect(placeTooltip({ ...phone, target: rect(353, 553, 65, 255) }).side).toBe('dock');
+      expect(placeTooltip({ ...phone, prefer: 'bottom', target: rect(12, 215, 65, 255) }).side).toBe('dock');
+    });
   });
 
   it('honours a preferred side only if it fits', () => {

@@ -2,7 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../core/context/ThemeContext';
 import { track } from '../../core/analytics';
-import { legalPath, type LegalDocId } from './legalDocs';
+import { legalPath, type LegalDocId } from './legalPath';
 
 const LINKS: { doc: LegalDocId; key: string }[] = [
   { doc: 'terms', key: 'shell.termsOfService' },

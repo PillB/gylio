@@ -196,12 +196,10 @@ test.describe('New component smoke tests', () => {
     await expect(page.locator('button').filter({ hasText: /recurrencia|reliability status/i })).toHaveCount(0);
   });
 
-  test('Settings Daily View section visible', async ({ page }) => {
+  test('Settings offers the Daily view switch', async ({ page }) => {
     await gotoPage(page, '/settings');
-    // SectionCard ariaLabel = t('settingsPanel.dailyViewHeading', 'Daily view')
-    // In es-PE this would be whatever key resolves to; check by heading text
-    const dailyHeading = page.locator('h2').filter({ hasText: /daily view|vista diaria/i });
-    await expect(dailyHeading).toBeVisible({ timeout: 5000 });
+    // One of the preference switches, named for what it turns on (it was a section of its own with an "Enable" box).
+    await expect(page.getByRole('checkbox', { name: /^(daily view|vista diaria)$/i })).toBeVisible({ timeout: 5000 });
   });
 
   test('Budget mounts DataFreshnessBanner without crash', async ({ page }) => {

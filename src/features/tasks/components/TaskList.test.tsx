@@ -335,4 +335,18 @@ describe('TaskList', () => {
     fireEvent.keyDown(window, { key: 'n' });
     expect(document.activeElement).toBe(input);
   });
+
+  it.each([['full', 'smooth'], ['reduced', 'instant'], ['off', 'instant']])('scrolls to the title field the way the motion setting says (%s: %s)', (mode, behavior) => {
+    document.documentElement.setAttribute('data-motion', mode);
+    try {
+      render(<TaskList />);
+      const input = titleInput();
+      const scrollIntoView = vi.fn();
+      input.scrollIntoView = scrollIntoView;
+      fireEvent.keyDown(window, { key: 'n' });
+      expect(scrollIntoView).toHaveBeenCalledWith({ behavior, block: 'center' });
+    } finally {
+      document.documentElement.removeAttribute('data-motion');
+    }
+  });
 });

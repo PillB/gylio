@@ -52,7 +52,8 @@ const PlannedActualRow: React.FC<RowProps> = ({ label, planned, actual, max }) =
 const PlannedActualSection: React.FC<Props> = ({ planned, actual }) => {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const max = Math.max(planned.NEED, planned.WANT, actual.NEED, actual.WANT, 1);
+  const largest = Math.max(planned.NEED, planned.WANT, actual.NEED, actual.WANT);
+  const max = Math.max(largest, 1);
   return (
     <section style={stackStyle(theme)}>
       <SectionHeading
@@ -63,11 +64,18 @@ const PlannedActualSection: React.FC<Props> = ({ planned, actual }) => {
       >
         {t('budget.plannedActualHeading', 'Planned vs actual')}
       </SectionHeading>
-      <div style={stackStyle(theme)}>
-        <PlannedActualRow label={t('budget.needsLabel', 'Needs')} planned={planned.NEED} actual={actual.NEED} max={max} />
-        <PlannedActualRow label={t('budget.wantsLabel', 'Wants')} planned={planned.WANT} actual={actual.WANT} max={max} />
-      </div>
-      <small>{t('budget.planActualHint', 'Top bar shows planned, bottom bar shows actual.')}</small>
+      {largest > 0 ? (
+        <>
+          <div style={stackStyle(theme)}>
+            <PlannedActualRow label={t('budget.needsLabel', 'Needs')} planned={planned.NEED} actual={actual.NEED} max={max} />
+            <PlannedActualRow label={t('budget.wantsLabel', 'Wants')} planned={planned.WANT} actual={actual.WANT} max={max} />
+          </div>
+          <small>{t('budget.planActualHint', 'Top bar shows planned, bottom bar shows actual.')}</small>
+        </>
+      ) : (
+        // No bars to read yet: one line on what will appear, instead of two rows of 0.00 and a legend for bars that are not drawn.
+        <p style={{ margin: 0, color: theme.colors.muted }}>{t('budget.planActualEmpty')}</p>
+      )}
     </section>
   );
 };

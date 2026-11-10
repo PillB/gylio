@@ -100,6 +100,11 @@ const seedBudget = (): Budget => ({
 /** The control a label names, found the way a screen reader finds it (label text only, no help button). */
 const inputAfterLabel = (labelText: string) => screen.getByLabelText(labelText, { exact: true }) as HTMLInputElement;
 
+const sentAs = (name: string) =>
+  (JSON.parse(localStorage.getItem('analytics:queue') ?? '[]') as { name: string; props: unknown }[])
+    .filter((event) => event.name === name)
+    .map((event) => event.props);
+
 const transactionSection = () => screen.getByText('budget.transactionsHeading').closest('section') as HTMLElement;
 
 const renderLoaded = async () => {
@@ -245,6 +250,112 @@ describe('BudgetView', () => {
     db.transactions = [];
     await renderLoaded();
     expect(screen.getByRole('status').textContent).toContain('budget.noTransactionsYet');
+  });
+
+  describe('before the month has a plan', () => {
+    const emptyMonth = (patch: Partial<Budget> = {}) => {
+      db.budgets = [{ id: 1, month: '2026-09', income: [], categories: [], ...patch }];
+      db.transactions = [];
+    };
+
+    it('asks for a category in place of a transaction form that could not be completed', async () => {
+      emptyMonth();
+      await renderLoaded();
+      const section = within(transactionSection());
+      expect(section.getByText('budget.transactionsNeedCategory')).toBeTruthy();
+      expect(section.queryByLabelText('amountLabel', { exact: true })).toBeNull();
+      expect(section.queryByRole('button', { name: 'budget.addTransaction' })).toBeNull();
+      // One line, not two: "No transactions yet" would repeat it.
+      expect(section.queryByText('budget.emptyTransactions')).toBeNull();
+    });
+
+    it('counts who was asked for a category and who was offered the form', async () => {
+      localStorage.removeItem('analytics:queue');
+      emptyMonth();
+      const first = render(<BudgetView />);
+      await screen.findByText('budget.incomeHeading');
+      expect(sentAs('screen_state')).toEqual([{ screen: 'budget_transactions', state: 'needs_category' }]);
+      first.unmount();
+
+      localStorage.removeItem('analytics:queue');
+      emptyMonth({ categories: [{ name: 'Rent', type: 'NEED', plannedAmount: 0 }] });
+      await renderLoaded();
+      expect(sentAs('screen_state')).toEqual([{ screen: 'budget_transactions', state: 'form' }]);
+    });
+
+    it('still lists what was spent in a category that has since been removed', async () => {
+      emptyMonth();
+      db.transactions = [{ id: 1, budgetMonth: '2026-09', amount: 12, categoryName: 'Fun', isNeed: false, date: '2026-09-02', note: null }];
+      await renderLoaded();
+      expect(within(transactionSection()).getByText('Fun')).toBeTruthy();
+    });
+
+    it('shows the transaction form as soon as there is one category', async () => {
+      emptyMonth({ categories: [{ name: 'Rent', type: 'NEED', plannedAmount: 0 }] });
+      await renderLoaded();
+      const section = within(transactionSection());
+      expect(section.queryByText('budget.transactionsNeedCategory')).toBeNull();
+      expect(section.getByLabelText('amountLabel', { exact: true })).toBeTruthy();
+      expect(section.getByRole('button', { name: 'budget.addTransaction' })).toBeTruthy();
+      expect(section.getByText('budget.emptyTransactions')).toBeTruthy();
+    });
+
+    it('says what the comparison will show instead of drawing empty bars under a legend', async () => {
+      emptyMonth({ categories: [{ name: 'Rent', type: 'NEED', plannedAmount: 0 }] });
+      await renderLoaded();
+      expect(screen.getByText('budget.planActualEmpty')).toBeTruthy();
+      expect(screen.queryByText('budget.planActualHint')).toBeNull();
+      expect(screen.queryByText('budget.needsLabel')).toBeNull();
+    });
+
+    it('draws the comparison once something is planned or spent', async () => {
+      await renderLoaded();
+      expect(screen.queryByText('budget.planActualEmpty')).toBeNull();
+      expect(screen.getByText('budget.planActualHint')).toBeTruthy();
+      expect(screen.getByText('budget.needsLabel')).toBeTruthy();
+      expect(screen.getByText('budget.wantsLabel')).toBeTruthy();
+    });
+
+    it('draws it for spending with nothing planned', async () => {
+      emptyMonth({ categories: [{ name: 'Fun', type: 'WANT', plannedAmount: 0 }] });
+      db.transactions = [{ id: 1, budgetMonth: '2026-09', amount: 12, categoryName: 'Fun', isNeed: false, date: '2026-09-02', note: null }];
+      await renderLoaded();
+      expect(screen.getByText('budget.planActualHint')).toBeTruthy();
+    });
+
+    it('offers the weekly review only once there is income or a category to review', async () => {
+      emptyMonth();
+      const first = render(<BudgetView />);
+      await screen.findByText('budget.incomeHeading');
+      expect(screen.queryByRole('button', { name: 'budget.logReview' })).toBeNull();
+      first.unmount();
+
+      emptyMonth({ income: [{ source: 'Salary', amount: 10 }] });
+      const second = render(<BudgetView />);
+      await screen.findByText('budget.incomeHeading');
+      expect(screen.getByRole('button', { name: 'budget.logReview' })).toBeTruthy();
+      second.unmount();
+
+      emptyMonth({ categories: [{ name: 'Rent', type: 'NEED', plannedAmount: 0 }] });
+      render(<BudgetView />);
+      await screen.findByText('budget.incomeHeading');
+      expect(screen.getByRole('button', { name: 'budget.logReview' })).toBeTruthy();
+    });
+
+    it('has no weekly review before a month is open', async () => {
+      db.budgets = [];
+      db.transactions = [];
+      await renderLoaded();
+      expect(screen.queryByRole('button', { name: 'budget.logReview' })).toBeNull();
+      expect(within(transactionSection()).getByText('budget.transactionsNeedCategory')).toBeTruthy();
+    });
+  });
+
+  it('names a section heading without its help button', async () => {
+    await renderLoaded();
+    const heading = screen.getByRole('heading', { level: 3, name: 'budget.transactionsHeading' });
+    expect(within(heading).queryByRole('button')).toBeNull();
+    expect(within(heading.parentElement as HTMLElement).getAllByRole('button')).toHaveLength(1);
   });
 
   it('names every Budget field by its label alone', async () => {

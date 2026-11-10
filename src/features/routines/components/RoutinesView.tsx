@@ -3,13 +3,13 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../../core/context/ThemeContext';
 import type { Routine } from '../../../core/hooks/useDB';
 import { StreakDots } from './StreakDots';
-import RoutineFlowDiagram from './RoutineFlowDiagram';
+import RoutineSequence from './RoutineSequence';
 import RoutineTemplateGallery from './RoutineTemplateGallery';
 import type { RoutineTemplate } from '../data/routineTemplateLibrary';
 import WinCard from '../../../components/WinCard';
 import BudgetTooltip from '../../../components/atoms/BudgetTooltip';
 import { HelpLabel } from '../../../components/atoms/HelpField';
-import EmptyStateAction from '../../../components/EmptyStateAction';
+import { listState, useScreenState } from '../../../core/analytics/useScreenState';
 import SectionCard from '../../../components/SectionCard.jsx';
 import { track, Events } from '../../../core/analytics';
 import {
@@ -22,6 +22,7 @@ import {
 import useRoutines from '../hooks/useRoutines';
 import { useRoutineAllowance } from '../hooks/useRoutineAllowance';
 import { RoutineExtraNotice, RoutineFormGate, RoutineLimitCount } from './RoutineAllowanceNote';
+import { scrollBehavior } from '../../../core/accessibility/motion';
 
 type FormState = {
   title: string;
@@ -47,6 +48,7 @@ const RoutinesView: React.FC = () => {
   const { routines, loading, addRoutine, updateRoutine, removeRoutine, toggleStep, completeRoutine } =
     useRoutines();
   const allowance = useRoutineAllowance(routines, !loading);
+  useScreenState('routines', listState(loading, routines.length));
 
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [touched, setTouched] = useState(false);
@@ -74,7 +76,7 @@ const RoutinesView: React.FC = () => {
     setShowRoutineGallery(false);
     // Scroll form into view so user sees the populated fields immediately
     setTimeout(() => {
-      routineTitleRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      routineTitleRef.current?.scrollIntoView({ behavior: scrollBehavior(), block: 'center' });
       routineTitleRef.current?.focus();
     }, 80);
   };
@@ -393,19 +395,11 @@ const RoutinesView: React.FC = () => {
       {loading ? (
         <p style={{ color: theme.colors.muted }}>{t('loading')}</p>
       ) : routines.length === 0 ? (
-        <EmptyStateAction
-          emoji="⚡"
-          headline={t('routines.empty', 'No routines yet.')}
-          body={t('routines.emptyBody', 'Start with one small routine you want to make easier to repeat. You can adjust it at any time.')}
-          ctaLabel={t('routines.emptyCta', 'Build your first routine')}
-          onCta={() => {
-            const titleInput = document.getElementById('routine-title') as HTMLInputElement | null;
-            titleInput?.focus();
-          }}
-          secondaryLabel={t('routines.tpl.showGallery', "Browse routine templates")}
-          onSecondary={() => setShowRoutineGallery(true)}
-          accentColor={theme.dataViz.violet}
-        />
+        // One line. The form and the templates button are directly above, so a card with a second
+        // "Browse routine templates" and a button that only moved focus up the page repeated them.
+        <p data-tour="routines-list" style={{ margin: `${theme.spacing.md}px 0 0`, color: theme.colors.muted }}>
+          {t('routines.empty')} {t('routines.emptyHint')}
+        </p>
       ) : (
         <ul data-tour="routines-list" style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: `${theme.spacing.md}px` }}>
           {routines.map((routine) => {
@@ -606,7 +600,7 @@ const RoutinesView: React.FC = () => {
                       </p>
                     )}
 
-                    <RoutineFlowDiagram
+                    <RoutineSequence
                       routineTitle={routine.title}
                       steps={routine.steps}
                       anchorHabit={routine.anchorHabit}

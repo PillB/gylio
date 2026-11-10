@@ -124,7 +124,6 @@ const EventCard: React.FC<CardProps> = ({ event, color, linkedTask, format, acti
 };
 
 type Props = {
-  loading: boolean;
   events: Event[];
   tasks: Task[];
   palette: string[];
@@ -134,14 +133,16 @@ type Props = {
 };
 
 /** Every event in start order, each readable aloud, editable in place, and deletable. */
-const EventList: React.FC<Props> = ({ loading, events, tasks, palette, editingId, format, actions }) => {
+const EventList: React.FC<Props> = ({ events, tasks, palette, editingId, format, actions }) => {
   const { t } = useTranslation();
   const { theme } = useTheme();
+  // The grid above already shows an empty calendar; a second "No events yet" under its own
+  // heading only made the page longer. The same while events load: a heading that appears and
+  // goes again on an empty calendar is a flicker.
+  if (events.length === 0) return null;
   return (
     <div>
       <HelpHeading topic="events">{t('calendarEventsHeading')}</HelpHeading>
-      {loading ? <p style={{ color: theme.colors.muted }}>{t('loading')}</p> : null}
-      {!loading && events.length === 0 ? <p style={{ color: theme.colors.muted }}>{t('calendarNoEvents')}</p> : null}
       <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: `${theme.spacing.md}px`, gridTemplateColumns: 'minmax(0, 1fr)' }}>
         {events.map((event, index) =>
           editingId === event.id ? (

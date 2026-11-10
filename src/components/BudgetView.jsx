@@ -106,6 +106,12 @@ const OptionalSection = ({ summary, startOpen, children }) => {
   );
 };
 
+/** The weekly check-in. A review needs a plan to look at: it appears once the month has income or a category. */
+const PlanReview = ({ budget }) => {
+  const planned = (budget?.income.length ?? 0) + (budget?.categories.length ?? 0);
+  return planned > 0 ? <WeeklyReviewCard /> : null;
+};
+
 const BudgetView = () => {
   const { t } = useTranslation();
   const { theme } = useTheme();
@@ -132,7 +138,6 @@ const BudgetView = () => {
     <TransactionSection
       activeBudget={activeBudget}
       monthTransactions={summary.monthTransactions}
-      onMissingBudget={() => data.setMonthTouched(true)}
       onAdd={data.addTransaction}
       onRemove={removals.removeTransaction}
     />
@@ -152,7 +157,7 @@ const BudgetView = () => {
             />
           )}
           <DiagnosticToggle onApply={applyDiagnostic} />
-          <WeeklyReviewCard />
+          <PlanReview budget={activeBudget} />
           <BudgetMonthSection
             budgets={data.budgets}
             activeBudget={activeBudget}

@@ -24,12 +24,34 @@ describe('tour step targets', () => {
         if (!step.target) continue;
         for (const m of step.target.matchAll(/data-tour="([^"]+)"/g)) {
           const name = m[1];
-          const present = source.includes(`data-tour="${name}"`) || source.includes(`data-tour={\`${name.replace(/[a-z]+$/, '')}`) || source.includes(`data-tour={'${name}'}`);
+          // `dataTour` is the prop SettingToggle puts on its outer box as `data-tour`.
+          const present = source.includes(`data-tour="${name}"`) || source.includes(`dataTour="${name}"`) || source.includes(`data-tour={\`${name.replace(/[a-z]+$/, '')}`) || source.includes(`data-tour={'${name}'}`);
           if (!present) missing.push(`${flow.id}/${step.id}: ${name}`);
         }
       }
     }
     expect(missing).toEqual([]);
+  });
+});
+
+describe('steps whose target can be hidden', () => {
+  const all = flows.flatMap((flow) => flow.steps);
+
+  it('point at the control that reveals it, second, and say so', () => {
+    const hinted = all.filter((step) => step.revealHintKey);
+    expect(hinted.map((step) => step.id)).toEqual(['tasks-date', 'tasks-energy']);
+    for (const step of hinted) {
+      const names = [...(step.target ?? '').matchAll(/data-tour="([^"]+)"/g)].map((m) => m[1]);
+      expect(names).toHaveLength(2);
+      expect(names[1]).toBe('task-details-toggle');
+    }
+  });
+
+  it('never use the upgrade card as a first choice', () => {
+    for (const step of all) {
+      const first = /data-tour="([^"]+)"/.exec(step.target ?? '')?.[1];
+      expect(first, step.id).not.toBe('premium-gate');
+    }
   });
 });
 
