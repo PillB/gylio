@@ -1,9 +1,12 @@
 import React from 'react';
 import { cleanup, render, screen, within } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
-import '../../../i18n/i18n';
+import { afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { ready as languageReady } from '../../../i18n/i18n.js';
 import { themes } from '../../../core/themes';
 import { RoutineSequence, sequenceItems } from './RoutineSequence';
+
+// The English text is fetched when the language module starts; wait for it before drawing anything.
+beforeAll(() => languageReady);
 
 const step = (label: string, done = false) => ({ label, done });
 

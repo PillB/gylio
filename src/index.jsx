@@ -8,7 +8,8 @@ import { ClerkProvider } from '@clerk/clerk-react';
 
 import App from './App.jsx';
 import { OnboardingFlowProvider } from './hooks/useOnboardingFlow.jsx';
-import i18n from './i18n/i18n.js';
+import i18n, { ready as languageReady } from './i18n/i18n.js';
+import StartProblem from './i18n/StartProblem.jsx';
 import { ThemeProvider } from './core/context/ThemeContext';
 import { AccessibilityProvider } from './core/hooks/useAccessibility';
 import { ToastProvider } from './core/context/ToastContext';
@@ -54,12 +55,11 @@ const providers = (
   </React.StrictMode>
 );
 
-if (PUBLISHABLE_KEY) {
-  root.render(
-    <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
-      {providers}
-    </ClerkProvider>
-  );
-} else {
-  root.render(providers);
-}
+const app = PUBLISHABLE_KEY ? <ClerkProvider publishableKey={PUBLISHABLE_KEY}>{providers}</ClerkProvider> : providers;
+
+// The text for the person's language is fetched on its own (src/i18n/catalogs.js). The app is drawn once it is in,
+// so no screen shows keys in place of words; if it cannot be fetched, a plain page offers a reload.
+languageReady.then(
+  () => root.render(app),
+  () => root.render(<StartProblem />)
+);

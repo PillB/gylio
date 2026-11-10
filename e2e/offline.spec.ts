@@ -58,4 +58,10 @@ test('opens screens never visited before, with no connection, after one online v
   const faces = await page.evaluate(async () => (await document.fonts.load('600 16px Inter', 'Plan')).map((face) => face.status));
   expect(faces).toEqual(['loaded']);
   expect(fontHosts).toEqual([]);
+
+  // The other language's text was never used on this device; the worker cached it with the rest of the build,
+  // so the language can still be changed with no connection.
+  await page.getByRole('combobox', { name: 'Select language' }).first().selectOption('es-PE');
+  await expect(page.getByRole('navigation', { name: 'Navegación principal' })).toBeVisible();
+  await expect(page.getByRole('alert')).toHaveCount(0);
 });

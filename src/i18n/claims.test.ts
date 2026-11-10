@@ -27,7 +27,7 @@ const BANNED: RegExp[] = [
 
 const I18N_DIR = path.resolve(__dirname);
 const SRC_DIR = path.resolve(__dirname, '..');
-/** Every catalogue in this folder. i18n.js loads all of them, so all of them are scanned. */
+/** Every catalogue in this folder. The app loads all of them (one file per language), so all of them are scanned. */
 const CATALOGUES = fs.readdirSync(I18N_DIR).filter((name) => name.endsWith('.json')).map((name) => name.replace(/\.json$/, ''));
 /**
  * Languages a person has reviewed: English and Peruvian Spanish. The unreviewed drafts (de, fr, hi, id, it, sw, zh)
@@ -62,8 +62,12 @@ const withoutComments = (code: string) => code.replace(/\/\*[\s\S]*?\*\//g, '').
 describe('claims in the interface', () => {
   it('holds only reviewed languages, all loaded by the app', () => {
     expect(CATALOGUES.filter((name) => !REVIEWED.test(name))).toEqual([]);
-    const loader = fs.readFileSync(path.join(I18N_DIR, 'i18n.js'), 'utf8');
-    expect(CATALOGUES.filter((name) => !loader.includes(`'./${name}.json'`))).toEqual([]);
+    // Each file is loaded by its own language's catalogue (catalog.en.js, catalog.es-PE.js), and by no other.
+    const loaderOf = (language: string) => fs.readFileSync(path.join(I18N_DIR, `catalog.${language}.js`), 'utf8');
+    const languageOf = (name: string) => name.split('.').pop() as string;
+    expect(CATALOGUES.filter((name) => !loaderOf(languageOf(name)).includes(`'./${name}.json'`))).toEqual([]);
+    const other = { en: 'es-PE', 'es-PE': 'en' } as Record<string, string>;
+    expect(CATALOGUES.filter((name) => loaderOf(other[languageOf(name)]).includes(`'./${name}.json'`))).toEqual([]);
   });
 
   it.each(CATALOGUES)('%s.json has no overclaiming phrases', (name) => {

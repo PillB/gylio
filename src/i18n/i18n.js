@@ -1,26 +1,7 @@
 import i18n from 'i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import { initReactI18next } from 'react-i18next';
-import en from './en.json';
-import esPE from './es-PE.json';
-import tasksEn from './tasks.en.json';
-import tasksEsPE from './tasks.es-PE.json';
-import pricingEn from './pricing.en.json';
-import pricingEsPE from './pricing.es-PE.json';
-import shellEn from './shell.en.json';
-import shellEsPE from './shell.es-PE.json';
-import onboardingEn from './onboarding.en.json';
-import onboardingEsPE from './onboarding.es-PE.json';
-import billingEn from './billing.en.json';
-import billingEsPE from './billing.es-PE.json';
-import feedbackEn from './feedback.en.json';
-import feedbackEsPE from './feedback.es-PE.json';
-import adminEn from './admin.en.json';
-import adminEsPE from './admin.es-PE.json';
-import accountEn from './account.en.json';
-import accountEsPE from './account.es-PE.json';
-import connectionLabEn from './connectionLab.en.json';
-import connectionLabEsPE from './connectionLab.es-PE.json';
+import { catalogFor, loadCatalog } from './catalogs.js';
 
 /**
  * Production localization configuration.
@@ -35,67 +16,26 @@ import connectionLabEsPE from './connectionLab.es-PE.json';
  * the same Peruvian-Spanish catalog until a separate neutral-Spanish catalog
  * is complete and reviewed.
  *
- * Feature-scoped catalogs are merged over the legacy monolith so new copy can
- * evolve in small, reviewable files without rewriting very large JSON blobs.
+ * Each language's text is its own file, fetched when the language is first used (catalogs.js); this module holds
+ * no text, so it can start before any of it has arrived. `ready` says when the first language is in.
  */
 
-const enCatalog = {
-  ...en,
-  tasks: {
-    ...en.tasks,
-    ...tasksEn,
-  },
-  pricing: {
-    ...en.pricing,
-    ...pricingEn,
-  },
-  shell: {
-    ...(en.shell || {}),
-    ...shellEn,
-  },
-  onboarding: {
-    ...(en.onboarding || {}),
-    ...onboardingEn,
-  },
-  billing: billingEn,
-  feedback: feedbackEn,
-  admin: adminEn,
-  account: accountEn,
-  connectionLab: connectionLabEn,
-};
-
-const esPECatalog = {
-  ...esPE,
-  tasks: {
-    ...esPE.tasks,
-    ...tasksEsPE,
-  },
-  pricing: {
-    ...esPE.pricing,
-    ...pricingEsPE,
-  },
-  shell: {
-    ...(esPE.shell || {}),
-    ...shellEsPE,
-  },
-  onboarding: {
-    ...(esPE.onboarding || {}),
-    ...onboardingEsPE,
-  },
-  billing: billingEsPE,
-  feedback: feedbackEsPE,
-  admin: adminEsPE,
-  account: accountEsPE,
-  connectionLab: connectionLabEsPE,
-};
-
-const resources = {
-  en:      { translation: enCatalog },
-  es:      { translation: esPECatalog },
-  'es-PE': { translation: esPECatalog },
-};
-
+// The languages text is stored under. A regional variant the app has no text of its own for (`en-US`, `es-MX`)
+// stores nothing and reads its base language, so `resolvedLanguage` is always one of these three.
 const supportedLngs = ['en', 'es', 'es-PE'];
+
+/** i18next asks this for a language's text: at start-up for the detected language, later when another is chosen. */
+const catalogBackend = {
+  type: 'backend',
+  init() {},
+  read(language, _namespace, done) {
+    if (!supportedLngs.includes(language)) {
+      done(null, {});
+      return;
+    }
+    loadCatalog(language).then((catalog) => done(null, catalog), (error) => done(error, null));
+  },
+};
 
 const canonicalDocumentLanguage = (language) => {
   if (!language) return 'en';
@@ -112,12 +52,11 @@ const syncDocumentLanguage = (language) => {
 };
 
 i18n
+  .use(catalogBackend)
   .use(LanguageDetector)
   .use(initReactI18next);
 
 const initialization = i18n.init({
-  resources,
-
   detection: {
     // Explicit user choice wins; browser locale is only the first-visit default.
     order: ['localStorage', 'navigator', 'htmlTag'],
@@ -125,7 +64,10 @@ const initialization = i18n.init({
     lookupLocalStorage: 'gylio_lang',
   },
 
-  fallbackLng: 'en',
+  // English is the fallback for a language the app does not have. Spanish has none: every key exists in both
+  // languages (scripts/check-i18n.mjs fails the build otherwise), so a fallback would only make every Spanish
+  // visit download the English text as well.
+  fallbackLng: (code) => (catalogFor(code) === 'en' ? ['en'] : []),
   supportedLngs,
   nonExplicitSupportedLngs: true,
 
@@ -145,6 +87,26 @@ const initialization = i18n.init({
 });
 
 i18n.on('languageChanged', syncDocumentLanguage);
-void initialization.then(() => syncDocumentLanguage(i18n.resolvedLanguage));
+
+/**
+ * Settles when the first language has been fetched: the app is drawn after this, so no screen shows keys in place
+ * of text. Rejects when that file could not be fetched, which index.jsx answers with a page that offers a reload.
+ */
+export const ready = initialization.then(() => {
+  if (!i18n.resolvedLanguage) throw new Error('[i18n] the text for the first language could not be loaded');
+  syncDocumentLanguage(i18n.resolvedLanguage);
+});
+// Whoever waits on `ready` still sees the failure; this only keeps a failure nobody is waiting on yet from being
+// reported as an unhandled rejection.
+ready.catch(() => undefined);
+
+/**
+ * Change language once its text has arrived. Rejects, leaving the language as it was, when the file cannot be
+ * fetched; calling i18next directly would switch anyway and show keys.
+ */
+export const switchLanguage = async (language) => {
+  await loadCatalog(language);
+  await i18n.changeLanguage(language);
+};
 
 export default i18n;
