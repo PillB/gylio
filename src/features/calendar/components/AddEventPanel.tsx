@@ -24,32 +24,34 @@ const AddEventPanel: React.FC<Props> = ({ tasks, onCreate }) => {
 
   return (
     <div data-tour="calendar-add-section">
-      <button
-        data-tour="calendar-add-btn"
-        type="button"
-        onClick={() => setOpen((prev) => !prev)}
-        aria-expanded={open}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: theme.spacing.xs,
-          padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
-          minHeight: 44,
-          borderRadius: theme.shape.radiusFull,
-          border: `1.5px solid ${open ? theme.colors.primary : theme.colors.border}`,
-          background: open ? `${theme.colors.primary}12` : 'transparent',
-          // Text colour, not primary: primary text on the tinted background fell just short of 4.5:1.
-          color: open ? theme.colors.text : theme.colors.muted,
-          cursor: 'pointer',
-          fontSize: '0.875rem',
-          fontWeight: 600,
-          marginBottom: open ? `${theme.spacing.sm}px` : 0,
-        }}
-      >
-        <span aria-hidden="true">{open ? '✕' : '+'}</span>
-        {t('calendarAddEvent')}
-      </button>
-      <CalendarHelp topic="addEvent" />
+      {/* One row: the help button used to drop onto a line of its own under the button. */}
+      <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', marginBottom: open ? `${theme.spacing.sm}px` : 0 }}>
+        <button
+          data-tour="calendar-add-btn"
+          type="button"
+          onClick={() => setOpen((prev) => !prev)}
+          aria-expanded={open}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: theme.spacing.xs,
+            padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
+            minHeight: 44,
+            borderRadius: theme.shape.radiusFull,
+            border: `1.5px solid ${open ? theme.colors.primary : theme.colors.border}`,
+            background: open ? `${theme.colors.primary}12` : 'transparent',
+            // Text colour, not primary: primary text on the tinted background fell just short of 4.5:1.
+            color: open ? theme.colors.text : theme.colors.muted,
+            cursor: 'pointer',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+          }}
+        >
+          <span aria-hidden="true">{open ? '✕' : '+'}</span>
+          {t('calendarAddEvent')}
+        </button>
+        <CalendarHelp topic="addEvent" />
+      </div>
       {open && (
         <>
           <EventFormFields form={form} tasks={tasks} />

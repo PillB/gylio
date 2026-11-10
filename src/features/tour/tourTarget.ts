@@ -1,4 +1,5 @@
 import type { TourStep } from './tourSteps';
+import { FIT_SLACK } from './placeTooltip';
 
 /** Spacing the tour's spotlight and card share, in CSS pixels. */
 export const TOUR_LAYOUT = {
@@ -53,7 +54,7 @@ interface PairArgs {
 export function targetTopFor({ targetHeight, cardHeight, viewportH, prefer }: PairArgs): number {
   const { gap, pad, ring } = TOUR_LAYOUT;
   const pair = targetHeight + gap + cardHeight;
-  if (pair > viewportH - pad * 2) return pad + ring;
+  if (pair > viewportH - pad * 2 + FIT_SLACK) return pad + ring;
   const pairTop = (viewportH - pair) / 2;
   return prefer === 'top' ? pairTop + cardHeight + gap : pairTop;
 }

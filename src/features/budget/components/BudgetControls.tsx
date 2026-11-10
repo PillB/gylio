@@ -4,6 +4,7 @@ import { useTheme } from '../../../core/context/ThemeContext';
 import type { ThemeTokens } from '../../../core/themes';
 import BudgetTooltip from '../../../components/atoms/BudgetTooltip';
 import HelpField from '../../../components/atoms/HelpField';
+import HelpHeading from '../../../components/atoms/HelpHeading';
 
 // Shared building blocks for the Budget screen. Styles match the original
 // single-file BudgetView so the split is visually identical.
@@ -32,10 +33,7 @@ type TooltipProps = {
 type HeadingProps = TooltipProps & { children: React.ReactNode };
 
 export const SectionHeading: React.FC<HeadingProps> = ({ tooltip, tooltipPosition, children }) => (
-  <h3 style={{ margin: 0, display: 'flex', alignItems: 'center' }}>
-    {children}
-    {tooltip ? <BudgetTooltip content={tooltip} position={tooltipPosition} /> : null}
-  </h3>
+  <HelpHeading help={tooltip ? <BudgetTooltip content={tooltip} position={tooltipPosition} /> : null}>{children}</HelpHeading>
 );
 
 type FieldProps = TooltipProps & {

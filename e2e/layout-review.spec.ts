@@ -163,13 +163,14 @@ test.describe('layout review', () => {
             const target = { y: step.ring.y + 8, h: step.ring.h - 16 };
             expect(step.ring.y, `${where}: the top of the target is off screen`).toBeGreaterThanOrEqual(0);
             const fitTogether = target.h + 14 + step.card!.h <= height - 24;
-            if (fitTogether) {
+            const gap = 4;
+            const apart = step.card!.y >= step.ring.y + step.ring.h + gap || step.card!.y + step.card!.h <= step.ring.y - gap;
+            if (apart) {
               beside += 1;
-              const gap = 4;
-              const apart = step.card!.y >= step.ring.y + step.ring.h + gap || step.card!.y + step.card!.h <= step.ring.y - gap;
-              expect(apart, `${where}: the card covers or touches its target`).toBe(true);
             } else {
-              // Too tall to share the screen: the card may cover the lower part, never the top.
+              // Only a target too tall to share the screen may be covered, and then its lower part, never the top.
+              // (A card a fraction of a pixel over still goes beside its target: Firefox measures this one at 330.53.)
+              expect(fitTogether, `${where}: the card covers or touches its target`).toBe(false);
               expect(step.card!.y, `${where}: the card covers the top of its target`).toBeGreaterThan(target.y + 40);
             }
           }

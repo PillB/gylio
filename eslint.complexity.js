@@ -10,7 +10,6 @@ export const COMPLEXITY_CEILING = 10;
 export const COMPLEXITY_BASELINE = {
   'src/App.jsx': 23,
   'src/components/RewardsView.jsx': 51,
-  'src/components/SettingsView.jsx': 39,
   'src/components/atoms/DateTimeWidget.tsx': 14,
   'src/core/hooks/useDB.ts': 11,
   'src/core/hooks/useRewards.ts': 17,

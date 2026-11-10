@@ -25,6 +25,13 @@ interface PlaceArgs {
   prefer: 'top' | 'bottom' | 'left' | 'right' | 'center';
 }
 
+/**
+ * How many pixels short of fitting still counts as fitting. Pages scroll in whole pixels and cards
+ * measure in fractions (330.53px in Firefox), so a card that fits beside its target exactly on paper
+ * arrives up to a pixel short. Without this it was then docked on top of the target it had room beside.
+ */
+export const FIT_SLACK = 2;
+
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(value, Math.max(min, max)));
 
 /**
@@ -41,10 +48,10 @@ export function placeTooltip({ target, viewportW, viewportH, tipW, tipH, gap, pa
   const alignedTop = clamp(target.top, pad, viewportH - tipH - pad);
 
   const fits = {
-    below: viewportH - target.bottom >= tipH + gap + pad,
-    above: target.top >= tipH + gap + pad,
-    right: viewportW - target.right >= tipW + gap + pad,
-    left: target.left >= tipW + gap + pad,
+    below: viewportH - target.bottom >= tipH + gap + pad - FIT_SLACK,
+    above: target.top >= tipH + gap + pad - FIT_SLACK,
+    right: viewportW - target.right >= tipW + gap + pad - FIT_SLACK,
+    left: target.left >= tipW + gap + pad - FIT_SLACK,
   };
   const spots: Record<Exclude<TooltipSide, 'dock'>, TooltipPlacement> = {
     below: { side: 'below', top: target.bottom + gap, left: alignedLeft },

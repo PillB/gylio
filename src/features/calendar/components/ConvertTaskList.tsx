@@ -11,57 +11,54 @@ type Props = { tasks: Task[]; onConvert: (task: Task) => void };
 const ConvertTaskList: React.FC<Props> = ({ tasks, onConvert }) => {
   const { t } = useTranslation();
   const { theme } = useTheme();
+  if (tasks.length === 0) return null;
   return (
     <div>
       <HelpHeading topic="tasksToConvert">{t('calendarTasksToConvert')}</HelpHeading>
-      {tasks.length ? (
-        <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: `${theme.spacing.sm}px`, gridTemplateColumns: 'minmax(0, 1fr)' }}>
-          {tasks.map((task) => (
-            <li
-              key={task.id}
+      <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: `${theme.spacing.sm}px`, gridTemplateColumns: 'minmax(0, 1fr)' }}>
+        {tasks.map((task) => (
+          <li
+            key={task.id}
+            style={{
+              ...panelStyle(theme),
+              display: 'flex',
+              flexDirection: 'column',
+              gap: `${theme.spacing.xs}px`,
+              minWidth: 0,
+            }}
+          >
+            <span
               style={{
-                ...panelStyle(theme),
-                display: 'flex',
-                flexDirection: 'column',
-                gap: `${theme.spacing.xs}px`,
-                minWidth: 0,
+                fontSize: '0.8125rem',
+                color: theme.colors.muted,
+                wordBreak: 'break-word',
+                overflowWrap: 'anywhere',
+                lineHeight: 1.45,
               }}
             >
-              <span
-                style={{
-                  fontSize: '0.8125rem',
-                  color: theme.colors.muted,
-                  wordBreak: 'break-word',
-                  overflowWrap: 'anywhere',
-                  lineHeight: 1.45,
-                }}
-              >
-                {task.title}
-              </span>
-              <button
-                type="button"
-                onClick={() => onConvert(task)}
-                aria-label={t('calendarConvertTaskNamed', { title: task.title })}
-                style={calendarButtonStyle(theme, 'outlinePrimary', {
-                  alignSelf: 'flex-start',
-                  minHeight: 44,
-                  color: theme.colors.primary,
-                  fontWeight: 600,
-                  fontSize: '0.875rem',
-                  cursor: 'pointer',
-                  flexShrink: 0,
-                  whiteSpace: 'nowrap',
-                  fontFamily: 'inherit',
-                })}
-              >
-                {t('calendarConvertTask')}
-              </button>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p style={{ color: theme.colors.muted }}>{t('calendarNoTasksToConvert')}</p>
-      )}
+              {task.title}
+            </span>
+            <button
+              type="button"
+              onClick={() => onConvert(task)}
+              aria-label={t('calendarConvertTaskNamed', { title: task.title })}
+              style={calendarButtonStyle(theme, 'outlinePrimary', {
+                alignSelf: 'flex-start',
+                minHeight: 44,
+                color: theme.colors.primary,
+                fontWeight: 600,
+                fontSize: '0.875rem',
+                cursor: 'pointer',
+                flexShrink: 0,
+                whiteSpace: 'nowrap',
+                fontFamily: 'inherit',
+              })}
+            >
+              {t('calendarConvertTask')}
+            </button>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 };

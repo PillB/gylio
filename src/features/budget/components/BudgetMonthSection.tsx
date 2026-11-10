@@ -87,10 +87,6 @@ const BudgetMonthSection: React.FC<Props> = ({
       </SectionHeading>
       <BudgetInput
         label={t('periodLabel', 'Period')}
-        tooltip={t(
-          'tooltips.budget.period',
-          'Enter the month you want to budget for in YYYY-MM format (e.g. 2026-04 for April 2026). Each month is a fresh zero-based plan — your income and categories carry meaning within that window.'
-        )}
         value={monthInput}
         onChange={onMonthChange}
         error={monthError}

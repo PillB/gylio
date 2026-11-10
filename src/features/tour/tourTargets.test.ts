@@ -24,7 +24,8 @@ describe('tour step targets', () => {
         if (!step.target) continue;
         for (const m of step.target.matchAll(/data-tour="([^"]+)"/g)) {
           const name = m[1];
-          const present = source.includes(`data-tour="${name}"`) || source.includes(`data-tour={\`${name.replace(/[a-z]+$/, '')}`) || source.includes(`data-tour={'${name}'}`);
+          // `dataTour` is the prop SettingToggle puts on its outer box as `data-tour`.
+          const present = source.includes(`data-tour="${name}"`) || source.includes(`dataTour="${name}"`) || source.includes(`data-tour={\`${name.replace(/[a-z]+$/, '')}`) || source.includes(`data-tour={'${name}'}`);
           if (!present) missing.push(`${flow.id}/${step.id}: ${name}`);
         }
       }

@@ -60,9 +60,17 @@ describe('targetTopFor', () => {
 
   it('shows the top of a target that cannot share the screen with its card', () => {
     expect(targetTopFor({ ...phone, targetHeight: 1073 })).toBe(TOUR_LAYOUT.pad + TOUR_LAYOUT.ring);
-    // 222px is one pixel more than fits: 222 + 14 + 309 = 545 > 568 - 24.
-    expect(targetTopFor({ ...phone, targetHeight: 222 })).toBe(TOUR_LAYOUT.pad + TOUR_LAYOUT.ring);
+    // 221 + 14 + 309 = 544 = 568 - 24 fits exactly; up to two pixels over still counts; three do not.
     expect(targetTopFor({ ...phone, targetHeight: 221 })).toBe(TOUR_LAYOUT.pad);
+    expect(targetTopFor({ ...phone, targetHeight: 223 })).toBe(TOUR_LAYOUT.pad - 1);
+    expect(targetTopFor({ ...phone, targetHeight: 224 })).toBe(TOUR_LAYOUT.pad + TOUR_LAYOUT.ring);
+  });
+
+  it('still pairs a target with a card that measures a fraction over (the Calendar day on a 320x568 phone in Firefox)', () => {
+    // 200 + 14 + 330.53 = 544.53: half a pixel more than the screen less its margins.
+    const top = targetTopFor({ viewportH: 568, cardHeight: 330.53, targetHeight: 200, prefer: 'top' });
+    expect(top).toBeCloseTo((568 - 544.53) / 2 + 330.53 + TOUR_LAYOUT.gap, 5);
+    expect(top + 200).toBeLessThanOrEqual(568);
   });
 });
 

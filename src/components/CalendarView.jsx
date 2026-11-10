@@ -119,7 +119,6 @@ const CalendarView = () => {
           onConvert={(task) => data.scheduleTask(buildQuickTaskEventInput(task), 'convert task')}
         />
         <EventList
-          loading={data.loading}
           events={sortedEvents}
           tasks={data.tasks}
           palette={palette}
