@@ -56,7 +56,7 @@ const EnergyPicker: React.FC<PickerProps> = ({ value, onChange }) => {
     <>
       <p style={{ margin: '0 0 0.5rem', fontWeight: 600, fontSize: '0.875rem', display: 'flex', alignItems: 'center' }}>
         <span id={labelId}>{t('tasks.energyLabel', 'Energy required')}</span>
-        <TaskHelp topic="energy" />
+        <TaskHelp topic="energy" about={t('tasks.energyLabel', 'Energy required')} />
       </p>
       <div role="group" aria-labelledby={labelId} style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
         {ENERGY_LEVELS.map((level) => (

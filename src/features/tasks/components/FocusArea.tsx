@@ -44,7 +44,7 @@ const FocusArea: React.FC<Props> = ({ timerRunning, focusMinutes, tasksListed })
     >
       <p style={{ margin: '0 0 0.5rem', fontWeight: 700, display: 'flex', alignItems: 'center' }}>
         {t('tasks.focusHeading')}
-        <TaskHelp topic="timer" />
+        <TaskHelp topic="timer" about={t('tasks.focusHeading')} />
       </p>
       <p style={{ margin: '0 0 0.75rem', color: theme.colors.muted, fontSize: '0.875rem' }}>{t('tasks.focusHelper')}</p>
       <p style={{ margin: 0, color: theme.colors.muted, fontSize: '0.8125rem' }}>

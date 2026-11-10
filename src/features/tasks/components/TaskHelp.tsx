@@ -24,9 +24,9 @@ const HELP = {
 export type TaskHelpTopic = keyof typeof HELP;
 
 /** Info button with the plain-language help for one part of the Tasks screen (`tooltips.tasks.*`). */
-const TaskHelp: React.FC<{ topic: TaskHelpTopic }> = ({ topic }) => {
+const TaskHelp: React.FC<{ topic: TaskHelpTopic; about?: string }> = ({ topic, about }) => {
   const { t } = useTranslation();
-  return <BudgetTooltip content={t(`tooltips.tasks.${topic}`, HELP[topic])} />;
+  return <BudgetTooltip content={t(`tooltips.tasks.${topic}`, HELP[topic])} about={about} />;
 };
 
 export default TaskHelp;

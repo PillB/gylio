@@ -11,9 +11,15 @@
 import React, { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../core/context/ThemeContext';
+import { useHelpTopic } from './HelpTopic';
 
 type Props = {
   content: string;
+  /**
+   * What this help is about (the label or heading beside it), for the button's spoken name. Not needed inside
+   * HelpLabel, HelpField, HelpHeading, SectionCard or SettingToggle, which say it themselves.
+   */
+  about?: string;
   /** Position relative to trigger. Default: 'top'. */
   position?: 'top' | 'bottom';
 };
@@ -71,9 +77,11 @@ const useDismiss = (open: boolean, wrapperRef: React.RefObject<HTMLSpanElement>,
   }, [open, wrapperRef, close]);
 };
 
-export default function BudgetTooltip({ content, position = 'top' }: Props) {
+export default function BudgetTooltip({ content, about, position = 'top' }: Props) {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const topic = useHelpTopic();
+  const subject = about ?? topic;
   const [open, setOpen] = useState(false);
   const [pinned, setPinned] = useState(false);
   const id = useId();
@@ -119,7 +127,7 @@ export default function BudgetTooltip({ content, position = 'top' }: Props) {
       <button
         type="button"
         aria-describedby={id}
-        aria-label={t('shell.information')}
+        aria-label={subject ? t('shell.informationAbout', { topic: subject }) : t('shell.information')}
         onFocus={() => setOpen(true)}
         onBlur={close}
         onClick={() => {

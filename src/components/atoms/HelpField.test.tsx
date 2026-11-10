@@ -5,7 +5,12 @@ import HelpField, { HelpLabel } from './HelpField';
 import BudgetTooltip from './BudgetTooltip';
 
 vi.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string) => (key === 'shell.information' ? 'Information' : key) }),
+  useTranslation: () => ({
+    t: (key: string, options?: { topic?: string }) => {
+      if (key === 'shell.information') return 'Information';
+      return key === 'shell.informationAbout' ? `Information: ${options?.topic}` : key;
+    },
+  }),
 }));
 vi.mock('../../core/context/ThemeContext', async () => {
   const { themes } = await import('../../core/themes');
@@ -20,7 +25,8 @@ describe('HelpField', () => {
       </HelpField>
     );
     expect(screen.getByRole('spinbutton', { name: 'Amount' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Information' })).toBeTruthy();
+    // The help button says which field it explains; a page of them is not a list of identical names.
+    expect(screen.getByRole('button', { name: 'Information: Amount' })).toBeTruthy();
   });
 
   it('the label belongs to the control, and clicking it does not open the help', () => {
@@ -106,5 +112,18 @@ describe('HelpLabel', () => {
       </>
     );
     expect(screen.getByRole('textbox', { name: 'Add task' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Information: Add task' })).toBeTruthy();
+  });
+
+  it('leaves the help button with its plain name when the label is not plain text', () => {
+    render(
+      <>
+        <HelpLabel htmlFor="task-date" help={<BudgetTooltip content="Pick a day" />}>
+          <em>When</em>
+        </HelpLabel>
+        <input id="task-date" type="date" />
+      </>
+    );
+    expect(screen.getByRole('button', { name: 'Information' })).toBeTruthy();
   });
 });

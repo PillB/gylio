@@ -33,9 +33,9 @@ const HELP = {
 export type CalendarHelpTopic = keyof typeof HELP;
 
 /** Info button with the plain-language help for one part of the Calendar screen (`tooltips.calendar.*`). */
-const CalendarHelp: React.FC<{ topic: CalendarHelpTopic }> = ({ topic }) => {
+const CalendarHelp: React.FC<{ topic: CalendarHelpTopic; about?: string }> = ({ topic, about }) => {
   const { t } = useTranslation();
-  return <BudgetTooltip content={t(`tooltips.calendar.${topic}`, HELP[topic])} />;
+  return <BudgetTooltip content={t(`tooltips.calendar.${topic}`, HELP[topic])} about={about} />;
 };
 
 /** An h3 with its help button beside it. */

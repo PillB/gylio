@@ -144,7 +144,7 @@ const SettingsView = () => {
           >
             {isTinted ? t('disableTint') : t('enableTint')}
           </button>
-          <BudgetTooltip content={t('tooltips.settings.tint', 'Applies a warm color overlay to reduce blue light and harsh contrast. Many neurodivergent users find this reduces eye strain and sensory overwhelm during long sessions.')} />
+          <BudgetTooltip about={t('shell.screenTint')} content={t('tooltips.settings.tint', 'Applies a warm color overlay to reduce blue light and harsh contrast. Many neurodivergent users find this reduces eye strain and sensory overwhelm during long sessions.')} />
         </span>
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
           <button
@@ -155,7 +155,7 @@ const SettingsView = () => {
           >
             {isSpeaking ? t('speaking') : t('announceSettings')}
           </button>
-          <BudgetTooltip content={t('tooltips.settings.announceSettings', 'Reads your current settings aloud so you can confirm everything is configured as expected without reading through the list.')} />
+          <BudgetTooltip about={t('announceSettings')} content={t('tooltips.settings.announceSettings', 'Reads your current settings aloud so you can confirm everything is configured as expected without reading through the list.')} />
         </span>
       </div>
       <p style={{ color: theme.colors.muted, marginTop: theme.spacing.sm }}>
@@ -187,7 +187,7 @@ const SettingsView = () => {
             <div>
               <p style={{ margin: 0, fontWeight: 600, display: 'flex', alignItems: 'center' }}>
                 {t('settingsThemeLabel')}
-                <BudgetTooltip content={t('tooltips.settings.theme', 'Choose a visual theme that feels comfortable. Dark mode reduces glare in low-light environments; light mode improves contrast for many users. Auto follows your device setting.')} />
+                <BudgetTooltip about={t('settingsThemeLabel')} content={t('tooltips.settings.theme', 'Choose a visual theme that feels comfortable. Dark mode reduces glare in low-light environments; light mode improves contrast for many users. Auto follows your device setting.')} />
               </p>
               <small style={{ color: theme.colors.muted }}>
                 {t('onboarding.accessibility.contrastHelper')}
@@ -228,7 +228,7 @@ const SettingsView = () => {
             <div style={{ minWidth: 0, flex: '1 1 220px' }}>
               <p style={{ margin: 0, fontWeight: 600, display: 'flex', alignItems: 'center' }}>
                 {t('settingsFontLabel')}
-                <BudgetTooltip content={t('tooltips.settings.font', 'Larger text reduces cognitive load when scanning long lists. The default size is designed for readability; increase it if you find yourself squinting or losing your place.')} />
+                <BudgetTooltip about={t('settingsFontLabel')} content={t('tooltips.settings.font', 'Larger text reduces cognitive load when scanning long lists. The default size is designed for readability; increase it if you find yourself squinting or losing your place.')} />
               </p>
               <small style={{ color: theme.colors.muted }}>
                 {t('onboarding.accessibility.textStyleHelper')}
@@ -271,7 +271,7 @@ const SettingsView = () => {
             <div>
               <p style={{ margin: 0, fontWeight: 600, display: 'flex', alignItems: 'center' }}>
                 {t('settingsMotionLabel')}
-                <BudgetTooltip content={t('tooltips.settings.motion', 'Disabling animations removes all sliding, fading, and bouncing effects. Essential if motion causes distraction, dizziness, or sensory overload.')} />
+                <BudgetTooltip about={t('settingsMotionLabel')} content={t('tooltips.settings.motion', 'Disabling animations removes all sliding, fading, and bouncing effects. Essential if motion causes distraction, dizziness, or sensory overload.')} />
               </p>
               <small id="motion-helper" style={{ color: theme.colors.muted }}>
                 {t('onboarding.accessibility.motionHelper')}

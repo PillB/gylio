@@ -45,6 +45,7 @@ const WeeklyReviewCard: React.FC = () => {
         <p style={{ margin: 0, fontWeight: 600, display: 'flex', alignItems: 'center' }}>
           {t('budget.reviewHeading', 'Weekly review')}
           <BudgetTooltip
+            about={t('budget.reviewHeading', 'Weekly review')}
             content={t(
               'tooltips.budget.review',
               'A 5-minute weekly check-in is the single highest-leverage budget habit. Glancing at the numbers prevents small leaks from becoming big holes.'

@@ -1,4 +1,5 @@
 import React from 'react';
+import { HelpTopic } from '../../../components/atoms/HelpTopic';
 import { useTranslation } from 'react-i18next';
 import type { Subtask } from '../../../core/hooks/useDB';
 import type { ThemeTokens } from '../../../core/themes';
@@ -54,7 +55,7 @@ const SubtaskEditor: React.FC<SubtaskEditorProps> = ({
     >
       <legend style={{ padding: `0 ${theme.spacing.xs}px`, fontWeight: 600, display: 'flex', alignItems: 'center' }}>
         {label}
-        {tooltip}
+        <HelpTopic topic={label}>{tooltip}</HelpTopic>
       </legend>
       <p style={{ margin: '0 0 0.5rem', color: theme.colors.muted }}>{helper}</p>
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: '0.5rem' }}>

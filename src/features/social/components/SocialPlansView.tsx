@@ -280,7 +280,7 @@ const SocialPlansView: React.FC = () => {
     >
       <legend style={{ padding: `0 ${theme.spacing.xs}px`, fontWeight: 600, display: 'flex', alignItems: 'center' }}>
         {t('social.stepsLabel')}
-        <BudgetTooltip content={t('tooltips.social.steps', "Break the connection plan into small actions: 'text to suggest a date', 'book the restaurant', 'confirm the day before'. Each step removes a reason to postpone.")} />
+        <BudgetTooltip about={t('social.stepsLabel')} content={t('tooltips.social.steps', "Break the connection plan into small actions: 'text to suggest a date', 'book the restaurant', 'confirm the day before'. Each step removes a reason to postpone.")} />
       </legend>
       <p style={{ margin: '0 0 0.5rem', color: theme.colors.muted }}>{t('social.stepsHelper')}</p>
       <div style={{ display: 'grid', gap: '0.5rem', gridTemplateColumns: 'minmax(0, 1fr)' }}>

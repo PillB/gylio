@@ -73,6 +73,7 @@ const PayoffPanel: React.FC<Props> = ({ debts, extraPayment }) => {
             {t('budget.snowballLabel', 'Snowball')}
           </ToggleButton>
           <BudgetTooltip
+            about={t('budget.snowballLabel', 'Snowball')}
             content={t('budget.snowballExplain', 'Pay minimums on everything, throw every extra dollar at the smallest balance. Each debt cleared is a concrete win — and wins keep you going.')}
             position="top"
           />
@@ -82,6 +83,7 @@ const PayoffPanel: React.FC<Props> = ({ debts, extraPayment }) => {
             {t('budget.avalancheLabel', 'Avalanche')}
           </ToggleButton>
           <BudgetTooltip
+            about={t('budget.avalancheLabel', 'Avalanche')}
             content={t('budget.avalancheExplain', 'Pay minimums on everything, attack the highest interest rate first. Mathematically optimal — saves the most money over time.')}
             position="top"
           />

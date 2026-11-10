@@ -47,7 +47,7 @@ const RecurringStatusToggle: React.FC = () => {
           <span>🔁</span>
           {open ? t('recurring.hidePanel', 'Hide reliability status') : t('recurring.showPanel', 'Reliability status')}
         </button>
-        <TaskHelp topic="reliability" />
+        <TaskHelp topic="reliability" about={t('recurring.showPanel', 'Reliability status')} />
       </span>
       {open && (
         <div

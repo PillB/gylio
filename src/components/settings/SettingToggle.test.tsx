@@ -4,7 +4,9 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { themes } from '../../core/themes';
 import SettingToggle from './SettingToggle';
 
-vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({ t: (key: string, options?: { topic?: string }) => (options?.topic ? `${key}(${options.topic})` : key) }),
+}));
 vi.mock('../../core/context/ThemeContext', () => ({ useTheme: () => ({ theme: themes.light }) }));
 
 describe('SettingToggle', () => {
@@ -47,6 +49,8 @@ describe('SettingToggle', () => {
     const help = screen.getAllByRole('button');
     expect(help).toHaveLength(1);
     expect(help[0].closest('label')).toBeNull();
+    // The help button says which setting it explains.
+    expect(help[0].getAttribute('aria-label')).toBe('shell.informationAbout(Rewards)');
   });
 
   it('shows no help button without a tooltip', () => {

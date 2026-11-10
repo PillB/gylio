@@ -50,7 +50,7 @@ const AddEventPanel: React.FC<Props> = ({ tasks, onCreate }) => {
           <span aria-hidden="true">{open ? '✕' : '+'}</span>
           {t('calendarAddEvent')}
         </button>
-        <CalendarHelp topic="addEvent" />
+        <CalendarHelp topic="addEvent" about={t('calendarAddEvent')} />
       </div>
       {open && (
         <>

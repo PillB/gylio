@@ -3,6 +3,8 @@
   "notifications": "Notificaciones",
   "dismissNotification": "Cerrar notificación",
   "information": "Información",
+  "informationAbout": "Información: {{topic}}",
+  "screenTint": "Tinte de pantalla",
   "premiumTab": "Función de Pro",
   "termsOfService": "Términos del Servicio",
   "privacyPolicy": "Política de Privacidad",
