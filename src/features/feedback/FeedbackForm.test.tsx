@@ -3,10 +3,13 @@
  * network is replaced, so the test sees exactly what would be sent to the API.
  */
 import React from 'react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import '../../i18n/i18n.js';
+import { ready as languageReady } from '../../i18n/i18n.js';
+
+// The language file arrives after the module loads; render only once it has.
+beforeAll(() => languageReady);
 import i18n from 'i18next';
 import { ThemeProvider } from '../../core/context/ThemeContext';
 import FeedbackForm from './FeedbackForm';

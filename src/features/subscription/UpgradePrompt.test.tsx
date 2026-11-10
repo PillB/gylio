@@ -5,8 +5,11 @@
 import React from 'react';
 import { cleanup, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import '../../i18n/i18n.js';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import { ready as languageReady } from '../../i18n/i18n.js';
+
+// The language file arrives after the module loads; render only once it has.
+beforeAll(() => languageReady);
 
 vi.mock('../../core/context/ThemeContext', async () => {
   const { themes } = await import('../../core/themes');

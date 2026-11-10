@@ -4,9 +4,12 @@
  */
 import React from 'react';
 import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { I18nextProvider } from 'react-i18next';
-import i18n from './i18n/i18n.js';
+import i18n, { ready as languageReady } from './i18n/i18n.js';
+
+// The language file arrives after the module loads; render only once it has.
+beforeAll(() => languageReady);
 import { OWNER_KEY, OWNER_SIGNED_IN_KEY } from './core/account/deviceOwner';
 import { QUIET_MS } from './core/account/accountGate';
 

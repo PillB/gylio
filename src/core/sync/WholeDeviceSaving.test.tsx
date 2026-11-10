@@ -1,7 +1,10 @@
 import React from 'react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
-import '../../i18n/i18n.js';
+import { ready as languageReady } from '../../i18n/i18n.js';
+
+// The language file arrives after the module loads; render only once it has.
+beforeAll(() => languageReady);
 
 vi.mock('../context/AuthContext', () => ({ useAppAuth: () => ({ userId: 'user_1' }) }));
 vi.mock('../utils/authToken', () => ({ authHeaders: async () => ({}) }));

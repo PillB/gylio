@@ -1,9 +1,12 @@
 /** Pricing behaviour the review found broken, checked through the real page. */
 import React from 'react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import '../../i18n/i18n.js';
+import { ready as languageReady } from '../../i18n/i18n.js';
+
+// The language file arrives after the module loads; render only once it has.
+beforeAll(() => languageReady);
 import i18n from 'i18next';
 
 const auth = { userId: 'user_1' as string | null, authLoaded: true };
