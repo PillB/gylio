@@ -71,6 +71,40 @@ const precacheList = () => ({
   },
 });
 
+/**
+ * Gives src/i18n/catalogs.js the final address of each language file. Safari answers a second import of a file
+ * that failed to download with the same failure, even after a reload, so the loader fetches it again under a new
+ * address (`?attempt=1`), and for that it needs the address the build gave the file.
+ */
+const CATALOG_LOADER = path.resolve(__dirname, 'src/i18n/catalogs.js');
+const CATALOG_PLACEHOLDER =
+  "typeof __GYLIO_CATALOG_ADDRESSES__ === 'undefined' ? null : __GYLIO_CATALOG_ADDRESSES__";
+
+const catalogAddresses = () => {
+  const references: Record<string, string> = {};
+  return {
+    name: 'gylio-catalog-addresses',
+    apply: 'build' as const,
+    buildStart(this: { emitFile: (file: { type: 'chunk'; id: string; name: string }) => string }) {
+      for (const language of ['en', 'es-PE']) {
+        references[language] = this.emitFile({
+          type: 'chunk',
+          id: path.resolve(__dirname, `src/i18n/catalog.${language}.js`),
+          name: `catalog.${language}`,
+        });
+      }
+    },
+    transform(code: string, id: string) {
+      if (id !== CATALOG_LOADER) return null;
+      if (!code.includes(CATALOG_PLACEHOLDER)) throw new Error('[build] src/i18n/catalogs.js no longer has the catalogue address placeholder');
+      const addresses = Object.entries(references)
+        .map(([language, reference]) => `'${language}': import.meta.ROLLUP_FILE_URL_${reference}`)
+        .join(', ');
+      return { code: code.replace(CATALOG_PLACEHOLDER, `{ ${addresses} }`), map: null };
+    },
+  };
+};
+
 // Vite configuration for GYLIO
 // - Enables React support
 // - Uses VITE_BASE_PATH so the same build can target GitHub Pages (/gylio/)
@@ -97,7 +131,7 @@ export default defineConfig(({ mode }) => {
   // The Cloudflare deploy (worker/scripts/setup.sh) points this at an empty folder and pins every VITE_ setting
   // itself, so a stray .env file on the Mac that deploys cannot change what ships.
   envDir: process.env.GYLIO_ENV_DIR || undefined,
-  plugins: [react(), contentSecurityPolicy(), emitLegalPages(), precacheList()],
+  plugins: [react(), contentSecurityPolicy(), emitLegalPages(), catalogAddresses(), precacheList()],
   build: {
     manifest: true,
     rollupOptions: {

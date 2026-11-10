@@ -87,9 +87,12 @@ test('the app stays in English and says why when the Spanish text cannot be fetc
   await expect.poll(() => sent(page, 'language_load_failed')).toEqual([{ to: 'es-PE' }]);
   expect(await sent(page, 'language_changed')).toEqual([]);
 
-  // "Try again" is true: with the connection back, the same choice works without a reload.
+  // "Try again" is true: with the connection back, the same choice works without a reload. The file is asked for
+  // under a new address, because Safari answers a second import of an address that failed with the same failure.
   await page.unroute(SPANISH);
+  const retry = page.waitForRequest(/\/assets\/catalog\.es-PE-[\w-]+\.js\?attempt=1$/);
   await language.selectOption('es-PE');
+  await retry;
   await expect(page.getByRole('navigation', { name: 'Navegación principal' })).toBeVisible();
   await expect(page.getByRole('alert')).toHaveCount(0);
 });
@@ -103,7 +106,10 @@ test('a start-up that cannot fetch its text offers a reload in both languages, a
   // Nothing of the app is drawn without its words.
   await expect(page.getByRole('navigation')).toHaveCount(0);
 
+  // The reload asks for the file under a new address: in Safari a reload alone gets the same failure back.
   await page.unroute(ENGLISH);
+  const retry = page.waitForRequest(/\/assets\/catalog\.en-[\w-]+\.js\?attempt=1$/);
   await page.getByRole('button', { name: 'Reload / Recargar' }).click();
+  await retry;
   await expect(page.getByRole('navigation', { name: 'Primary navigation' })).toBeVisible();
 });

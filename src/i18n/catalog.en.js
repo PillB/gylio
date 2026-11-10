@@ -8,7 +8,11 @@ import feedback from './feedback.en.json';
 import admin from './admin.en.json';
 import account from './account.en.json';
 import connectionLab from './connectionLab.en.json';
-import { mergeCatalog } from './mergeCatalog.js';
 
-/** Everything the app says in English, in one object. Downloaded only by someone using the app in English. */
-export default mergeCatalog(base, { tasks, pricing, shell, onboarding, billing, feedback, admin, account, connectionLab });
+/**
+ * Everything the app says in English: the main file and the feature files, merged by the loader (catalogs.js,
+ * mergeCatalog.js). Downloaded only by someone using the app in English. This file imports nothing but its own
+ * text, so when it has to be fetched again under a new address (catalogs.js) nothing it depends on can still be
+ * the copy that failed.
+ */
+export default { base, features: { tasks, pricing, shell, onboarding, billing, feedback, admin, account, connectionLab } };
