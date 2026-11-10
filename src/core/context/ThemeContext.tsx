@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { deviceStorage } from '../utils/deviceStorage';
 import { ThemeMode, ThemeTokens, themes } from '../themes';
 
 const STORAGE_KEY = 'theme-mode';
@@ -28,7 +28,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const hydrateTheme = async () => {
       try {
-        const storedMode = await AsyncStorage.getItem(STORAGE_KEY);
+        const storedMode = await deviceStorage.getItem(STORAGE_KEY);
         if (storedMode && isThemeMode(storedMode)) {
           setMode(storedMode);
           return;
@@ -48,7 +48,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!hydrated) return;
 
-    AsyncStorage.setItem(STORAGE_KEY, mode).catch(() => {
+    deviceStorage.setItem(STORAGE_KEY, mode).catch(() => {
       // Swallow persistence errors to avoid blocking UI rendering.
     });
   }, [mode, hydrated]);

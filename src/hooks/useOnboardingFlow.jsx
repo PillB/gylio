@@ -6,7 +6,7 @@ import React, {
   useMemo,
   useState
 } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { deviceStorage } from '../core/utils/deviceStorage';
 
 export const ONBOARDING_SCHEMA_VERSION = 5;
 export const stepOrder = ['accessibility', 'quickSetup', 'tour'];
@@ -123,19 +123,8 @@ const migratePersistedState = (persistedState) => {
   };
 };
 
-const getStorage = () => {
-  if (AsyncStorage && typeof AsyncStorage.getItem === 'function') return AsyncStorage;
-
-  if (typeof window !== 'undefined' && window?.localStorage) {
-    return {
-      getItem: (key) => Promise.resolve(window.localStorage.getItem(key)),
-      setItem: (key, value) => Promise.resolve(window.localStorage.setItem(key, value)),
-      removeItem: (key) => Promise.resolve(window.localStorage.removeItem(key))
-    };
-  }
-
-  return null;
-};
+// No window (a script run outside a browser): nothing is read or saved.
+const getStorage = () => (typeof window !== 'undefined' && window.localStorage ? deviceStorage : null);
 
 const loadPersistedState = async () => {
   const storage = getStorage();

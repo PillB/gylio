@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { deviceStorage } from '../utils/deviceStorage';
 import i18n from 'i18next';
 import useOnboardingFlow from '../../hooks/useOnboardingFlow.jsx';
 import { applyMotionMode, motionModeFor } from '../accessibility/motion';
@@ -76,7 +76,7 @@ function useAccessibilityInternal(): AccessibilityContextValue {
 
     const hydratePreferences = async () => {
       try {
-        const storedTint = await AsyncStorage.getItem(TINT_STORAGE_KEY);
+        const storedTint = await deviceStorage.getItem(TINT_STORAGE_KEY);
         setIsTinted(storedTint === 'true');
       } catch (error) {
         // Storage is unavailable: the tint stays off.
@@ -103,7 +103,7 @@ function useAccessibilityInternal(): AccessibilityContextValue {
   // Saved only once the stored value has been read: the start-up default must not overwrite it.
   useEffect(() => {
     if (!hasHydratedPrefsRef.current) return;
-    AsyncStorage.setItem(TINT_STORAGE_KEY, isTinted ? 'true' : 'false').catch(() => {
+    deviceStorage.setItem(TINT_STORAGE_KEY, isTinted ? 'true' : 'false').catch(() => {
       // Ignore persistence issues to avoid blocking UI.
     });
   }, [isTinted]);
@@ -111,7 +111,7 @@ function useAccessibilityInternal(): AccessibilityContextValue {
   // Retain the legacy cache key for compatibility with older releases, while
   // the source of truth is now the explicit preference in onboarding/settings.
   useEffect(() => {
-    AsyncStorage.setItem(REDUCE_MOTION_STORAGE_KEY, reduceMotionEnabled ? 'true' : 'false').catch(() => {
+    deviceStorage.setItem(REDUCE_MOTION_STORAGE_KEY, reduceMotionEnabled ? 'true' : 'false').catch(() => {
       // Ignore persistence issues to avoid blocking UI.
     });
   }, [reduceMotionEnabled]);
@@ -119,7 +119,7 @@ function useAccessibilityInternal(): AccessibilityContextValue {
   // Legacy copy, kept in step for older releases; nothing reads it back here.
   useEffect(() => {
     if (!hydrated) return;
-    AsyncStorage.setItem(ANIMATIONS_STORAGE_KEY, animationsEnabled ? 'true' : 'false').catch(() => {
+    deviceStorage.setItem(ANIMATIONS_STORAGE_KEY, animationsEnabled ? 'true' : 'false').catch(() => {
       // Ignore persistence issues to avoid blocking UI.
     });
   }, [animationsEnabled, hydrated]);

@@ -49,7 +49,7 @@ function renderSlot(placement: 'settings' | 'qa' | 'rewards' = 'rewards') {
   render(
     <ThemeProvider>
       <MemoryRouter initialEntries={['/rewards']}>
-        {/* Probe: ThemeProvider holds children until AsyncStorage hydrates.
+        {/* Probe: ThemeProvider holds children until the saved theme is read.
             This confirms the tree (and AdSlot's effects) actually mounted. */}
         <div data-testid="theme-probe" />
         <AdSlot placement={placement} />

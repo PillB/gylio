@@ -12,19 +12,16 @@ updates:
         update-types:
           - minor
           - patch
-    # Major version updates in this mixed web/server/mobile package graph need
-    # explicit compatibility work. Dependabot security updates are not disabled
-    # by this version-update rule and can still surface urgent fixes.
+    # Major version updates need explicit compatibility work. Dependabot
+    # security updates are not disabled by this version-update rule and can
+    # still surface urgent fixes.
     ignore:
       - dependency-name: "*"
         update-types:
           - version-update:semver-major
-      # react-native is 0.x, so its "minor" releases are breaking (0.87 needs
-      # React 19). React stays on the exact version react-native 0.73 peers on.
-      # Upgrade these three together as a planned migration, not a grouped bump.
-      - dependency-name: "react-native"
-        update-types:
-          - version-update:semver-minor
+      # React is on an exact version (package.json). It was held at 18.2.0 for
+      # react-native 0.73, which is no longer a dependency; moving it stays a
+      # planned change with a full test run, not part of a grouped bump.
       - dependency-name: "react"
         update-types:
           - version-update:semver-minor

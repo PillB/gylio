@@ -73,7 +73,6 @@ const precacheList = () => ({
 
 // Vite configuration for GYLIO
 // - Enables React support
-// - Maps react-native imports to react-native-web
 // - Uses VITE_BASE_PATH so the same build can target GitHub Pages (/gylio/)
 //   or a root-hosted production SPA (/)
 // - Fails a production build when the Clerk publishable key is missing
@@ -137,7 +136,6 @@ export default defineConfig(({ mode }) => {
         find: '/gylio/',
         replacement: `${path.resolve(__dirname, '.')}/`,
       },
-      { find: 'react-native', replacement: 'react-native-web' },
       {
         find: 'expo-notifications',
         replacement: path.resolve(__dirname, 'src/shims/expo-notifications.ts'),
