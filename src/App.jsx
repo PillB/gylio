@@ -57,6 +57,7 @@ import { installErrorCapture } from './features/feedback/diagnostics';
 import { startAnalyticsUpload } from './core/analytics/upload';
 import { AccountSyncProvider } from './features/account/AccountSyncContext';
 import SyncConflictBanner from './features/account/SyncConflictBanner';
+import { NotFoundPage, RouteErrorPage } from './features/routeProblem/RouteProblem';
 
 // Phones reach feedback from Settings → Report a bug or idea, so the header stays one line. Reports go to the full
 // server, so a build without it (serverFeatures.ts: the Cloudflare site, GitHub Pages) shows no button that cannot send.
@@ -483,11 +484,23 @@ function buildAuthRouter(clerkEnabled) {
     },
   ];
 
+  // A tab that fails shows its message in place, so the header and the other tabs stay in reach.
+  const tabRoutes = [
+    { path: 'tasks', element: <TasksRoute /> },
+    { path: 'calendar', element: <CalendarView /> },
+    { path: 'budget', element: <BudgetView /> },
+    ...premiumRoutes,
+    { path: 'connection-lab', element: <ConnectionLabView /> },
+    { path: 'settings', element: <SettingsView /> },
+  ].map((route) => ({ ...route, errorElement: <RouteErrorPage /> }));
+
   return createBrowserRouter(
     [
       {
         path: '/',
         element: <AppLayout clerkEnabled={clerkEnabled} />,
+        // Anything the routes below do not catch themselves: without this the router shows its developer error page.
+        errorElement: <div style={{ padding: 16 }}><RouteErrorPage landmark /></div>,
         children: [
           { index: true, element: clerkEnabled ? <RootRedirectAuthed /> : <RootRedirectNoAuth /> },
           { path: 'sign-in/*', element: <SignInPage /> },
@@ -500,19 +513,10 @@ function buildAuthRouter(clerkEnabled) {
             children: [
               { path: 'onboarding', element: <OnboardingRoute /> },
               ...serverOnlyRoutes(),
-              {
-                element: <TabsLayout />,
-                children: [
-                  { path: 'tasks', element: <TasksRoute /> },
-                  { path: 'calendar', element: <CalendarView /> },
-                  { path: 'budget', element: <BudgetView /> },
-                  ...premiumRoutes,
-                  { path: 'connection-lab', element: <ConnectionLabView /> },
-                  { path: 'settings', element: <SettingsView /> },
-                ],
-              },
+              { element: <TabsLayout />, children: tabRoutes },
             ],
           },
+          { path: '*', element: <NotFoundPage /> },
         ],
       },
     ],

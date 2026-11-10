@@ -16,6 +16,9 @@ const remember = (message: unknown) => {
   if (recentErrors.length > MAX_ERRORS) recentErrors.shift();
 };
 
+/** For errors an error boundary caught: those never reach the window listeners below. */
+export const rememberError = (error: unknown): void => remember(error);
+
 export function installErrorCapture(target: Window = window) {
   if (installed) return;
   installed = true;

@@ -2151,5 +2151,21 @@
     },
     "restoring": "Bringing back your data on this device…",
     "removed": "Your data was removed from this device."
+  },
+  "routeProblem": {
+    "notFound": {
+      "title": "This page does not exist",
+      "body": "The link may be old or mistyped. Nothing was changed, and your data is where you left it."
+    },
+    "error": {
+      "title": "This screen ran into a problem",
+      "body": "Your data is still saved on this device. Reloading usually fixes it."
+    },
+    "update": {
+      "title": "A newer version is ready",
+      "body": "This screen needs the latest version of GYLIO. Reload to get it. Your data stays on this device."
+    },
+    "reload": "Reload",
+    "goToTasks": "Go to Tasks"
   }
 }

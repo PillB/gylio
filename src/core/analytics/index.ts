@@ -187,6 +187,9 @@ export const Events = {
   SIGN_OUT:                        'sign_out',
   DEVICE_DATA_REMOVED:             'device_data_removed',
 
+  // A link that matches no screen, a screen that failed, or one that needs the newer build: { kind }
+  ROUTE_PROBLEM:                   'route_problem',
+
   // Daily command center
   DAILY_MODE_ENABLED:              'daily_mode_enabled',
   DAILY_MODE_TASK_COMPLETED:       'daily_mode_task_completed',
