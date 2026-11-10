@@ -123,8 +123,10 @@ const migratePersistedState = (persistedState) => {
   };
 };
 
-// No window (a script run outside a browser): nothing is read or saved.
-const getStorage = () => (typeof window !== 'undefined' && window.localStorage ? deviceStorage : null);
+// No window (a script run outside a browser): nothing is read or saved. `window.localStorage` is not looked at
+// here: a browser set to refuse site data throws on that read, and it must happen inside the caller's `try`
+// (`deviceStorage` turns it into a rejected promise) or the app waits for ever on a blank page.
+const getStorage = () => (typeof window === 'undefined' ? null : deviceStorage);
 
 const loadPersistedState = async () => {
   const storage = getStorage();

@@ -338,4 +338,17 @@ describe('expo-sqlite web shim', () => {
     expect(warnSpy.mock.calls[0][0]).toContain('TRUNCATE');
     warnSpy.mockRestore();
   });
+
+  it('loads, and works for the visit, when the browser refuses storage outright', async () => {
+    // A browser set to refuse site data throws on reading `window.localStorage` at all. The app imports this module
+    // before drawing anything, so a throw here was a blank page.
+    const refused = vi.spyOn(window, 'localStorage', 'get').mockImplementation(() => {
+      throw new DOMException('The operation is insecure.', 'SecurityError');
+    });
+    const shim = await load();
+    const db = shim.openDatabase('x');
+    await run(db, [['CREATE TABLE IF NOT EXISTS tasks (id INTEGER PRIMARY KEY, title TEXT, syncId TEXT);'], [INSERT, ['kept in memory', 's1']]]);
+    expect((await select(db, 'SELECT * FROM tasks;')).map((row) => row.title)).toEqual(['kept in memory']);
+    refused.mockRestore();
+  });
 });

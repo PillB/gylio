@@ -14,15 +14,28 @@ vi.mock('../../core/context/ThemeContext', () => ({ useTheme: () => ({ theme: th
 
 /** The network for the language files: a file can be made to fail, or to wait until the test lets it through. */
 // Hoisted: the language module asks for its first file while this file's imports are still being resolved.
-const network = vi.hoisted(() => ({ down: false, hold: null as Promise<void> | null }));
+const network = vi.hoisted(() => ({
+  down: false,
+  hold: null as Promise<void> | null,
+  /** One language's file made slow, or made to fail, while the other is untouched. */
+  slow: {} as Partial<Record<string, Promise<void>>>,
+  broken: '',
+  /** The languages whose request has finished, either way, in the order they finished. */
+  finished: [] as string[],
+}));
 vi.mock('../../i18n/catalogs.js', async (original) => {
   const real = await original<typeof import('../../i18n/catalogs.js')>();
   return {
     ...real,
     loadCatalog: async (language: string) => {
-      if (network.hold) await network.hold;
-      if (network.down) throw new TypeError('Failed to fetch dynamically imported module');
-      return real.loadCatalog(language);
+      try {
+        if (network.hold) await network.hold;
+        if (network.slow[language]) await network.slow[language];
+        if (network.down || network.broken === language) throw new TypeError('Failed to fetch dynamically imported module');
+        return await real.loadCatalog(language);
+      } finally {
+        network.finished.push(language);
+      }
     },
   };
 });
@@ -45,8 +58,7 @@ const sent = (name: string) => track.mock.calls.filter(([event]) => event === na
 
 beforeEach(async () => {
   await ready;
-  network.down = false;
-  network.hold = null;
+  Object.assign(network, { down: false, hold: null, slow: {}, broken: '', finished: [] });
   await i18n.changeLanguage('en');
   track.mockClear();
 });
@@ -100,5 +112,58 @@ describe('the language selector', () => {
     fireEvent.change(selector(), { target: { value: 'es-PE' } });
     await waitFor(() => expect(screen.queryByRole('alert')).toBeNull());
     expect(await screen.findByRole('heading', { name: 'Configuración' })).toBeTruthy();
+  });
+
+  /** Spanish is chosen on a slow connection, then English before the Spanish text has arrived. */
+  const chooseSpanishThenEnglish = async () => {
+    let arrive = () => undefined as void;
+    network.slow['es-PE'] = new Promise<void>((resolve) => { arrive = resolve; });
+    render(<Page />);
+    fireEvent.change(selector(), { target: { value: 'es-PE' } });
+    fireEvent.change(selector(), { target: { value: 'en' } });
+    await waitFor(() => expect(sent('language_changed')).toEqual([{ to: 'en' }]));
+    expect(selector().getAttribute('aria-busy')).toBe('false');
+    // The Spanish request now finishes, and everything waiting on it gets its turn.
+    await act(async () => {
+      arrive();
+      await waitFor(() => expect(network.finished).toContain('es-PE'));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+  };
+
+  it('keeps the last language chosen when an earlier choice arrives after it', async () => {
+    await chooseSpanishThenEnglish();
+    expect(screen.getByRole('heading', { name: 'Settings' })).toBeTruthy();
+    expect(selector().value).toBe('en');
+    expect(selector().getAttribute('aria-busy')).toBe('false');
+    expect(i18n.resolvedLanguage).toBe('en');
+    expect(localStorage.getItem('gylio_lang')).toBe('en');
+    expect(sent('language_changed')).toEqual([{ to: 'en' }]);
+  });
+
+  it('says nothing about a language that failed after another was chosen in its place', async () => {
+    network.broken = 'es-PE';
+    await chooseSpanishThenEnglish();
+    expect(screen.queryByRole('alert')).toBeNull();
+    expect(selector().value).toBe('en');
+    expect(sent('language_load_failed')).toEqual([]);
+  });
+
+  it('stays busy for the language still on the way when an earlier choice finishes first', async () => {
+    let arrive = () => undefined as void;
+    network.slow.en = new Promise<void>((resolve) => { arrive = resolve; });
+    render(<Page />);
+    fireEvent.change(selector(), { target: { value: 'es-PE' } });
+    fireEvent.change(selector(), { target: { value: 'en' } });
+    await act(async () => {
+      await waitFor(() => expect(network.finished).toContain('es-PE'));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(selector().value).toBe('en');
+    expect(selector().getAttribute('aria-busy')).toBe('true');
+    expect(screen.getByRole('heading', { name: 'Settings' })).toBeTruthy();
+    await act(async () => arrive());
+    await waitFor(() => expect(selector().getAttribute('aria-busy')).toBe('false'));
+    expect(sent('language_changed')).toEqual([{ to: 'en' }]);
   });
 });

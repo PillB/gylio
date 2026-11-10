@@ -7,7 +7,7 @@
  * A language's text is fetched the first time it is chosen (src/i18n/catalogs.js). The app changes language once
  * the text has arrived; if it cannot be fetched, the language stays as it was and the person is told.
  */
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../core/context/ThemeContext';
 import type { ThemeTokens } from '../../core/themes';
@@ -44,6 +44,9 @@ const LanguageToggle: React.FC<LanguageToggleProps> = ({
   // The language being fetched, shown as chosen while it loads so the control does not snap back.
   const [pending, setPending] = useState<string | null>(null);
   const [failed, setFailed] = useState(false);
+  // Counts the choices made. A language chosen and then replaced by another choice before its text arrived must not
+  // take effect when it finally does: the last choice is the one the person wants.
+  const choices = useRef(0);
 
   // Generic browser Spanish intentionally maps to the reviewed es-PE catalog.
   const currentCode = catalogFor(i18n.language);
@@ -51,17 +54,21 @@ const LanguageToggle: React.FC<LanguageToggleProps> = ({
 
   const handleChange = async (event: React.ChangeEvent<HTMLSelectElement>) => {
     const next = event.target.value;
+    const choice = ++choices.current;
+    const replaced = () => choice !== choices.current;
     setPending(next);
     setFailed(false);
     try {
       await loadCatalog(next);
+      if (replaced()) return;
       await i18n.changeLanguage(next);
       track(Events.LANGUAGE_CHANGED, { to: next });
     } catch {
+      if (replaced()) return;
       setFailed(true);
       track(Events.LANGUAGE_LOAD_FAILED, { to: next });
     } finally {
-      setPending(null);
+      if (!replaced()) setPending(null);
     }
   };
 
