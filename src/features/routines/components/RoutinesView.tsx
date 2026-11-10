@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../../core/context/ThemeContext';
 import type { Routine } from '../../../core/hooks/useDB';
 import { StreakDots } from './StreakDots';
-import RoutineFlowDiagram from './RoutineFlowDiagram';
+import RoutineSequence from './RoutineSequence';
 import RoutineTemplateGallery from './RoutineTemplateGallery';
 import type { RoutineTemplate } from '../data/routineTemplateLibrary';
 import WinCard from '../../../components/WinCard';
@@ -606,7 +606,7 @@ const RoutinesView: React.FC = () => {
                       </p>
                     )}
 
-                    <RoutineFlowDiagram
+                    <RoutineSequence
                       routineTitle={routine.title}
                       steps={routine.steps}
                       anchorHabit={routine.anchorHabit}

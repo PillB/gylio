@@ -1308,6 +1308,8 @@
     "doneBadge": "Done",
     "errorTitleRequired": "Routine name is required.",
     "stepsHeading": "Steps",
+    "sequenceLabel": "See the order of steps",
+    "sequenceAria": "{{title}}: steps in order",
     "toggleStep": "Toggle step {{label}}",
     "editLabel": "Edit {{title}}",
     "deleteLabel": "Delete {{title}}",

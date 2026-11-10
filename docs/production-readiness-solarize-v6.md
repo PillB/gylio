@@ -115,7 +115,22 @@ There is no defensible universal “X diagrams per Y words” quota. Multimedia-
 
 ### Motion gate
 
-`motion` and `@xyflow/react` are intentionally **not** added on this branch because this execution environment cannot regenerate and verify the existing npm lockfile. Add them only from a connected development runner:
+**Status, 10 Nov 2026: both libraries were added in August and removed again.** Their only use was the routine step
+picture, a list that never branches. Measured on the build before removal:
+
+- The picture drew off-centre when its section opened (the canvas was fitted while hidden, at zero size), so on a
+  phone one box showed half off the left edge and the rest were missing.
+- It hid itself from screen readers but left the library's attribution link reachable by keyboard.
+- The two libraries and their dependencies (23 packages) were 308 kB of the 1,321 kB main script (102 kB of 408 kB
+  gzipped), loaded by every visitor before the first screen.
+
+The step picture is now an ordered list in plain markup (`RoutineSequence.tsx`), which is what the table above asks
+for ("DOM/SVG first; XYFlow only for branching dependencies"). When a graph that really branches is built, add the
+library back **behind a dynamic `import()`** so only the screen that draws it pays for it, wrap that screen (not the
+whole app) in `MotionConfig`, and give it a browser test that opens it. `npm run check:bundle` fails the build if
+the first-load script grows past its budget.
+
+The original gate, for when that day comes: add them only from a connected development runner:
 
 ```bash
 npm install motion @xyflow/react

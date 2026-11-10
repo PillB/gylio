@@ -1308,6 +1308,8 @@
     "doneBadge": "Hecha",
     "errorTitleRequired": "El nombre de la rutina es obligatorio.",
     "stepsHeading": "Pasos",
+    "sequenceLabel": "Ver el orden de los pasos",
+    "sequenceAria": "{{title}}: pasos en orden",
     "toggleStep": "Alternar paso {{label}}",
     "editLabel": "Editar {{title}}",
     "deleteLabel": "Eliminar {{title}}",
