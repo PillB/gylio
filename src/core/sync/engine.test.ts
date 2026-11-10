@@ -245,6 +245,33 @@ describe('when there is no network, or the server is struggling', () => {
     expect(rig.server.records.has('tasks:a')).toBe(true);
   });
 
+  it('says it is offline when the network drops while a request is already on its way and that request still lands', async () => {
+    const rig = makeRig();
+    let release = () => undefined as void;
+    rig.server.gate = new Promise<void>((resolve) => { release = resolve; });
+    await rig.engine.recordChange(task('a', 'sent before the drop', rig.time.now()));
+    await rig.time.advance(4 * SECOND);
+    expect(rig.engine.snapshot().state).toMatchObject({ kind: 'syncing' });
+
+    rig.engine.setOnline(false);
+    release();
+    rig.server.gate = null;
+    await rig.time.advance(SECOND);
+    expect(rig.server.records.has('tasks:a')).toBe(true);
+    // The pass succeeded, but the browser is offline now: nothing more will be sent until it is back, and the
+    // person is told so, not "saving" for as long as the network is gone.
+    expect(rig.engine.snapshot().state).toMatchObject({ kind: 'waiting', reason: 'offline', retryAt: null });
+
+    await save(rig, 'b', 'written offline');
+    expect(rig.server.records.has('tasks:b')).toBe(false);
+    expect(rig.engine.snapshot()).toMatchObject({ pending: 1, state: { kind: 'waiting', reason: 'offline' } });
+
+    rig.engine.setOnline(true);
+    await rig.time.advance(4 * SECOND);
+    expect(rig.server.records.has('tasks:b')).toBe(true);
+    expect(rig.engine.snapshot()).toMatchObject({ pending: 0, state: { kind: 'idle' } });
+  });
+
   it.each([[500], [502], [504]])('a %s backs off and keeps the change', async (status) => {
     const rig = makeRig();
     rig.server.mode = { kind: 'status', status, body: { error: { code: 'INTERNAL', message: 'x' } } };

@@ -326,6 +326,9 @@ export class SyncEngine {
       this.passFailed(error);
     } finally {
       this.running = false;
+      // The browser went offline while this pass was running (setOnline leaves a running pass alone). Whatever the
+      // pass did, nothing more can be sent now: say so, rather than "idle" while changes wait for the network.
+      if (!this.online && this.state.kind === 'idle') this.setState({ kind: 'waiting', reason: 'offline', retryAt: null });
       await this.refreshCounts();
     }
   }
