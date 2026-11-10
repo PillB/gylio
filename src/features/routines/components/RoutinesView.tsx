@@ -22,6 +22,7 @@ import {
 import useRoutines from '../hooks/useRoutines';
 import { useRoutineAllowance } from '../hooks/useRoutineAllowance';
 import { RoutineExtraNotice, RoutineFormGate, RoutineLimitCount } from './RoutineAllowanceNote';
+import { scrollBehavior } from '../../../core/accessibility/motion';
 
 type FormState = {
   title: string;
@@ -74,7 +75,7 @@ const RoutinesView: React.FC = () => {
     setShowRoutineGallery(false);
     // Scroll form into view so user sees the populated fields immediately
     setTimeout(() => {
-      routineTitleRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      routineTitleRef.current?.scrollIntoView({ behavior: scrollBehavior(), block: 'center' });
       routineTitleRef.current?.focus();
     }, 80);
   };

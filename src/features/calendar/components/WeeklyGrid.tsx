@@ -9,7 +9,6 @@ type Props = {
   weekStartDate: Date;
   theme: ThemeTokens;
   onEventClick: (event: Event) => void;
-  reduceMotion?: boolean;
 };
 
 const HOUR_START = 6;

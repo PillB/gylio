@@ -12,6 +12,7 @@ import EstimatePicker from '../../timetracking/components/EstimatePicker';
 import TaskHelp from './TaskHelp';
 import { HelpLabel } from '../../../components/atoms/HelpField';
 import { controlStyle, primaryControlStyle, textInputStyle } from './taskStyles';
+import { scrollBehavior } from '../../../core/accessibility/motion';
 
 type Props = {
   draft: TaskDraft;
@@ -148,7 +149,7 @@ const TaskComposer: React.FC<Props> = ({ draft, todayKey, tomorrowKey, titleRef,
           draft.applyTemplate(template);
           // Bring the filled-in form into view so the title and steps are visible without hunting.
           setTimeout(() => {
-            titleRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            titleRef.current?.scrollIntoView({ behavior: scrollBehavior(), block: 'center' });
             titleRef.current?.focus();
           }, 80);
         }}

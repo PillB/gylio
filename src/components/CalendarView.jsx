@@ -102,7 +102,6 @@ const CalendarView = () => {
             weekStartDate={weekStartOf(selectedDate)}
             theme={theme}
             onEventClick={listActions.startEdit}
-            reduceMotion={false}
           />
         )}
         {viewMode === 'day' && selectedDay && (
