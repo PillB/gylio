@@ -47,6 +47,15 @@ describe('DailyCommandCenter', () => {
     expect(screen.getByRole('region', { name: 'Daily Command Center' })).toBeTruthy();
   });
 
+  it('sits under the app name as a second-level heading, with its panels one level below', async () => {
+    render(<DailyCommandCenter onExitSimplified={() => undefined} />);
+    await screen.findByText('Pay rent');
+    expect(screen.queryAllByRole('heading', { level: 1 })).toEqual([]);
+    expect(screen.getByRole('heading', { level: 2, name: 'Daily Command Center' })).toBeTruthy();
+    expect(screen.getByRole('heading', { level: 3, name: /Today's Focus/ })).toBeTruthy();
+    expect(screen.getAllByRole('heading', { level: 2 })).toHaveLength(1);
+  });
+
   it('marks a task completed with the status the rest of the app understands', async () => {
     render(<DailyCommandCenter onExitSimplified={() => undefined} />);
     fireEvent.click(await screen.findByRole('checkbox'));

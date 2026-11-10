@@ -11,6 +11,7 @@ import { useToast } from '../../../core/context/ToastContext';
 import useDB from '../../../core/hooks/useDB';
 import { useClock, getLocalDateKey } from '../../../core/hooks/useClock';
 import { track, Events } from '../../../core/analytics';
+import { listState, useScreenState } from '../../../core/analytics/useScreenState';
 import useTasks from '../hooks/useTasks';
 import { useTaskDraft, type NewTaskInput } from '../hooks/useTaskDraft';
 import { useDeferredDelete, UNDO_WINDOW_MS } from '../hooks/useDeferredDelete';
@@ -191,6 +192,9 @@ const TaskList: React.FC = () => {
   );
   // Only the Upcoming view lists rows directly; the other views nest their own lists inside labelled chunks.
   const isUpcomingList = !loading && upcomingGroups !== null && visibleTasks.length > 0;
+  // What the list shows now: nothing yet (still loading), no task, or at least one.
+  const listed = listState(loading, visibleTasks.length);
+  useScreenState('tasks', listed);
 
   const toggle = useCallback(
     async (taskId: number) => {
@@ -286,7 +290,7 @@ const TaskList: React.FC = () => {
             onAdd={focusTitle}
           />
         </div>
-        <FocusArea timerRunning={Boolean(activeTimer)} focusMinutes={settings.focusMinutes} />
+        <FocusArea timerRunning={Boolean(activeTimer)} focusMinutes={settings.focusMinutes} tasksListed={listed === 'has_items'} />
       </div>
       {showWinCard && (
         <WinCard

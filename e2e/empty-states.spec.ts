@@ -85,6 +85,25 @@ test.describe('empty screens', () => {
     ]);
   });
 
+  test('Tasks explains focus blocks once there is a task to start one on', async ({ page }) => {
+    await page.goto('./tasks');
+    await expect(page.getByRole('textbox', { name: /task/i }).first()).toBeVisible();
+    const focus = page.getByRole('region', { name: 'Pomodoro and focus controls' });
+    await expect(focus).toHaveCount(0);
+    await expect(page.getByText(/on any task above/i)).toHaveCount(0);
+    await expect.poll(() => sent(page, 'screen_state')).toEqual([{ screen: 'tasks', state: 'empty' }]);
+
+    await page.locator('#new-task').fill('Water the plants');
+    await page.locator('#new-task').press('Enter');
+    await expect(page.getByText('Water the plants').first()).toBeVisible();
+    await expect(focus).toBeVisible();
+    await expect(focus.getByText(/on any task above/i)).toBeVisible();
+    await expect.poll(() => sent(page, 'screen_state')).toEqual([
+      { screen: 'tasks', state: 'empty' },
+      { screen: 'tasks', state: 'has_items' },
+    ]);
+  });
+
   test('Routines says there are none in one line and offers the templates once', async ({ page }) => {
     await page.goto('./routines');
     const empty = page.locator('[data-tour="routines-list"]');

@@ -70,6 +70,33 @@ describe('stepsForFlow', () => {
   });
 });
 
+describe('the overview', () => {
+  // The tab bar as the app builds it (TabsLayout in App.jsx), in the order a person sees it.
+  const appSource = readFileSync(join(__dirname, '..', '..', 'App.jsx'), 'utf8');
+  const tabBar = [...appSource.matchAll(/\{ key: '([a-z-]+)', label: /g)].map((m) => m[1]);
+
+  it('reads the tab bar', () => {
+    expect(tabBar.slice(0, 3)).toEqual(['tasks', 'calendar', 'budget']);
+    expect(tabBar).toContain('settings');
+  });
+
+  it('stops at every tab, in tab-bar order, except Settings (its closing step says where Settings is)', () => {
+    const visited = OVERVIEW_FLOW.steps.map((step) => step.tab).filter((tab, i, all) => tab !== null && all.indexOf(tab) === i);
+    expect(visited).toEqual(tabBar.filter((tab) => tab !== 'settings'));
+  });
+
+  it('has a title and a text for every step in both languages', () => {
+    for (const file of ['en.json', 'es-PE.json']) {
+      const catalog = JSON.parse(readFileSync(join(__dirname, '..', '..', 'i18n', file), 'utf8'));
+      const at = (key: string) => key.split('.').reduce((node, part) => node?.[part], catalog);
+      for (const step of OVERVIEW_FLOW.steps) {
+        expect(typeof at(step.titleKey), `${file} ${step.titleKey}`).toBe('string');
+        expect(typeof at(step.contentKey), `${file} ${step.contentKey}`).toBe('string');
+      }
+    }
+  });
+});
+
 import { clampStepIndex } from './tourSteps';
 
 describe('clampStepIndex', () => {

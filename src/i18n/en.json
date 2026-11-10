@@ -1816,6 +1816,10 @@
       "title": "Social plans",
       "content": "Plan calls, meetups, and messages with the people who matter. Pick a relationship type, choose a template, and add your plan."
     },
+    "connectionLab": {
+      "title": "Connection Lab",
+      "content": "Practice conversation skills through short, fictional scenes. Pick a skill, choose a response, and see one possible reaction. Your choices are not saved."
+    },
     "routines": {
       "title": "Routines",
       "content": "Build daily habits that stick. Create routines with trigger times and micro-steps — consistency beats intensity every time."

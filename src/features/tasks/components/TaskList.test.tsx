@@ -61,7 +61,7 @@ vi.mock('../../../core/context/ToastContext', () => ({ useToast: () => ({ succes
 vi.mock('../../../core/hooks/useAccessibility', () => ({ default: () => ({ speak: () => undefined }) }));
 vi.mock('../../../core/analytics', () => ({
   track: (...args: unknown[]) => track(...args),
-  Events: { TASK_CREATED: 'task_created', TASK_COMPLETED: 'task_completed', ALL_TODAY_TASKS_DONE: 'all_done' },
+  Events: { TASK_CREATED: 'task_created', TASK_COMPLETED: 'task_completed', ALL_TODAY_TASKS_DONE: 'all_done', SCREEN_STATE: 'screen_state' },
 }));
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -112,6 +112,30 @@ describe('TaskList', () => {
     expect(screen.getByRole('button', { name: /^tasks\.deleteNamed / }).parentElement).toBe(start.parentElement);
     const date = screen.getByText(/tasks\.plannedDateLabel/);
     expect(date.parentElement?.textContent).toMatch(/medium|energy/i);
+  });
+
+  it('explains focus blocks only when a task is listed to start one on', () => {
+    const { unmount } = render(<TaskList />);
+    expect(screen.queryByRole('region', { name: 'tasks.focusAreaAria' })).toBeNull();
+    expect(screen.queryByText(/tasks\.timerStartHint/)).toBeNull();
+    unmount();
+
+    state.tasks = [makeTask(1, 'Write report')];
+    render(<TaskList />);
+    expect(within(screen.getByRole('region', { name: 'tasks.focusAreaAria' })).getByText(/tasks\.timerStartHint/)).toBeTruthy();
+    // A view with nothing in it has no task to point at either.
+    openTab('tasks.viewBacklog');
+    expect(screen.queryByText('Write report')).toBeNull();
+    expect(screen.queryByRole('region', { name: 'tasks.focusAreaAria' })).toBeNull();
+  });
+
+  it('counts whether the list was empty or not, once for each state it shows', () => {
+    state.tasks = [makeTask(1, 'Write report')];
+    render(<TaskList />);
+    const sent = () => track.mock.calls.filter(([name]) => name === 'screen_state').map(([, props]) => props);
+    expect(sent()).toEqual([{ screen: 'tasks', state: 'has_items' }]);
+    openTab('tasks.viewBacklog');
+    expect(sent()).toEqual([{ screen: 'tasks', state: 'has_items' }, { screen: 'tasks', state: 'empty' }]);
   });
 
   it('keeps list semantics valid: every list item sits directly in a list, and lists hold only items', () => {

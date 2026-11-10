@@ -8,7 +8,7 @@ export const COMPLEXITY_CEILING = 10;
 // entry once everything in it is at or under the ceiling. Never raise a cap.
 // src/test/complexityBaseline.test.ts fails if a cap is looser than needed.
 export const COMPLEXITY_BASELINE = {
-  'src/App.jsx': 23,
+  'src/App.jsx': 22,
   'src/components/RewardsView.jsx': 51,
   'src/components/atoms/DateTimeWidget.tsx': 14,
   'src/core/hooks/useDB.ts': 11,

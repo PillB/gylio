@@ -3,12 +3,16 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../../core/context/ThemeContext';
 import TaskHelp from './TaskHelp';
 
-type Props = { timerRunning: boolean; focusMinutes: number };
+type Props = { timerRunning: boolean; focusMinutes: number; tasksListed: boolean };
 
-/** Pomodoro hint below the list; points to the running timer's card when one is active. */
-const FocusArea: React.FC<Props> = ({ timerRunning, focusMinutes }) => {
+/**
+ * Pomodoro hint below the list; points to the running timer's card when one is active. Both texts send the person
+ * to "a task above", so with no task listed there is nothing to show.
+ */
+const FocusArea: React.FC<Props> = ({ timerRunning, focusMinutes, tasksListed }) => {
   const { t } = useTranslation();
   const { theme } = useTheme();
+  if (!tasksListed) return null;
   if (timerRunning) {
     return (
       <div
@@ -30,7 +34,6 @@ const FocusArea: React.FC<Props> = ({ timerRunning, focusMinutes }) => {
   return (
     <div
       role="region"
-      data-tour="task-pomodoro"
       aria-label={t('tasks.focusAreaAria')}
       style={{
         border: `1px solid ${theme.colors.border}`,

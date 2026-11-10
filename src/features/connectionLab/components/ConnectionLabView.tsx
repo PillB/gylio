@@ -241,8 +241,11 @@ export default function ConnectionLabView() {
   return (
     <section aria-labelledby="connection-lab-title" style={{ display: 'grid', gap: theme.spacing.md, color: theme.colors.text }}>
       <header>
-        <h2 id="connection-lab-title" style={{ margin: 0 }}>{t('connectionLab.title')}</h2>
-        <p>{t('connectionLab.intro')}</p>
+        {/* The overview guide points here. The privacy note stays outside so the guide's card fits beside it on a small phone. */}
+        <div data-tour="connection-lab-intro">
+          <h2 id="connection-lab-title" style={{ margin: 0 }}>{t('connectionLab.title')}</h2>
+          <p style={{ marginBottom: 0 }}>{t('connectionLab.intro')}</p>
+        </div>
         <p style={{ color: theme.colors.muted }}>{t('connectionLab.privacy')}</p>
       </header>
       {lesson && practice ? (
