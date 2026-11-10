@@ -33,6 +33,27 @@ describe('tour step targets', () => {
   });
 });
 
+describe('steps whose target can be hidden', () => {
+  const all = flows.flatMap((flow) => flow.steps);
+
+  it('point at the control that reveals it, second, and say so', () => {
+    const hinted = all.filter((step) => step.revealHintKey);
+    expect(hinted.map((step) => step.id)).toEqual(['tasks-date', 'tasks-energy']);
+    for (const step of hinted) {
+      const names = [...(step.target ?? '').matchAll(/data-tour="([^"]+)"/g)].map((m) => m[1]);
+      expect(names).toHaveLength(2);
+      expect(names[1]).toBe('task-details-toggle');
+    }
+  });
+
+  it('never use the upgrade card as a first choice', () => {
+    for (const step of all) {
+      const first = /data-tour="([^"]+)"/.exec(step.target ?? '')?.[1];
+      expect(first, step.id).not.toBe('premium-gate');
+    }
+  });
+});
+
 import { stepsForFlow, OVERVIEW_FLOW } from './tourSteps';
 
 describe('stepsForFlow', () => {

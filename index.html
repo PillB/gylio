@@ -73,6 +73,10 @@
           font-size: 0.8125rem !important;
         }
       }
+      /* The tour's "← → navigate · Esc pause" line is for a keyboard: hidden on touch-only devices. */
+      @media (hover: none) and (pointer: coarse) {
+        .tour-keyboard-hint { display: none; }
+      }
       /* Safari ignores list-style on <summary>; keep the native marker from doubling a custom chevron. */
       summary::-webkit-details-marker { display: none; }
       .legal-footer {

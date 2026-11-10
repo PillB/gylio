@@ -1930,16 +1930,17 @@
       "templates": {
         "title": "Empieza con una plantilla",
         "content": "Toca aquí para ver 28 plantillas en 7 áreas de vida. Elige una y el título, el nivel de energía y los pasos se completan por ti."
-      }
+      },
+      "revealDetails": "Abre «Agregar detalles», debajo del título, para ver este campo."
     },
     "calendarFlow": {
       "welcome": {
         "title": "Calendario — recorrido interactivo",
-        "content": "Mira tu agenda completa y crea eventos. Navegaremos la vista semanal y agregaremos un evento juntos."
+        "content": "Mira tu agenda completa y crea eventos. Revisaremos tu calendario y agregaremos un evento juntos."
       },
       "grid": {
-        "title": "Tu vista semanal",
-        "content": "Cada columna es un día. Haz clic en un evento para editarlo. Puedes vincular eventos del calendario a tareas."
+        "title": "Tu agenda",
+        "content": "Día, Semana y Mes muestran los mismos eventos: cambia de vista con los botones de arriba. Selecciona un evento para editarlo. Puedes vincular eventos a tareas."
       },
       "add": {
         "title": "Agrega un evento",

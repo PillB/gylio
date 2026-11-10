@@ -111,7 +111,6 @@ const SettingsView = () => {
         {t('onboarding.accessibility.helper')}
       </p>
       <div
-        data-tour="settings-theme"
         style={{
           display: 'grid',
           gap: theme.spacing.md,
@@ -122,6 +121,7 @@ const SettingsView = () => {
         }}
       >
         <div
+          data-tour="settings-theme"
           style={{
             border: `1px solid ${theme.colors.border}`,
             borderRadius: theme.shape.radiusMd,

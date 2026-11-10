@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../core/context/ThemeContext';
@@ -6,306 +6,155 @@ import useAccessibility from '../core/hooks/useAccessibility';
 import { useGuidedTour } from '../core/context/GuidedTourContext';
 import { useAppAuth } from '../core/context/AuthContext';
 import useDialogFocus from '../core/hooks/useDialogFocus';
-import { serverFeaturesEnabled } from '../core/utils/serverFeatures';
 import type { TourStep } from '../features/tour/tourSteps';
 import { placeTooltip } from '../features/tour/placeTooltip';
+import { isStandIn, TOUR_LAYOUT } from '../features/tour/tourTarget';
+import {
+  TourBackdrop,
+  TourCardHeader,
+  TourNavButtons,
+  TourProgress,
+  TourProNudge,
+  TourSignInNudge,
+  TourSpotlight,
+} from '../features/tour/TourCardParts';
 import { useCardHeight } from '../features/tour/useCardHeight';
+import { useTourKeys } from '../features/tour/useTourKeys';
+import { useTourTarget, type TourTarget } from '../features/tour/useTourTarget';
 
-const TOOLTIP_WIDTH = 320;
-const TOOLTIP_GAP = 14;
-const SPOTLIGHT_PAD = 8;
-const LOCATE_RETRIES = 20;
-const LOCATE_RETRY_MS = 100;
-const VIEWPORT_PAD = 12;
-// Used only until the card has been measured (useCardHeight). Cards run 280-350px
-// (title, 4 lines of copy, progress, buttons) depending on browser, language and text size.
-const ESTIMATED_TOOLTIP_HEIGHT = 340;
+export { TourProNudge };
+
+const CARD_WIDTH = 320;
+const PREMIUM_GATE = 'premium-gate';
 
 /**
  * Modal (aria-modal, Tab trapped) only when the step is designed as a centred card.
- * A targeted step whose element is not on screen yet (Tasks step 2: the date field
- * behind "Add details") is centred as a fallback but must leave the page reachable.
+ * A targeted step whose element is not on screen yet is centred as a fallback but must
+ * leave the page reachable.
  */
-const isModalStep = (step: TourStep): boolean => step.placement === 'center' || !step.target;
+const ariaModal = (step: TourStep): 'true' | undefined => (step.placement === 'center' || !step.target ? 'true' : undefined);
 
-/** "Start the free trial to unlock", only where Pro can be bought (serverFeatures.ts). */
-export function TourProNudge({ onUnlock }: { onUnlock: () => void }) {
+const stepAt = (state: { active: boolean; stepIndex: number }, steps: TourStep[]): TourStep | null =>
+  state.active ? (steps[state.stepIndex] ?? null) : null;
+
+/** On a sign-in page the tour cannot open the tab a step points at. */
+const needsSignIn = (step: TourStep, found: boolean, signedIn: boolean, pathname: string): boolean => {
+  if (signedIn || found) return false;
+  const onAuthPage = pathname.includes('/sign-in') || pathname.includes('/sign-up');
+  return onAuthPage && Boolean(step.tab && step.target);
+};
+
+interface StepView {
+  /** No target on screen: the card sits in the middle over a dimmed page. */
+  centred: boolean;
+  /** The highlighted element is live. */
+  canTry: boolean;
+  /** Set while the step's own field is hidden and the spotlight is on the control that shows it. */
+  revealHintKey: string | undefined;
+  signInNudge: boolean;
+  proNudge: boolean;
+}
+
+/** What the card shows for this step, given what the spotlight found. */
+function describeStep(step: TourStep, target: TourTarget, signedIn: boolean, pathname: string): StepView {
+  // The spotlight fell back to the Pro card: the step's own target is not available on this plan.
+  const gated = target.name === PREMIUM_GATE;
+  const found = target.rect !== null;
+  const signInNudge = needsSignIn(step, found, signedIn, pathname);
+  return {
+    centred: step.placement === 'center' || !found,
+    // "Try it" only where there is something to try, not on the Pro card standing in for a locked screen.
+    canTry: Boolean(step.interactive) && found && !gated,
+    revealHintKey: !gated && isStandIn(step.target, target.name) ? step.revealHintKey : undefined,
+    signInNudge,
+    // A gated step has found the Pro card, so it never also needs the sign-in nudge.
+    proNudge: gated,
+  };
+}
+
+/** What a step adds under its copy: how to reveal a hidden field, or where to sign in or unlock. */
+function TourStepExtras({ view, onLeave }: { view: StepView; onLeave: (path: string) => void }) {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  if (!serverFeaturesEnabled()) return null;
   return (
-    <button
-      type="button"
-      onClick={onUnlock}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 6,
-        width: '100%',
-        marginBottom: theme.spacing.md,
-        padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
-        borderRadius: theme.shape.radiusMd,
-        border: `1.5px solid ${theme.colors.primary}`,
-        background: `${theme.colors.primary}12`,
-        color: theme.colors.primary,
-        fontSize: '0.8125rem',
-        fontWeight: 600,
-        cursor: 'pointer',
-        fontFamily: theme.typography.body.family,
-        textAlign: 'left',
-      }}
-    >
-      <span aria-hidden="true">✦</span>
-      {t('tour.unlockCta', 'Start 10-day free trial to unlock →')}
-    </button>
+    <>
+      {view.revealHintKey && (
+        <p style={{ margin: `0 0 ${theme.spacing.md}px`, fontSize: '0.8125rem', fontWeight: 600, color: theme.colors.text, lineHeight: 1.45 }}>
+          {t(view.revealHintKey)}
+        </p>
+      )}
+      {view.signInNudge && <TourSignInNudge onSignIn={() => onLeave('/sign-in')} />}
+      {view.proNudge && <TourProNudge onUnlock={() => onLeave('/pricing')} />}
+    </>
   );
 }
 
+/** Where the card goes: beside its target, or in the middle of the screen when it has none. */
+function cardPosition(step: TourStep, rect: DOMRect | null, cardHeight: number): React.CSSProperties {
+  const { pad, gap } = TOUR_LAYOUT;
+  // The visual viewport keeps the card in view while a phone's keyboard is open.
+  const viewportW = window.visualViewport?.width ?? window.innerWidth;
+  const viewportH = window.visualViewport?.height ?? window.innerHeight;
+  const width = Math.min(CARD_WIDTH, Math.max(0, viewportW - pad * 2));
+  const base = { position: 'fixed', width, overflowY: 'auto', boxSizing: 'border-box' } as const;
+  if (step.placement === 'center' || !rect) {
+    return { ...base, top: '50%', left: '50%', transform: 'translate(-50%, -50%)', maxHeight: `calc(100vh - ${pad * 2}px)` };
+  }
+  const { top, left } = placeTooltip({ target: rect, viewportW, viewportH, tipW: width, tipH: cardHeight, gap, pad, prefer: step.placement });
+  return { ...base, top, left, maxHeight: Math.max(80, viewportH - top - pad) };
+}
+
 export default function GuidedTourOverlay() {
-  const {
-    tourState,
-    currentSteps,
-    nextStep,
-    prevStep,
-    pauseTour,
-    completeTour,
-    totalSteps,
-  } = useGuidedTour();
+  const { tourState, currentSteps, nextStep, prevStep, pauseTour, completeTour, totalSteps } = useGuidedTour();
   const { theme } = useTheme();
   const { reduceMotionEnabled, animationsEnabled } = useAccessibility();
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const location = useLocation();
+  const { pathname } = useLocation();
   const { userId } = useAppAuth();
-  const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
-  const [isPremiumGated, setIsPremiumGated] = useState(false);
-  const pendingNav = useRef(false);
   const dialogRef = useRef<HTMLDivElement>(null);
 
-  const stepIndex = tourState.stepIndex;
-  const isActive = tourState.active;
-  const currentStep = isActive ? (currentSteps[stepIndex] ?? null) : null;
+  const { stepIndex } = tourState;
+  const step = stepAt(tourState, currentSteps);
   const isLast = stepIndex === totalSteps - 1;
   const isFirst = stepIndex === 0;
-  const shouldAnimate = animationsEnabled && !reduceMotionEnabled;
+  const animate = animationsEnabled && !reduceMotionEnabled;
 
-  // True when user is on an auth page and the current step has a target element they can't visit
-  const needsSignIn =
-    !userId &&
-    !!currentStep?.tab &&
-    !!currentStep?.target &&
-    !targetRect &&
-    (location.pathname.includes('/sign-in') || location.pathname.includes('/sign-up'));
-
-  // Navigate to the correct tab then locate target element
-  useEffect(() => {
-    if (!isActive || !currentStep) {
-      setTargetRect(null);
-      return;
-    }
-
-    let cancelled = false;
-
-    // Tabs such as Budget render a loading state first and mount their sections
-    // after the local database answers, so a missing target is retried briefly
-    // instead of leaving the step unscrolled and its card on the wrong part of the page.
-    let retryTimer: ReturnType<typeof setTimeout> | undefined;
-    const locate = (attempt = 0) => {
-      if (cancelled) return;
-      if (!currentStep.target) {
-        setTargetRect(null);
-        setIsPremiumGated(false);
-        return;
-      }
-      const el = document.querySelector<HTMLElement>(currentStep.target);
-      if (!el) {
-        setTargetRect(null);
-        setIsPremiumGated(false);
-        if (attempt < LOCATE_RETRIES) retryTimer = setTimeout(() => locate(attempt + 1), LOCATE_RETRY_MS);
-        return;
-      }
-      const gated = el.getAttribute('data-tour') === 'premium-gate';
-      setIsPremiumGated(gated);
-      el.scrollIntoView({ behavior: shouldAnimate ? 'smooth' : 'auto', block: 'center' });
-      const settleDelay = shouldAnimate ? 280 : 0;
-      const timer = setTimeout(() => {
-        if (cancelled) return;
-        const el2 = document.querySelector<HTMLElement>(currentStep.target!);
-        setTargetRect(el2?.getBoundingClientRect() ?? null);
-      }, settleDelay);
-      return () => clearTimeout(timer);
-    };
-
-    if (currentStep.tab) {
-      const expected = `/${currentStep.tab}`;
-      if (location.pathname !== expected && !pendingNav.current) {
-        pendingNav.current = true;
-        navigate(expected);
-        const timer = setTimeout(() => {
-          pendingNav.current = false;
-          locate();
-        }, shouldAnimate ? 350 : 0);
-        return () => {
-          cancelled = true;
-          clearTimeout(timer);
-          clearTimeout(retryTimer);
-          pendingNav.current = false;
-        };
-      }
-    }
-
-    const cleanupLocate = locate();
-    return () => {
-      cancelled = true;
-      clearTimeout(retryTimer);
-      cleanupLocate?.();
-    };
-  }, [currentStep, isActive, location.pathname, navigate, shouldAnimate, stepIndex]);
-
-  // Keep rect in sync on scroll / resize / visual viewport changes (mobile keyboard)
-  useEffect(() => {
-    if (!isActive || !currentStep?.target) return;
-    const update = () => {
-      const el = document.querySelector<HTMLElement>(currentStep.target!);
-      if (el) setTargetRect(el.getBoundingClientRect());
-    };
-    window.addEventListener('scroll', update, { passive: true });
-    window.addEventListener('resize', update, { passive: true });
-    // Visual Viewport API — fires when mobile keyboard opens/closes
-    window.visualViewport?.addEventListener('resize', update);
-    window.visualViewport?.addEventListener('scroll', update);
-    return () => {
-      window.removeEventListener('scroll', update);
-      window.removeEventListener('resize', update);
-      window.visualViewport?.removeEventListener('resize', update);
-      window.visualViewport?.removeEventListener('scroll', update);
-    };
-  }, [isActive, currentStep?.target]);
-
-  useEffect(() => {
-    if (!isActive) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.stopPropagation();
-        pauseTour();
-      }
-      if (e.key === 'ArrowRight' && !isLast) {
-        e.preventDefault();
-        nextStep();
-      }
-      if (e.key === 'ArrowLeft' && !isFirst) {
-        e.preventDefault();
-        prevStep();
-      }
-    };
-    window.addEventListener('keydown', handler, { capture: true });
-    return () => window.removeEventListener('keydown', handler, { capture: true });
-  }, [isActive, isLast, isFirst, pauseTour, nextStep, prevStep]);
-
+  const target = useTourTarget(step, animate, dialogRef);
+  useTourKeys(tourState.active, { onPause: pauseTour, onNext: isLast ? undefined : nextStep, onPrev: isFirst ? undefined : prevStep });
   // Tab is trapped only on centred steps (aria-modal); spotlight steps keep the
   // highlighted element reachable for "Try it". The step index lets a spotlight step that
   // hands over to a centred card pull focus back in from the page.
-  useDialogFocus(dialogRef, currentStep !== null, stepIndex);
+  useDialogFocus(dialogRef, step !== null, stepIndex);
   // Placement uses the card's real height: an estimate either docks a card that would fit beside
   // its target, or puts one on top of the target in a browser that sets the copy in more lines.
-  const cardHeight = useCardHeight(dialogRef, ESTIMATED_TOOLTIP_HEIGHT, `${stepIndex}:${Boolean(targetRect)}:${isPremiumGated}`);
+  const cardHeight = useCardHeight(
+    dialogRef,
+    TOUR_LAYOUT.estimatedCardHeight,
+    `${stepIndex}:${target.rect !== null}:${target.name === PREMIUM_GATE}`,
+  );
 
-  if (!isActive || !currentStep) return null;
+  if (!step) return null;
 
-  // ── Tooltip position ──────────────────────────────────────────────────────
-  // Use Visual Viewport API so tooltip stays visible when mobile keyboard is open
-  const vw = typeof window !== 'undefined'
-    ? (window.visualViewport?.width ?? window.innerWidth)
-    : 800;
-  const vh = typeof window !== 'undefined'
-    ? (window.visualViewport?.height ?? window.innerHeight)
-    : 600;
-  const tooltipWidth = Math.min(TOOLTIP_WIDTH, Math.max(0, vw - VIEWPORT_PAD * 2));
-  const isCenter = currentStep.placement === 'center' || !targetRect;
-
-  let tooltipStyle: React.CSSProperties;
-  let top = 0;
-  let left = 0;
-
-  if (isCenter) {
-    tooltipStyle = {
-      position: 'fixed',
-      top: '50%',
-      left: '50%',
-      transform: 'translate(-50%, -50%)',
-      width: tooltipWidth,
-      maxHeight: `calc(100vh - ${VIEWPORT_PAD * 2}px)`,
-      overflowY: 'auto',
-      boxSizing: 'border-box',
-      zIndex: theme.zIndex.tour + 1,
-    };
-  } else {
-    ({ top, left } = placeTooltip({
-      target: targetRect,
-      viewportW: vw,
-      viewportH: vh,
-      tipW: tooltipWidth,
-      tipH: cardHeight,
-      gap: TOOLTIP_GAP,
-      pad: VIEWPORT_PAD,
-      prefer: currentStep.placement,
-    }));
-
-    tooltipStyle = {
-      position: 'fixed',
-      top,
-      left,
-      width: tooltipWidth,
-      maxHeight: Math.max(80, vh - top - VIEWPORT_PAD),
-      overflowY: 'auto',
-      boxSizing: 'border-box',
-      zIndex: theme.zIndex.tour + 1,
-    };
-  }
+  const view = describeStep(step, target, Boolean(userId), pathname);
+  const leaveFor = (path: string) => {
+    completeTour();
+    navigate(path);
+  };
 
   return (
     <>
-      {/* Spotlight */}
-      {targetRect && (
-        <div
-          aria-hidden="true"
-          style={{
-            position: 'fixed',
-            top: targetRect.top - SPOTLIGHT_PAD,
-            left: targetRect.left - SPOTLIGHT_PAD,
-            width: targetRect.width + SPOTLIGHT_PAD * 2,
-            height: targetRect.height + SPOTLIGHT_PAD * 2,
-            borderRadius: 10,
-            boxShadow: `0 0 0 3px ${theme.colors.primary}, 0 0 0 9999px rgba(0,0,0,0.48)`,
-            pointerEvents: 'none',
-            zIndex: theme.zIndex.tour,
-            transition: shouldAnimate
-              ? 'top 250ms ease-out, left 250ms ease-out, width 250ms ease-out, height 250ms ease-out'
-              : 'none',
-          }}
-        />
-      )}
-
-      {isCenter && (
-        <div
-          aria-hidden="true"
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(0,0,0,0.52)',
-            zIndex: theme.zIndex.tour,
-            pointerEvents: 'none',
-          }}
-        />
-      )}
+      {target.rect && <TourSpotlight rect={target.rect} animate={animate} />}
+      {view.centred && <TourBackdrop />}
 
       <div
         ref={dialogRef}
         role="dialog"
-        aria-modal={isModalStep(currentStep) ? 'true' : undefined}
+        aria-modal={ariaModal(step)}
         aria-label={t('tour.dialogAria', 'Feature tour')}
         style={{
-          ...tooltipStyle,
+          ...cardPosition(step, target.rect, cardHeight),
+          zIndex: theme.zIndex.tour + 1,
           backgroundColor: theme.colors.surfaceElevated,
           borderRadius: theme.shape.radiusLg,
           boxShadow: theme.shadow.xl,
@@ -315,78 +164,8 @@ export default function GuidedTourOverlay() {
           color: theme.colors.text,
         }}
       >
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: theme.spacing.sm,
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.xs }}>
-            <span style={{ fontSize: '0.75rem', color: theme.colors.muted, fontWeight: 600 }}>
-              {t('tour.stepOf', { current: stepIndex + 1, total: totalSteps })}
-            </span>
-            {currentStep.interactive && targetRect && (
-              <span
-                style={{
-                  fontSize: '0.68rem',
-                  fontWeight: 700,
-                  color: theme.colors.primary,
-                  background: `${theme.colors.primary}18`,
-                  borderRadius: theme.shape.radiusFull,
-                  padding: '1px 7px',
-                  letterSpacing: '0.02em',
-                }}
-              >
-                ✏ {t('tour.interactive', 'Try it')}
-              </span>
-            )}
-          </div>
-          <button
-            type="button"
-            onClick={pauseTour}
-            aria-label={t('tour.pauseAria', 'Pause tour')}
-            style={{
-              minWidth: 44,
-              minHeight: 44,
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: theme.colors.muted,
-              fontSize: '1.1rem',
-              lineHeight: 1,
-              padding: '2px 4px',
-              borderRadius: theme.shape.radiusSm,
-              fontFamily: theme.typography.body.family,
-            }}
-          >
-            ×
-          </button>
-        </div>
-
-        <div
-          role="progressbar"
-          aria-valuenow={stepIndex + 1}
-          aria-valuemin={1}
-          aria-valuemax={totalSteps}
-          aria-label={t('tour.progressAria', 'Tour progress')}
-          style={{ display: 'flex', gap: 4, marginBottom: theme.spacing.md }}
-        >
-          {currentSteps.map((_, index) => (
-            <div
-              key={index}
-              aria-hidden="true"
-              style={{
-                height: 4,
-                flex: 1,
-                borderRadius: 2,
-                backgroundColor: index <= stepIndex ? theme.colors.primary : theme.colors.border,
-                transition: shouldAnimate ? 'background-color 250ms' : 'none',
-              }}
-            />
-          ))}
-        </div>
+        <TourCardHeader stepIndex={stepIndex} totalSteps={totalSteps} canTry={view.canTry} onPause={pauseTour} />
+        <TourProgress stepIndex={stepIndex} totalSteps={currentSteps.length} animate={animate} />
 
         <h3
           style={{
@@ -397,117 +176,21 @@ export default function GuidedTourOverlay() {
             color: theme.colors.text,
           }}
         >
-          {t(currentStep.titleKey)}
+          {t(step.titleKey)}
         </h3>
-        <p
-          style={{
-            margin: `0 0 ${theme.spacing.md}px`,
-            fontSize: '0.875rem',
-            color: theme.colors.muted,
-            lineHeight: 1.55,
-          }}
-        >
-          {t(currentStep.contentKey)}
+        <p style={{ margin: `0 0 ${theme.spacing.md}px`, fontSize: '0.875rem', color: theme.colors.muted, lineHeight: 1.55 }}>
+          {t(step.contentKey)}
         </p>
 
-        {/* Sign-in nudge — shown when user is unauthenticated and tour can't reach a protected tab */}
-        {needsSignIn && (
-          <button
-            type="button"
-            onClick={() => { completeTour(); navigate('/sign-in'); }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              width: '100%',
-              marginBottom: theme.spacing.md,
-              padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
-              borderRadius: theme.shape.radiusMd,
-              border: `1.5px solid ${theme.colors.primary}`,
-              background: `${theme.colors.primary}12`,
-              color: theme.colors.primary,
-              fontSize: '0.8125rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-              fontFamily: theme.typography.body.family,
-              textAlign: 'left',
-            }}
-          >
-            <span aria-hidden="true">→</span>
-            {t('tour.signInCta', 'Sign in to see this feature live →')}
-          </button>
-        )}
+        <TourStepExtras view={view} onLeave={leaveFor} />
 
-        {/* Pro nudge, when the spotlight resolved to the Pro gate */}
-        {isPremiumGated && !needsSignIn && <TourProNudge onUnlock={() => { completeTour(); navigate('/pricing'); }} />}
+        <TourNavButtons isFirst={isFirst} isLast={isLast} animate={animate} onPrev={prevStep} onForward={isLast ? completeTour : nextStep} />
 
-        {/* Navigation buttons */}
-        <div
-          style={{
-            display: 'flex',
-            gap: theme.spacing.sm,
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-          }}
-        >
-          <button
-            type="button"
-            onClick={prevStep}
-            disabled={isFirst}
-            aria-label={t('tour.prevAria', 'Previous step')}
-            style={{
-              minHeight: 44,
-              padding: `6px ${theme.spacing.sm}px`,
-              borderRadius: theme.shape.radiusMd,
-              border: `1px solid ${theme.colors.border}`,
-              background: 'transparent',
-              color: isFirst ? theme.colors.muted : theme.colors.text,
-              cursor: isFirst ? 'default' : 'pointer',
-              fontSize: '0.875rem',
-              fontFamily: theme.typography.body.family,
-              opacity: isFirst ? 0.4 : 1,
-              transition: shouldAnimate ? 'opacity 150ms' : 'none',
-              whiteSpace: 'nowrap',
-              flexShrink: 0,
-            }}
-          >
-            ← {t('tour.prev', 'Back')}
-          </button>
-
-          <button
-            type="button"
-            onClick={isLast ? completeTour : nextStep}
-            data-autofocus
-            aria-label={isLast ? t('tour.finishAria', 'Finish tour') : t('tour.nextAria', 'Next step')}
-            style={{
-              minHeight: 44,
-              padding: `6px ${theme.spacing.md}px`,
-              borderRadius: theme.shape.radiusMd,
-              border: 'none',
-              background: theme.colors.primary,
-              color: theme.colors.primaryForeground,
-              cursor: 'pointer',
-              fontSize: '0.875rem',
-              fontWeight: 600,
-              fontFamily: theme.typography.body.family,
-              whiteSpace: 'nowrap',
-              flexShrink: 0,
-            }}
-          >
-            {isLast ? `${t('tour.finish', 'Done!')} ✓` : `${t('tour.next', 'Next')} →`}
-          </button>
-        </div>
-
+        {/* For a keyboard: index.html hides it on touch-only devices. */}
         <p
           aria-hidden="true"
-          style={{
-            margin: `${theme.spacing.sm}px 0 0`,
-            fontSize: '0.72rem',
-            color: theme.colors.muted,
-            textAlign: 'center',
-            letterSpacing: '0.01em',
-          }}
+          className="tour-keyboard-hint"
+          style={{ margin: `${theme.spacing.sm}px 0 0`, fontSize: '0.72rem', color: theme.colors.muted, textAlign: 'center', letterSpacing: '0.01em' }}
         >
           {t('tour.keyboardHint', '← → navigate · Esc pause')}
         </p>

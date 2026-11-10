@@ -393,19 +393,21 @@ const RoutinesView: React.FC = () => {
       {loading ? (
         <p style={{ color: theme.colors.muted }}>{t('loading')}</p>
       ) : routines.length === 0 ? (
-        <EmptyStateAction
-          emoji="⚡"
-          headline={t('routines.empty', 'No routines yet.')}
-          body={t('routines.emptyBody', 'Start with one small routine you want to make easier to repeat. You can adjust it at any time.')}
-          ctaLabel={t('routines.emptyCta', 'Build your first routine')}
-          onCta={() => {
-            const titleInput = document.getElementById('routine-title') as HTMLInputElement | null;
-            titleInput?.focus();
-          }}
-          secondaryLabel={t('routines.tpl.showGallery', "Browse routine templates")}
-          onSecondary={() => setShowRoutineGallery(true)}
-          accentColor={theme.dataViz.violet}
-        />
+        <div data-tour="routines-list">
+          <EmptyStateAction
+            emoji="⚡"
+            headline={t('routines.empty', 'No routines yet.')}
+            body={t('routines.emptyBody', 'Start with one small routine you want to make easier to repeat. You can adjust it at any time.')}
+            ctaLabel={t('routines.emptyCta', 'Build your first routine')}
+            onCta={() => {
+              const titleInput = document.getElementById('routine-title') as HTMLInputElement | null;
+              titleInput?.focus();
+            }}
+            secondaryLabel={t('routines.tpl.showGallery', "Browse routine templates")}
+            onSecondary={() => setShowRoutineGallery(true)}
+            accentColor={theme.dataViz.violet}
+          />
+        </div>
       ) : (
         <ul data-tour="routines-list" style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: `${theme.spacing.md}px` }}>
           {routines.map((routine) => {

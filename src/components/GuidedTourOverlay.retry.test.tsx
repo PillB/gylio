@@ -34,7 +34,7 @@ const spotlight = () => document.querySelector('div[aria-hidden="true"][style*="
 describe('GuidedTourOverlay target lookup', () => {
   beforeEach(() => {
     vi.useFakeTimers();
-    Element.prototype.scrollIntoView = vi.fn();
+    window.scrollBy = vi.fn();
   });
   afterEach(() => {
     cleanup();

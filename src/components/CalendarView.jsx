@@ -94,8 +94,9 @@ const CalendarView = () => {
         onStep={(direction) => setSelectedDate((current) => stepDate(current, viewMode, direction))}
         onToday={() => setSelectedDate(toDateKey(new Date()))}
       />
-      {viewMode === 'week' && (
-        <div data-tour="calendar-grid">
+      {/* The tour points here in every view: phones open on Day, where a week-only target left the step with nothing to show. */}
+      <div data-tour="calendar-grid">
+        {viewMode === 'week' && (
           <WeeklyGrid
             events={data.events}
             weekStartDate={weekStartOf(selectedDate)}
@@ -103,14 +104,14 @@ const CalendarView = () => {
             onEventClick={listActions.startEdit}
             reduceMotion={false}
           />
-        </div>
-      )}
-      {viewMode === 'day' && selectedDay && (
-        <DayView date={selectedDay} events={eventsByDay.get(selectedDate) ?? []} format={format} onEventClick={listActions.startEdit} />
-      )}
-      {viewMode === 'month' && (
-        <MonthView selectedDate={selectedDate} eventsByDay={eventsByDay} format={format} onOpenDay={openDay} />
-      )}
+        )}
+        {viewMode === 'day' && selectedDay && (
+          <DayView date={selectedDay} events={eventsByDay.get(selectedDate) ?? []} format={format} onEventClick={listActions.startEdit} />
+        )}
+        {viewMode === 'month' && (
+          <MonthView selectedDate={selectedDate} eventsByDay={eventsByDay} format={format} onOpenDay={openDay} />
+        )}
+      </div>
       <div style={{ display: 'grid', gap: `${theme.spacing.md}px`, gridTemplateColumns: 'minmax(0, 1fr)' }}>
         <AddEventPanel tasks={data.tasks} onCreate={data.createEvent} />
         <SuggestionList suggestions={suggestions} format={format} onSchedule={scheduleSuggestion} />

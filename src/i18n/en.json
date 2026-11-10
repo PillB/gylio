@@ -1930,16 +1930,17 @@
       "templates": {
         "title": "Start with a template",
         "content": "Tap here to browse 28 templates across 7 life areas. Pick one and the title, energy level and steps are filled in for you."
-      }
+      },
+      "revealDetails": "Open “Add details” below the title to see this field."
     },
     "calendarFlow": {
       "welcome": {
         "title": "Calendar — interactive walkthrough",
-        "content": "See your full schedule and create events. We'll navigate the week view and add an event together."
+        "content": "See your full schedule and create events. We'll look at your calendar and add an event together."
       },
       "grid": {
-        "title": "Your weekly view",
-        "content": "Each column is a day. Click any event to edit it. You can link calendar events to tasks so nothing falls through the cracks."
+        "title": "Your schedule",
+        "content": "Day, Week and Month show the same events — switch with the buttons above. Select any event to edit it. You can link events to tasks so nothing falls through the cracks."
       },
       "add": {
         "title": "Add an event",

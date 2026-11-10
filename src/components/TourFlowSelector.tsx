@@ -3,11 +3,13 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '../core/context/ThemeContext';
 import { useGuidedTour, ALL_FLOWS } from '../core/context/GuidedTourContext';
 import useDialogFocus from '../core/hooks/useDialogFocus';
+import { useSubscription } from '../features/subscription/useSubscription';
 
 export default function TourFlowSelector() {
   const { showSelector, closeSelector, startFlow } = useGuidedTour();
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { hasFeature } = useSubscription();
   const dialogRef = useRef<HTMLDivElement>(null);
   useDialogFocus(dialogRef, showSelector);
 
@@ -22,6 +24,9 @@ export default function TourFlowSelector() {
   }, [showSelector, closeSelector]);
 
   if (!showSelector) return null;
+
+  // A walkthrough of a screen the plan does not include would point at the upgrade card on every step.
+  const flows = ALL_FLOWS.filter((flow) => !flow.feature || hasFeature(flow.feature));
 
   return (
     <>
@@ -104,7 +109,7 @@ export default function TourFlowSelector() {
 
         {/* Flow cards */}
         <div style={{ display: 'grid', gap: theme.spacing.sm }}>
-          {ALL_FLOWS.map((flow, i) => (
+          {flows.map((flow, i) => (
             <button
               key={flow.id}
               type="button"

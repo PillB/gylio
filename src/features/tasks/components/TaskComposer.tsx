@@ -180,6 +180,7 @@ const TaskComposer: React.FC<Props> = ({ draft, todayKey, tomorrowKey, titleRef,
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(132px, 1fr))', gap: `${theme.spacing.sm}px` }}>
           <button
             type="button"
+            data-tour="task-details-toggle"
             aria-expanded={draft.detailsOpen}
             onClick={draft.toggleDetails}
             style={controlStyle(theme, { fontWeight: 600, cursor: 'pointer' })}

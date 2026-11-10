@@ -30,9 +30,10 @@ const clamp = (value: number, min: number, max: number) => Math.max(min, Math.mi
 /**
  * Places the tour card so it does not cover the element it explains.
  * Order: preferred side, then below, above, right, left. When the target is so
- * large that no side has room (a full week grid on a phone), the card docks to
- * the viewport edge farther from the target's centre so it covers the least
- * important edge of the target instead of its heading.
+ * large that no side has room (a full week grid, or a long form on a phone), the
+ * card docks to the bottom of the screen, where it covers the target's lower edge
+ * and leaves its heading readable. It docks to the top only when the target's top
+ * has scrolled off and its lower part is what is on screen.
  */
 export function placeTooltip({ target, viewportW, viewportH, tipW, tipH, gap, pad, prefer }: PlaceArgs): TooltipPlacement {
   const centerX = (target.left + target.right) / 2;
@@ -57,7 +58,7 @@ export function placeTooltip({ target, viewportW, viewportH, tipW, tipH, gap, pa
   const side = order.find((candidate) => fits[candidate]);
   if (side) return spots[side];
 
-  const targetMid = (target.top + target.bottom) / 2;
-  const dockTop = targetMid > viewportH / 2 ? pad : viewportH - tipH - pad;
+  const onlyLowerPartShows = target.top < 0 && target.bottom <= viewportH;
+  const dockTop = onlyLowerPartShows ? pad : viewportH - tipH - pad;
   return { side: 'dock', top: Math.max(pad, dockTop), left: alignedLeft };
 }
