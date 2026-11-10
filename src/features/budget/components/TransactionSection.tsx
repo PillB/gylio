@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../../core/context/ThemeContext';
+import { useScreenState } from '../../../core/analytics/useScreenState';
 import type { Budget, Transaction } from '../../../core/hooks/useDB';
 import { useValidatedForm } from '../hooks/useValidatedForm';
 import type { NewTransaction } from '../hooks/useBudgetData';
@@ -22,6 +23,8 @@ const TransactionSection: React.FC<Props> = ({ activeBudget, monthTransactions, 
   const validate = useCallback((values: TransactionFields) => validateTransaction(values, t), [t]);
   const form = useValidatedForm(EMPTY_TRANSACTION, validate);
   const categories = activeBudget?.categories ?? [];
+  // Counted so the funnel can tell people who were asked for a category from people offered the form.
+  useScreenState('budget_transactions', categories.length === 0 ? 'needs_category' : 'form');
 
   const handleAdd = () => {
     // The form is only shown once the open month has a category, so there is a budget to add to.

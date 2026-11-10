@@ -100,6 +100,11 @@ const seedBudget = (): Budget => ({
 /** The control a label names, found the way a screen reader finds it (label text only, no help button). */
 const inputAfterLabel = (labelText: string) => screen.getByLabelText(labelText, { exact: true }) as HTMLInputElement;
 
+const sentAs = (name: string) =>
+  (JSON.parse(localStorage.getItem('analytics:queue') ?? '[]') as { name: string; props: unknown }[])
+    .filter((event) => event.name === name)
+    .map((event) => event.props);
+
 const transactionSection = () => screen.getByText('budget.transactionsHeading').closest('section') as HTMLElement;
 
 const renderLoaded = async () => {
@@ -262,6 +267,20 @@ describe('BudgetView', () => {
       expect(section.queryByRole('button', { name: 'budget.addTransaction' })).toBeNull();
       // One line, not two: "No transactions yet" would repeat it.
       expect(section.queryByText('budget.emptyTransactions')).toBeNull();
+    });
+
+    it('counts who was asked for a category and who was offered the form', async () => {
+      localStorage.removeItem('analytics:queue');
+      emptyMonth();
+      const first = render(<BudgetView />);
+      await screen.findByText('budget.incomeHeading');
+      expect(sentAs('screen_state')).toEqual([{ screen: 'budget_transactions', state: 'needs_category' }]);
+      first.unmount();
+
+      localStorage.removeItem('analytics:queue');
+      emptyMonth({ categories: [{ name: 'Rent', type: 'NEED', plannedAmount: 0 }] });
+      await renderLoaded();
+      expect(sentAs('screen_state')).toEqual([{ screen: 'budget_transactions', state: 'form' }]);
     });
 
     it('still lists what was spent in a category that has since been removed', async () => {

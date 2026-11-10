@@ -9,6 +9,7 @@ import type { RoutineTemplate } from '../data/routineTemplateLibrary';
 import WinCard from '../../../components/WinCard';
 import BudgetTooltip from '../../../components/atoms/BudgetTooltip';
 import { HelpLabel } from '../../../components/atoms/HelpField';
+import { listState, useScreenState } from '../../../core/analytics/useScreenState';
 import SectionCard from '../../../components/SectionCard.jsx';
 import { track, Events } from '../../../core/analytics';
 import {
@@ -47,6 +48,7 @@ const RoutinesView: React.FC = () => {
   const { routines, loading, addRoutine, updateRoutine, removeRoutine, toggleStep, completeRoutine } =
     useRoutines();
   const allowance = useRoutineAllowance(routines, !loading);
+  useScreenState('routines', listState(loading, routines.length));
 
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [touched, setTouched] = useState(false);

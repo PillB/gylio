@@ -19,6 +19,16 @@ async function seed(page: Page) {
   });
 }
 
+/** What the app has queued for analytics, read where it keeps it until upload. */
+const sent = (page: Page, name: string) =>
+  page.evaluate(
+    (wanted) =>
+      (JSON.parse(localStorage.getItem('analytics:queue') ?? '[]') as { name: string; props: unknown }[])
+        .filter((event) => event.name === wanted)
+        .map((event) => event.props),
+    name,
+  );
+
 test.describe('empty screens', () => {
   test.beforeEach(async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
@@ -36,6 +46,7 @@ test.describe('empty screens', () => {
     const [a, h] = [await add.boundingBox(), await help.boundingBox()];
     expect(Math.abs((a!.y + a!.height / 2) - (h!.y + h!.height / 2))).toBeLessThan(4);
     expect(h!.x).toBeGreaterThan(a!.x + a!.width - 1);
+    await expect.poll(() => sent(page, 'screen_state')).toEqual([{ screen: 'calendar', state: 'empty' }]);
   });
 
   test('Calendar sections appear with their content, each heading named without its help button', async ({ page }) => {
@@ -57,6 +68,7 @@ test.describe('empty screens', () => {
     await expect(transactions.getByRole('button', { name: /add transaction/i })).toHaveCount(0);
     await expect(page.getByRole('button', { name: /log weekly review/i })).toHaveCount(0);
     await expect(page.getByText(/top bar shows planned/i)).toHaveCount(0);
+    await expect.poll(() => sent(page, 'screen_state')).toEqual([{ screen: 'budget_transactions', state: 'needs_category' }]);
 
     const categories = page.locator('[data-tour="budget-categories"]');
     await categories.getByLabel('Category', { exact: true }).fill('Groceries');
@@ -67,6 +79,10 @@ test.describe('empty screens', () => {
     await expect(transactions.getByText(/add a category first/i)).toHaveCount(0);
     await expect(page.getByRole('button', { name: /log weekly review/i })).toBeVisible();
     await expect(page.getByText(/top bar shows planned/i)).toBeVisible();
+    await expect.poll(() => sent(page, 'screen_state')).toEqual([
+      { screen: 'budget_transactions', state: 'needs_category' },
+      { screen: 'budget_transactions', state: 'form' },
+    ]);
   });
 
   test('Routines says there are none in one line and offers the templates once', async ({ page }) => {
@@ -77,6 +93,17 @@ test.describe('empty screens', () => {
     await expect(page.getByRole('button', { name: /build your first routine/i })).toHaveCount(0);
     const box = await empty.boundingBox();
     expect(box!.height).toBeLessThan(80);
+    await expect.poll(() => sent(page, 'screen_state')).toEqual([{ screen: 'routines', state: 'empty' }]);
+  });
+
+  test('Settings counts a switch that is changed', async ({ page }) => {
+    await page.goto('./settings');
+    const animations = page.getByRole('checkbox', { name: 'Allow animations', exact: true });
+    await expect(animations).toBeChecked();
+    expect(await sent(page, 'setting_changed')).toEqual([]);
+    await animations.uncheck();
+    await expect(page.locator('html')).toHaveAttribute('data-motion', 'off');
+    await expect.poll(() => sent(page, 'setting_changed')).toEqual([{ setting: 'animations', on: false }]);
   });
 
   test('Rewards introduces itself in the present tense', async ({ page }) => {

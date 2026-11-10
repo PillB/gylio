@@ -12,6 +12,7 @@ import ConvertTaskList from '../features/calendar/components/ConvertTaskList';
 import EventList from '../features/calendar/components/EventList';
 import CalendarHelp from '../features/calendar/components/CalendarHelp';
 import { useCalendarData } from '../features/calendar/hooks/useCalendarData';
+import { listState, useScreenState } from '../core/analytics/useScreenState';
 import { useLayoutVariant } from '../features/layoutVariants';
 import { useCalendarFormat } from '../features/calendar/hooks/useCalendarFormat';
 import { buildScheduleSuggestions } from '../features/calendar/utils/scheduleSuggestions';
@@ -44,6 +45,7 @@ const CalendarView = () => {
 
   const palette = theme.eventTints;
   const sortedEvents = useMemo(() => sortByStart(data.events), [data.events]);
+  useScreenState('calendar', listState(data.loading, data.events.length));
   const eventsByDay = useMemo(() => groupByDay(sortedEvents, palette), [palette, sortedEvents]);
   const availableTasks = useMemo(() => data.tasks.filter((task) => !task.calendarEventId), [data.tasks]);
   const suggestions = useMemo(

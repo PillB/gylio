@@ -79,6 +79,10 @@ const makeEvent = (id: number, title: string, startDate: string, overrides: Part
 const sectionOf = (heading: string) => screen.getByRole('heading', { level: 3, name: heading }).parentElement?.parentElement as HTMLElement;
 const eventsSection = () => sectionOf('calendarEventsHeading');
 const convertSection = () => sectionOf('calendarTasksToConvert');
+const sentAs = (name: string) =>
+  (JSON.parse(localStorage.getItem('analytics:queue') ?? '[]') as { name: string; props: unknown }[])
+    .filter((event) => event.name === name)
+    .map((event) => event.props);
 const dateInput = () => screen.getByLabelText('calendarSelectDate') as HTMLInputElement;
 /** The control a label names, the way a screen reader finds it (label text only, not the help button). */
 const fieldIn = (scope: HTMLElement, label: string) => within(scope).getByLabelText(label, { exact: true }) as HTMLInputElement;
@@ -142,6 +146,22 @@ describe('CalendarView', () => {
     // Only the grid and "Add event": no heading over "nothing here", three times.
     expect(screen.queryAllByRole('heading', { level: 3 })).toHaveLength(0);
     expect(screen.getByRole('button', { name: 'calendarAddEvent' })).toBeTruthy();
+  });
+
+  it('counts an empty calendar and one with events, once each, after they have loaded', async () => {
+    localStorage.removeItem('analytics:queue');
+    const empty = render(<CalendarView />);
+    expect(sentAs('screen_state')).toEqual([]);
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(sentAs('screen_state')).toEqual([{ screen: 'calendar', state: 'empty' }]);
+    empty.unmount();
+
+    localStorage.removeItem('analytics:queue');
+    db.events = [makeEvent(1, 'Standup', '2026-03-10T09:00')];
+    await renderLoaded();
+    expect(sentAs('screen_state')).toEqual([{ screen: 'calendar', state: 'has_items' }]);
   });
 
   it('shows each section once it has something in it', async () => {

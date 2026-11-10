@@ -18,6 +18,7 @@ import SignOutCard from '../features/account/SignOutSection';
 import { useEntitlement } from '../features/billing/EntitlementContext';
 import { serverFeaturesEnabled } from '../core/utils/serverFeatures';
 import SettingToggle from './settings/SettingToggle';
+import { Events, track } from '../core/analytics';
 import { version as packageVersion } from '../../package.json';
 
 // The version the deploy script stamps on a release; the package version on any other build.
@@ -116,6 +117,12 @@ const SettingsView = () => {
     }),
     [t]
   );
+
+  /** Saves an on/off setting and counts the change. */
+  const switchTo = (setting, save) => (on) => {
+    save(on);
+    track(Events.SETTING_CHANGED, { setting, on });
+  };
 
   const announceSettings = () => {
     speak(t('settingsDescription'));
@@ -295,7 +302,7 @@ const SettingsView = () => {
               label={t('settingsAnimationLabel')}
               helper={t('settingsAnimationHelper')}
               checked={animationsEnabled}
-              onChange={setAnimationsEnabled}
+              onChange={switchTo('animations', setAnimationsEnabled)}
             />
           </div>
         </div>
@@ -305,7 +312,7 @@ const SettingsView = () => {
           helper={t('onboarding.accessibility.ttsHelper')}
           tooltip={t('tooltips.settings.tts', 'When on, important status messages are read aloud. Useful for hands-free use, low-vision accessibility, or if reading long lists is tiring.')}
           checked={ttsEnabled}
-          onChange={setTtsEnabled}
+          onChange={switchTo('read_aloud', setTtsEnabled)}
         />
         <SettingToggle
           dataTour="settings-gamification"
@@ -313,14 +320,14 @@ const SettingsView = () => {
           helper={t('settingsGamificationHelper')}
           tooltip={t('tooltips.settings.gamification', 'Turns XP, levels, and streaks on or off globally. Your progress data is preserved either way — you can re-enable anytime.')}
           checked={gamificationEnabled}
-          onChange={setGamificationEnabled}
+          onChange={switchTo('rewards', setGamificationEnabled)}
         />
         <SettingToggle
           label={t('dailyViewHeading')}
           helper={t('dailyViewDescription')}
           tooltip={t('tooltips.settings.dailyView', 'Daily view simplifies the Tasks tab to show only your top 3 priorities, next event, and a budget nudge — ideal for mornings when you need a quick plan without overwhelm.')}
           checked={dailyMode}
-          onChange={setDailyMode}
+          onChange={switchTo('daily_view', setDailyMode)}
         />
 
         {/* Sync with the account (builds that have it), or the older review list (builds with a separate API). */}

@@ -59,6 +59,11 @@ vi.mock('../features/account/SignOutSection', () => ({ default: () => null }));
 vi.mock('../features/billing/EntitlementContext', () => ({ useEntitlement: () => ({ entitlement: { isAdmin: state.isAdmin } }) }));
 vi.mock('../core/utils/serverFeatures', () => ({ serverFeaturesEnabled: () => state.serverFeatures }));
 
+const sentAs = (name: string) =>
+  (JSON.parse(localStorage.getItem('analytics:queue') ?? '[]') as { name: string; props: unknown }[])
+    .filter((event) => event.name === name)
+    .map((event) => event.props);
+
 const show = () => render(<MemoryRouter><SettingsView /></MemoryRouter>);
 const section = (name: string) => screen.getByRole('region', { name });
 const box = (name: string) => screen.getByRole('checkbox', { name }) as HTMLInputElement;
@@ -67,8 +72,24 @@ describe('SettingsView', () => {
   beforeEach(() => {
     Object.assign(state, { animationsEnabled: true, ttsEnabled: false, gamificationEnabled: true, dailyMode: false, isAdmin: false, serverFeatures: true });
     vi.clearAllMocks();
+    localStorage.removeItem('analytics:queue');
   });
   afterEach(cleanup);
+
+  it('counts each switch that is changed, by its name and new state, and nothing before one is', () => {
+    show();
+    expect(sentAs('setting_changed')).toEqual([]);
+    fireEvent.click(box('settingsAnimationLabel'));
+    fireEvent.click(box('onboarding.accessibility.tts'));
+    fireEvent.click(box('settingsGamificationLabel'));
+    fireEvent.click(box('dailyViewHeading'));
+    expect(sentAs('setting_changed')).toEqual([
+      { setting: 'animations', on: false },
+      { setting: 'read_aloud', on: true },
+      { setting: 'rewards', on: false },
+      { setting: 'daily_view', on: true },
+    ]);
+  });
 
   it('names each on/off setting on its own checkbox and shows its saved state', () => {
     state.animationsEnabled = false;
