@@ -403,6 +403,60 @@ describe('signing in and out', () => {
   });
 });
 
+describe('the network drops while sync is already held back for another reason', () => {
+  it('a server pause outlives a blip in the network: coming back online does not send before the server said', async () => {
+    const rig = makeRig();
+    rig.server.mode = { kind: 'shed', retryAfter: '1800' };
+    await save(rig, 'a', 'first');
+    const sentSoFar = rig.server.requests().length;
+    rig.engine.setOnline(false);
+    rig.engine.setOnline(true);
+    await rig.time.advance(10 * MINUTE);
+    expect(rig.server.requests().length).toBe(sentSoFar);
+    expect(rig.engine.snapshot().state).toMatchObject({ kind: 'waiting', reason: 'paused' });
+    rig.server.mode = { kind: 'ok' };
+    await rig.time.advance(25 * MINUTE);
+    expect(rig.server.records.has('tasks:a')).toBe(true);
+  });
+
+  it('a pause that came from the network itself is cleared when the network returns', async () => {
+    const rig = makeRig();
+    rig.server.mode = { kind: 'down' };
+    await save(rig, 'a', 'x');
+    expect(rig.engine.snapshot().state).toMatchObject({ kind: 'waiting', reason: 'offline' });
+    rig.server.mode = { kind: 'ok' };
+    rig.engine.setOnline(false);
+    rig.engine.setOnline(true);
+    await rig.time.advance(4 * SECOND);
+    expect(rig.server.records.has('tasks:a')).toBe(true);
+  });
+
+  it.each([
+    ['closed', { kind: 'closed' } as const],
+  ])('going offline does not hide "%s", and coming back shows it again without asking the server early', async (kind, mode) => {
+    const rig = makeRig();
+    rig.server.mode = mode;
+    await save(rig, 'a', 'x');
+    expect(rig.engine.snapshot().state.kind).toBe(kind);
+    const sentSoFar = rig.server.requests().length;
+    rig.engine.setOnline(false);
+    expect(rig.engine.snapshot().state.kind).toBe(kind);
+    rig.engine.setOnline(true);
+    await rig.time.advance(MINUTE);
+    expect(rig.engine.snapshot().state.kind).toBe(kind);
+    expect(rig.server.requests().length).toBe(sentSoFar);
+  });
+
+  it('another account on this device still asks for a choice while offline', async () => {
+    const rig = makeRig();
+    await rig.storage.setMeta({ owner: 'someone-else' });
+    await save(rig, 'a', 'x');
+    expect(rig.engine.snapshot().state.kind).toBe('other-account');
+    rig.engine.setOnline(false);
+    expect(rig.engine.snapshot().state.kind).toBe('other-account');
+  });
+});
+
 describe('sign-up not open yet (503 SIGNUP_CLOSED)', () => {
   it('says so once, keeps working locally, and looks again only after hours', async () => {
     const rig = makeRig();

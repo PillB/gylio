@@ -203,14 +203,29 @@ export class SyncEngine {
     this.schedule(reason === 'online' ? Math.round(this.random() * 3_000) : 0, reason);
   }
 
+  /**
+   * The browser's network flag. Going offline only replaces a state that says things will go out by themselves
+   * (idle, waiting): "closed", "signed-out" and "other-account" stay, because the network does not change them and
+   * "other-account" needs a choice. Coming back clears only a pause the network caused; a pause the server asked for
+   * (Retry-After, SYNC_PAUSED, backoff after errors) still runs, and is shown again.
+   */
   setOnline(online: boolean) {
     this.online = online;
     if (online) {
-      if (this.state.kind === 'waiting' && this.state.reason === 'offline') this.clearPause();
+      if (this.pauseReason === 'offline') this.clearPause();
+      if (this.state.kind === 'waiting' && this.state.reason === 'offline') this.setState(this.heldState());
       this.kick('online');
-    } else if (this.state.kind !== 'syncing') {
+    } else if (this.state.kind === 'idle' || this.state.kind === 'waiting') {
       this.setState({ kind: 'waiting', reason: 'offline', retryAt: null });
     }
+  }
+
+  /** What the state is once the browser's offline flag no longer hides it: a pause still running, or idle. */
+  private heldState(): SyncState {
+    if (this.pauseReason && this.pausedUntil > this.now()) {
+      return { kind: 'waiting', reason: this.pauseReason, retryAt: this.pausedUntil };
+    }
+    return { kind: 'idle' };
   }
 
   /** A hidden tab does not poll; it sends what is waiting once (the person may be closing it) and catches up when shown. */
