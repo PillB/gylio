@@ -1,6 +1,7 @@
 import React from 'react';
 import { SignUp } from '@clerk/clerk-react';
 import { useTheme } from '../../core/context/ThemeContext';
+import AccountFormStatus from './AccountFormStatus';
 import SignUpLegalLinks from './SignUpLegalLinks';
 
 const SignUpPage: React.FC = () => {
@@ -20,6 +21,7 @@ const SignUpPage: React.FC = () => {
         WebkitOverflowScrolling: 'touch' as const,
       }}
     >
+      <AccountFormStatus form="sign_up" />
       <SignUp
         routing="path"
         path={`${import.meta.env.BASE_URL}sign-up`}

@@ -16,6 +16,9 @@ vi.mock('./features/subscription/PricingPage', () => ({ default: () => <h1>Prici
 vi.mock('./features/legal/LegalPage', () => ({ default: ({ doc }: { doc: string }) => <h1>{`${doc} title`}</h1> }));
 vi.mock('./features/feedback/QaPage', () => ({ default: () => <h1>Report title</h1> }));
 vi.mock('./features/admin/AdminPage', () => ({ default: () => <h1>Admin title</h1> }));
+// The account forms bring their own title (the account service draws it as a first-level heading).
+vi.mock('./features/auth/SignInPage', () => ({ default: () => <h1>Sign in title</h1> }));
+vi.mock('./features/auth/SignUpPage', () => ({ default: () => <h1>Sign up title</h1> }));
 
 import App from './App.jsx';
 import { OnboardingFlowProvider } from './hooks/useOnboardingFlow.jsx';
@@ -101,6 +104,8 @@ describe('one page title per page', () => {
     ['/terms', 'terms title'],
     ['/qa', 'Report title'],
     ['/admin', 'Admin title'],
+    ['/sign-in', 'Sign in title'],
+    ['/sign-up', 'Sign up title'],
   ])('%s is titled by the page itself; the app name stays in the header as plain text', async (path, title) => {
     openAppAt(path);
     await screen.findByText(title);
