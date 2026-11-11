@@ -11,7 +11,6 @@
  */
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useAppAuth } from '../../core/context/AuthContext';
-import { MACHINE_KEY } from '../../core/context/timerMachine';
 import { authHeaders } from '../../core/utils/authToken';
 import { apiUrl } from '../../core/utils/apiUrl';
 import {
@@ -84,20 +83,7 @@ function markReplaced() {
   }
 }
 
-/**
- * A focus timer running on this device points at this device's task ids, which the replaced data gives to other
- * tasks: it is dropped rather than credited to the wrong task (timerMachine MACHINE_KEY).
- */
-function forgetDeviceTimer() {
-  try {
-    localStorage.removeItem(MACHINE_KEY);
-  } catch {
-    // storage blocked: nothing kept to forget
-  }
-}
-
 function restoreAndReload(userId: string, server: NonNullable<ServerState>) {
-  forgetDeviceTimer();
   const previousOwner = readMeta(localStorage)?.userId ?? null;
   applySnapshot(localStorage, server.data, new Date().toISOString(), previousOwner);
   markReplaced();
@@ -108,7 +94,6 @@ function restoreAndReload(userId: string, server: NonNullable<ServerState>) {
 
 /** The data on this device belonged to someone else: set it aside (undoable from Settings) and start empty. */
 function startEmptyAndReload(userId: string) {
-  forgetDeviceTimer();
   // Tagged with the previous person, so only they can bring it back.
   applySnapshot(localStorage, {}, new Date().toISOString(), readMeta(localStorage)?.userId ?? null);
   markReplaced();
@@ -134,6 +119,11 @@ export function AccountSyncProvider({ children }: { children: ReactNode }) {
   const busy = useRef(false);
   const currentUser = useRef(userId);
   currentUser.current = userId;
+  // Once the provider is gone nobody is being saved for: work still queued must not go out.
+  useEffect(() => {
+    currentUser.current = userId;
+    return () => { currentUser.current = null; };
+  }, [userId]);
   // Hash of data the server refused as too large: don't re-send it every 15 seconds.
   const tooLargeHash = useRef<string | null>(null);
 
@@ -153,7 +143,9 @@ export function AccountSyncProvider({ children }: { children: ReactNode }) {
   const stillFor = (uid: string | null) => uid !== null && currentUser.current === uid;
 
   const push = useCallback(async (baseVersion: number, keepalive = false): Promise<void> => {
-    if (!userId) return;
+    // A save that waited its turn may start after its person signed out or switched: by then the sign-in token and
+    // this device's data are someone else's, so it must not be sent at all.
+    if (!userId || !stillFor(userId)) return;
     const data = collectSnapshot(localStorage);
     setStatus('saving');
     const result = await putServerState(baseVersion, data, keepalive);

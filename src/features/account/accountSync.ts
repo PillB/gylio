@@ -9,6 +9,8 @@
  */
 import { fnv1a } from '../experiments/experiments';
 
+import { MACHINE_KEY as FOCUS_TIMER_KEY } from '../../core/context/timerMachine';
+
 export const META_KEY = 'gylio:sync:meta';
 export const BACKUP_KEY = 'gylio:preRestoreBackup';
 
@@ -119,6 +121,9 @@ export function dropBackup(storage: StorageLike, savedAt: string): void {
  * be undone, and never by a different person.
  */
 export function applySnapshot(storage: StorageLike, data: Snapshot, now: string, ownerId: string | null = null): void {
+  // A focus timer kept on this device points at this device's task ids, which the new data gives to other tasks:
+  // it is dropped on every replacement rather than credited to the wrong task.
+  storage.removeItem(FOCUS_TIMER_KEY);
   const previous = collectSnapshot(storage);
   if (Object.keys(previous).length) {
     writeBackups(storage, [{ savedAt: now, ownerId, data: previous }, ...readBackups(storage)].slice(0, MAX_BACKUPS));

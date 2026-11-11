@@ -222,6 +222,24 @@ describe('state collisions in saving', () => {
     expect(localStorage.getItem('gylio:focusTimer:v1')).toBeNull();
   });
 
+  it('a "Save now" still waiting its turn when the person signs out is never sent', async () => {
+    localStorage.setItem('gylio_sqlite', ON_DEVICE);
+    inSync();
+    const slow = deferred();
+    const fetchMock = vi.fn().mockResolvedValueOnce(json({ state: serverCopy })).mockReturnValueOnce(slow.promise)
+      .mockResolvedValue(json({ saved: true, state: { ...serverCopy, version: 6 } }));
+    vi.stubGlobal('fetch', fetchMock);
+    const view = renderProbe();
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    const pressed = sync.saveNow();
+    auth.userId = null;
+    view.rerender(<ThemeProvider><AccountSyncProvider><Probe /><SyncConflictBanner /></AccountSyncProvider></ThemeProvider>);
+    slow.resolve(json({ saved: true, state: { ...serverCopy, version: 5 } }));
+    await pressed;
+    await new Promise((r) => setTimeout(r, 30));
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
   it('"Save now" pressed while another save is on its way waits for it, then saves on top of it: no conflict with itself', async () => {
     localStorage.setItem('gylio_sqlite', ON_DEVICE);
     inSync();

@@ -290,6 +290,12 @@ account copy saved before the ledger existed can pay old completions once more.
 Accepted after round 4: a task deleted on another device, or a paused focus left for days, keeps its timer until it
 is stopped or another one starts; its time is dropped when the task is missing, nothing is paid for it.
 
+**Review on the pull request** found two more, both fixed with tests:
+- *A save still waiting its turn went out after its person had signed out or switched*, with the next person's
+  sign-in. A save now checks who is signed in before it sends anything, and nothing is sent once the provider is gone.
+- *Restoring from a file, or undoing a restore, kept this device's focus timer.* The timer is now dropped inside
+  `applySnapshot`, the one place every replacement goes through.
+
 ## Trade-offs taken
 
 - **Persisting the focus timer** adds cross-tab and reload states that did not exist. Covered by tests (reload,
