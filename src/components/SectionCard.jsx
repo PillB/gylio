@@ -10,7 +10,7 @@ import { HelpTopic } from './atoms/HelpTopic';
  * Elevated card with subtle shadow, optional badge and action slot.
  * Preserves TTS announcement and semantic section structure.
  */
-const SectionCard = ({ title, ariaLabel, subtitle, children = null, badge = null, action = null }) => {
+const SectionCard = ({ title, ariaLabel, subtitle, children, badge, action }) => {
   const { speak } = useAccessibility();
   const { theme } = useTheme();
   const headingId = useId();

@@ -17,7 +17,7 @@ const VISUALLY_HIDDEN = {
   whiteSpace: 'nowrap',
 };
 
-const NavBar = ({ items, activeKey, onNavigate, languageToggle = null }) => {
+const NavBar = ({ items, activeKey, onNavigate, languageToggle }) => {
   const { theme } = useTheme();
   const { t } = useTranslation();
 
