@@ -141,6 +141,8 @@ export function TaskTimerProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const onStorage = (event: StorageEvent) => {
       if (event.key === MACHINE_KEY) dispatch({ type: 'replace', machine: restoreMachine(event.newValue) });
+      // Same settings in every tab, or two tabs would start different phases at the same deadline.
+      if (event.key === SETTINGS_KEY) setSettings(loadSettings());
     };
     window.addEventListener('storage', onStorage);
     return () => window.removeEventListener('storage', onStorage);
@@ -149,7 +151,12 @@ export function TaskTimerProvider({ children }: { children: ReactNode }) {
   // First, before the clock below notes this page as open: a timer kept from before. A block that ended while a page
   // was open somewhere is finished and logged; one left running while every page was closed waits, paused, at the
   // last moment a page saw it (timerMachine 'wake').
-  useEffect(() => dispatch({ type: 'wake', now: Date.now(), seenAt: readSeen(), settings: settingsRef.current }), []);
+  // A tab the browser discarded to save memory (Page Lifecycle `wasDiscarded`) was open all along as far as the person
+  // is concerned: it counts as seen, like a tab that was only hidden.
+  useEffect(() => {
+    const discarded = (document as Document & { wasDiscarded?: boolean }).wasDiscarded === true;
+    dispatch({ type: 'wake', now: Date.now(), seenAt: discarded ? null : readSeen(), settings: settingsRef.current });
+  }, []);
   // The display ticks once a second, but the time itself comes from the wall clock (timerMachine `endsAt`), so a
   // hidden tab whose timers the browser slows to once a minute still ends the phase on time.
   useEffect(() => {
@@ -185,10 +192,10 @@ export function TaskTimerProvider({ children }: { children: ReactNode }) {
   const startTask = useCallback((taskId: number, minutes?: number) => {
     dispatch({ type: 'start', taskId, minutes, now: Date.now(), settings: settingsRef.current });
   }, []);
-  const pauseTimer = useCallback(() => dispatch({ type: 'pause', now: Date.now() }), []);
+  const pauseTimer = useCallback(() => dispatch({ type: 'pause', now: Date.now(), settings: settingsRef.current }), []);
   const resumeTimer = useCallback(() => dispatch({ type: 'resume', now: Date.now() }), []);
   const skipPhase = useCallback(() => dispatch({ type: 'skip', now: Date.now(), settings: settingsRef.current }), []);
-  const stopTimer = useCallback(() => dispatch({ type: 'stop', now: Date.now() }), []);
+  const stopTimer = useCallback(() => dispatch({ type: 'stop', now: Date.now(), settings: settingsRef.current }), []);
 
   const updateSettings = useCallback((patch: Partial<TimerSettings>) => {
     setSettings((prev) => sanitizeSettings({ ...prev, ...patch }));

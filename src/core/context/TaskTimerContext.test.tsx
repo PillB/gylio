@@ -143,6 +143,29 @@ describe('reloads and other tabs', () => {
     expect(reward).not.toHaveBeenCalled();
   });
 
+  it('a tab the browser discarded to save memory counts as open all along: the block is credited when it comes back', async () => {
+    const first = renderHook(() => useTaskTimer(), { wrapper });
+    act(() => first.result.current.startTask(7));
+    act(() => { vi.advanceTimersByTime(5 * 60_000); });
+    first.unmount();
+    vi.setSystemTime(Date.now() + 60 * 60_000);
+    Object.defineProperty(document, 'wasDiscarded', { value: true, configurable: true });
+    try {
+      renderHook(() => useTaskTimer(), { wrapper });
+      await flush();
+      expect(db.appendTaskTimeLog).toHaveBeenCalledWith(7, expect.objectContaining({ type: 'focus', completed: true }));
+    } finally {
+      Object.defineProperty(document, 'wasDiscarded', { value: false, configurable: true });
+    }
+  });
+
+  it('a settings change in another tab reaches this one', () => {
+    const { result } = renderHook(() => useTaskTimer(), { wrapper });
+    localStorage.setItem('gylio_timer_settings', JSON.stringify({ focusMinutes: 50 }));
+    act(() => { window.dispatchEvent(new StorageEvent('storage', { key: 'gylio_timer_settings', newValue: '{"focusMinutes":50}' })); });
+    expect(result.current.settings.focusMinutes).toBe(50);
+  });
+
   it('a pause made in another tab pauses this one', () => {
     const { result } = renderHook(() => useTaskTimer(), { wrapper });
     act(() => result.current.startTask(7));

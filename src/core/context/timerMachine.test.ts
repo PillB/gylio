@@ -214,3 +214,30 @@ describe('opening the app again with a timer kept from before', () => {
     expect(run(start(), tick(T0 - 10 * MIN)).timer?.remainingSeconds).toBe(25 * 60);
   });
 });
+
+describe('a press that lands after the deadline, before the next tick', () => {
+  it('stop: the block ran in full, so it is logged as finished and paid as one', () => {
+    const m = run(start(1, T0, 1), { type: 'stop', now: T0 + MIN + 400 });
+    expect(m.log).toEqual([expect.objectContaining({ type: 'focus', completed: true, actualSeconds: 60 })]);
+    expect(m.timer).toBeNull();
+  });
+
+  it('skip to break: the block already ended, so it counts and the break it reached is not skipped too', () => {
+    const m = run(start(1, T0, 1), skip(T0 + MIN + 400));
+    expect(m.timer).toMatchObject({ phase: 'short-break', focusSessionsCompleted: 1 });
+    expect(m.log.map((e) => e.completed)).toEqual([true]);
+  });
+
+  it('pause: the break that began at the deadline is the one paused', () => {
+    const m = run(start(1, T0, 1), { type: 'pause', now: T0 + MIN + 30 * SEC });
+    expect(m.timer).toMatchObject({ phase: 'short-break', status: 'paused', remainingSeconds: 270 });
+  });
+});
+
+describe('saving the same stretch twice', () => {
+  it('two tabs that each stop the same tracker run at their own moment add it once', () => {
+    const run1 = { type: 'tracked' as unknown as 'focus', startedAt: new Date(T0).toISOString(), endedAt: new Date(T0 + 10 * MIN).toISOString(), plannedSeconds: 0, actualSeconds: 600, completed: true };
+    const run2 = { ...run1, endedAt: new Date(T0 + 10 * MIN + 3 * SEC).toISOString(), actualSeconds: 603 };
+    expect(withEntryOnce(withEntryOnce([], run1), run2)).toEqual([run1]);
+  });
+});

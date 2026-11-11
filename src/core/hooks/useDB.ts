@@ -20,11 +20,12 @@ export type TimeLogEntry = {
 };
 
 /**
- * Adds a stretch to a task's log unless the same stretch (kind, start, end) is already there. Saving is then safe to
- * repeat: two open tabs that both see a focus block end, or a save retried after an answer was lost, add it once.
+ * Adds a stretch to a task's log unless a stretch of the same kind that started at the same moment is already there:
+ * one start is one stretch. Saving is then safe to repeat: two open tabs that both end the same focus block or the
+ * same tracker run (each with its own end time), or a save retried after an answer was lost, add it once.
  */
 export const withEntryOnce = (log: TimeLogEntry[], entry: TimeLogEntry): TimeLogEntry[] =>
-  log.some((e) => e.type === entry.type && e.startedAt === entry.startedAt && e.endedAt === entry.endedAt) ? log : [...log, entry];
+  log.some((e) => e.type === entry.type && e.startedAt === entry.startedAt) ? log : [...log, entry];
 
 export type Task = {
   id: number;

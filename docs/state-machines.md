@@ -219,6 +219,30 @@ busy, failure leaves both paths available, the confirm panel stays open after a 
   moment after load are paid even if the person turned gamification off. Small window; worth fixing when the setting
   moves into the shared settings store.
 
+## Red team
+
+Four adversarial reviews of every change, each by a reviewer that had not seen the reasoning above, each followed by
+fixes and tests before the next one.
+
+**Round 1** found, and this round fixed:
+- *Tracker saved twice across tabs.* The tracker run is per tab; once the focus timer followed other tabs, starting
+  it in tab B made tab A stop its own copy of the tracker run too, with a different end time, which the
+  start-and-end duplicate check did not catch. One start is now one stretch: the check matches kind + start time.
+- *Credit lost when the browser discards a tab.* Chrome's Memory Saver reloads a discarded tab, which the closed-page
+  rule (`wake`) read as "closed at the last tick". `document.wasDiscarded` now counts as open all along, like a tab
+  that was only hidden.
+- *A press after the deadline, before the next tick.* Stop, skip and pause did not finish a phase whose deadline had
+  passed, so a full block was logged as interrupted (no points, no session), and skip could skip the break it had
+  already reached. Each now finishes due phases first.
+- *Account save:* "Save now", the first upload and the conflict choice now wait their turn for the lock instead of
+  being dropped while a background save runs, and read the version once it is their turn; a failed request for the
+  previous person no longer sets the new person's status.
+- *Timer settings* now reach every open tab, so two tabs cannot start different phases at the same deadline.
+
+Accepted after round 1: a page killed by the operating system (not discarded) and reopened later counts as closed;
+a reload in the instant between the database write and the queue update loses that block's points (the time is
+kept); two steps with the same text in one task pay once, and renaming a done step pays again.
+
 ## Trade-offs taken
 
 - **Persisting the focus timer** adds cross-tab and reload states that did not exist. Covered by tests (reload,

@@ -66,13 +66,13 @@ export type TimerMachine = { timer: ActiveTimerState | null; log: PendingEntry[]
 
 export type TimerAction =
   | { type: 'start'; taskId: number; minutes?: number; now: number; settings: TimerSettings }
-  | { type: 'pause'; now: number }
+  | { type: 'pause'; now: number; settings?: TimerSettings }
   | { type: 'resume'; now: number }
   | { type: 'tick'; now: number; settings: TimerSettings }
   /** The page opened with a timer kept from before. `seenAt` is the last time any page noted it was open. */
   | { type: 'wake'; now: number; seenAt: number | null; settings: TimerSettings }
   | { type: 'skip'; now: number; settings: TimerSettings }
-  | { type: 'stop'; now: number }
+  | { type: 'stop'; now: number; settings?: TimerSettings }
   | { type: 'logged'; entry: PendingEntry }
   /** Another tab changed the timer: this tab takes its state, so a pause there is a pause here too. */
   | { type: 'replace'; machine: TimerMachine };
@@ -195,7 +195,9 @@ const HANDLERS: Handlers = {
     const seconds = sanitizeSettings({ ...a.settings, focusMinutes: a.minutes ?? a.settings.focusMinutes }).focusMinutes * 60;
     return { timer: phase(a.taskId, 'focus', seconds, true, a.now, 0), log: withEntry(log, ended) };
   },
-  pause: (state, a) => {
+  pause: (before, a) => {
+    // A press that lands after the deadline but before the next tick: the phase ended first.
+    const state = catchUp(before, a.now, a.settings ?? DEFAULT_TIMER_SETTINGS);
     const { timer } = state;
     if (timer?.status !== 'running') return state;
     return { timer: { ...timer, status: 'paused', remainingSeconds: remainingAt(timer, a.now), endsAt: null }, log: state.log };
@@ -214,9 +216,16 @@ const HANDLERS: Handlers = {
     const upToSeen = catchUp(state, seenAt, a.settings);
     return HANDLERS.pause(upToSeen, { type: 'pause', now: seenAt });
   },
-  skip: (state, a) =>
-    state.timer ? { timer: following(state.timer, a.settings, a.now, false), log: withEntry(state.log, partialEntry(state.timer, a.now)) } : state,
-  stop: (state, a) => (state.timer ? { timer: null, log: withEntry(state.log, partialEntry(state.timer, a.now)) } : state),
+  skip: (before, a) => {
+    const state = catchUp(before, a.now, a.settings);
+    // The phase the person meant to leave already ended (its deadline passed before the press was handled).
+    if (state.log.length !== before.log.length || !state.timer) return state;
+    return { timer: following(state.timer, a.settings, a.now, false), log: withEntry(state.log, partialEntry(state.timer, a.now)) };
+  },
+  stop: (before, a) => {
+    const state = catchUp(before, a.now, a.settings ?? DEFAULT_TIMER_SETTINGS);
+    return state.timer ? { timer: null, log: withEntry(state.log, partialEntry(state.timer, a.now)) } : state;
+  },
   replace: (state, a) => (serializeMachine(a.machine) === serializeMachine(state) ? state : a.machine),
   logged: (state, a) => (state.log.includes(a.entry) ? { timer: state.timer, log: state.log.filter((e) => e !== a.entry) } : state),
 };

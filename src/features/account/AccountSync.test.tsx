@@ -146,21 +146,25 @@ const deferred = () => {
 const inSync = () => localStorage.setItem(META_KEY, JSON.stringify({ userId: 'user_1', version: 4, hash: 'old', savedAt: 't' }));
 
 describe('state collisions in saving', () => {
-  it('"Save now" pressed while a background save is on its way does not send a second copy that conflicts with the first', async () => {
+  it('"Save now" pressed while another save is on its way waits for it, then saves on top of it: no conflict with itself', async () => {
     localStorage.setItem('gylio_sqlite', ON_DEVICE);
     inSync();
     const slow = deferred();
     const fetchMock = vi.fn()
       .mockResolvedValueOnce(json({ state: serverCopy })) // first sync: same version, so 'push'
       .mockReturnValueOnce(slow.promise)
-      .mockResolvedValue(json({ saved: false, state: { ...serverCopy, version: 5 } }));
+      .mockResolvedValue(json({ saved: true, state: { ...serverCopy, version: 6 } }));
     vi.stubGlobal('fetch', fetchMock);
     renderProbe();
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
-    await sync.saveNow();
+    const pressed = sync.saveNow();
+    await new Promise((r) => setTimeout(r, 20));
+    expect(fetchMock).toHaveBeenCalledTimes(2); // not sent alongside the first
     slow.resolve(json({ saved: true, state: { ...serverCopy, version: 5 } }));
+    await pressed;
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(JSON.parse(fetchMock.mock.calls[2][1].body).baseVersion).toBe(5);
     await waitFor(() => expect(sync.status).toBe('saved'));
-    expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(screen.queryByRole('alert')).toBeNull();
   });
 
