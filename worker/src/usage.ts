@@ -8,6 +8,8 @@ export type UsageEnv = {
   USAGE_SHED_AT?: string;
   USAGE_FLUSH_EVERY?: string;
   USAGE_CACHE_MS?: string;
+  /** Share of the day's allowance after which analytics are refused, so they never cost anyone their sync. */
+  ANALYTICS_STOP_AT?: string;
 };
 export type UsageState = 'ok' | 'warn' | 'shed';
 export type Totals = { reads: number; writes: number; requests: number };
@@ -87,6 +89,18 @@ export const usageState = async (env: UsageEnv, db: MeteredDb): Promise<UsageSta
   } catch {
     // A broken meter must never take the app down; health reports it instead.
     return 'ok';
+  }
+};
+
+/**
+ * Whether analytics may be stored now. They stop at half of any of today's allowances (sync pauses at 90%), so
+ * analytics, which anyone can send, can never be what pauses a person's sync. A meter that cannot be read says no.
+ */
+export const analyticsAllowed = async (env: UsageEnv, db: MeteredDb): Promise<boolean> => {
+  try {
+    return (await usageRatio(env, db)) < num(env.ANALYTICS_STOP_AT, 0.5);
+  } catch {
+    return false;
   }
 };
 

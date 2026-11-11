@@ -10,15 +10,16 @@ The owner is set once, in the middleware at line 91 (`c.set('userId', userId)`, 
 
 | Method and path | Route at line | Ownership check at line | What the check is |
 |---|---|---|---|
-| `GET /api/v1/health` | 55 | none, on purpose | No person's data; booleans and the allowed origin only. |
-| `GET /api/sync/pull` | 115 | 120 | `WHERE userId = ? AND seq > ?`, owner bound at 121. |
-| `GET /api/me/export` | 131 | 133 | `WHERE userId = ? AND deleted = 0`, owner bound at 134. |
-| `DELETE /api/me` | 140 | 143 | Three deletes, each `WHERE userId = ?` (records, counters, sign-in mapping). |
-| `GET /api/:entity/:id` | 153 | 157 | `WHERE userId = ? AND entity = ? AND id = ? AND deleted = 0`. Someone else's id answers 404, the same as an id that does not exist. |
-| `PUT /api/:entity/:id` | 197 | 173 | The read (`currentRow`) is `WHERE userId = ? AND entity = ? AND id = ?`. |
-| | | 233 | The update is `WHERE userId = ? AND entity = ? AND id = ? AND version = ?`. |
-| | | 238 | The insert is keyed `(userId, entity, id)`: the same id under another person is a different row. |
-| `DELETE /api/:entity/:id` | 251 | 260 | `WHERE userId = ? AND entity = ? AND id = ? AND deleted = 0`. Deleting an id you do not own changes nothing and still answers 204. |
+| `GET /api/v1/health` | 56 | none, on purpose | No person's data; booleans and the allowed origin only. |
+| `POST /api/analytics/events` | 100 | none, on purpose | No person's data: events carry no account id and are stored without one (`analytics_events` has no owner column). Open to visitors, from the app's own address only. |
+| `GET /api/sync/pull` | 150 | 155 | `WHERE userId = ? AND seq > ?`, owner bound at 156. |
+| `GET /api/me/export` | 166 | 168 | `WHERE userId = ? AND deleted = 0`, owner bound at 169. |
+| `DELETE /api/me` | 175 | 178 | Three deletes, each `WHERE userId = ?` (records, counters, sign-in mapping). |
+| `GET /api/:entity/:id` | 188 | 192 | `WHERE userId = ? AND entity = ? AND id = ? AND deleted = 0`. Someone else's id answers 404, the same as an id that does not exist. |
+| `PUT /api/:entity/:id` | 232 | 208 | The read (`currentRow`) is `WHERE userId = ? AND entity = ? AND id = ?`. |
+| | | 268 | The update is `WHERE userId = ? AND entity = ? AND id = ? AND version = ?`. |
+| | | 273 | The insert is keyed `(userId, entity, id)`: the same id under another person is a different row. |
+| `DELETE /api/:entity/:id` | 286 | 295 | `WHERE userId = ? AND entity = ? AND id = ? AND deleted = 0`. Deleting an id you do not own changes nothing and still answers 204. |
 
 Choices worth knowing about:
 - The same record id may exist under two people. Ids are chosen by the app, so they are only unique per person; a stranger cannot collide with or overwrite yours.

@@ -2,10 +2,11 @@ import { Hono, type Context } from 'hono';
 import { authenticate, AuthError, type AuthEnv } from './auth';
 import { MeteredDb } from './db';
 import { forgetIdentities, resolveUserId } from './identity';
+import { ROWS_PER_INSERT, validateEvents, type StoredEvent } from './analytics';
 import { readJson } from './readJson';
 import { SCHEMAS, validateRecord } from './schemas';
 import { API_CSP, SECURITY_HEADERS } from './securityHeaders';
-import { recordUsage, retryAfterSeconds, usageState, type UsageEnv } from './usage';
+import { analyticsAllowed, recordUsage, retryAfterSeconds, usageState, type UsageEnv } from './usage';
 
 type Env = AuthEnv &
   UsageEnv & {
@@ -21,6 +22,7 @@ const MAX_PULL = 200;
 const ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
 const HEALTH_PATH = '/api/v1/health';
 const signupOpen = (env: Env): boolean => Boolean(env.HOLDER_NAME?.trim());
+const allowedOrigins = (env: Env): string[] => (env.CORS_ORIGINS ?? '').split(',').map((o) => o.trim()).filter(Boolean);
 
 const app = new Hono<{ Bindings: Env; Variables: Vars }>();
 
@@ -32,8 +34,7 @@ app.use('*', async (c, next) => {
   c.header('Content-Security-Policy', API_CSP);
   c.header('Cache-Control', 'no-store');
   const origin = c.req.header('Origin');
-  const allowed = (c.env.CORS_ORIGINS ?? '').split(',').map((o) => o.trim()).filter(Boolean);
-  if (origin && allowed.includes(origin)) {
+  if (origin && allowedOrigins(c.env).includes(origin)) {
     c.header('Access-Control-Allow-Origin', origin);
     c.header('Vary', 'Origin');
   }
@@ -45,7 +46,7 @@ app.use('*', async (c, next) => {
 });
 
 app.options('*', (c) => {
-  c.header('Access-Control-Allow-Methods', 'GET,PUT,DELETE,OPTIONS');
+  c.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
   c.header('Access-Control-Allow-Headers', 'Authorization,Content-Type');
   c.header('Access-Control-Max-Age', '86400');
   return c.body(null, 204);
@@ -59,6 +60,7 @@ app.get(HEALTH_PATH, async (c) => {
     // Touch the real tables, not just the binding, so a missing migration reads as not ready.
     await db.first('SELECT 1 FROM records LIMIT 1');
     await db.first('SELECT 1 FROM identities LIMIT 1');
+    await db.first('SELECT 1 FROM analytics_events LIMIT 1');
   } catch {
     databaseReady = false;
   }
@@ -86,6 +88,39 @@ app.use('/api/*', async (c, next) => {
   }
   if (state === 'warn') c.header('Gylio-Usage', 'warn');
   return next();
+});
+
+const analyticsRow = (event: StoredEvent) => [event.eventId, event.name, event.sessionId, event.signedIn ? 1 : 0, JSON.stringify(event.props), event.receivedAt];
+
+/**
+ * Analytics from the app, from visitors and signed-in people alike: the events carry no identity, so no sign-in is
+ * asked for. Only the app's own address may send them, and only while today's free allowance is mostly unused
+ * (analyticsAllowed). When refused, the app keeps the events queued and sends them later.
+ */
+app.post('/api/analytics/events', async (c) => {
+  if (!allowedOrigins(c.env).includes(c.req.header('Origin') ?? '')) {
+    return c.json({ error: { code: 'FORBIDDEN', message: 'Analytics are accepted from the app only' } }, 403);
+  }
+  const db = c.get('db');
+  if (!(await analyticsAllowed(c.env, db))) {
+    c.header('Retry-After', String(retryAfterSeconds()));
+    return c.json({ error: { code: 'ANALYTICS_PAUSED', message: 'Analytics are paused until the daily allowance resets' } }, 503);
+  }
+  const body = await readJson(c.req.raw);
+  const checked = body ? validateEvents(body, Date.now()) : { error: 'Body must be a JSON object under 64 KB' };
+  if ('error' in checked) return c.json({ error: { code: 'VALIDATION_ERROR', message: checked.error } }, 400);
+  const statements: D1PreparedStatement[] = [];
+  for (let start = 0; start < checked.events.length; start += ROWS_PER_INSERT) {
+    const chunk = checked.events.slice(start, start + ROWS_PER_INSERT);
+    statements.push(
+      db.prepare(
+        `INSERT OR IGNORE INTO analytics_events (eventId, name, sessionId, signedIn, props, receivedAt) VALUES ${chunk.map(() => '(?, ?, ?, ?, ?, ?)').join(', ')}`,
+        ...chunk.flatMap(analyticsRow),
+      ),
+    );
+  }
+  if (statements.length) await db.batch(statements);
+  return c.json({ accepted: checked.events.length }, 202);
 });
 
 app.use('/api/*', async (c, next) => {
