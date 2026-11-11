@@ -10,6 +10,8 @@ const saveFor = (identity: number) => {
   return saves.get(identity);
 };
 vi.mock('../hooks/useDB', () => ({ default: () => ({ appendTaskTimeLog: saveFor(db.identity) }) }));
+const reward = vi.hoisted(() => vi.fn(async () => undefined));
+vi.mock('../hooks/useRewards', () => ({ default: () => ({ applyRewardsProgress: reward }) }));
 
 import { MACHINE_KEY, SAVE_RETRY_MS, TaskTimerProvider, useTaskTimer } from './TaskTimerContext';
 
@@ -23,7 +25,8 @@ const strictWrapper = ({ children }: { children: React.ReactNode }) => (
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ['setTimeout', 'setInterval', 'clearTimeout', 'clearInterval', 'Date'] });
   vi.setSystemTime(Date.UTC(2026, 10, 11, 9, 0, 0));
-  db.appendTaskTimeLog.mockReset().mockResolvedValue(undefined);
+  db.appendTaskTimeLog.mockReset().mockResolvedValue(true);
+  reward.mockClear();
   localStorage.clear();
 });
 afterEach(() => vi.useRealTimers());
@@ -58,11 +61,29 @@ describe('saving what the timer logs', () => {
     expect(db.appendTaskTimeLog).toHaveBeenCalledTimes(1);
     expect(db.appendTaskTimeLog).toHaveBeenCalledWith(7, expect.objectContaining({ type: 'focus', completed: true, actualSeconds: 60 }));
     expect(result.current.version).toBe(1);
+    expect(reward).toHaveBeenCalledTimes(1);
+    expect(reward).toHaveBeenCalledWith({ points: 10, focusCompleted: true });
+  });
+
+  it('a block another tab already saved is not paid again, and a stopped block earns nothing', async () => {
+    db.appendTaskTimeLog.mockResolvedValue(false);
+    const { result } = renderHook(() => useTaskTimer(), { wrapper });
+    act(() => result.current.startTask(7, 1));
+    act(() => { vi.advanceTimersByTime(61_000); });
+    await flush();
+    expect(reward).not.toHaveBeenCalled();
+    db.appendTaskTimeLog.mockResolvedValue(true);
+    act(() => result.current.startTask(8));
+    act(() => { vi.advanceTimersByTime(60_000); });
+    act(() => result.current.stopTimer());
+    await flush();
+    expect(db.appendTaskTimeLog).toHaveBeenLastCalledWith(8, expect.objectContaining({ completed: false }));
+    expect(reward).not.toHaveBeenCalled();
   });
 
   it('a save still on its way is not started again when the database opens meanwhile', async () => {
     let finish = () => undefined as void;
-    db.appendTaskTimeLog.mockReturnValueOnce(new Promise<void>((resolve) => { finish = resolve; }));
+    db.appendTaskTimeLog.mockReturnValueOnce(new Promise<boolean>((resolve) => { finish = () => resolve(true); }));
     const { result, rerender } = renderHook(() => useTaskTimer(), { wrapper });
     act(() => result.current.startTask(7));
     act(() => { vi.advanceTimersByTime(60_000); });

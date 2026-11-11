@@ -1622,18 +1622,21 @@ const useDB = () => {
 
   const appendTaskTimeLog = useCallback(
     (taskId: number, entry: TimeLogEntry) =>
-      runTransaction<void>((tx, resolve, reject) => {
+      runTransaction<boolean>((tx, resolve, reject) => {
         tx.executeSql(
           statements.selectTaskById,
           [taskId],
           (_, result) => {
-            if (!result.rows.length) { resolve(); return true; }
+            if (!result.rows.length) { resolve(false); return true; }
             const current = mapTask(result.rows.item(0));
-            const newLog = JSON.stringify(withEntryOnce(current.timeLog, entry));
+            const next = withEntryOnce(current.timeLog, entry);
+            // Already there (another tab, or a retry whose answer was lost): nothing to write.
+            if (next === current.timeLog) { resolve(false); return true; }
+            const newLog = JSON.stringify(next);
             tx.executeSql(
               statements.updateTaskWithTimeLog,
               [newLog, new Date().toISOString(), taskId],
-              () => { resolve(); return true; },
+              () => { resolve(true); return true; },
               (_, error) => { reject(error); return false; }
             );
             return true;

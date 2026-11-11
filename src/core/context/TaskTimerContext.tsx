@@ -1,6 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import useDB from '../hooks/useDB';
+import useRewards from '../hooks/useRewards';
 import {
   DEFAULT_TIMER_SETTINGS,
   restoreMachine,
@@ -37,6 +38,8 @@ export interface TaskTimerContextValue {
 const SETTINGS_KEY = 'gylio_timer_settings';
 /** The running timer and stretches not saved yet; this device only (accountSync DEVICE_ONLY). */
 export const MACHINE_KEY = 'gylio:focusTimer:v1';
+/** As before the timer was rebuilt (useTasks' old focus block): points and the daily focus streak per full block. */
+export const FOCUS_COMPLETION_POINTS = 10;
 /** A save that failed (the database was still opening, or busy) is tried again after this long. */
 export const SAVE_RETRY_MS = 5_000;
 
@@ -64,13 +67,14 @@ function saveSettings(s: TimerSettings): void {
   try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); } catch { /* ignore */ }
 }
 
-type SaveEntry = (taskId: number, entry: TimeLogEntry) => Promise<unknown>;
+/** Resolves true when the entry was added, false when that task is gone or already had it. */
+type SaveEntry = (taskId: number, entry: TimeLogEntry) => Promise<boolean>;
 
 /**
  * Saves logged stretches one at a time, oldest first, whichever screen is open. An entry leaves the queue only once
  * it is saved; a failed save stays and is tried again, so a stretch is never dropped and never saved twice.
  */
-export function usePersistTimerLog(log: PendingEntry[], save: SaveEntry, onSaved: (entry: PendingEntry) => void) {
+export function usePersistTimerLog(log: PendingEntry[], save: SaveEntry, onSaved: (entry: PendingEntry, added: boolean) => void) {
   const inFlight = useRef<PendingEntry | null>(null);
   const [retry, setRetry] = useState(0);
   const head = log[0] ?? null;
@@ -80,9 +84,9 @@ export function usePersistTimerLog(log: PendingEntry[], save: SaveEntry, onSaved
     const { taskId, ...entry } = head;
     let timer: ReturnType<typeof setTimeout> | null = null;
     save(taskId, entry).then(
-      () => {
+      (added) => {
         inFlight.current = null;
-        onSaved(head);
+        onSaved(head, added);
       },
       (error) => {
         console.error('Failed to save time log; trying again shortly', error);
@@ -108,6 +112,9 @@ export function TaskTimerProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<TimerSettings>(loadSettings);
   const [version, setVersion] = useState(0);
   const { appendTaskTimeLog } = useDB();
+  const { applyRewardsProgress } = useRewards();
+  const rewardRef = useRef(applyRewardsProgress);
+  rewardRef.current = applyRewardsProgress;
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
   const running = machine.timer?.status === 'running';
@@ -139,9 +146,12 @@ export function TaskTimerProvider({ children }: { children: ReactNode }) {
     };
   }, [running]);
 
-  const onSaved = useCallback((entry: PendingEntry) => {
+  const onSaved = useCallback((entry: PendingEntry, added: boolean) => {
     dispatch({ type: 'logged', entry });
+    if (!added) return;
     setVersion((v) => v + 1);
+    // Only the tab whose save added the block pays for it, so two open tabs do not pay twice.
+    if (entry.type === 'focus' && entry.completed) void rewardRef.current({ points: FOCUS_COMPLETION_POINTS, focusCompleted: true });
   }, []);
   usePersistTimerLog(machine.log, appendTaskTimeLog, onSaved);
 

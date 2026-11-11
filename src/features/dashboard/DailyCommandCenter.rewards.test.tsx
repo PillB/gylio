@@ -62,6 +62,7 @@ vi.mock('react-i18next', () => ({
 
 beforeEach(() => {
   db.reset();
+  localStorage.clear(); // which completions already earned points (core/utils/rewardLedger)
   vi.mocked(track).mockClear();
 });
 afterEach(cleanup);
