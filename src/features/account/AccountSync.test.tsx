@@ -11,11 +11,12 @@ import { ready as languageReady } from '../../i18n/i18n.js';
 beforeAll(() => languageReady);
 import i18n from 'i18next';
 
-vi.mock('../../core/context/AuthContext', () => ({ useAppAuth: () => ({ userId: 'user_1' }) }));
+const auth = vi.hoisted(() => ({ userId: 'user_1' as string | null }));
+vi.mock('../../core/context/AuthContext', () => ({ useAppAuth: () => ({ userId: auth.userId }) }));
 vi.mock('../../core/utils/authToken', () => ({ authHeaders: async (extra?: Record<string, string>) => ({ ...(extra ?? {}) }) }));
 
 import { ThemeProvider } from '../../core/context/ThemeContext';
-import { AccountSyncProvider } from './AccountSyncContext';
+import { AccountSyncProvider, useAccountSync } from './AccountSyncContext';
 import SyncConflictBanner from './SyncConflictBanner';
 import { META_KEY } from './accountSync';
 
@@ -26,6 +27,7 @@ let reload: ReturnType<typeof vi.fn>;
 
 beforeEach(async () => {
   localStorage.clear();
+  auth.userId = 'user_1';
   await i18n.changeLanguage('en');
   reload = vi.fn();
   Object.defineProperty(window, 'location', { value: { ...window.location, reload }, writable: true });
@@ -127,5 +129,68 @@ describe('review fixes: saving', () => {
     await waitFor(() => expect(JSON.parse(localStorage.getItem('gylio:preRestoreBackup') as string)[0]).toMatchObject({
       ownerId: 'user_1', data: serverCopy.data,
     }));
+  });
+});
+
+let sync: ReturnType<typeof useAccountSync>;
+const Probe = () => {
+  sync = useAccountSync();
+  return null;
+};
+const renderProbe = () => render(<ThemeProvider><AccountSyncProvider><Probe /><SyncConflictBanner /></AccountSyncProvider></ThemeProvider>);
+const deferred = () => {
+  let resolve: (value: Response) => void = () => undefined;
+  const promise = new Promise<Response>((r) => { resolve = r; });
+  return { promise, resolve };
+};
+const inSync = () => localStorage.setItem(META_KEY, JSON.stringify({ userId: 'user_1', version: 4, hash: 'old', savedAt: 't' }));
+
+describe('state collisions in saving', () => {
+  it('"Save now" pressed while a background save is on its way does not send a second copy that conflicts with the first', async () => {
+    localStorage.setItem('gylio_sqlite', ON_DEVICE);
+    inSync();
+    const slow = deferred();
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(json({ state: serverCopy })) // first sync: same version, so 'push'
+      .mockReturnValueOnce(slow.promise)
+      .mockResolvedValue(json({ saved: false, state: { ...serverCopy, version: 5 } }));
+    vi.stubGlobal('fetch', fetchMock);
+    renderProbe();
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    await sync.saveNow();
+    slow.resolve(json({ saved: true, state: { ...serverCopy, version: 5 } }));
+    await waitFor(() => expect(sync.status).toBe('saved'));
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it('when the account copy is gone from the server, the device copy is sent again as a new one instead of a conflict with nothing', async () => {
+    localStorage.setItem('gylio_sqlite', ON_DEVICE);
+    inSync();
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(json({ state: null }))
+      .mockResolvedValueOnce(json({ saved: false, state: null }, 409))
+      .mockResolvedValueOnce(json({ saved: true, state: { version: 1, updatedAt: 't2', data: {} } }));
+    vi.stubGlobal('fetch', fetchMock);
+    renderProbe();
+    await waitFor(() => expect(sync.status).toBe('saved'));
+    expect(JSON.parse(fetchMock.mock.calls[2][1].body).baseVersion).toBe(0);
+    expect(JSON.parse(localStorage.getItem(META_KEY) as string)).toMatchObject({ version: 1 });
+  });
+
+  it('an answer that arrives after sign-out does not bring back a saving state or touch this device', async () => {
+    localStorage.setItem('gylio_sqlite', ON_DEVICE);
+    const slow = deferred();
+    vi.stubGlobal('fetch', vi.fn().mockReturnValueOnce(slow.promise));
+    const view = renderProbe();
+    await waitFor(() => expect(sync.status).toBe('checking'));
+    auth.userId = null;
+    view.rerender(<ThemeProvider><AccountSyncProvider><Probe /><SyncConflictBanner /></AccountSyncProvider></ThemeProvider>);
+    await waitFor(() => expect(sync.status).toBe('off'));
+    slow.resolve(json({ state: serverCopy }));
+    await new Promise((r) => setTimeout(r, 30));
+    expect(sync.status).toBe('off');
+    expect(reload).not.toHaveBeenCalled();
+    expect(localStorage.getItem('gylio_sqlite')).toBe(ON_DEVICE);
   });
 });
