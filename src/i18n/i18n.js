@@ -1,7 +1,8 @@
 import i18n from 'i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import { initReactI18next } from 'react-i18next';
-import { catalogFor, loadCatalog } from './catalogs.js';
+import { loadCatalog } from './catalogs.js';
+import { detection, fallbackLng, supportedLngs } from './detection.js';
 
 /**
  * Production localization configuration.
@@ -19,10 +20,6 @@ import { catalogFor, loadCatalog } from './catalogs.js';
  * Each language's text is its own file, fetched when the language is first used (catalogs.js); this module holds
  * no text, so it can start before any of it has arrived. `ready` says when the first language is in.
  */
-
-// The languages text is stored under. A regional variant the app has no text of its own for (`en-US`, `es-MX`)
-// stores nothing and reads its base language, so `resolvedLanguage` is always one of these three.
-const supportedLngs = ['en', 'es', 'es-PE'];
 
 /** i18next asks this for a language's text: at start-up for the detected language, later when another is chosen. */
 const catalogBackend = {
@@ -57,17 +54,9 @@ i18n
   .use(initReactI18next);
 
 const initialization = i18n.init({
-  detection: {
-    // Explicit user choice wins; browser locale is only the first-visit default.
-    order: ['localStorage', 'navigator', 'htmlTag'],
-    caches: ['localStorage'],
-    lookupLocalStorage: 'gylio_lang',
-  },
-
-  // English is the fallback for a language the app does not have. Spanish has none: every key exists in both
-  // languages (scripts/check-i18n.mjs fails the build otherwise), so a fallback would only make every Spanish
-  // visit download the English text as well.
-  fallbackLng: (code) => (catalogFor(code) === 'en' ? ['en'] : []),
+  // Explicit user choice wins; browser locale is only the first-visit default (detection.js).
+  detection,
+  fallbackLng,
   supportedLngs,
   nonExplicitSupportedLngs: true,
 
