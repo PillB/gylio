@@ -74,6 +74,17 @@ describe('TimeTrackerProvider', () => {
     expect(tracker.elapsed).toBe(6 * 60);
   });
 
+  it('starting the focus timer while the tracker runs saves the tracked stretch and stops it, so no minute counts twice', async () => {
+    const view = mount();
+    await act(async () => tracker.start(task(1)));
+    await advance(10 * 60_000);
+    pomodoro.running = true;
+    view.rerender(<TimeTrackerProvider><Probe /></TimeTrackerProvider>);
+    await advance(0);
+    expect(tracker.run).toBeNull();
+    expect(store.logs[1]).toEqual([expect.objectContaining({ type: 'tracked', actualSeconds: 600 })]);
+  });
+
   it('switches tasks in one step: the current one is saved, the new one starts', async () => {
     mount();
     await act(async () => tracker.start(task(1)));

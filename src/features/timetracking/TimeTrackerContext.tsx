@@ -193,6 +193,13 @@ export const TimeTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   }, []);
 
+  // The focus timer and the tracker never count the same minutes twice: starting the tracker stops the focus timer
+  // (begin, below), and starting the focus timer while the tracker runs saves the tracked stretch and stops it.
+  const pomodoroOn = Boolean(activeTimer);
+  useEffect(() => {
+    if (pomodoroOn && runRef.current) void finish(new Date().toISOString());
+  }, [pomodoroOn, finish]);
+
   const begin = useCallback((task: { id: number; title: string; estimateMin: number | null }) => {
     const iso = new Date().toISOString();
     if (pomodoroRef.current.running) pomodoroRef.current.stop();
