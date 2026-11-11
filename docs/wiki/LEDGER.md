@@ -162,3 +162,11 @@ Trade-offs stated: loss carry-forward is unlimited inside the 36-month horizon (
 - **Verification:** failed 36 > 30 at 23:21 UTC before the change; 14/14 pass after; tsc clean
 - **Status:** done
 - **Preemption:** tests that drive a device with a fake clock against the real Worker must pin the Worker's `Date` too, or they depend on the time of day they run.
+
+### STEP-SM-001 · 2026-11-11 · Round SM-1 (implicit state machines)
+- **Action:** Inventoried 14 implicit state machines (docs/state-machines.md), diagrammed them, and fixed SM-1 … SM-9: sync engine offline/pause collision; focus timer rebuilt as a pure reducer with a wall-clock deadline, a save queue, reload and cross-tab persistence, idempotent log append; tracker/timer mutual exclusion; account save lock, stale-answer guard, re-upload when the account copy is gone; rewards paid once per task/step and for full focus blocks; Daily Mode completes by intent; timer a11y (role=timer) and plural labels.
+- **Artifacts:** src/core/sync/engine.ts; src/core/context/timerMachine.ts (new), TaskTimerContext.tsx; src/core/hooks/useDB.ts; src/core/utils/rewardLedger.ts (new); src/features/account/AccountSyncContext.tsx, accountSync.ts; src/features/tasks/*; src/features/timetracking/TimeTrackerContext.tsx; src/features/dashboard/DailyCommandCenter.tsx; i18n; tests beside each.
+- **Verification:** each fix's test failed before the change (mutation-checked for the timer save guard, session count and tracker stop); full vitest, lint, lint:complexity (new files added to the ceiling), typecheck, i18n; Playwright with a frozen clock: block survives reload, ends on time, break starts at the deadline, tracker and timer stop each other, focus streak counts, no console errors.
+- **Status:** done
+- **Wiki ref:** SM-1 … SM-9
+
