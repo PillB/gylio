@@ -11,11 +11,12 @@ import { ready as languageReady } from '../../i18n/i18n.js';
 beforeAll(() => languageReady);
 import i18n from 'i18next';
 
-vi.mock('../../core/context/AuthContext', () => ({ useAppAuth: () => ({ userId: 'user_1' }) }));
+const auth = vi.hoisted(() => ({ userId: 'user_1' as string | null }));
+vi.mock('../../core/context/AuthContext', () => ({ useAppAuth: () => ({ userId: auth.userId }) }));
 vi.mock('../../core/utils/authToken', () => ({ authHeaders: async (extra?: Record<string, string>) => ({ ...(extra ?? {}) }) }));
 
 import { ThemeProvider } from '../../core/context/ThemeContext';
-import { AccountSyncProvider } from './AccountSyncContext';
+import { AccountSyncProvider, useAccountSync } from './AccountSyncContext';
 import SyncConflictBanner from './SyncConflictBanner';
 import { META_KEY } from './accountSync';
 
@@ -26,6 +27,7 @@ let reload: ReturnType<typeof vi.fn>;
 
 beforeEach(async () => {
   localStorage.clear();
+  auth.userId = 'user_1';
   await i18n.changeLanguage('en');
   reload = vi.fn();
   Object.defineProperty(window, 'location', { value: { ...window.location, reload }, writable: true });
@@ -127,5 +129,166 @@ describe('review fixes: saving', () => {
     await waitFor(() => expect(JSON.parse(localStorage.getItem('gylio:preRestoreBackup') as string)[0]).toMatchObject({
       ownerId: 'user_1', data: serverCopy.data,
     }));
+  });
+});
+
+let sync: ReturnType<typeof useAccountSync>;
+const Probe = () => {
+  sync = useAccountSync();
+  return null;
+};
+const renderProbe = () => render(<ThemeProvider><AccountSyncProvider><Probe /><SyncConflictBanner /></AccountSyncProvider></ThemeProvider>);
+const deferred = () => {
+  let resolve: (value: Response) => void = () => undefined;
+  const promise = new Promise<Response>((r) => { resolve = r; });
+  return { promise, resolve };
+};
+const inSync = () => localStorage.setItem(META_KEY, JSON.stringify({ userId: 'user_1', version: 4, hash: 'old', savedAt: 't' }));
+
+describe('state collisions in saving', () => {
+  it("a focus timer running on this device is dropped when the account copy replaces this device's tasks", async () => {
+    localStorage.setItem('gylio:focusTimer:v1', '{"timer":null,"log":[{"taskId":12}]}');
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(json({ state: serverCopy })));
+    renderSync();
+    await waitFor(() => expect(reload).toHaveBeenCalled());
+    expect(localStorage.getItem('gylio:focusTimer:v1')).toBeNull();
+  });
+
+  it('a request that never answers is given up after 20 seconds, so it cannot hold saving up for ever', async () => {
+    const timeoutSpy = vi.spyOn(AbortSignal, 'timeout');
+    const signals: Array<AbortSignal | undefined> = [];
+    vi.stubGlobal('fetch', vi.fn((_url: string, init?: RequestInit) => { signals.push(init?.signal ?? undefined); return new Promise(() => undefined); }));
+    renderProbe();
+    await waitFor(() => expect(signals).toHaveLength(1));
+    expect(timeoutSpy).toHaveBeenCalledWith(20_000);
+    expect(signals[0]).toBe(timeoutSpy.mock.results[0].value);
+    timeoutSpy.mockRestore();
+  });
+
+  it('after a save that took the lock, the next background save still goes out', async () => {
+    localStorage.setItem('gylio_sqlite', ON_DEVICE);
+    inSync();
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(json({ state: serverCopy }))
+      .mockResolvedValueOnce(json({ saved: true, state: { ...serverCopy, version: 5 } }))
+      .mockResolvedValueOnce(json({ saved: true, state: { ...serverCopy, version: 6 } }));
+    vi.stubGlobal('fetch', fetchMock);
+    renderProbe();
+    await waitFor(() => expect(sync.status).toBe('saved'));
+    localStorage.setItem('gylio_sqlite', '{"tasks":{"rows":[{"id":1,"title":"changed"}],"nextId":2}}');
+    Object.defineProperty(document, 'visibilityState', { value: 'hidden', configurable: true });
+    try {
+      document.dispatchEvent(new Event('visibilitychange'));
+      await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(3));
+      expect(JSON.parse(fetchMock.mock.calls[2][1].body).baseVersion).toBe(5);
+    } finally {
+      Object.defineProperty(document, 'visibilityState', { value: 'visible', configurable: true });
+    }
+  });
+
+  it('a save answered after sign-out does not mark this device as saved for that account', async () => {
+    localStorage.setItem('gylio_sqlite', ON_DEVICE);
+    inSync();
+    const slow = deferred();
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(json({ state: serverCopy })).mockReturnValueOnce(slow.promise));
+    const view = renderProbe();
+    await waitFor(() => expect(sync.status).toBe('saving'));
+    auth.userId = null;
+    view.rerender(<ThemeProvider><AccountSyncProvider><Probe /><SyncConflictBanner /></AccountSyncProvider></ThemeProvider>);
+    slow.resolve(json({ saved: true, state: { ...serverCopy, version: 5 } }));
+    await new Promise((r) => setTimeout(r, 30));
+    expect(sync.status).toBe('off');
+    expect(JSON.parse(localStorage.getItem(META_KEY) as string)).toMatchObject({ version: 4 });
+  });
+
+  it('signing out closes a choice that was waiting, so the next person is not asked about it', async () => {
+    localStorage.setItem('gylio_sqlite', ON_DEVICE);
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(json({ state: serverCopy })));
+    const view = renderProbe();
+    await waitFor(() => expect(sync.status).toBe('conflict'));
+    auth.userId = null;
+    view.rerender(<ThemeProvider><AccountSyncProvider><Probe /><SyncConflictBanner /></AccountSyncProvider></ThemeProvider>);
+    await waitFor(() => expect(sync.status).toBe('off'));
+    expect(sync.conflict).toBeNull();
+  });
+
+  it('starting fresh for a new account also drops a focus timer pointing at the previous data', async () => {
+    localStorage.setItem('gylio_sqlite', ON_DEVICE);
+    localStorage.setItem(META_KEY, JSON.stringify({ userId: 'someone_else', version: 2, hash: 'x', savedAt: 't' }));
+    localStorage.setItem('gylio:focusTimer:v1', '{"timer":null,"log":[{"taskId":12}]}');
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(json({ state: null })));
+    renderSync();
+    await waitFor(() => expect(reload).toHaveBeenCalled());
+    expect(localStorage.getItem('gylio:focusTimer:v1')).toBeNull();
+  });
+
+  it('a "Save now" still waiting its turn when the person signs out is never sent', async () => {
+    localStorage.setItem('gylio_sqlite', ON_DEVICE);
+    inSync();
+    const slow = deferred();
+    const fetchMock = vi.fn().mockResolvedValueOnce(json({ state: serverCopy })).mockReturnValueOnce(slow.promise)
+      .mockResolvedValue(json({ saved: true, state: { ...serverCopy, version: 6 } }));
+    vi.stubGlobal('fetch', fetchMock);
+    const view = renderProbe();
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    const pressed = sync.saveNow();
+    auth.userId = null;
+    view.rerender(<ThemeProvider><AccountSyncProvider><Probe /><SyncConflictBanner /></AccountSyncProvider></ThemeProvider>);
+    slow.resolve(json({ saved: true, state: { ...serverCopy, version: 5 } }));
+    await pressed;
+    await new Promise((r) => setTimeout(r, 30));
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('"Save now" pressed while another save is on its way waits for it, then saves on top of it: no conflict with itself', async () => {
+    localStorage.setItem('gylio_sqlite', ON_DEVICE);
+    inSync();
+    const slow = deferred();
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(json({ state: serverCopy })) // first sync: same version, so 'push'
+      .mockReturnValueOnce(slow.promise)
+      .mockResolvedValue(json({ saved: true, state: { ...serverCopy, version: 6 } }));
+    vi.stubGlobal('fetch', fetchMock);
+    renderProbe();
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    const pressed = sync.saveNow();
+    await new Promise((r) => setTimeout(r, 20));
+    expect(fetchMock).toHaveBeenCalledTimes(2); // not sent alongside the first
+    slow.resolve(json({ saved: true, state: { ...serverCopy, version: 5 } }));
+    await pressed;
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(JSON.parse(fetchMock.mock.calls[2][1].body).baseVersion).toBe(5);
+    await waitFor(() => expect(sync.status).toBe('saved'));
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it('when the account copy is gone from the server, the device copy is sent again as a new one instead of a conflict with nothing', async () => {
+    localStorage.setItem('gylio_sqlite', ON_DEVICE);
+    inSync();
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(json({ state: null }))
+      .mockResolvedValueOnce(json({ saved: false, state: null }, 409))
+      .mockResolvedValueOnce(json({ saved: true, state: { version: 1, updatedAt: 't2', data: {} } }));
+    vi.stubGlobal('fetch', fetchMock);
+    renderProbe();
+    await waitFor(() => expect(sync.status).toBe('saved'));
+    expect(JSON.parse(fetchMock.mock.calls[2][1].body).baseVersion).toBe(0);
+    expect(JSON.parse(localStorage.getItem(META_KEY) as string)).toMatchObject({ version: 1 });
+  });
+
+  it('an answer that arrives after sign-out does not bring back a saving state or touch this device', async () => {
+    localStorage.setItem('gylio_sqlite', ON_DEVICE);
+    const slow = deferred();
+    vi.stubGlobal('fetch', vi.fn().mockReturnValueOnce(slow.promise));
+    const view = renderProbe();
+    await waitFor(() => expect(sync.status).toBe('checking'));
+    auth.userId = null;
+    view.rerender(<ThemeProvider><AccountSyncProvider><Probe /><SyncConflictBanner /></AccountSyncProvider></ThemeProvider>);
+    await waitFor(() => expect(sync.status).toBe('off'));
+    slow.resolve(json({ state: serverCopy }));
+    await new Promise((r) => setTimeout(r, 30));
+    expect(sync.status).toBe('off');
+    expect(reload).not.toHaveBeenCalled();
+    expect(localStorage.getItem('gylio_sqlite')).toBe(ON_DEVICE);
   });
 });

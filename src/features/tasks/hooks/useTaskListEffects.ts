@@ -1,5 +1,4 @@
 import { useEffect, type RefObject } from 'react';
-import type { PendingEntry, TimeLogEntry } from '../../../core/context/TaskTimerContext';
 import { scrollBehavior } from '../../../core/accessibility/motion';
 
 const isTypingTarget = (target: EventTarget | null): boolean => {
@@ -22,33 +21,4 @@ export const useNewTaskShortcut = (titleRef: RefObject<HTMLInputElement>) => {
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [titleRef]);
-};
-
-type PendingLogOptions = {
-  pendingLogEntry: PendingEntry | null;
-  appendTaskTimeLog: (taskId: number, entry: TimeLogEntry) => Promise<unknown>;
-  refreshTasks: () => Promise<void> | void;
-  clearPendingEntry: () => void;
-};
-
-/** Saves a finished timer session to its task, then refreshes the list. */
-export const usePersistPendingTimeLog = ({
-  pendingLogEntry,
-  appendTaskTimeLog,
-  refreshTasks,
-  clearPendingEntry,
-}: PendingLogOptions) => {
-  useEffect(() => {
-    if (!pendingLogEntry) return;
-    const { taskId, ...entry } = pendingLogEntry;
-    appendTaskTimeLog(taskId, entry)
-      .then(() => {
-        refreshTasks();
-        clearPendingEntry();
-      })
-      .catch((error) => {
-        console.error('Failed to save time log', error);
-        clearPendingEntry();
-      });
-  }, [appendTaskTimeLog, clearPendingEntry, pendingLogEntry, refreshTasks]);
 };

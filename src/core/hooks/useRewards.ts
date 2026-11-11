@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import useDB from './useDB';
-import useGamification from './useGamification';
+import { readGamificationEnabled } from './useGamification';
 import { calculateLevel, formatDateKey, formatWeekKey, getNextStreakState } from '../utils/rewards';
 
 const DAILY_STREAK_MILESTONE = 7;
@@ -15,7 +15,6 @@ type ApplyRewardsOptions = {
 
 const useRewards = () => {
   const { getRewardsProgress, updateRewardsProgress } = useDB();
-  const { gamificationEnabled } = useGamification();
 
   const applyRewardsProgress = useCallback(
     async ({
@@ -24,7 +23,7 @@ const useRewards = () => {
       taskCompleted = false,
       budgetReviewed = false,
     }: ApplyRewardsOptions) => {
-      if (!gamificationEnabled) return;
+      if (!(await readGamificationEnabled())) return;
 
       try {
         const current = await getRewardsProgress();
@@ -104,10 +103,10 @@ const useRewards = () => {
         console.warn('Failed to update rewards progress', error);
       }
     },
-    [gamificationEnabled, getRewardsProgress, updateRewardsProgress]
+    [getRewardsProgress, updateRewardsProgress]
   );
 
-  return { applyRewardsProgress } as const;
+  return { applyRewardsProgress, rewardsOn: readGamificationEnabled } as const;
 };
 
 export default useRewards;

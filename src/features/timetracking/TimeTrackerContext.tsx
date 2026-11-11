@@ -138,6 +138,10 @@ const useTabTitle = (run: ActiveRun | null, elapsed: number) => {
   }, [run, elapsed]);
 };
 
+/** Where a run kept alongside a focus timer stops: when the timer was started, or at the run's own start if earlier. */
+export const overlapEnd = (run: { startedAt: string }, timerSince: string | null): string =>
+  timerSince && Date.parse(timerSince) > Date.parse(run.startedAt) ? timerSince : run.startedAt;
+
 export const TimeTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const db = useDB();
   const { activeTimer, stopTimer } = useTaskTimer();
@@ -182,7 +186,9 @@ export const TimeTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ c
     const entry = closeRun(current, endIso);
     if (entry.actualSeconds < MIN_KEEP_SECONDS) return;
     try {
-      await dbRef.current.appendTaskTimeLog(current.taskId, entry);
+      const added = await dbRef.current.appendTaskTimeLog(current.taskId, entry);
+      // Another tab already saved this run (same start): nothing new to show, undo or count.
+      if (added === false) return;
       setStopped({ taskId: current.taskId, title: current.title, entry });
       setVersion((v) => v + 1);
       track('time_tracker_stopped', { minutes: Math.round(entry.actualSeconds / 60) });
@@ -192,6 +198,25 @@ export const TimeTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ c
       setRun(current);
     }
   }, []);
+
+  // The focus timer and the tracker never count the same minutes twice: starting the tracker stops the focus timer
+  // (begin, below), and starting the focus timer while the tracker runs saves the tracked stretch and stops it.
+  // Only a change counts: the focus timer starting now ends the run now. If the page opens with both already kept
+  // (they overlapped while no page of this tab watched), the run ends when the focus timer's phase began, so the
+  // overlap is not counted twice (the timer's start, not its current phase: a later phase would leave the first block
+  // counted in both).
+  const pomodoroOn = Boolean(activeTimer);
+  const pomodoroSince = activeTimer ? activeTimer.runStartedAt ?? activeTimer.phaseStartedAt : null;
+  const pomodoroWasOn = useRef<boolean | null>(null);
+  useEffect(() => {
+    const before = pomodoroWasOn.current;
+    pomodoroWasOn.current = pomodoroOn;
+    const current = runRef.current;
+    if (!pomodoroOn || before === true || !current) return;
+    void finish(before === null ? overlapEnd(current, pomodoroSince) : new Date().toISOString());
+    // pomodoroSince is read only at that change, not followed.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pomodoroOn, finish]);
 
   const begin = useCallback((task: { id: number; title: string; estimateMin: number | null }) => {
     const iso = new Date().toISOString();
@@ -238,11 +263,12 @@ export const TimeTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ c
     setRun((prev) => (prev ? { ...prev, snoozeUntil: snoozeUntil(Date.now(), prev.estimateMin) } : prev));
   }, []);
 
+  // One start is one stretch (useDB withEntryOnce), so undo finds it by its start whichever tab saved its end.
   const undoStop = useCallback(async () => {
     const last = stopped;
     if (!last) return;
     setStopped(null);
-    await changeLog(last.taskId, (log) => log.filter((e) => !(e.type === 'tracked' && e.startedAt === last.entry.startedAt && e.endedAt === last.entry.endedAt)));
+    await changeLog(last.taskId, (log) => log.filter((e) => !(e.type === 'tracked' && e.startedAt === last.entry.startedAt)));
   }, [changeLog, stopped]);
 
   const setStoppedMinutes = useCallback(

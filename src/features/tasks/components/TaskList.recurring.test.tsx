@@ -51,8 +51,7 @@ const i18nApi = {
 const toastApi = { showToast: vi.fn(), success: vi.fn(), error: vi.fn(), info: vi.fn() };
 const timerApi = {
   activeTimer: null,
-  pendingLogEntry: null,
-  clearPendingEntry: vi.fn(),
+  version: 0,
   startTask: vi.fn(),
   settings: DEFAULT_TIMER_SETTINGS,
 };

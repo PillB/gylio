@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import useDB, { type Subtask, type Task } from '../../../core/hooks/useDB';
 import useAccessibility from '../../../core/hooks/useAccessibility';
 import useRewards from '../../../core/hooks/useRewards';
 import { useOnDataChanged } from '../../../core/hooks/useOnDataChanged';
+import { claimReward, stepRewardKey, taskRewardKey } from '../../../core/utils/rewardLedger';
 
 export type ChecklistTask = Task & {
   steps: string[];
@@ -11,13 +12,17 @@ export type ChecklistTask = Task & {
   totalSteps: number;
 };
 
-type NotificationsModule = typeof import('expo-notifications');
+export type TaskStatus = 'pending' | 'completed';
 
 type UseTasksResult = {
   tasks: ChecklistTask[];
   loading: boolean;
-  /** Resolves true once the new status is stored; false when the task is not loaded yet or the save failed. */
-  toggleTaskStatus: (taskId: number) => Promise<boolean>;
+  /**
+   * Resolves true once the new status is stored; false when the save failed. With `to`, that status is written
+   * whatever this list last loaded (a screen with its own fresher copy says what it wants instead of flipping a
+   * possibly stale one); without it, the loaded status is flipped.
+   */
+  toggleTaskStatus: (taskId: number, to?: TaskStatus) => Promise<boolean>;
   toggleSubtask: (taskId: number, subtaskIndex: number) => Promise<void>;
   refreshTasks: () => Promise<void>;
   addTask: (options: {
@@ -32,14 +37,16 @@ type UseTasksResult = {
   }) => Promise<Task | null>;
   updateTaskDetails: (taskId: number, updates: Partial<Omit<Task, 'id'>>) => Promise<Task | null>;
   removeTask: (taskId: number) => Promise<boolean>;
-  startPomodoro: (options: { durationMinutes: number; taskId?: number }) => Promise<void>;
 };
 
 const MIN_DURATION = 1;
 const DEFAULT_DURATION = 25;
 const TASK_COMPLETION_POINTS = 10;
 const SUBTASK_COMPLETION_POINTS = 5;
-const FOCUS_COMPLETION_POINTS = 10;
+
+const STATUS_LABEL: Record<TaskStatus, string> = { completed: 'tasks.completedLabel', pending: 'tasks.reopenedLabel' };
+
+const flip = (status: string | undefined): TaskStatus => (status === 'completed' ? 'pending' : 'completed');
 
 const parseSteps = (task: Task): string[] => task.subtasks.map((subtask) => subtask.label).filter(Boolean);
 
@@ -47,12 +54,11 @@ const useTasks = (): UseTasksResult => {
   const { t } = useTranslation();
   const { speak } = useAccessibility();
   const { ready, getTasks, insertTask, updateTask, deleteTask } = useDB();
-  const { applyRewardsProgress } = useRewards();
+  const { applyRewardsProgress, rewardsOn } = useRewards();
+  // Rewards off: nothing is paid, so nothing is marked paid either; turning them back on pays the next completion.
+  const claim = useCallback(async (key: string) => (await rewardsOn()) && claimReward(key), [rewardsOn]);
   const [loading, setLoading] = useState(true);
   const [tasks, setTasks] = useState<Task[]>([]);
-  const notificationModuleRef = useRef<NotificationsModule | null>(null);
-  const notificationPermissionRef = useRef(false);
-  const timersRef = useRef<Array<ReturnType<typeof setTimeout>>>([]);
 
   const mappedTasks = useMemo(
     () =>
@@ -64,35 +70,6 @@ const useTasks = (): UseTasksResult => {
       })),
     [tasks]
   );
-
-  const loadNotificationsModule = useCallback(async (): Promise<NotificationsModule | null> => {
-    if (notificationModuleRef.current) return notificationModuleRef.current;
-
-    try {
-      const module = await import('expo-notifications');
-      notificationModuleRef.current = module;
-      return module;
-    } catch (error) {
-      console.warn('Notifications are not available in this environment', error);
-      return null;
-    }
-  }, []);
-
-  const requestNotificationPermission = useCallback(async () => {
-    const notifications = await loadNotificationsModule();
-    if (!notifications) return false;
-
-    const current = await notifications.getPermissionsAsync();
-    if (current.granted || current.status === 'granted') {
-      notificationPermissionRef.current = true;
-      return true;
-    }
-
-    const requested = await notifications.requestPermissionsAsync();
-    const allowed = requested.granted || requested.status === 'granted';
-    notificationPermissionRef.current = allowed;
-    return allowed;
-  }, [loadNotificationsModule]);
 
   const refreshTasks = useCallback(async () => {
     if (!ready) return;
@@ -118,20 +95,12 @@ const useTasks = (): UseTasksResult => {
     getTasks().then(setTasks).catch((error) => console.error('Failed to refresh tasks', error));
   });
 
-  useEffect(
-    () => () => {
-      timersRef.current.forEach((timerId) => clearTimeout(timerId));
-      timersRef.current = [];
-    },
-    []
-  );
-
   const toggleTaskStatus = useCallback(
-    async (taskId: number): Promise<boolean> => {
+    async (taskId: number, to?: TaskStatus): Promise<boolean> => {
       const target = tasks.find((task) => task.id === taskId);
-      if (!target) return false;
+      if (!target && !to) return false;
 
-      const nextStatus = target.status === 'completed' ? 'pending' : 'completed';
+      const nextStatus: TaskStatus = to ?? flip(target?.status);
       // True once the new status is stored; a failure after that (rewards, announcement) keeps it true.
       let saved = false;
 
@@ -142,24 +111,19 @@ const useTasks = (): UseTasksResult => {
 
         setTasks((prev) => prev.map((entry) => (entry.id === taskId ? { ...entry, status: nextStatus } : entry)));
 
-        if (nextStatus === 'completed') {
+        // Points once per task: reopening and completing again is an undo, not new work.
+        if (nextStatus === 'completed' && (await claim(taskRewardKey(taskId)))) {
           await applyRewardsProgress({ points: TASK_COMPLETION_POINTS, taskCompleted: true });
         }
 
-        const statusLabel = nextStatus === 'completed' ? t('tasks.completedLabel') : t('tasks.reopenedLabel');
-        const announcement = t('tasks.completionAnnouncement', {
-          title: updated.title,
-          status: statusLabel,
-        });
-
-        await speak(announcement);
+        await speak(t('tasks.completionAnnouncement', { title: updated.title, status: t(STATUS_LABEL[nextStatus]) }));
         await refreshTasks();
       } catch (error) {
         console.error('Failed to toggle task status', error);
       }
       return saved;
     },
-    [applyRewardsProgress, refreshTasks, speak, t, tasks, updateTask]
+    [applyRewardsProgress, claim, refreshTasks, speak, t, tasks, updateTask]
   );
 
   const addTask = useCallback(
@@ -251,77 +215,16 @@ const useTasks = (): UseTasksResult => {
         setTasks((prev) => prev.map((entry) => (entry.id === taskId ? updated : entry)));
         await refreshTasks();
 
-        if (!currentSubtask.done) {
+        if (!currentSubtask.done && (await claim(stepRewardKey(taskId, currentSubtask.label)))) {
           await applyRewardsProgress({ points: SUBTASK_COMPLETION_POINTS });
         }
       } catch (error) {
         console.error('Failed to update subtask', error);
       }
     },
-    [applyRewardsProgress, refreshTasks, tasks, updateTask]
+    [applyRewardsProgress, claim, refreshTasks, tasks, updateTask]
   );
 
-  const scheduleCompletionNotification = useCallback(
-    async (message: string, seconds: number) => {
-      const notifications = await loadNotificationsModule();
-      if (!notifications) return;
-
-      const permissionGranted =
-        notificationPermissionRef.current || (await requestNotificationPermission());
-      if (!permissionGranted) return;
-
-      try {
-        await notifications.scheduleNotificationAsync({
-          content: {
-            title: t('tasks.title'),
-            body: message,
-            sound: true,
-          },
-          trigger: { seconds },
-        });
-      } catch (error) {
-        console.warn('Unable to schedule focus timer notification', error);
-      }
-    },
-    [loadNotificationsModule, requestNotificationPermission, t]
-  );
-
-  const startPomodoro = useCallback(
-    async ({ durationMinutes, taskId }: { durationMinutes: number; taskId?: number }) => {
-      const duration = Number.isFinite(durationMinutes)
-        ? Math.max(MIN_DURATION, Math.round(durationMinutes))
-        : DEFAULT_DURATION;
-      const seconds = duration * 60;
-      const target = taskId ? tasks.find((task) => task.id === taskId) : null;
-
-      const startAnnouncement = t('tasks.startFocus', { minutes: duration });
-      speak(startAnnouncement);
-
-      if (taskId) {
-        try {
-          await updateTask(taskId, { focusPresetMinutes: duration });
-          await refreshTasks();
-        } catch (error) {
-          console.error('Failed to record focus duration on task', error);
-        }
-      }
-
-      const completionMessage = t('tasks.focusComplete', {
-        minutes: duration,
-        title: target?.title ?? t('tasks.focusBlockLabel'),
-      });
-
-      await scheduleCompletionNotification(completionMessage, seconds);
-
-      const timeoutId = setTimeout(() => {
-        speak(completionMessage);
-        applyRewardsProgress({ points: FOCUS_COMPLETION_POINTS, focusCompleted: true });
-      }, seconds * 1000);
-
-      timersRef.current.push(timeoutId);
-    },
-    [applyRewardsProgress, refreshTasks, scheduleCompletionNotification, speak, t, tasks, updateTask]
-  );
 
   return {
     tasks: mappedTasks,
@@ -332,7 +235,6 @@ const useTasks = (): UseTasksResult => {
     addTask,
     updateTaskDetails,
     removeTask,
-    startPomodoro,
   };
 };
 

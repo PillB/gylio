@@ -19,6 +19,14 @@ export type TimeLogEntry = {
   completed: boolean;
 };
 
+/**
+ * Adds a stretch to a task's log unless a stretch of the same kind that started at the same moment is already there:
+ * one start is one stretch. Saving is then safe to repeat: two open tabs that both end the same focus block or the
+ * same tracker run (each with its own end time), or a save retried after an answer was lost, add it once.
+ */
+export const withEntryOnce = (log: TimeLogEntry[], entry: TimeLogEntry): TimeLogEntry[] =>
+  log.some((e) => e.type === entry.type && e.startedAt === entry.startedAt) ? log : [...log, entry];
+
 export type Task = {
   id: number;
   title: string;
@@ -1615,18 +1623,21 @@ const useDB = () => {
 
   const appendTaskTimeLog = useCallback(
     (taskId: number, entry: TimeLogEntry) =>
-      runTransaction<void>((tx, resolve, reject) => {
+      runTransaction<boolean>((tx, resolve, reject) => {
         tx.executeSql(
           statements.selectTaskById,
           [taskId],
           (_, result) => {
-            if (!result.rows.length) { resolve(); return true; }
+            if (!result.rows.length) { resolve(false); return true; }
             const current = mapTask(result.rows.item(0));
-            const newLog = JSON.stringify([...current.timeLog, entry]);
+            const next = withEntryOnce(current.timeLog, entry);
+            // Already there (another tab, or a retry whose answer was lost): nothing to write.
+            if (next === current.timeLog) { resolve(false); return true; }
+            const newLog = JSON.stringify(next);
             tx.executeSql(
               statements.updateTaskWithTimeLog,
               [newLog, new Date().toISOString(), taskId],
-              () => { resolve(); return true; },
+              () => { resolve(true); return true; },
               (_, error) => { reject(error); return false; }
             );
             return true;
