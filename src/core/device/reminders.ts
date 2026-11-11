@@ -1,3 +1,7 @@
+/**
+ * Reminders in the browser: notification permission, and reminders that fire while the page is open. The function
+ * names are those of expo-notifications, which the code was first written against.
+ */
 export type NotificationPermissionStatus = 'undetermined' | 'denied' | 'granted';
 
 export type NotificationPermissionsResponse = {

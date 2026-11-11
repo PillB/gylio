@@ -11,7 +11,7 @@ export type ChecklistTask = Task & {
   totalSteps: number;
 };
 
-type NotificationsModule = typeof import('expo-notifications');
+type NotificationsModule = typeof import('../../../core/device/reminders');
 
 type UseTasksResult = {
   tasks: ChecklistTask[];
@@ -69,7 +69,7 @@ const useTasks = (): UseTasksResult => {
     if (notificationModuleRef.current) return notificationModuleRef.current;
 
     try {
-      const module = await import('expo-notifications');
+      const module = await import('../../../core/device/reminders');
       notificationModuleRef.current = module;
       return module;
     } catch (error) {

@@ -6,7 +6,7 @@ GYLIO is an accessibility-first life-management web/PWA that connects tasks, cal
 
 The current repository ships **web/PWA only**.
 
-The application boots through `src/index.jsx` with `ReactDOM.createRoot` and uses browser routing. Historical Expo/React-Native-shaped abstractions and browser shims remain in parts of the codebase, but there is no native iOS/Android application entry point in the current production architecture.
+The application boots through `src/index.jsx` with `ReactDOM.createRoot` and uses browser routing. Device features (local database, reminders, read aloud) have browser implementations in `src/core/device/`, which keep the function names of the Expo modules the code was first written against; there is no native iOS/Android application entry point in the current production architecture.
 
 The repository contains:
 

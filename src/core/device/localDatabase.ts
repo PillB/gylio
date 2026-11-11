@@ -1,5 +1,5 @@
-// Web shim for expo-sqlite.
-// Implements the SQLite transaction API using an in-memory store that is
+// The app's database on this device. It has the transaction API of expo-sqlite, which the code was first
+// written against, and implements it using an in-memory store that is
 // flushed to localStorage after every write. Supports the SQL subset used
 // by gylio: CREATE TABLE, INSERT (with ? params or literal values),
 // SELECT (WHERE col=? or numeric literal / ORDER BY), UPDATE SET … WHERE
@@ -12,7 +12,7 @@
 // another tab is never overwritten with an older copy), a transaction is written once however many statements it
 // holds, and a save is announced (src/core/dataEvents.ts) so the sync layer can notice it.
 
-import { announceDataChanged, announceLocalWrite } from '../core/dataEvents';
+import { announceDataChanged, announceLocalWrite } from '../dataEvents';
 
 export type SQLResultSetRowList = {
   length: number;
@@ -294,7 +294,7 @@ function _exec(sql: string, args: unknown[]): SQLResultSet {
   // Unknown statement — never pretend success; surface for diagnostics.
   // (Resolved as success to preserve runtime behaviour, but the warn makes
   // silent data loss impossible to miss during development and tests.)
-  console.warn(`[expo-sqlite shim] Unsupported SQL statement ignored: ${s.slice(0, 120)}`);
+  console.warn(`[local database] Unsupported SQL statement ignored: ${s.slice(0, 120)}`);
   return _emptyResult();
 }
 

@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createSqlStore, MemoryLocalStore, statementFor, type LocalStore } from './localStore';
 
-type Shim = typeof import('../../shims/expo-sqlite');
+type Shim = typeof import('../device/localDatabase');
 
 const makeSqlStore = async (): Promise<LocalStore> => {
   localStorage.clear();
   vi.resetModules();
-  const shim: Shim = await import('../../shims/expo-sqlite');
+  const shim: Shim = await import('../device/localDatabase');
   return createSqlStore(shim.openDatabase('test') as never);
 };
 

@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import useDB, { type SocialPlan, type SocialStep } from '../../../core/hooks/useDB';
 import useAccessibility from '../../../core/hooks/useAccessibility';
 
-type NotificationsModule = typeof import('expo-notifications');
+type NotificationsModule = typeof import('../../../core/device/reminders');
 
 type UseSocialPlansResult = {
   plans: SocialPlan[];
@@ -53,7 +53,7 @@ const useSocialPlans = (): UseSocialPlansResult => {
   const loadNotificationsModule = useCallback(async (): Promise<NotificationsModule | null> => {
     if (notificationModuleRef.current) return notificationModuleRef.current;
 
-    const module = await import('expo-notifications').catch(() => null);
+    const module = await import('../../../core/device/reminders').catch(() => null);
     if (!module) {
       console.warn('Notifications are not available in this environment');
       return null;
