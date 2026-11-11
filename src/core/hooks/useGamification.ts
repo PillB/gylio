@@ -3,6 +3,18 @@ import { deviceStorage } from '../utils/deviceStorage';
 
 const GAMIFICATION_STORAGE_KEY = 'settings:gamification';
 
+/**
+ * The saved switch, read when it matters (paying points), not when a screen mounted: the app-wide timer and every list
+ * then follow a change made in Settings at once, and nothing is paid in the moment before the saved value loads.
+ */
+export const readGamificationEnabled = async (): Promise<boolean> => {
+  try {
+    return (await deviceStorage.getItem(GAMIFICATION_STORAGE_KEY)) !== 'false';
+  } catch {
+    return true;
+  }
+};
+
 const useGamification = () => {
   const [gamificationEnabled, setGamificationEnabledState] = useState(true);
   const hydratedRef = useRef(false);

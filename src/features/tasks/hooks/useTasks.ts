@@ -54,9 +54,9 @@ const useTasks = (): UseTasksResult => {
   const { t } = useTranslation();
   const { speak } = useAccessibility();
   const { ready, getTasks, insertTask, updateTask, deleteTask } = useDB();
-  const { applyRewardsProgress, gamificationEnabled } = useRewards();
+  const { applyRewardsProgress, rewardsOn } = useRewards();
   // Rewards off: nothing is paid, so nothing is marked paid either; turning them back on pays the next completion.
-  const claim = useCallback((key: string) => gamificationEnabled && claimReward(key), [gamificationEnabled]);
+  const claim = useCallback(async (key: string) => (await rewardsOn()) && claimReward(key), [rewardsOn]);
   const [loading, setLoading] = useState(true);
   const [tasks, setTasks] = useState<Task[]>([]);
 
@@ -112,7 +112,7 @@ const useTasks = (): UseTasksResult => {
         setTasks((prev) => prev.map((entry) => (entry.id === taskId ? { ...entry, status: nextStatus } : entry)));
 
         // Points once per task: reopening and completing again is an undo, not new work.
-        if (nextStatus === 'completed' && claim(taskRewardKey(taskId))) {
+        if (nextStatus === 'completed' && (await claim(taskRewardKey(taskId)))) {
           await applyRewardsProgress({ points: TASK_COMPLETION_POINTS, taskCompleted: true });
         }
 
@@ -215,7 +215,7 @@ const useTasks = (): UseTasksResult => {
         setTasks((prev) => prev.map((entry) => (entry.id === taskId ? updated : entry)));
         await refreshTasks();
 
-        if (!currentSubtask.done && claim(stepRewardKey(taskId, currentSubtask.label))) {
+        if (!currentSubtask.done && (await claim(stepRewardKey(taskId, currentSubtask.label)))) {
           await applyRewardsProgress({ points: SUBTASK_COMPLETION_POINTS });
         }
       } catch (error) {

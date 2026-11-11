@@ -46,9 +46,11 @@ vi.mock('../hooks/useTasks', () => ({
     refreshTasks,
   }),
 }));
+const timer = vi.hoisted(() => ({ taskId: null as number | null, stopTimer: vi.fn() }));
 vi.mock('../../../core/context/TaskTimerContext', () => ({
   useTaskTimer: () => ({
-    activeTimer: null,
+    activeTimer: timer.taskId === null ? null : { taskId: timer.taskId, phase: 'focus', status: 'running', remainingSeconds: 60, totalSeconds: 1500, focusSessionsCompleted: 0, phaseStartedAt: new Date().toISOString(), endsAt: Date.now() + 60_000 },
+    stopTimer: timer.stopTimer,
     version: 0,
     startTask,
     settings: { focusMinutes: 25 },
@@ -282,6 +284,24 @@ describe('TaskList', () => {
       vi.advanceTimersByTime(4500);
     });
     expect(removeTask).toHaveBeenCalledWith(1);
+  });
+
+  it('deleting the task whose focus timer runs stops that timer, so no hidden timer is left behind', async () => {
+    vi.useFakeTimers();
+    timer.taskId = 1;
+    timer.stopTimer.mockClear();
+    try {
+      state.tasks = [makeTask(1, 'Water plants'), makeTask(2, 'Call mum')];
+      render(<TaskList />);
+      fireEvent.click(screen.getAllByRole('button', { name: /^tasks\.deleteNamed / })[1]);
+      await act(async () => { vi.advanceTimersByTime(4500); });
+      expect(timer.stopTimer).not.toHaveBeenCalled(); // another task's delete leaves the timer alone
+      fireEvent.click(screen.getByRole('button', { name: /^tasks\.deleteNamed .*Water plants/ }));
+      await act(async () => { vi.advanceTimersByTime(4500); });
+      expect(timer.stopTimer).toHaveBeenCalledTimes(1);
+    } finally {
+      timer.taskId = null;
+    }
   });
 
   it('limits Today to three tasks until the person asks for all', () => {

@@ -74,7 +74,7 @@ const dbApi = {
 
 vi.mock('../core/hooks/useDB', () => ({ default: () => dbApi }));
 vi.mock('../core/hooks/useRewards', () => ({ default: () => ({ applyRewardsProgress }) }));
-vi.mock('../core/hooks/useGamification', () => ({ default: () => ({ gamificationEnabled: true }) }));
+vi.mock('../core/hooks/useGamification', () => ({ default: () => ({ gamificationEnabled: true }), readGamificationEnabled: async () => true }));
 vi.mock('../core/hooks/useAccessibility', () => ({ default: () => ({ speak: () => undefined }) }));
 const toast = { success: vi.fn() };
 vi.mock('../core/context/ToastContext', () => ({ useToast: () => toast }));

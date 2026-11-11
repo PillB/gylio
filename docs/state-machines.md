@@ -217,9 +217,9 @@ busy, failure leaves both paths available, the confirm panel stays open after a 
   `active && completed`. Nothing calls it, so no person can reach that state today.
 - **Entitlement:** a `refresh()` answer that arrives after sign-out can set the entitlement while `userId` is null;
   `resolvePlan` returns free without a user, and an account switch reloads the page, so no wrong plan is shown.
-- **Gamification switch:** reads its saved value asynchronously and starts as *on*, so points earned in the first
-  moment after load are paid even if the person turned gamification off. Small window; worth fixing when the setting
-  moves into the shared settings store.
+- **Gamification switch:** the on-screen switch reads its saved value asynchronously and starts as *on*. Paying used
+  to trust that in-memory value, so points earned in the first moment after load were paid even with rewards turned
+  off. Fixed in round 4: the saved value is read at the moment of paying.
 
 ## Red team
 
@@ -277,6 +277,18 @@ document against the code. It found, and this round fixed:
 
 Accepted after round 3: a hung sign-in token request (`getToken`) is not covered by the 20-second limit; restoring an
 account copy saved before the ledger existed can pay old completions once more.
+
+**Round 4** went after what the earlier rounds had left as "noted". It found, and this round fixed:
+- *Rewards turned off could still pay in the first moment after load* (see section 9). `applyRewardsProgress` and the
+  once-only claim now read the saved switch when they pay, not the value a component last rendered with.
+- *Deleting the task a timer was running on left the timer going*, counting toward a task that no longer existed
+  (its entries were then dropped on save). Deleting a task from the list now stops its timer first.
+- *A stale comment* on the reward ledger repeated the corrected "follows every device" claim.
+- *Three unused strings* (`tasks.startFocus`, `tasks.focusComplete`, `tasks.focusBlockLabel`), left from the removed
+  second timer, are gone from both dictionaries.
+
+Accepted after round 4: a task deleted on another device, or a paused focus left for days, keeps its timer until it
+is stopped or another one starts; its time is dropped when the task is missing, nothing is paid for it.
 
 ## Trade-offs taken
 

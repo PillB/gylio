@@ -1,8 +1,8 @@
 /**
  * Which completions have already earned points. Completing, reopening and completing a task again is a normal undo,
  * not new work: without this, each round trip paid the points again, so the total stopped meaning anything
- * (docs/state-machines.md, "Task status and rewards"). Kept with the rest of the app's data, so it follows the
- * person to another device with their tasks.
+ * (docs/state-machines.md, "Task status and rewards"). Kept in this device's storage: the whole-device account save
+ * carries it to other devices, the record sync (VITE_SYNC_ENABLED) does not.
  */
 export const REWARD_LEDGER_KEY = 'gylio:rewarded:v1';
 /** Enough for years of tasks and steps; the oldest keys go first. */

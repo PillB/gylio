@@ -20,7 +20,7 @@ const db = vi.hoisted(() => {
 const gamification = vi.hoisted(() => ({ on: true }));
 const award = vi.hoisted(() => vi.fn(async ({ points }: { points: number }) => { db.state.points += points; }));
 vi.mock('../../../core/hooks/useDB', () => ({ default: () => db.api }));
-vi.mock('../../../core/hooks/useRewards', () => ({ default: () => ({ applyRewardsProgress: award, gamificationEnabled: gamification.on }) }));
+vi.mock('../../../core/hooks/useRewards', () => ({ default: () => ({ applyRewardsProgress: award, rewardsOn: async () => gamification.on }) }));
 vi.mock('../../../core/hooks/useAccessibility', () => ({ default: () => ({ speak: async () => undefined }) }));
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (k: string) => k }) }));
 
