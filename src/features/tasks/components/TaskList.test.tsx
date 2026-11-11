@@ -49,8 +49,7 @@ vi.mock('../hooks/useTasks', () => ({
 vi.mock('../../../core/context/TaskTimerContext', () => ({
   useTaskTimer: () => ({
     activeTimer: null,
-    pendingLogEntry: null,
-    clearPendingEntry: () => undefined,
+    version: 0,
     startTask,
     settings: { focusMinutes: 25 },
   }),

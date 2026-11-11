@@ -19,6 +19,13 @@ export type TimeLogEntry = {
   completed: boolean;
 };
 
+/**
+ * Adds a stretch to a task's log unless the same stretch (kind, start, end) is already there. Saving is then safe to
+ * repeat: two open tabs that both see a focus block end, or a save retried after an answer was lost, add it once.
+ */
+export const withEntryOnce = (log: TimeLogEntry[], entry: TimeLogEntry): TimeLogEntry[] =>
+  log.some((e) => e.type === entry.type && e.startedAt === entry.startedAt && e.endedAt === entry.endedAt) ? log : [...log, entry];
+
 export type Task = {
   id: number;
   title: string;
@@ -1622,7 +1629,7 @@ const useDB = () => {
           (_, result) => {
             if (!result.rows.length) { resolve(); return true; }
             const current = mapTask(result.rows.item(0));
-            const newLog = JSON.stringify([...current.timeLog, entry]);
+            const newLog = JSON.stringify(withEntryOnce(current.timeLog, entry));
             tx.executeSql(
               statements.updateTaskWithTimeLog,
               [newLog, new Date().toISOString(), taskId],

@@ -8,14 +8,13 @@ import { useTaskTimer } from '../../../core/context/TaskTimerContext';
 import { calibrationSamples } from '../../timetracking/trackedTime';
 import { useTimeTracker } from '../../timetracking/TimeTrackerContext';
 import { useToast } from '../../../core/context/ToastContext';
-import useDB from '../../../core/hooks/useDB';
 import { useClock, getLocalDateKey } from '../../../core/hooks/useClock';
 import { track, Events } from '../../../core/analytics';
 import { listState, useScreenState } from '../../../core/analytics/useScreenState';
 import useTasks from '../hooks/useTasks';
 import { useTaskDraft, type NewTaskInput } from '../hooks/useTaskDraft';
 import { useDeferredDelete, UNDO_WINDOW_MS } from '../hooks/useDeferredDelete';
-import { useNewTaskShortcut, usePersistPendingTimeLog } from '../hooks/useTaskListEffects';
+import { useNewTaskShortcut } from '../hooks/useTaskListEffects';
 import { chunkTasks } from '../utils/taskForm';
 import {
   addDaysToKey,
@@ -154,8 +153,7 @@ const TaskList: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   const { tasks, loading, toggleTaskStatus, toggleSubtask, addTask, updateTaskDetails, removeTask, refreshTasks } = useTasks();
-  const { activeTimer, pendingLogEntry, clearPendingEntry, startTask, settings } = useTaskTimer();
-  const { appendTaskTimeLog } = useDB();
+  const { activeTimer, startTask, settings, version: timerVersion } = useTaskTimer();
   const { version: trackedVersion } = useTimeTracker();
   const { dateKey: todayKey } = useClock(i18n.language);
   const titleRef = useRef<HTMLInputElement>(null);
@@ -169,11 +167,10 @@ const TaskList: React.FC = () => {
   const draft = useTaskDraft({ t, viewFilter, todayKey });
   const { hiddenIds, remove, showSuccess } = useTaskDelete(removeTask, t);
   useNewTaskShortcut(titleRef);
-  usePersistPendingTimeLog({ pendingLogEntry, appendTaskTimeLog, refreshTasks, clearPendingEntry });
-  // Time saved from the tracker bar or an editor lands in the database; reload so the cards show it.
+  // Time saved by the focus timer, the tracker bar or an editor lands in the database; reload so the cards show it.
   useEffect(() => {
-    if (trackedVersion > 0) void refreshTasks();
-  }, [trackedVersion, refreshTasks]);
+    if (trackedVersion > 0 || timerVersion > 0) void refreshTasks();
+  }, [trackedVersion, timerVersion, refreshTasks]);
   const estimateSamples = useMemo(() => calibrationSamples(tasks), [tasks]);
 
   const formatter = useMemo(() => new Intl.DateTimeFormat(i18n.language, { month: 'short', day: 'numeric' }), [i18n.language]);

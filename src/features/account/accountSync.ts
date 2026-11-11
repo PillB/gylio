@@ -24,6 +24,8 @@ const DEVICE_ONLY: readonly RegExp[] = [
   // Written automatically on every app start; per device, and never a user edit.
   /^gylio:lastActiveDate$/,
   /^gylio:welcomeBackDismissed$/,
+  // A focus timer running on this device, and its stretches until they are saved into the tasks themselves.
+  /^gylio:focusTimer:/,
   /^gylio:lastStreakBeforeBreak$/,
   // Whose data is on this device, other accounts' data set aside here, a removal still to finish
   // (src/core/account): never part of one person's copy, and a restore must not remove them.
