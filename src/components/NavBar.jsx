@@ -17,7 +17,7 @@ const VISUALLY_HIDDEN = {
   whiteSpace: 'nowrap',
 };
 
-const NavBar = ({ items, activeKey, onNavigate, languageToggle }) => {
+const NavBar = ({ items, activeKey, onNavigate, languageToggle = null }) => {
   const { theme } = useTheme();
   const { t } = useTranslation();
 
@@ -108,10 +108,6 @@ NavBar.propTypes = {
   activeKey: PropTypes.string.isRequired,
   onNavigate: PropTypes.func.isRequired,
   languageToggle: PropTypes.node,
-};
-
-NavBar.defaultProps = {
-  languageToggle: null,
 };
 
 export default NavBar;
