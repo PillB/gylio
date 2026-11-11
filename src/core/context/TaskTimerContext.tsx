@@ -38,6 +38,9 @@ export interface TaskTimerContextValue {
 const SETTINGS_KEY = 'gylio_timer_settings';
 /** The running timer and stretches not saved yet; this device only (accountSync DEVICE_ONLY). */
 export const MACHINE_KEY = 'gylio:focusTimer:v1';
+/** When a page last noted it was open while the timer ran (timerMachine AWAY_GAP_MS). Device only, like MACHINE_KEY. */
+export const SEEN_KEY = 'gylio:focusTimer:seenAt';
+const SEEN_EVERY_MS = 30_000;
 /** As before the timer was rebuilt (useTasks' old focus block): points and the daily focus streak per full block. */
 export const FOCUS_COMPLETION_POINTS = 10;
 /** A save that failed (the database was still opening, or busy) is tried again after this long. */
@@ -61,6 +64,19 @@ function loadMachine() {
 
 function saveMachine(text: string): void {
   try { localStorage.setItem(MACHINE_KEY, text); } catch { /* ignore: the timer still works for this page */ }
+}
+
+function readSeen(): number | null {
+  try {
+    const n = Number(localStorage.getItem(SEEN_KEY));
+    return Number.isFinite(n) && n > 0 ? n : null;
+  } catch {
+    return null;
+  }
+}
+
+function noteSeen(now: number): void {
+  try { localStorage.setItem(SEEN_KEY, String(now)); } catch { /* ignore */ }
 }
 
 function saveSettings(s: TimerSettings): void {
@@ -129,14 +145,25 @@ export function TaskTimerProvider({ children }: { children: ReactNode }) {
     window.addEventListener('storage', onStorage);
     return () => window.removeEventListener('storage', onStorage);
   }, []);
-  // A block that ended while the page was closed is finished (and logged) as soon as the page is back.
-  useEffect(() => dispatch({ type: 'tick', now: Date.now(), settings: settingsRef.current }), []);
 
+  // First, before the clock below notes this page as open: a timer kept from before. A block that ended while a page
+  // was open somewhere is finished and logged; one left running while every page was closed waits, paused, at the
+  // last moment a page saw it (timerMachine 'wake').
+  useEffect(() => dispatch({ type: 'wake', now: Date.now(), seenAt: readSeen(), settings: settingsRef.current }), []);
   // The display ticks once a second, but the time itself comes from the wall clock (timerMachine `endsAt`), so a
   // hidden tab whose timers the browser slows to once a minute still ends the phase on time.
   useEffect(() => {
     if (!running) return undefined;
-    const tick = () => dispatch({ type: 'tick', now: Date.now(), settings: settingsRef.current });
+    let seenAt = 0;
+    const tick = () => {
+      const now = Date.now();
+      if (now - seenAt >= SEEN_EVERY_MS) {
+        seenAt = now;
+        noteSeen(now);
+      }
+      dispatch({ type: 'tick', now, settings: settingsRef.current });
+    };
+    tick();
     const id = setInterval(tick, TICK_MS);
     const onVisible = () => { if (document.visibilityState === 'visible') tick(); };
     document.addEventListener('visibilitychange', onVisible);

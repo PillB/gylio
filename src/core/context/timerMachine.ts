@@ -69,6 +69,8 @@ export type TimerAction =
   | { type: 'pause'; now: number }
   | { type: 'resume'; now: number }
   | { type: 'tick'; now: number; settings: TimerSettings }
+  /** The page opened with a timer kept from before. `seenAt` is the last time any page noted it was open. */
+  | { type: 'wake'; now: number; seenAt: number | null; settings: TimerSettings }
   | { type: 'skip'; now: number; settings: TimerSettings }
   | { type: 'stop'; now: number }
   | { type: 'logged'; entry: PendingEntry }
@@ -104,8 +106,18 @@ export const sanitizeSettings = (raw: Partial<TimerSettings> | null | undefined)
 const iso = (ms: number) => new Date(ms).toISOString();
 
 /** Whole seconds left at `now`. */
+/** Whole seconds left at `now`; never more than the phase's length, even if the device clock was moved back. */
 export const remainingAt = (timer: ActiveTimerState, now: number): number =>
-  timer.status === 'running' && timer.endsAt !== null ? Math.max(0, Math.ceil((timer.endsAt - now) / 1000)) : timer.remainingSeconds;
+  timer.status === 'running' && timer.endsAt !== null
+    ? Math.min(timer.totalSeconds, Math.max(0, Math.ceil((timer.endsAt - now) / 1000)))
+    : timer.remainingSeconds;
+
+/**
+ * How long no page may have been watching a running timer before the time is no longer counted. An open page notes
+ * the time at least once a minute, hidden or not (TaskTimerContext), so a longer silence means every tab was closed,
+ * frozen or discarded: nobody can say the person was working.
+ */
+export const AWAY_GAP_MS = 3 * 60_000;
 
 const phase = (
   taskId: number,
@@ -194,6 +206,14 @@ const HANDLERS: Handlers = {
     return { timer: { ...timer, status: 'running', endsAt: a.now + timer.remainingSeconds * 1000 }, log: state.log };
   },
   tick: (state, a) => catchUp(state, a.now, a.settings),
+  wake: (state, a) => {
+    const seenAt = a.seenAt ?? a.now;
+    if (a.now - seenAt <= AWAY_GAP_MS) return catchUp(state, a.now, a.settings);
+    // Closed for a while: count only up to the last moment a page was open, and wait paused there. Nothing is lost,
+    // nothing unseen is credited, and the person resumes with one press.
+    const upToSeen = catchUp(state, seenAt, a.settings);
+    return HANDLERS.pause(upToSeen, { type: 'pause', now: seenAt });
+  },
   skip: (state, a) =>
     state.timer ? { timer: following(state.timer, a.settings, a.now, false), log: withEntry(state.log, partialEntry(state.timer, a.now)) } : state,
   stop: (state, a) => (state.timer ? { timer: null, log: withEntry(state.log, partialEntry(state.timer, a.now)) } : state),

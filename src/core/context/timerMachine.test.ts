@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { withEntryOnce } from '../hooks/useDB';
-import { DEFAULT_TIMER_SETTINGS, IDLE, restoreMachine, sanitizeSettings, serializeMachine, timerReducer, type TimerAction, type TimerMachine, type TimerSettings } from './timerMachine';
+import { AWAY_GAP_MS, DEFAULT_TIMER_SETTINGS, IDLE, restoreMachine, sanitizeSettings, serializeMachine, timerReducer, type TimerAction, type TimerMachine, type TimerSettings } from './timerMachine';
 
 const T0 = Date.UTC(2026, 10, 11, 9, 0, 0);
 const SEC = 1000;
@@ -186,5 +186,31 @@ describe('surviving a reload and other tabs', () => {
     const { taskId: _a, ...entryA } = tabA.log[0];
     const { taskId: _b, ...entryB } = tabB.log[0];
     expect(withEntryOnce(withEntryOnce([], entryA), entryB)).toHaveLength(1);
+  });
+});
+
+describe('opening the app again with a timer kept from before', () => {
+  const wake = (now: number, seenAt: number | null): TimerAction => ({ type: 'wake', now, seenAt, settings: s });
+
+  it('a page was open until a moment ago: the block carries on (or finishes) as if nothing happened', () => {
+    const m = timerReducer(run(start()), wake(T0 + 26 * MIN, T0 + 26 * MIN - AWAY_GAP_MS));
+    expect(m.log.map((e) => [e.type, e.completed])).toEqual([['focus', true]]);
+    expect(m.timer).toMatchObject({ phase: 'short-break', status: 'running' });
+  });
+
+  it('every page was closed at minute 5: nothing after that is credited, and the block waits paused with 20 minutes left', () => {
+    const m = timerReducer(run(start()), wake(T0 + 3 * 60 * MIN, T0 + 5 * MIN));
+    expect(m.log).toEqual([]);
+    expect(m.timer).toMatchObject({ phase: 'focus', status: 'paused', remainingSeconds: 20 * 60, endsAt: null });
+  });
+
+  it('closed after the block ended but during the break: the block is credited, the break waits where it was left', () => {
+    const m = timerReducer(run(start()), wake(T0 + 5 * 60 * MIN, T0 + 27 * MIN));
+    expect(m.log.map((e) => [e.type, e.completed])).toEqual([['focus', true]]);
+    expect(m.timer).toMatchObject({ phase: 'short-break', status: 'paused', remainingSeconds: 3 * 60 });
+  });
+
+  it('a device clock moved back does not show more time than the phase has', () => {
+    expect(run(start(), tick(T0 - 10 * MIN)).timer?.remainingSeconds).toBe(25 * 60);
   });
 });

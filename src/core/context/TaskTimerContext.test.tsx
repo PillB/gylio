@@ -130,6 +130,19 @@ describe('reloads and other tabs', () => {
     expect(result.current.activeTimer).toMatchObject({ taskId: 7, status: 'running', remainingSeconds: 14 * 60 });
   });
 
+  it('a block left running while the app was closed for an hour reopens paused where it was last seen, crediting nothing', async () => {
+    const first = renderHook(() => useTaskTimer(), { wrapper });
+    act(() => first.result.current.startTask(7));
+    act(() => { vi.advanceTimersByTime(5 * 60_000); });
+    first.unmount();
+    vi.setSystemTime(Date.now() + 60 * 60_000);
+    const { result } = renderHook(() => useTaskTimer(), { wrapper });
+    expect(result.current.activeTimer).toMatchObject({ status: 'paused', remainingSeconds: 20 * 60 });
+    await flush();
+    expect(db.appendTaskTimeLog).not.toHaveBeenCalled();
+    expect(reward).not.toHaveBeenCalled();
+  });
+
   it('a pause made in another tab pauses this one', () => {
     const { result } = renderHook(() => useTaskTimer(), { wrapper });
     act(() => result.current.startTask(7));
