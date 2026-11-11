@@ -35,7 +35,7 @@ const TaskTimerInline: React.FC<TaskTimerInlineProps> = ({ taskId }) => {
   const phaseColor = timer.phase === 'focus' ? theme.colors.primary : theme.colors.success;
   const sessionLabel = timer.phase === 'focus'
     ? t('tasks.timerSession', { n: timer.focusSessionsCompleted + 1 })
-    : t('tasks.timerAfterSessions', { n: timer.focusSessionsCompleted });
+    : t('tasks.timerAfterSessions', { count: timer.focusSessionsCompleted });
 
   return (
     <div
