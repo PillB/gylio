@@ -107,7 +107,7 @@ const useRewards = () => {
     [gamificationEnabled, getRewardsProgress, updateRewardsProgress]
   );
 
-  return { applyRewardsProgress } as const;
+  return { applyRewardsProgress, gamificationEnabled } as const;
 };
 
 export default useRewards;

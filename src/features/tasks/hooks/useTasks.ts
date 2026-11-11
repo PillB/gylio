@@ -54,7 +54,9 @@ const useTasks = (): UseTasksResult => {
   const { t } = useTranslation();
   const { speak } = useAccessibility();
   const { ready, getTasks, insertTask, updateTask, deleteTask } = useDB();
-  const { applyRewardsProgress } = useRewards();
+  const { applyRewardsProgress, gamificationEnabled } = useRewards();
+  // Rewards off: nothing is paid, so nothing is marked paid either; turning them back on pays the next completion.
+  const claim = useCallback((key: string) => gamificationEnabled && claimReward(key), [gamificationEnabled]);
   const [loading, setLoading] = useState(true);
   const [tasks, setTasks] = useState<Task[]>([]);
 
@@ -110,7 +112,7 @@ const useTasks = (): UseTasksResult => {
         setTasks((prev) => prev.map((entry) => (entry.id === taskId ? { ...entry, status: nextStatus } : entry)));
 
         // Points once per task: reopening and completing again is an undo, not new work.
-        if (nextStatus === 'completed' && claimReward(taskRewardKey(taskId))) {
+        if (nextStatus === 'completed' && claim(taskRewardKey(taskId))) {
           await applyRewardsProgress({ points: TASK_COMPLETION_POINTS, taskCompleted: true });
         }
 
@@ -121,7 +123,7 @@ const useTasks = (): UseTasksResult => {
       }
       return saved;
     },
-    [applyRewardsProgress, refreshTasks, speak, t, tasks, updateTask]
+    [applyRewardsProgress, claim, refreshTasks, speak, t, tasks, updateTask]
   );
 
   const addTask = useCallback(
@@ -213,14 +215,14 @@ const useTasks = (): UseTasksResult => {
         setTasks((prev) => prev.map((entry) => (entry.id === taskId ? updated : entry)));
         await refreshTasks();
 
-        if (!currentSubtask.done && claimReward(stepRewardKey(taskId, currentSubtask.label))) {
+        if (!currentSubtask.done && claim(stepRewardKey(taskId, currentSubtask.label))) {
           await applyRewardsProgress({ points: SUBTASK_COMPLETION_POINTS });
         }
       } catch (error) {
         console.error('Failed to update subtask', error);
       }
     },
-    [applyRewardsProgress, refreshTasks, tasks, updateTask]
+    [applyRewardsProgress, claim, refreshTasks, tasks, updateTask]
   );
 
 

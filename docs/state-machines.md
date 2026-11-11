@@ -173,8 +173,10 @@ stateDiagram-v2
 
 **SM-9 (fixed), three parts.**
 - *A loop that paid:* every pending → completed edge paid 10 points, so complete / reopen / complete paid again, and
-  a step ticked on and off paid 5 each time. *Fix:* `core/utils/rewardLedger.ts` pays each task and step once; it is
-  stored with the app data, so it follows the person to another device. Non-punitive: reopening takes nothing away.
+  a step ticked on and off paid 5 each time. *Fix:* `core/utils/rewardLedger.ts` pays each task and step once.
+  It is kept in this device's storage: the whole-device account save carries it to other devices, but the record
+  sync (`VITE_SYNC_ENABLED` builds) sends only the five tables, so there a task completed on one device can pay again
+  on another. With rewards turned off nothing is marked paid. Non-punitive: reopening takes nothing away.
 - *An unreachable state:* the daily focus streak (with its skip tokens) was written only by `useTasks().startPomodoro`,
   which nothing calls, so "Daily focus streak" on the Rewards screen could never grow. *Fix:* the focus timer pays 10
   points and the focus streak when a full block is saved (only the tab whose save added it); the dead timer and its
@@ -261,6 +263,20 @@ fixes and tests before the next one.
 Accepted: a reload in the instant between the database write and the queue update loses that block's points (the
 time is kept); two steps with the same text in one task pay once, and renaming a done step pays again; another tab's
 running clock shows the full length for up to one second after it follows a change.
+
+**Round 3** checked every test against its fix by reverting each fix in a copy (29 mutations) and every claim in this
+document against the code. It found, and this round fixed:
+- *Six fixes no test would have caught if reverted* (Undo by start, Daily Mode asking for "completed", the save lock
+  being released after a save, the stale-answer guard on a save, a fresh start dropping the timer, sign-out closing
+  a pending choice) and a timeout test that did not check the 20 seconds. Each now has a test that fails without it.
+- *A tracker run kept beside a later timer phase* was ended at the start of the *current* phase, so the first focus
+  block counted twice. The timer now keeps when the run started (`runStartedAt`), and a focus that waited after a
+  break starts when it is resumed, so its entry no longer spans the wait.
+- *With rewards off, a completion still used up its one payment.* Nothing is marked paid while rewards are off.
+- *This document* said the reward ledger follows the person to every device; corrected above.
+
+Accepted after round 3: a hung sign-in token request (`getToken`) is not covered by the 20-second limit; restoring an
+account copy saved before the ledger existed can pay old completions once more.
 
 ## Trade-offs taken
 

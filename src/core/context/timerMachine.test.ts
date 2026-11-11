@@ -233,3 +233,21 @@ describe('saving the same stretch twice', () => {
     expect(withEntryOnce(withEntryOnce([], run1), run2)).toEqual([run1]);
   });
 });
+
+describe('when things started', () => {
+  it('the run keeps its first start through every phase, so another clock can tell when it began', () => {
+    const m = run(start(1, T0), tick(T0 + 31 * MIN));
+    expect(m.timer).toMatchObject({ phase: 'focus', status: 'paused', runStartedAt: new Date(T0).toISOString() });
+  });
+
+  it('the focus that waited after a break starts when it is resumed, so its entry does not span the wait', () => {
+    const later = T0 + 3 * 60 * MIN;
+    const m = run(start(1, T0), tick(T0 + 31 * MIN), { type: 'resume', now: later }, { type: 'stop', now: later + 5 * MIN });
+    expect(m.log[m.log.length - 1]).toMatchObject({ startedAt: new Date(later).toISOString(), actualSeconds: 300 });
+  });
+
+  it('a resumed block that had already run keeps its first start', () => {
+    const m = run(start(1, T0), { type: 'pause', now: T0 + MIN }, { type: 'resume', now: T0 + 9 * MIN });
+    expect(m.timer?.phaseStartedAt).toBe(new Date(T0).toISOString());
+  });
+});

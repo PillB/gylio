@@ -58,6 +58,8 @@ export interface ActiveTimerState {
   focusSessionsCompleted: number;
   /** When this phase first started; a pause and resume does not move it. */
   phaseStartedAt: string;
+  /** When this run of the timer was started (the first focus block); kept through every phase until stop. */
+  runStartedAt?: string;
   /** Epoch ms at which a running phase ends; null while paused. */
   endsAt: number | null;
 }
@@ -118,6 +120,7 @@ const phase = (
   running: boolean,
   startMs: number,
   focusSessionsCompleted: number,
+  runStartedAt: string = iso(startMs),
 ): ActiveTimerState => ({
   taskId,
   phase: kind,
@@ -126,16 +129,18 @@ const phase = (
   totalSeconds: seconds,
   focusSessionsCompleted,
   phaseStartedAt: iso(startMs),
+  runStartedAt,
   endsAt: running ? startMs + seconds * 1000 : null,
 });
 
 /** The phase after `timer`, starting at `startMs`. `finished` says whether the focus block ran in full. */
 const following = (timer: ActiveTimerState, s: TimerSettings, startMs: number, finished: boolean): ActiveTimerState => {
-  if (timer.phase !== 'focus') return phase(timer.taskId, 'focus', s.focusMinutes * 60, false, startMs, timer.focusSessionsCompleted);
+  const run = timer.runStartedAt ?? timer.phaseStartedAt;
+  if (timer.phase !== 'focus') return phase(timer.taskId, 'focus', s.focusMinutes * 60, false, startMs, timer.focusSessionsCompleted, run);
   const sessions = timer.focusSessionsCompleted + (finished ? 1 : 0);
   const isLong = finished && sessions % s.sessionsBeforeLongBreak === 0;
   const minutes = isLong ? s.longBreakMinutes : s.shortBreakMinutes;
-  return phase(timer.taskId, isLong ? 'long-break' : 'short-break', minutes * 60, s.autoStartBreak, startMs, sessions);
+  return phase(timer.taskId, isLong ? 'long-break' : 'short-break', minutes * 60, s.autoStartBreak, startMs, sessions, run);
 };
 
 /** The entry for a phase left before its end; null when nothing worth keeping happened (a break, or no time). */
@@ -199,7 +204,10 @@ const HANDLERS: Handlers = {
   resume: (state, a) => {
     const { timer } = state;
     if (timer?.status !== 'paused') return state;
-    return { timer: { ...timer, status: 'running', endsAt: a.now + timer.remainingSeconds * 1000 }, log: state.log };
+    // A phase that has not run yet (the focus waiting after a break) starts now, so its entry does not span the wait.
+    const fresh = timer.remainingSeconds === timer.totalSeconds;
+    const phaseStartedAt = fresh ? iso(a.now) : timer.phaseStartedAt;
+    return { timer: { ...timer, status: 'running', phaseStartedAt, endsAt: a.now + timer.remainingSeconds * 1000 }, log: state.log };
   },
   tick: (state, a) => catchUp(state, a.now, a.settings),
 
@@ -242,7 +250,8 @@ const hasCounts = (t: Partial<ActiveTimerState>) =>
   (t.remainingSeconds as number) <= (t.totalSeconds as number);
 
 const isTimer = (t: Partial<ActiveTimerState> | null | undefined): t is ActiveTimerState =>
-  !!t && PHASES.includes(t.phase as TimerPhase) && isRunState(t) && hasCounts(t) && isIso(t.phaseStartedAt);
+  !!t && PHASES.includes(t.phase as TimerPhase) && isRunState(t) && hasCounts(t) && isIso(t.phaseStartedAt) &&
+  (t.runStartedAt === undefined || isIso(t.runStartedAt));
 
 const isEntry = (e: Partial<PendingEntry> | null | undefined): e is PendingEntry =>
   !!e && isCount(e.taskId) && PHASES.includes(e.type as TimerPhase) && isIso(e.startedAt) && isIso(e.endedAt) &&

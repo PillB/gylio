@@ -17,9 +17,10 @@ const db = vi.hoisted(() => {
   };
   return { state, api };
 });
+const gamification = vi.hoisted(() => ({ on: true }));
 const award = vi.hoisted(() => vi.fn(async ({ points }: { points: number }) => { db.state.points += points; }));
 vi.mock('../../../core/hooks/useDB', () => ({ default: () => db.api }));
-vi.mock('../../../core/hooks/useRewards', () => ({ default: () => ({ applyRewardsProgress: award }) }));
+vi.mock('../../../core/hooks/useRewards', () => ({ default: () => ({ applyRewardsProgress: award, gamificationEnabled: gamification.on }) }));
 vi.mock('../../../core/hooks/useAccessibility', () => ({ default: () => ({ speak: async () => undefined }) }));
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (k: string) => k }) }));
 
@@ -27,6 +28,7 @@ import useTasks from './useTasks';
 
 beforeEach(() => {
   localStorage.clear();
+  gamification.on = true;
   award.mockClear();
   db.state.points = 0;
   db.state.tasks = [{ id: 1, title: 'Pay rent', status: 'pending', subtasks: [{ label: 'Find the bill', done: false }] }];
@@ -50,6 +52,22 @@ describe('points for completing work are paid once', () => {
     const { result } = await loaded();
     for (let i = 0; i < 4; i += 1) await act(async () => { await result.current.toggleSubtask(1, 0); });
     expect(db.state.points).toBe(5);
+  });
+});
+
+describe('with rewards turned off', () => {
+  it('a completion is not marked as paid, so it pays once rewards are back on', async () => {
+    gamification.on = false;
+    const off = await loaded();
+    await act(async () => { await off.result.current.toggleTaskStatus(1); });
+    await act(async () => { await off.result.current.toggleTaskStatus(1); });
+    off.unmount();
+    award.mockClear();
+    gamification.on = true;
+    const { result } = await loaded();
+    await act(async () => { await result.current.toggleTaskStatus(1); });
+    expect(award).toHaveBeenCalledTimes(1);
+    expect(award).toHaveBeenCalledWith(expect.objectContaining({ points: 10 }));
   });
 });
 

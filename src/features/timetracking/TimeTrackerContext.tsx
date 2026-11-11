@@ -138,7 +138,7 @@ const useTabTitle = (run: ActiveRun | null, elapsed: number) => {
   }, [run, elapsed]);
 };
 
-/** Where a run kept alongside a focus timer stops: when the timer's phase began, or at the run's own start if earlier. */
+/** Where a run kept alongside a focus timer stops: when the timer was started, or at the run's own start if earlier. */
 export const overlapEnd = (run: { startedAt: string }, timerSince: string | null): string =>
   timerSince && Date.parse(timerSince) > Date.parse(run.startedAt) ? timerSince : run.startedAt;
 
@@ -203,9 +203,10 @@ export const TimeTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ c
   // (begin, below), and starting the focus timer while the tracker runs saves the tracked stretch and stops it.
   // Only a change counts: the focus timer starting now ends the run now. If the page opens with both already kept
   // (they overlapped while no page of this tab watched), the run ends when the focus timer's phase began, so the
-  // overlap is not counted twice.
+  // overlap is not counted twice (the timer's start, not its current phase: a later phase would leave the first block
+  // counted in both).
   const pomodoroOn = Boolean(activeTimer);
-  const pomodoroSince = activeTimer?.phaseStartedAt ?? null;
+  const pomodoroSince = activeTimer ? activeTimer.runStartedAt ?? activeTimer.phaseStartedAt : null;
   const pomodoroWasOn = useRef<boolean | null>(null);
   useEffect(() => {
     const before = pomodoroWasOn.current;
