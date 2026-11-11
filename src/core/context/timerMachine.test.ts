@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { withEntryOnce } from '../hooks/useDB';
-import { AWAY_GAP_MS, DEFAULT_TIMER_SETTINGS, IDLE, restoreMachine, sanitizeSettings, serializeMachine, timerReducer, type TimerAction, type TimerMachine, type TimerSettings } from './timerMachine';
+import { DEFAULT_TIMER_SETTINGS, IDLE, restoreMachine, sanitizeSettings, serializeMachine, timerReducer, type TimerAction, type TimerMachine, type TimerSettings } from './timerMachine';
 
 const T0 = Date.UTC(2026, 10, 11, 9, 0, 0);
 const SEC = 1000;
@@ -190,24 +190,10 @@ describe('surviving a reload and other tabs', () => {
 });
 
 describe('opening the app again with a timer kept from before', () => {
-  const wake = (now: number, seenAt: number | null): TimerAction => ({ type: 'wake', now, seenAt, settings: s });
-
-  it('a page was open until a moment ago: the block carries on (or finishes) as if nothing happened', () => {
-    const m = timerReducer(run(start()), wake(T0 + 26 * MIN, T0 + 26 * MIN - AWAY_GAP_MS));
-    expect(m.log.map((e) => [e.type, e.completed])).toEqual([['focus', true]]);
-    expect(m.timer).toMatchObject({ phase: 'short-break', status: 'running' });
-  });
-
-  it('every page was closed at minute 5: nothing after that is credited, and the block waits paused with 20 minutes left', () => {
-    const m = timerReducer(run(start()), wake(T0 + 3 * 60 * MIN, T0 + 5 * MIN));
-    expect(m.log).toEqual([]);
-    expect(m.timer).toMatchObject({ phase: 'focus', status: 'paused', remainingSeconds: 20 * 60, endsAt: null });
-  });
-
-  it('closed after the block ended but during the break: the block is credited, the break waits where it was left', () => {
-    const m = timerReducer(run(start()), wake(T0 + 5 * 60 * MIN, T0 + 27 * MIN));
-    expect(m.log.map((e) => [e.type, e.completed])).toEqual([['focus', true]]);
-    expect(m.timer).toMatchObject({ phase: 'short-break', status: 'paused', remainingSeconds: 3 * 60 });
+  it('a block whose deadline passed while the app was closed is finished, and only one focus block is credited', () => {
+    const m = run(start(), tick(T0 + 5 * 60 * MIN));
+    expect(m.log.map((e) => [e.type, e.completed])).toEqual([['focus', true], ['short-break', true]]);
+    expect(m.timer).toMatchObject({ phase: 'focus', status: 'paused' });
   });
 
   it('a device clock moved back does not show more time than the phase has', () => {
@@ -216,6 +202,12 @@ describe('opening the app again with a timer kept from before', () => {
 });
 
 describe('a press that lands after the deadline, before the next tick', () => {
+  it('start: the block that ran in full is logged as finished before the new one starts', () => {
+    const m = run(start(1, T0, 1), start(2, T0 + MIN + 400));
+    expect(m.log).toEqual([expect.objectContaining({ taskId: 1, completed: true, actualSeconds: 60 })]);
+    expect(m.timer).toMatchObject({ taskId: 2, phase: 'focus', status: 'running' });
+  });
+
   it('stop: the block ran in full, so it is logged as finished and paid as one', () => {
     const m = run(start(1, T0, 1), { type: 'stop', now: T0 + MIN + 400 });
     expect(m.log).toEqual([expect.objectContaining({ type: 'focus', completed: true, actualSeconds: 60 })]);

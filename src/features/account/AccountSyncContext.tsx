@@ -11,6 +11,7 @@
  */
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useAppAuth } from '../../core/context/AuthContext';
+import { MACHINE_KEY } from '../../core/context/timerMachine';
 import { authHeaders } from '../../core/utils/authToken';
 import { apiUrl } from '../../core/utils/apiUrl';
 import {
@@ -19,6 +20,10 @@ import {
 } from './accountSync';
 
 const SAVE_INTERVAL_MS = 15_000;
+/** A request that has not answered by then is treated as offline, so it cannot hold the save lock for ever. */
+const REQUEST_TIMEOUT_MS = 20_000;
+const timeout = (): AbortSignal | undefined =>
+  typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function' ? AbortSignal.timeout(REQUEST_TIMEOUT_MS) : undefined;
 const RELINK_INTERVAL_MS = 60_000;
 /** Browsers refuse keepalive requests with bodies over 64 KiB. */
 const KEEPALIVE_LIMIT = 60_000;
@@ -30,7 +35,7 @@ class TooLargeError extends Error {}
 type PutResult = { saved: boolean; state: ServerState };
 
 async function getServerState(): Promise<ServerState> {
-  const res = await fetch(apiUrl('/api/state'), { headers: await authHeaders() });
+  const res = await fetch(apiUrl('/api/state'), { headers: await authHeaders(), signal: timeout() });
   if (!res.ok) throw new Error(`state ${res.status}`);
   return (await res.json()).state;
 }
@@ -43,6 +48,7 @@ async function putServerState(baseVersion: number, data: Snapshot, keepalive = f
     body,
     // keepalive lets a save finish while the tab closes, but only for small bodies.
     keepalive: keepalive && body.length < KEEPALIVE_LIMIT,
+    signal: timeout(),
   });
   if (res.status === 413) throw new TooLargeError('state too large');
   if (res.status !== 200 && res.status !== 409) throw new Error(`state ${res.status}`);
@@ -78,7 +84,20 @@ function markReplaced() {
   }
 }
 
+/**
+ * A focus timer running on this device points at this device's task ids, which the replaced data gives to other
+ * tasks: it is dropped rather than credited to the wrong task (timerMachine MACHINE_KEY).
+ */
+function forgetDeviceTimer() {
+  try {
+    localStorage.removeItem(MACHINE_KEY);
+  } catch {
+    // storage blocked: nothing kept to forget
+  }
+}
+
 function restoreAndReload(userId: string, server: NonNullable<ServerState>) {
+  forgetDeviceTimer();
   const previousOwner = readMeta(localStorage)?.userId ?? null;
   applySnapshot(localStorage, server.data, new Date().toISOString(), previousOwner);
   markReplaced();
@@ -89,6 +108,7 @@ function restoreAndReload(userId: string, server: NonNullable<ServerState>) {
 
 /** The data on this device belonged to someone else: set it aside (undoable from Settings) and start empty. */
 function startEmptyAndReload(userId: string) {
+  forgetDeviceTimer();
   // Tagged with the previous person, so only they can bring it back.
   applySnapshot(localStorage, {}, new Date().toISOString(), readMeta(localStorage)?.userId ?? null);
   markReplaced();

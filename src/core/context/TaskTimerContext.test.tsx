@@ -130,33 +130,17 @@ describe('reloads and other tabs', () => {
     expect(result.current.activeTimer).toMatchObject({ taskId: 7, status: 'running', remainingSeconds: 14 * 60 });
   });
 
-  it('a block left running while the app was closed for an hour reopens paused where it was last seen, crediting nothing', async () => {
+  it('a block left running while the app was closed is finished when it opens again, and paid once', async () => {
     const first = renderHook(() => useTaskTimer(), { wrapper });
     act(() => first.result.current.startTask(7));
     act(() => { vi.advanceTimersByTime(5 * 60_000); });
     first.unmount();
     vi.setSystemTime(Date.now() + 60 * 60_000);
     const { result } = renderHook(() => useTaskTimer(), { wrapper });
-    expect(result.current.activeTimer).toMatchObject({ status: 'paused', remainingSeconds: 20 * 60 });
     await flush();
-    expect(db.appendTaskTimeLog).not.toHaveBeenCalled();
-    expect(reward).not.toHaveBeenCalled();
-  });
-
-  it('a tab the browser discarded to save memory counts as open all along: the block is credited when it comes back', async () => {
-    const first = renderHook(() => useTaskTimer(), { wrapper });
-    act(() => first.result.current.startTask(7));
-    act(() => { vi.advanceTimersByTime(5 * 60_000); });
-    first.unmount();
-    vi.setSystemTime(Date.now() + 60 * 60_000);
-    Object.defineProperty(document, 'wasDiscarded', { value: true, configurable: true });
-    try {
-      renderHook(() => useTaskTimer(), { wrapper });
-      await flush();
-      expect(db.appendTaskTimeLog).toHaveBeenCalledWith(7, expect.objectContaining({ type: 'focus', completed: true }));
-    } finally {
-      Object.defineProperty(document, 'wasDiscarded', { value: false, configurable: true });
-    }
+    expect(result.current.activeTimer).toMatchObject({ phase: 'focus', status: 'paused' });
+    expect(db.appendTaskTimeLog).toHaveBeenCalledWith(7, expect.objectContaining({ type: 'focus', completed: true, actualSeconds: 1500 }));
+    expect(reward).toHaveBeenCalledTimes(1);
   });
 
   it('a settings change in another tab reaches this one', () => {

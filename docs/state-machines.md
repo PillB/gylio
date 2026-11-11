@@ -138,7 +138,7 @@ All rules live in one pure reducer (`timerMachine.ts`); the provider only feeds 
 timers of a hidden tab about once a minute after five minutes ("intensive wake-up throttling", Chrome 88+), so a
 25-minute block left in a background tab ran for far longer, and its log said 25 minutes. *Fix:* the phase ends at a
 wall-clock deadline (`endsAt`); ticks only refresh the display, and one late tick finishes every phase that is due,
-each from the moment the previous one ended. Also catches up after the page was closed.
+each from the moment the previous one ended. Also catches up after the page was closed (at most one focus block).
 
 **SM-3 (fixed): finished time lost.** Logged stretches sat in one slot that only the Tasks screen saved. A block that
 ended while the person was on another screen was overwritten by the break after it; a failed save (the database still
@@ -229,8 +229,8 @@ fixes and tests before the next one.
   it in tab B made tab A stop its own copy of the tracker run too, with a different end time, which the
   start-and-end duplicate check did not catch. One start is now one stretch: the check matches kind + start time.
 - *Credit lost when the browser discards a tab.* Chrome's Memory Saver reloads a discarded tab, which the closed-page
-  rule (`wake`) read as "closed at the last tick". `document.wasDiscarded` now counts as open all along, like a tab
-  that was only hidden.
+  rule (`wake`, added in this branch) read as "closed at the last tick". Fixed in round 1 with `document.wasDiscarded`;
+  round 2 then showed the rule itself was inconsistent, and it was removed (below).
 - *A press after the deadline, before the next tick.* Stop, skip and pause did not finish a phase whose deadline had
   passed, so a full block was logged as interrupted (no points, no session), and skip could skip the break it had
   already reached. Each now finishes due phases first.
@@ -239,16 +239,37 @@ fixes and tests before the next one.
   previous person no longer sets the new person's status.
 - *Timer settings* now reach every open tab, so two tabs cannot start different phases at the same deadline.
 
-Accepted after round 1: a page killed by the operating system (not discarded) and reopened later counts as closed;
-a reload in the instant between the database write and the queue update loses that block's points (the time is
-kept); two steps with the same text in one task pay once, and renaming a done step pays again.
+**Round 2** found, and this round fixed:
+- *The closed-page rule credited the same absence differently by route.* A block left while the page was closed was
+  paused at the last moment a page saw it, but the same gap while the laptop slept or the tab was frozen was credited
+  through the next tick, and a phone screen turned off mid-block (the normal way to use a Pomodoro timer) would have
+  paused it. Removed: a block always ends at its deadline, like every mainstream Pomodoro timer and a kitchen timer.
+  The credit stays bounded: one focus block per press of start or resume, because the focus after a break waits
+  paused.
+- *Start pressed after the deadline* logged a full block as interrupted; it now finishes due phases first, like
+  stop, skip and pause.
+- *The tracker in a second tab* showed "stopped" with an Undo that removed nothing, and counted the stop twice in
+  analytics, when the other tab had already saved the run. It now honours "already saved", and Undo finds the run by
+  its start.
+- *Opening with both a tracker run and a focus timer kept* stopped the run at load time, counting every hour since
+  and the overlap. It now ends the run when the focus timer's phase began, and only a change (the timer starting)
+  stops a run.
+- *Account copy restored while a focus timer ran:* the timer kept this device's task ids, which the account copy
+  gives to other tasks. It is now dropped on restore and on a fresh start.
+- *A request that never answers* held the save lock (and "Save now") for ever; requests now give up after 20 seconds.
+
+Accepted: a reload in the instant between the database write and the queue update loses that block's points (the
+time is kept); two steps with the same text in one task pay once, and renaming a done step pays again; another tab's
+running clock shows the full length for up to one second after it follows a change.
 
 ## Trade-offs taken
 
 - **Persisting the focus timer** adds cross-tab and reload states that did not exist. Covered by tests (reload,
-  pause in another tab, same entry from two tabs) and by idempotent saving. A crash in the instant between the
-  database write and the queue update could still save an entry twice on the next load: at-least-once was chosen
-  over at-most-once because losing focus time is worse than a duplicate the person can delete.
+  pause in another tab, same entry from two tabs) and by idempotent saving: one start is one stretch, so a retried
+  or repeated save adds it once.
+- **A block left running while the app is closed is credited when its deadline passes**, as a timer, not a
+  presence detector. Someone who starts a block and walks away gets that one block (never more: the next focus
+  waits paused). The tracker, which is open-ended, keeps its "were you away?" question.
 - **Skipped focus no longer counts toward the long break.** Someone who skips blocks often will see the long break
   later than before. This follows the Pomodoro Technique; if people expect the old behaviour, a setting is cheap.
 - **A cut-short break is not logged.** Breaks never counted toward worked time; logging partial ones only added rows.

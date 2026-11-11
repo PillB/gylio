@@ -146,6 +146,22 @@ const deferred = () => {
 const inSync = () => localStorage.setItem(META_KEY, JSON.stringify({ userId: 'user_1', version: 4, hash: 'old', savedAt: 't' }));
 
 describe('state collisions in saving', () => {
+  it("a focus timer running on this device is dropped when the account copy replaces this device's tasks", async () => {
+    localStorage.setItem('gylio:focusTimer:v1', '{"timer":null,"log":[{"taskId":12}]}');
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(json({ state: serverCopy })));
+    renderSync();
+    await waitFor(() => expect(reload).toHaveBeenCalled());
+    expect(localStorage.getItem('gylio:focusTimer:v1')).toBeNull();
+  });
+
+  it('a request that never answers is given up after a while, so it cannot hold saving up for ever', async () => {
+    const signals: Array<AbortSignal | undefined> = [];
+    vi.stubGlobal('fetch', vi.fn((_url: string, init?: RequestInit) => { signals.push(init?.signal ?? undefined); return new Promise(() => undefined); }));
+    renderProbe();
+    await waitFor(() => expect(signals).toHaveLength(1));
+    expect(signals[0]).toBeInstanceOf(AbortSignal);
+  });
+
   it('"Save now" pressed while another save is on its way waits for it, then saves on top of it: no conflict with itself', async () => {
     localStorage.setItem('gylio_sqlite', ON_DEVICE);
     inSync();

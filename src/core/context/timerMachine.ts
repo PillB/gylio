@@ -69,8 +69,6 @@ export type TimerAction =
   | { type: 'pause'; now: number; settings?: TimerSettings }
   | { type: 'resume'; now: number }
   | { type: 'tick'; now: number; settings: TimerSettings }
-  /** The page opened with a timer kept from before. `seenAt` is the last time any page noted it was open. */
-  | { type: 'wake'; now: number; seenAt: number | null; settings: TimerSettings }
   | { type: 'skip'; now: number; settings: TimerSettings }
   | { type: 'stop'; now: number; settings?: TimerSettings }
   | { type: 'logged'; entry: PendingEntry }
@@ -112,12 +110,6 @@ export const remainingAt = (timer: ActiveTimerState, now: number): number =>
     ? Math.min(timer.totalSeconds, Math.max(0, Math.ceil((timer.endsAt - now) / 1000)))
     : timer.remainingSeconds;
 
-/**
- * How long no page may have been watching a running timer before the time is no longer counted. An open page notes
- * the time at least once a minute, hidden or not (TaskTimerContext), so a longer silence means every tab was closed,
- * frozen or discarded: nobody can say the person was working.
- */
-export const AWAY_GAP_MS = 3 * 60_000;
 
 const phase = (
   taskId: number,
@@ -189,8 +181,10 @@ const catchUp = (state: TimerMachine, now: number, s: TimerSettings): TimerMachi
 type Handlers = { [K in TimerAction['type']]: (state: TimerMachine, action: Extract<TimerAction, { type: K }>) => TimerMachine };
 
 const HANDLERS: Handlers = {
-  start: ({ timer, log }, a) => {
-    // Starting (again, or another task) ends the current run first: its focus so far is kept.
+  start: (before, a) => {
+    // Starting (again, or another task) ends the current run first: its focus so far is kept, and a block whose
+    // deadline already passed (the press came before the next tick) counts as finished.
+    const { timer, log } = catchUp(before, a.now, a.settings);
     const ended = timer ? partialEntry(timer, a.now) : null;
     const seconds = sanitizeSettings({ ...a.settings, focusMinutes: a.minutes ?? a.settings.focusMinutes }).focusMinutes * 60;
     return { timer: phase(a.taskId, 'focus', seconds, true, a.now, 0), log: withEntry(log, ended) };
@@ -208,14 +202,7 @@ const HANDLERS: Handlers = {
     return { timer: { ...timer, status: 'running', endsAt: a.now + timer.remainingSeconds * 1000 }, log: state.log };
   },
   tick: (state, a) => catchUp(state, a.now, a.settings),
-  wake: (state, a) => {
-    const seenAt = a.seenAt ?? a.now;
-    if (a.now - seenAt <= AWAY_GAP_MS) return catchUp(state, a.now, a.settings);
-    // Closed for a while: count only up to the last moment a page was open, and wait paused there. Nothing is lost,
-    // nothing unseen is credited, and the person resumes with one press.
-    const upToSeen = catchUp(state, seenAt, a.settings);
-    return HANDLERS.pause(upToSeen, { type: 'pause', now: seenAt });
-  },
+
   skip: (before, a) => {
     const state = catchUp(before, a.now, a.settings);
     // The phase the person meant to leave already ended (its deadline passed before the press was handled).
@@ -236,6 +223,12 @@ export const timerReducer = (state: TimerMachine, action: TimerAction): TimerMac
 };
 
 // ---- Surviving a reload ----
+
+/**
+ * Where the running timer and stretches not saved yet are kept: this device only (accountSync DEVICE_ONLY), and
+ * cleared when the device's data is replaced by the account copy, whose task ids are different.
+ */
+export const MACHINE_KEY = 'gylio:focusTimer:v1';
 
 const PHASES: readonly TimerPhase[] = ['focus', 'short-break', 'long-break'];
 const isCount = (n: unknown): n is number => typeof n === 'number' && Number.isInteger(n) && n >= 0;
