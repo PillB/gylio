@@ -122,6 +122,15 @@ describe('review fixes: new devices, false conflicts, backups', () => {
     expect(Object.keys(collectSnapshot(storage))).toEqual(['gylio_sqlite']);
   });
 
+  it('every replacement drops a focus timer kept on this device, whose task ids the new data gives to other tasks', () => {
+    const storage = memoryStorage();
+    storage.setItem('gylio_sqlite', 'old');
+    storage.setItem('gylio:focusTimer:v1', '{"timer":null,"log":[{"taskId":12}]}');
+    applySnapshot(storage, { gylio_sqlite: 'restored from a file' }, '2026-11-11T00:00:00.000Z', 'user_1');
+    expect(storage.getItem('gylio:focusTimer:v1')).toBeNull();
+    expect(storage.getItem('gylio_sqlite')).toBe('restored from a file');
+  });
+
   it('keeps the last three backups, newest first, each tagged with whose data it was', async () => {
     const { backupsFor } = await import('./accountSync');
     const storage = memoryStorage({ gylio_sqlite: 'v1' });

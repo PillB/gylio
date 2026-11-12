@@ -19,6 +19,10 @@ import {
 } from './accountSync';
 
 const SAVE_INTERVAL_MS = 15_000;
+/** A request that has not answered by then is treated as offline, so it cannot hold the save lock for ever. */
+const REQUEST_TIMEOUT_MS = 20_000;
+const timeout = (): AbortSignal | undefined =>
+  typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function' ? AbortSignal.timeout(REQUEST_TIMEOUT_MS) : undefined;
 const RELINK_INTERVAL_MS = 60_000;
 /** Browsers refuse keepalive requests with bodies over 64 KiB. */
 const KEEPALIVE_LIMIT = 60_000;
@@ -30,7 +34,7 @@ class TooLargeError extends Error {}
 type PutResult = { saved: boolean; state: ServerState };
 
 async function getServerState(): Promise<ServerState> {
-  const res = await fetch(apiUrl('/api/state'), { headers: await authHeaders() });
+  const res = await fetch(apiUrl('/api/state'), { headers: await authHeaders(), signal: timeout() });
   if (!res.ok) throw new Error(`state ${res.status}`);
   return (await res.json()).state;
 }
@@ -43,6 +47,7 @@ async function putServerState(baseVersion: number, data: Snapshot, keepalive = f
     body,
     // keepalive lets a save finish while the tab closes, but only for small bodies.
     keepalive: keepalive && body.length < KEEPALIVE_LIMIT,
+    signal: timeout(),
   });
   if (res.status === 413) throw new TooLargeError('state too large');
   if (res.status !== 200 && res.status !== 409) throw new Error(`state ${res.status}`);
@@ -112,10 +117,19 @@ export function AccountSyncProvider({ children }: { children: ReactNode }) {
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
   const [conflict, setConflict] = useState<ServerState>(null);
   const busy = useRef(false);
+  const currentUser = useRef(userId);
+  currentUser.current = userId;
+  // Once the provider is gone nobody is being saved for: work still queued must not go out.
+  useEffect(() => {
+    currentUser.current = userId;
+    return () => { currentUser.current = null; };
+  }, [userId]);
   // Hash of data the server refused as too large: don't re-send it every 15 seconds.
   const tooLargeHash = useRef<string | null>(null);
 
-  const fail = useCallback((error: unknown) => {
+  /** A failed request, for the person `uid` it was sent for; ignored once someone else (or nobody) is signed in. */
+  const fail = useCallback((error: unknown, uid: string | null) => {
+    if (uid === null || currentUser.current !== uid) return;
     if (error instanceof TooLargeError) {
       tooLargeHash.current = snapshotHash(collectSnapshot(localStorage));
       setStatus('tooLarge');
@@ -124,11 +138,24 @@ export function AccountSyncProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const push = useCallback(async (baseVersion: number, keepalive = false) => {
-    if (!userId) return;
+  // The person this provider is saving for right now. An answer for an earlier person (signed out, or switched while
+  // a request was on its way) is dropped: it must not change the status, the conflict, or this device's data.
+  const stillFor = (uid: string | null) => uid !== null && currentUser.current === uid;
+
+  const push = useCallback(async (baseVersion: number, keepalive = false): Promise<void> => {
+    // A save that waited its turn may start after its person signed out or switched: by then the sign-in token and
+    // this device's data are someone else's, so it must not be sent at all.
+    if (!userId || !stillFor(userId)) return;
     const data = collectSnapshot(localStorage);
     setStatus('saving');
     const result = await putServerState(baseVersion, data, keepalive);
+    if (!stillFor(userId)) return;
+    if (!result.saved && !result.state && baseVersion !== 0) {
+      // The account has no copy at all any more (its server data was reset): this device's copy becomes the first one,
+      // rather than a "conflict" with nothing that is retried every 15 seconds and never shown.
+      await push(0, keepalive);
+      return;
+    }
     if (!result.saved || !result.state) {
       setConflict(result.state);
       setStatus('conflict');
@@ -139,21 +166,35 @@ export function AccountSyncProvider({ children }: { children: ReactNode }) {
     setStatus('saved');
   }, [userId]);
 
+  /**
+   * One request to the account at a time, from any path (first sync, the timer, leaving the tab, "Save now", a
+   * conflict choice). Two saves from the same version would make the second a conflict with this device's own data.
+   */
+  const lock = useRef<Promise<void>>(Promise.resolve());
+  const exclusive = useCallback(async (work: () => Promise<void>, { waitTurn = false } = {}) => {
+    // A background save that finds another one running just skips: the next 15 seconds catch up. A step the person
+    // asked for (or the first sync) waits its turn instead of being dropped.
+    if (busy.current && !waitTurn) return;
+    const run = lock.current.then(async () => {
+      busy.current = true;
+      try {
+        await work();
+      } finally {
+        busy.current = false;
+      }
+    });
+    lock.current = run.catch(() => undefined);
+    await run;
+  }, []);
+
   const saveIfChanged = useCallback(async (keepalive = false) => {
-    if (!userId || busy.current || conflict) return;
+    if (!userId || conflict) return;
     const meta = readMeta(localStorage);
     if (meta?.userId !== userId) return;
     const hash = snapshotHash(collectSnapshot(localStorage));
     if (meta.hash === hash || hash === tooLargeHash.current) return;
-    busy.current = true;
-    try {
-      await push(meta.version, keepalive);
-    } catch (error) {
-      fail(error);
-    } finally {
-      busy.current = false;
-    }
-  }, [userId, conflict, push, fail]);
+    await exclusive(() => push(meta.version, keepalive).catch((e) => fail(e, userId)));
+  }, [userId, conflict, push, fail, exclusive]);
 
   const settle = useCallback((uid: string, server: ServerState) => {
     if (server) writeMeta(localStorage, { userId: uid, version: server.version, hash: snapshotHash(server.data), savedAt: server.updatedAt });
@@ -164,6 +205,7 @@ export function AccountSyncProvider({ children }: { children: ReactNode }) {
   const firstSync = useCallback(async (uid: string) => {
     setStatus('checking');
     const server = await getServerState();
+    if (!stillFor(uid)) return;
     const meta = readMeta(localStorage);
     const decision = decideFirstSync({ userId: uid, server, meta, local: collectSnapshot(localStorage) });
     if (decision === 'restore' && server) {
@@ -174,11 +216,14 @@ export function AccountSyncProvider({ children }: { children: ReactNode }) {
       setConflict(server);
       setStatus('conflict');
     } else if (decision === 'upload' || decision === 'push') {
-      await push(meta?.userId === uid ? meta.version : 0);
+      await exclusive(() => {
+        const current = readMeta(localStorage);
+        return push(current?.userId === uid ? current.version : 0);
+      }, { waitTurn: true });
     } else {
       settle(uid, server);
     }
-  }, [push, settle]);
+  }, [push, settle, exclusive]);
 
   // First sync runs once per signed-in person. It must not re-run when the
   // save loop's dependencies change, or a pending conflict would be re-fetched.
@@ -187,12 +232,13 @@ export function AccountSyncProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!userId) {
       setStatus('off');
+      setConflict(null);
       return undefined;
     }
     let done = false;
     const attempt = () => {
       if (done) return;
-      firstSyncRef.current(userId).then(() => { done = true; }, fail);
+      firstSyncRef.current(userId).then(() => { done = true; }, (e) => fail(e, userId));
     };
     attempt();
     // If the first sync failed (offline), keep trying: saving only starts once it succeeds.
@@ -234,14 +280,18 @@ export function AccountSyncProvider({ children }: { children: ReactNode }) {
     // The account copy is about to be replaced: keep it on this device so it can be restored.
     keepAccountCopy(conflict, userId);
     setConflict(null);
-    await push(conflict.version).catch(fail);
-  }, [conflict, push, fail, userId]);
+    await exclusive(() => push(conflict.version).catch((e) => fail(e, userId)), { waitTurn: true });
+  }, [conflict, push, fail, userId, exclusive]);
 
   const saveNow = useCallback(async () => {
-    const meta = readMeta(localStorage);
+    if (conflict) return; // the banner's choice comes first; saving now would only meet the same conflict
     tooLargeHash.current = null;
-    await push(meta?.userId === userId ? meta.version : 0).catch(fail);
-  }, [push, userId, fail]);
+    // The version is read once it is this press's turn: a save that finished meanwhile moved it on.
+    await exclusive(() => {
+      const meta = readMeta(localStorage);
+      return push(meta?.userId === userId ? meta.version : 0).catch((e) => fail(e, userId));
+    }, { waitTurn: true });
+  }, [push, userId, fail, conflict, exclusive]);
 
   const value = useMemo(
     () => ({ status, lastSavedAt, conflict, saveNow, chooseAccountCopy, chooseDeviceCopy }),

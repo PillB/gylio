@@ -35,7 +35,7 @@ const TaskTimerInline: React.FC<TaskTimerInlineProps> = ({ taskId }) => {
   const phaseColor = timer.phase === 'focus' ? theme.colors.primary : theme.colors.success;
   const sessionLabel = timer.phase === 'focus'
     ? t('tasks.timerSession', { n: timer.focusSessionsCompleted + 1 })
-    : t('tasks.timerAfterSessions', { n: timer.focusSessionsCompleted });
+    : t('tasks.timerAfterSessions', { count: timer.focusSessionsCompleted });
 
   return (
     <div
@@ -52,15 +52,15 @@ const TaskTimerInline: React.FC<TaskTimerInlineProps> = ({ taskId }) => {
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: theme.spacing.sm }}>
-        <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: phaseColor }}>
+        {/* Announced when the phase changes; the clock itself is a timer, which screen readers do not read every second. */}
+        <span aria-live="polite" style={{ fontSize: '0.8125rem', fontWeight: 600, color: phaseColor }}>
           {phaseCfg.emoji} {phaseLabel}
           <span style={{ fontSize: '0.72rem', fontWeight: 400, color: theme.colors.muted, marginLeft: 6 }}>
             {sessionLabel}
           </span>
         </span>
         <span
-          aria-live="polite"
-          aria-atomic="true"
+          role="timer"
           style={{
             fontFamily: 'monospace',
             fontSize: '1.4rem',

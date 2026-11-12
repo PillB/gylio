@@ -46,7 +46,7 @@ const db = vi.hoisted(() => {
 });
 
 vi.mock('../../core/hooks/useDB', () => ({ default: () => db.api }));
-vi.mock('../../core/hooks/useGamification', () => ({ default: () => ({ gamificationEnabled: true }) }));
+vi.mock('../../core/hooks/useGamification', () => ({ default: () => ({ gamificationEnabled: true }), readGamificationEnabled: async () => true }));
 const speak = vi.hoisted(() => async () => undefined);
 vi.mock('../../core/hooks/useAccessibility', () => ({ default: () => ({ speak }) }));
 vi.mock('../../core/analytics', () => ({
@@ -62,6 +62,7 @@ vi.mock('react-i18next', () => ({
 
 beforeEach(() => {
   db.reset();
+  localStorage.clear(); // which completions already earned points (core/utils/rewardLedger)
   vi.mocked(track).mockClear();
 });
 afterEach(cleanup);

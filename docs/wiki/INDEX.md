@@ -13,8 +13,22 @@
 
 ## Reviews
 - [Layout, structure and tour review, 2026-10-06](layout-review-2026-10-06.md): ratings, layout proxy, trade-offs, experiment designs (PR #95).
+- [Implicit state machines, 2026-11-11](../state-machines.md): inventory of 14 machines, diagrams, findings SM-1 … SM-9 below.
 
 ## Findings Log
+
+### SM-1 … SM-9 · FIXED+VERIFIED · Implicit state machines (round SM-1, 2026-11-11)
+- **Severity:** P1 (SM-2, SM-3, SM-9 focus streak), P2 (the rest) · **Status:** fix-committed, verified in Chrome (Playwright, fake clock)
+- **Full analysis and diagrams:** [docs/state-machines.md](../state-machines.md)
+- **SM-1** sync engine: a network blip erased a server-requested pause (client broke `Retry-After`) and hid `closed` / `other-account`. Root cause: the shown state doubled as the pause record.
+- **SM-2** focus timer: countdown by tick count; Chrome's hidden-tab throttling stretched a 25-minute block. Root cause: time derived from ticks, not a deadline.
+- **SM-3** focus timer: finished stretches in a single slot saved only by the Tasks screen; overwritten, dropped on a failed save, lost on reload.
+- **SM-4** focus timer: a skipped block counted as a finished session; resume moved the start; switching from a paused block lost the time; unclamped settings.
+- **SM-5** account save: "Save now" and the first upload bypassed the save lock; two PUTs from one version made a false conflict.
+- **SM-6** account save: 409 with no account copy gave status `conflict` with nothing to show, retried every 15 s for ever.
+- **SM-7** account save: answers arriving after sign-out still changed status, opened the banner or restored data.
+- **SM-8** tracker + focus timer: only one direction stopped the other; overlap counted twice in worked time.
+- **SM-9** task rewards: complete/reopen loops paid every time; the focus streak was unreachable (only a dead `startPomodoro` wrote it); Daily Mode flipped a stale cached status.
 
 ### R0-5 · FIXED+VERIFIED · XP/streaks never persisted on web (silent data loss in SQLite shim)
 - **Date:** 2026-09-30 · **Round:** 0 · **Severity:** P0 · **Status:** fix-committed, verified in Chrome
@@ -72,6 +86,10 @@
 
 | Issue pattern | First seen | Recurred in | Preemption note |
 |---|---|---|---|
+| A displayed state used as the record of *why* (SM-1) | SM-1 | — | Keep the cause (pause reason, deadline, owner) in its own field; the shown state is derived from it, never read back as a fact. |
+| Side effects and time inside state updaters / tick counting (SM-2, SM-3) | SM-2 | — | Timers keep a wall-clock deadline; reducers stay pure (StrictMode runs them twice); a queue, not a slot, for anything that must not be lost. |
+| Two paths to one server write without a shared lock, and async answers after the user changed (SM-5, SM-7) | SM-5 | — | Every write path takes the same lock; every `await` that ends in state or storage checks it is still for the same person. |
+| An award on an edge that can be crossed back and forth (SM-9) | SM-9 | — | Pay once per item (ledger) or reverse on the way back; grep for every writer of a displayed counter before shipping it. |
 | Silent success on unsupported SQL in compat layers | R0-5 (shim) | — | Any new shim/parser code must warn-or-throw on unrecognized input; complexity gate now covers src/shims. Grep `_emptyResult()` when extending the SQL subset. |
 | Stale hard-coded product constants in copy (trial length) | R0-6 (10-day vs 7) | — | When a billing constant changes, grep i18n for the old number; consider interpolating `trialDays` from the catalog into copy (backlog follow-up). |
 | Unsourced "research shows" claims in user copy | R0-6 | — | Every research-flavored claim must pass research-manual §11 (exact source, population match, no mechanism claims); template copy audit pending (WI-006). |

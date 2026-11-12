@@ -323,7 +323,8 @@ const DailyCommandCenter: React.FC<DailyCommandCenterProps> = ({ onExitSimplifie
       setTasks((prev) =>
         prev.map((t) => (t.id === taskId ? { ...t, status: 'completed' } : t)),
       );
-      const saved = await toggleTaskStatus(taskId);
+      // Says 'completed' rather than flipping: this screen's copy is the one the person just saw.
+      const saved = await toggleTaskStatus(taskId, 'completed');
       if (!saved) {
         // Nothing was stored: show the task as open again instead of a completion a reload would undo.
         setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, status: current.status } : t)));

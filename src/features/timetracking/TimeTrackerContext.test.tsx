@@ -4,14 +4,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TimeTrackerProvider, useTimeTracker, type TimeTrackerValue } from './TimeTrackerContext';
 
 type Log = Array<{ type: string; startedAt: string; endedAt: string; plannedSeconds: number; actualSeconds: number; completed: boolean }>;
-const store: { logs: Record<number, Log>; failAppend: boolean } = { logs: {}, failAppend: false };
+const store: { logs: Record<number, Log>; failAppend: boolean; savedElsewhere: boolean } = { logs: {}, failAppend: false, savedElsewhere: false };
 const stopPomodoro = vi.fn();
-const pomodoro = { running: false };
+const pomodoro = { running: false, since: null as string | null, phaseSince: null as string | null };
 
 const db = {
   getTaskById: async (id: number) => ({ id, timeLog: store.logs[id] ?? [] }),
   appendTaskTimeLog: async (id: number, entry: Log[number]) => {
     if (store.failAppend) throw new Error('disk full');
+    if (store.savedElsewhere) return false;
     store.logs[id] = [...(store.logs[id] ?? []), entry];
   },
   setTaskTimeLog: async (id: number, log: Log) => {
@@ -20,7 +21,7 @@ const db = {
 };
 vi.mock('../../core/hooks/useDB', () => ({ default: () => db }));
 vi.mock('../../core/context/TaskTimerContext', () => ({
-  useTaskTimer: () => ({ activeTimer: pomodoro.running ? { taskId: 9 } : null, stopTimer: stopPomodoro }),
+  useTaskTimer: () => ({ activeTimer: pomodoro.running ? { taskId: 9, runStartedAt: pomodoro.since ?? undefined, phaseStartedAt: pomodoro.phaseSince ?? pomodoro.since } : null, stopTimer: stopPomodoro }),
 }));
 
 let tracker: TimeTrackerValue;
@@ -39,7 +40,10 @@ beforeEach(() => {
   vi.setSystemTime(T0);
   store.logs = {};
   store.failAppend = false;
+  store.savedElsewhere = false;
   pomodoro.running = false;
+  pomodoro.since = null;
+  pomodoro.phaseSince = null;
   stopPomodoro.mockClear();
   localStorage.clear();
   document.title = 'Gylio';
@@ -72,6 +76,54 @@ describe('TimeTrackerProvider', () => {
     mount();
     expect(tracker.run?.taskId).toBe(1);
     expect(tracker.elapsed).toBe(6 * 60);
+  });
+
+  it('starting the focus timer while the tracker runs saves the tracked stretch and stops it, so no minute counts twice', async () => {
+    const view = mount();
+    await act(async () => tracker.start(task(1)));
+    await advance(10 * 60_000);
+    pomodoro.running = true;
+    view.rerender(<TimeTrackerProvider><Probe /></TimeTrackerProvider>);
+    await advance(0);
+    expect(tracker.run).toBeNull();
+    expect(store.logs[1]).toEqual([expect.objectContaining({ type: 'tracked', actualSeconds: 600 })]);
+  });
+
+  it('opening with both a tracker run and a focus timer kept ends the run where it was last active, not now', async () => {
+    const first = mount();
+    await act(async () => tracker.start(task(1)));
+    await advance(10 * 60_000);
+    first.unmount();
+    pomodoro.running = true; // started in another tab at minute 10, which did not hold this run
+    pomodoro.since = new Date(Date.now()).toISOString();
+    // By the time this tab opens, the timer is in a later phase: the run must still end when the timer began.
+    pomodoro.phaseSince = new Date(Date.now() + 30 * 60_000).toISOString();
+    vi.setSystemTime(Date.now() + 2 * 60 * 60_000);
+    mount();
+    await advance(0);
+    expect(tracker.run).toBeNull();
+    expect(store.logs[1]).toEqual([expect.objectContaining({ type: 'tracked', actualSeconds: 10 * 60 })]);
+  });
+
+  it('a run another tab already saved is not shown as stopped again, so Undo and the count stay with that tab', async () => {
+    mount();
+    await act(async () => tracker.start(task(1)));
+    await advance(60_000);
+    store.savedElsewhere = true;
+    await act(async () => tracker.stop());
+    expect(tracker.run).toBeNull();
+    expect(tracker.stopped).toBeNull();
+    expect(tracker.version).toBe(0);
+  });
+
+  it('undo removes the stretch by its start, even when its saved end differs from the one shown here', async () => {
+    mount();
+    await act(async () => tracker.start(task(1)));
+    await advance(5 * 60_000);
+    await act(async () => tracker.stop());
+    store.logs[1] = [{ ...store.logs[1][0], endedAt: new Date(Date.now() + 9_000).toISOString() }];
+    await act(async () => tracker.undoStop());
+    expect(store.logs[1]).toEqual([]);
   });
 
   it('switches tasks in one step: the current one is saved, the new one starts', async () => {

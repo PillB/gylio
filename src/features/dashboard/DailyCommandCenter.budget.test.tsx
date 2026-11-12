@@ -24,7 +24,7 @@ const dbApi = {
 };
 
 vi.mock('../../core/hooks/useDB', () => ({ default: () => dbApi }));
-vi.mock('../../core/hooks/useGamification', () => ({ default: () => ({ gamificationEnabled: true }) }));
+vi.mock('../../core/hooks/useGamification', () => ({ default: () => ({ gamificationEnabled: true }), readGamificationEnabled: async () => true }));
 const speak = vi.hoisted(() => async () => undefined);
 vi.mock('../../core/hooks/useAccessibility', () => ({ default: () => ({ speak }) }));
 vi.mock('../../core/analytics', () => ({ track: vi.fn(), Events: {} }));
