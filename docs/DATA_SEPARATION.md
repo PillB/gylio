@@ -14,17 +14,18 @@ The owner is set once, in the middleware at line 131 (`c.set('userId', userId)`,
 | `POST /api/analytics/events` | 105 | none, on purpose | No person's data: events carry no account id and are stored without one (`analytics_events` has no owner column). Open to visitors, from the app's own address only. |
 | `POST /api/feedback` | 147 | 154 | The report is stored under the owner (`VALUES (?, ?, ...`, owner bound at 163); the daily count is `WHERE userId = ?`. |
 | `GET /api/feedback/mine` | 170 | 172 | `WHERE userId = ?`. The admin's note is left out. |
-| `GET /api/admin/analytics` | 189 | admins only, gate at 179 | Analytics carry no owner. Only sign-in subjects in `ADMIN_SUBJECTS` (set at deploy) pass the gate. |
-| `GET /api/admin/feedback` | 203 | admins only, gate at 179 | Every report, on purpose: this is the QA inbox. |
-| `PATCH /api/admin/feedback/:id` | 222 | admins only, gate at 179 | Changes status, severity and the admin's note only. |
-| `GET /api/sync/pull` | 247 | 252 | `WHERE userId = ? AND seq > ?`, owner bound at 253. |
-| `GET /api/me/export` | 263 | 265 | `WHERE userId = ? AND deleted = 0`, owner bound at 266. |
-| `DELETE /api/me` | 274 | 277 | Four deletes, each `WHERE userId = ?` (records, counters, sign-in mapping, reports). |
-| `GET /api/:entity/:id` | 288 | 292 | `WHERE userId = ? AND entity = ? AND id = ? AND deleted = 0`. Someone else's id answers 404, the same as an id that does not exist. |
-| `PUT /api/:entity/:id` | 332 | 308 | The read (`currentRow`) is `WHERE userId = ? AND entity = ? AND id = ?`. |
-| | | 368 | The update is `WHERE userId = ? AND entity = ? AND id = ? AND version = ?`. |
-| | | 373 | The insert is keyed `(userId, entity, id)`: the same id under another person is a different row. |
-| `DELETE /api/:entity/:id` | 386 | 395 | `WHERE userId = ? AND entity = ? AND id = ? AND deleted = 0`. Deleting an id you do not own changes nothing and still answers 204. |
+| `GET /api/me/admin` | 182 | the sign-in itself | Answers only whether the person signed in may open the admin console (their verified sign-in subject is in `ADMIN_SUBJECTS`). Names no one else and reads no data. |
+| `GET /api/admin/analytics` | 194 | admins only, gate at 185 | Analytics carry no owner. Only sign-in subjects in `ADMIN_SUBJECTS` (set at deploy) pass the gate. |
+| `GET /api/admin/feedback` | 208 | admins only, gate at 185 | Every report, on purpose: this is the QA inbox. |
+| `PATCH /api/admin/feedback/:id` | 227 | admins only, gate at 185 | Changes status, severity and the admin's note only. |
+| `GET /api/sync/pull` | 252 | 257 | `WHERE userId = ? AND seq > ?`, owner bound at 258. |
+| `GET /api/me/export` | 268 | 270 | `WHERE userId = ? AND deleted = 0`, owner bound at 271. |
+| `DELETE /api/me` | 279 | 282 | Four deletes, each `WHERE userId = ?` (records, counters, sign-in mapping, reports). |
+| `GET /api/:entity/:id` | 293 | 297 | `WHERE userId = ? AND entity = ? AND id = ? AND deleted = 0`. Someone else's id answers 404, the same as an id that does not exist. |
+| `PUT /api/:entity/:id` | 337 | 313 | The read (`currentRow`) is `WHERE userId = ? AND entity = ? AND id = ?`. |
+| | | 373 | The update is `WHERE userId = ? AND entity = ? AND id = ? AND version = ?`. |
+| | | 378 | The insert is keyed `(userId, entity, id)`: the same id under another person is a different row. |
+| `DELETE /api/:entity/:id` | 391 | 400 | `WHERE userId = ? AND entity = ? AND id = ? AND deleted = 0`. Deleting an id you do not own changes nothing and still answers 204. |
 
 Choices worth knowing about:
 - The same record id may exist under two people. Ids are chosen by the app, so they are only unique per person; a stranger cannot collide with or overwrite yours.

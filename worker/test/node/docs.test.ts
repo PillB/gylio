@@ -87,3 +87,19 @@ describe('the manual lists every address the app can call on the Worker', () => 
     expect(section6).toMatch(/Clerk's own host/);
   });
 });
+
+describe('the admin list stays a secret', () => {
+  const manual = readFileSync(path.join(repo, 'docs', 'CLOUDFLARE_GO_LIVE_MANUAL.md'), 'utf8');
+  const wrangler = readFileSync(path.join(repo, 'worker', 'wrangler.jsonc'), 'utf8');
+  const worker = readFileSync(path.join(repo, 'worker', 'src', 'index.ts'), 'utf8');
+
+  it('is read by the Worker from ADMIN_SUBJECTS, which the manual sets with the hidden-prompt script', () => {
+    expect(worker).toMatch(/env\.ADMIN_SUBJECTS/);
+    expect(manual).toContain('bash worker/scripts/secret.sh ADMIN_SUBJECTS');
+  });
+
+  it('is never a plain variable in the repository', () => {
+    expect(wrangler).not.toContain('ADMIN_SUBJECTS');
+    expect(readFileSync(path.join(repo, '.github', 'workflows', 'ci.yml'), 'utf8')).not.toContain('ADMIN_SUBJECTS');
+  });
+});
