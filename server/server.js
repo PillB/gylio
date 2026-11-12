@@ -23,6 +23,8 @@ const { initBilling, getBillingService } = require('./billing');
 
 const { sqlite } = require('./db/sqliteClient');
 const { mongoConnectionOptions } = require('./db/connectionOptions');
+const { backfillVersions } = require('./db/backfillVersions');
+const dbModels = require('./db/models');
 const { ensureSqliteSchema } = require('./lib/sqlite');
 const { notFoundHandler, errorHandler } = require('./middleware/errorHandler');
 const { requireAuth, optionalAuth, requireAdmin, requirePro } = require('./middleware/auth');
@@ -104,6 +106,8 @@ async function initializePersistence() {
     mongoose.connection.on('disconnected', () => console.warn('MongoDB disconnected; the driver will reconnect, requests answer 503 meanwhile'));
     mongoose.connection.on('reconnected', () => console.log('MongoDB reconnected'));
     await mongoose.connect(mongoUri, mongoConnectionOptions());
+    const { User: _user, ...entityModels } = dbModels;
+    await backfillVersions(Object.values(entityModels));
     await initBilling('mongodb');
     persistenceReady = true;
     console.log('Connected to MongoDB');
