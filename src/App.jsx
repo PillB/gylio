@@ -530,8 +530,8 @@ function buildAuthRouter(clerkEnabled) {
         errorElement: <div style={{ padding: 16 }}><RouteErrorPage landmark /></div>,
         children: [
           { index: true, element: clerkEnabled ? <RootRedirectAuthed /> : <RootRedirectNoAuth /> },
-          { path: 'sign-in/*', element: <SignInPage /> },
-          { path: 'sign-up/*', element: <SignUpPage /> },
+          { path: 'sign-in/*', ...OWN_TITLE, element: <SignInPage /> },
+          { path: 'sign-up/*', ...OWN_TITLE, element: <SignUpPage /> },
           { path: 'pricing', ...OWN_TITLE, element: <OnDemand><PricingPage /></OnDemand> },
           { path: 'privacy', ...OWN_TITLE, element: <OnDemand><LegalPage doc="privacy" /></OnDemand> },
           { path: 'terms', ...OWN_TITLE, element: <OnDemand><LegalPage doc="terms" /></OnDemand> },

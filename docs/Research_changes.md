@@ -117,7 +117,7 @@ It is the canonical audit trail for the pricing strategy workstream. Every entry
 **Next scheduled entry:** RES-001 (Competitor Landscape Analysis — to be created upon research initiation).
 
 ---
-*This file is maintained in parallel with `Claude_changes.md` (engineering changelog) and `docs/CLAUDE_PRICING_ADDENDUM.md` (pricing research operating rules). All three files are authoritative within their respective domains.*
+*This file is maintained in parallel with `docs/notes/Claude_changes.md` (engineering changelog, no longer updated) and `docs/CLAUDE_PRICING_ADDENDUM.md` (pricing research operating rules). All three files are authoritative within their respective domains.*
 
 
 ---

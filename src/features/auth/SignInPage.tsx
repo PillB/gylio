@@ -3,6 +3,7 @@ import { SignIn } from '@clerk/clerk-react';
 import { useTranslation } from 'react-i18next';
 import { removedOnThisPage } from '../../core/account/removeDeviceData';
 import { useTheme } from '../../core/context/ThemeContext';
+import AccountFormStatus from './AccountFormStatus';
 
 const SignInPage: React.FC = () => {
   const { theme } = useTheme();
@@ -27,6 +28,7 @@ const SignInPage: React.FC = () => {
       }}
     >
       {removed && <p role="status" style={{ margin: 0 }}>{t('device.removed')}</p>}
+      <AccountFormStatus form="sign_in" />
       <SignIn
         routing="path"
         path={`${import.meta.env.BASE_URL}sign-in`}

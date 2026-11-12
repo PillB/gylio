@@ -5,6 +5,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { buildCsp } from './csp.config.js';
 import { staticLegalPage } from './src/features/legal/staticPage';
+import { languagePreloadScript } from './src/i18n/preloadScript.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -105,6 +106,30 @@ const catalogAddresses = () => {
   };
 };
 
+/**
+ * Starts the first language's text downloading from index.html, alongside the app's code (src/i18n/preloadScript.js).
+ * The file addresses are known only once the bundle is written, so this runs last.
+ */
+const languagePreload = () => ({
+  name: 'gylio-language-preload',
+  apply: 'build' as const,
+  transformIndexHtml: {
+    order: 'post' as const,
+    handler(html: string, context: { bundle?: Record<string, { type: string; name?: string; fileName: string }> }) {
+      const files: Record<string, string> = {};
+      for (const output of Object.values(context.bundle ?? {})) {
+        const language = output.type === 'chunk' ? /^catalog\.(.+)$/.exec(output.name ?? '')?.[1] : undefined;
+        if (language) files[language] = `${base}${output.fileName}`;
+      }
+      if (!files.en || !files['es-PE']) throw new Error('[build] the language files are missing from the bundle');
+      // Right after the policy and charset, before any stylesheet: a page script waits for the stylesheets above it.
+      const anchor = '<meta charset="UTF-8" />';
+      if (!html.includes(anchor)) throw new Error('[build] index.html no longer has the charset tag the language preload follows');
+      return html.replace(anchor, `${anchor}\n    <script>${languagePreloadScript(files)}</script>`);
+    },
+  },
+});
+
 // Vite configuration for GYLIO
 // - Enables React support
 // - Uses VITE_BASE_PATH so the same build can target GitHub Pages (/gylio/)
@@ -131,7 +156,7 @@ export default defineConfig(({ mode }) => {
   // The Cloudflare deploy (worker/scripts/setup.sh) points this at an empty folder and pins every VITE_ setting
   // itself, so a stray .env file on the Mac that deploys cannot change what ships.
   envDir: process.env.GYLIO_ENV_DIR || undefined,
-  plugins: [react(), contentSecurityPolicy(), emitLegalPages(), catalogAddresses(), precacheList()],
+  plugins: [react(), contentSecurityPolicy(), emitLegalPages(), catalogAddresses(), languagePreload(), precacheList()],
   build: {
     manifest: true,
     rollupOptions: {
@@ -170,35 +195,12 @@ export default defineConfig(({ mode }) => {
         find: '/gylio/',
         replacement: `${path.resolve(__dirname, '.')}/`,
       },
-      {
-        find: 'expo-notifications',
-        replacement: path.resolve(__dirname, 'src/shims/expo-notifications.ts'),
-      },
-      {
-        find: 'expo-speech',
-        replacement: path.resolve(__dirname, 'src/shims/expo-speech.ts'),
-      },
-      {
-        find: 'expo-av',
-        replacement: path.resolve(__dirname, 'src/shims/expo-av.ts'),
-      },
-      {
-        find: 'expo-sqlite',
-        replacement: path.resolve(__dirname, 'src/shims/expo-sqlite.ts'),
-      },
     ],
   },
   optimizeDeps: {
     esbuildOptions: {
       loader: { '.js': 'jsx' },
     },
-    exclude: [
-      'expo-speech',
-      'expo-av',
-      'expo-sqlite',
-      'expo-notifications',
-      'expo-router',
-    ],
   },
   server: {
     fs: {

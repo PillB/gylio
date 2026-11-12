@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { describe, expect, it, vi } from 'vitest';
-import { speak, stop } from './expo-speech';
+import { speak, stop } from './readAloud';
 
-describe('expo-speech web shim', () => {
+describe('read aloud', () => {
   it('calls speechSynthesis when available', () => {
     const speakSpy = vi.fn();
     const cancelSpy = vi.fn();

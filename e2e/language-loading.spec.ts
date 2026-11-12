@@ -75,6 +75,40 @@ test('a browser set to Spanish opens in Spanish without downloading the English 
   await context.close();
 });
 
+// index.html starts the first language's text downloading while the app's code arrives (src/i18n/preloadScript.js),
+// instead of after it. The app's code is held back a second here: without the early start, the text could not be
+// asked for until that code had arrived and run.
+const MAIN = /\/assets\/main-[\w-]+\.js$/;
+const timings = (page: Page) =>
+  page.evaluate(() => {
+    const entries = performance.getEntriesByType('resource') as PerformanceResourceTiming[];
+    const main = entries.find((entry) => /\/assets\/main-[\w-]+\.js$/.test(entry.name));
+    return {
+      mainArrived: main?.responseEnd ?? 0,
+      language: entries
+        .filter((entry) => /\/assets\/catalog\./.test(entry.name))
+        .map((entry) => ({ file: new URL(entry.name).pathname.split('/').pop()!.split('-')[0], startedBeforeMain: entry.startTime < (main?.responseEnd ?? 0) })),
+    };
+  });
+
+test("the first language's text starts downloading with the app's code, once", async ({ browser }) => {
+  for (const [locale, file, nav] of [['en-US', 'catalog.en', 'Primary navigation'], ['es-MX', 'catalog.es', 'Navegación principal']] as const) {
+    const context = await browser.newContext({ locale });
+    const page = await context.newPage();
+    await page.route(MAIN, async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await route.continue();
+    });
+    const asked = await open(page, 'tasks');
+    await expect(page.getByRole('navigation', { name: nav })).toBeVisible();
+    const { mainArrived, language } = await timings(page);
+    expect(mainArrived).toBeGreaterThan(1000);
+    expect(language).toEqual([{ file, startedBeforeMain: true }]);
+    expect(asked.filter((path) => ENGLISH.test(path) || SPANISH.test(path))).toHaveLength(1);
+    await context.close();
+  }
+});
+
 test('the app stays in English and says why when the Spanish text cannot be fetched', async ({ page }) => {
   await page.route(SPANISH, (route) => route.abort('internetdisconnected'));
   await open(page);

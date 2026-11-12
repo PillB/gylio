@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { SQLResultSetRowList, SQLTransaction } from 'expo-sqlite';
+import type { SQLResultSetRowList, SQLTransaction } from '../device/localDatabase';
 import { initializeDatabase, type Database } from '../db';
 import { legacySyncEnabled, requestBackgroundSync } from '../utils/backgroundSync';
 import { enqueueSyncAction, type SyncActionType, type SyncEntityType } from '../utils/offlineSync';

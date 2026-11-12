@@ -10,5 +10,10 @@
   "privacyPolicy": "Política de Privacidad",
   "legalLinks": "Información legal",
   "legalLastUpdated": "Última actualización: {{date}}",
-  "languageLoadFailed": "No se pudo cargar ese idioma. Revisa tu conexión e inténtalo de nuevo."
+  "languageLoadFailed": "No se pudo cargar ese idioma. Revisa tu conexión e inténtalo de nuevo.",
+  "signInTitle": "Iniciar sesión",
+  "signUpTitle": "Crea tu cuenta",
+  "accountFormLoading": "Cargando el formulario…",
+  "accountFormFailed": "El formulario no pudo cargarse. Revisa tu conexión y vuelve a intentarlo.",
+  "accountFormRetry": "Intentar de nuevo"
 }
