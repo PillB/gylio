@@ -3,6 +3,8 @@ import { authenticate, AuthError, type AuthEnv } from './auth';
 import { MeteredDb } from './db';
 import { forgetIdentities, resolveUserId } from './identity';
 import { ROWS_PER_INSERT, validateEvents, type StoredEvent } from './analytics';
+import { KINDS, REPORTS_PER_DAY, STATUSES, toOwnReport, toReport, validateFeedback, validateTriage, type ReportRow } from './feedback';
+import { summarize, type SummaryEvent } from './summarize';
 import { readJson } from './readJson';
 import { SCHEMAS, validateRecord } from './schemas';
 import { API_CSP, SECURITY_HEADERS } from './securityHeaders';
@@ -15,8 +17,10 @@ type Env = AuthEnv &
     MAX_RECORDS_PER_USER?: string;
     /** Who holds the personal data. Passed with `--var` at deploy from a private file; never committed. */
     HOLDER_NAME?: string;
+    /** Sign-in subjects of the people who may open the admin console, comma-separated. Set at deploy; never committed. */
+    ADMIN_SUBJECTS?: string;
   };
-type Vars = { userId: string; db: MeteredDb };
+type Vars = { userId: string; subject: string; db: MeteredDb };
 
 const MAX_PULL = 200;
 const ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
@@ -46,7 +50,7 @@ app.use('*', async (c, next) => {
 });
 
 app.options('*', (c) => {
-  c.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+  c.header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
   c.header('Access-Control-Allow-Headers', 'Authorization,Content-Type');
   c.header('Access-Control-Max-Age', '86400');
   return c.body(null, 204);
@@ -61,6 +65,7 @@ app.get(HEALTH_PATH, async (c) => {
     await db.first('SELECT 1 FROM records LIMIT 1');
     await db.first('SELECT 1 FROM identities LIMIT 1');
     await db.first('SELECT 1 FROM analytics_events LIMIT 1');
+    await db.first('SELECT 1 FROM feedback_reports LIMIT 1');
   } catch {
     databaseReady = false;
   }
@@ -131,7 +136,104 @@ app.use('/api/*', async (c, next) => {
   const userId = await resolveUserId(c.get('db'), identity, { allowCreate: signupOpen(c.env) });
   if (!userId) throw new AuthError(503, 'SIGNUP_CLOSED', 'Sign-up is not open yet');
   c.set('userId', userId);
+  c.set('subject', identity.subject);
   return next();
+});
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+const REPORT_COLUMNS = 'id, userId, kind, title, description, severity, stepsToReproduce, expected, actual, route, context, status, adminNote, createdAt, updatedAt';
+
+/** A bug report, idea or question from the person signed in. */
+app.post('/api/feedback', async (c) => {
+  const body = await readJson(c.req.raw);
+  const checked = body ? validateFeedback(body) : { errors: [{ field: 'body', message: 'Body must be a JSON object under 64 KB' }] };
+  if ('errors' in checked) return c.json({ error: { code: 'VALIDATION_ERROR', message: 'Invalid report', details: checked.errors } }, 400);
+  const db = c.get('db');
+  const userId = c.get('userId');
+  const now = Date.now();
+  const recent = await db.first<{ n: number }>('SELECT COUNT(*) AS n FROM feedback_reports WHERE userId = ? AND createdAt > ?', userId, now - DAY_MS);
+  if ((recent?.n ?? 0) >= REPORTS_PER_DAY) {
+    return c.json({ error: { code: 'RATE_LIMITED', message: `At most ${REPORTS_PER_DAY} reports a day` } }, 429);
+  }
+  const report = checked.value;
+  const id = crypto.randomUUID();
+  const row = await db.first<ReportRow>(
+    `INSERT INTO feedback_reports (id, userId, kind, title, description, severity, stepsToReproduce, expected, actual, route, context, status, adminNote, createdAt, updatedAt)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'new', NULL, ?, ?) RETURNING ${REPORT_COLUMNS}`,
+    id, userId, report.kind, report.title, report.description, report.severity, report.stepsToReproduce, report.expected, report.actual, report.route,
+    JSON.stringify(report.context), now, now,
+  );
+  return c.json(toOwnReport(row!), 201);
+});
+
+/** The person's own reports with their triage status, so testers see progress. */
+app.get('/api/feedback/mine', async (c) => {
+  const rows = await c.get('db').all<ReportRow>(
+    `SELECT ${REPORT_COLUMNS} FROM feedback_reports WHERE userId = ? ORDER BY createdAt DESC LIMIT 100`,
+    c.get('userId'),
+  );
+  return c.json({ reports: rows.map(toOwnReport) });
+});
+
+/** Whether the person signed in is one of the sign-in subjects named in ADMIN_SUBJECTS. */
+const isAdmin = (env: Env, subject: string) => (env.ADMIN_SUBJECTS ?? '').split(',').map((s) => s.trim()).filter(Boolean).includes(subject);
+
+/** Whether to offer the admin console to the person signed in. Says nothing about anyone else. */
+app.get('/api/me/admin', (c) => c.json({ admin: isAdmin(c.env, c.get('subject')) }));
+
+/** The admin console: only for admins. Everyone else is told no, the same way. */
+app.use('/api/admin/*', async (c, next) => {
+  if (!isAdmin(c.env, c.get('subject'))) return c.json({ error: { code: 'FORBIDDEN', message: 'Admins only' } }, 403);
+  return next();
+});
+
+const ANALYTICS_DAYS = [1, 7, 30, 90];
+const MAX_SUMMARY_EVENTS = 50_000;
+
+/** The analytics dashboard for the last 1, 7, 30 or 90 days. Reads at most 50,000 events (a 1% of the daily read allowance). */
+app.get('/api/admin/analytics', async (c) => {
+  const asked = Number(c.req.query('days'));
+  const days = ANALYTICS_DAYS.includes(asked) ? asked : 30;
+  const to = Date.now();
+  const from = to - days * DAY_MS;
+  const rows = await c.get('db').all<{ name: string; sessionId: string; signedIn: number; props: string; receivedAt: number }>(
+    'SELECT name, sessionId, signedIn, props, receivedAt FROM analytics_events WHERE receivedAt >= ? AND receivedAt <= ? ORDER BY receivedAt LIMIT ?',
+    from, to, MAX_SUMMARY_EVENTS,
+  );
+  const events: SummaryEvent[] = rows.map((row) => ({ ...row, signedIn: row.signedIn === 1, props: JSON.parse(row.props || '{}') }));
+  return c.json({ days, truncated: events.length >= MAX_SUMMARY_EVENTS, ...summarize(events, { from, to }) });
+});
+
+/** Every report, newest first, optionally by status or kind. */
+app.get('/api/admin/feedback', async (c) => {
+  const status = c.req.query('status');
+  const kind = c.req.query('kind');
+  const clauses: string[] = [];
+  const params: unknown[] = [];
+  if (status && (STATUSES as readonly string[]).includes(status)) {
+    clauses.push('status = ?');
+    params.push(status);
+  }
+  if (kind && (KINDS as readonly string[]).includes(kind)) {
+    clauses.push('kind = ?');
+    params.push(kind);
+  }
+  const where = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
+  const rows = await c.get('db').all<ReportRow>(`SELECT ${REPORT_COLUMNS} FROM feedback_reports ${where} ORDER BY createdAt DESC LIMIT 500`, ...params);
+  return c.json({ reports: rows.map((row) => toReport(row, { withOwner: true })) });
+});
+
+/** An admin sets a report's status, severity or note. */
+app.patch('/api/admin/feedback/:id', async (c) => {
+  const body = await readJson(c.req.raw);
+  const checked = body ? validateTriage(body) : { errors: [{ field: 'body', message: 'Body must be a JSON object under 64 KB' }] };
+  if ('errors' in checked) return c.json({ error: { code: 'VALIDATION_ERROR', message: 'Invalid update', details: checked.errors } }, 400);
+  const fields = Object.keys(checked.value) as (keyof typeof checked.value)[];
+  const row = await c.get('db').first<ReportRow>(
+    `UPDATE feedback_reports SET ${fields.map((field) => `${field} = ?`).join(', ')}, updatedAt = ? WHERE id = ? RETURNING ${REPORT_COLUMNS}`,
+    ...fields.map((field) => checked.value[field] ?? null), Date.now(), c.req.param('id'),
+  );
+  return row ? c.json(toReport(row, { withOwner: true })) : c.json({ error: { code: 'NOT_FOUND', message: 'Report not found' } }, 404);
 });
 
 type Row = { id: string; entity: string; data: string; updatedAt: number; deleted: number; version: number; seq: number };
@@ -168,16 +270,19 @@ app.get('/api/me/export', async (c) => {
     `SELECT ${COLUMNS} FROM records WHERE userId = ? AND deleted = 0 ORDER BY entity, seq`,
     c.get('userId'),
   );
-  return c.json({ exportedAt: Date.now(), records: results.map(toRecord) });
+  // The reports they wrote, as they wrote them; an admin's note on a report is not theirs.
+  const reports = await c.get('db').all<ReportRow>(`SELECT ${REPORT_COLUMNS} FROM feedback_reports WHERE userId = ? ORDER BY createdAt`, c.get('userId'));
+  return c.json({ exportedAt: Date.now(), records: results.map(toRecord), reports: reports.map((row) => ({ ...toReport(row), adminNote: undefined })) });
 });
 
-/** Erases every row for the signed-in person, tombstones, counters and sign-in mapping included (right to erasure). */
+/** Erases every row for the signed-in person, tombstones, counters, sign-in mapping and reports included (right to erasure). */
 app.delete('/api/me', async (c) => {
   const userId = c.get('userId');
   await c.get('db').batch([
     c.get('db').prepare('DELETE FROM records WHERE userId = ?', userId),
     c.get('db').prepare('DELETE FROM user_seq WHERE userId = ?', userId),
     c.get('db').prepare('DELETE FROM identities WHERE userId = ?', userId),
+    c.get('db').prepare('DELETE FROM feedback_reports WHERE userId = ?', userId),
   ]);
   forgetIdentities(userId);
   return c.body(null, 204);
