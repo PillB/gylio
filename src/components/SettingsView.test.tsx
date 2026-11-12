@@ -11,8 +11,8 @@ const state = {
   ttsEnabled: false,
   gamificationEnabled: true,
   dailyMode: false,
-  isAdmin: false,
-  serverFeatures: true,
+  adminAccess: 'not_admin',
+  reports: true,
   isTinted: false,
 };
 const setAnimationsEnabled = vi.fn();
@@ -59,8 +59,8 @@ vi.mock('../core/context/TaskTimerContext', () => ({
 vi.mock('../features/ads/AdSlot', () => ({ default: () => null }));
 vi.mock('../features/account/YourDataSection', () => ({ default: () => null }));
 vi.mock('../features/account/SignOutSection', () => ({ default: () => null }));
-vi.mock('../features/billing/EntitlementContext', () => ({ useEntitlement: () => ({ entitlement: { isAdmin: state.isAdmin } }) }));
-vi.mock('../core/utils/serverFeatures', () => ({ serverFeaturesEnabled: () => state.serverFeatures }));
+vi.mock('../features/admin/useAdminAccess', () => ({ useAdminAccess: () => state.adminAccess }));
+vi.mock('../core/utils/serverFeatures', () => ({ reportsEnabled: () => state.reports }));
 
 const sentAs = (name: string) =>
   (JSON.parse(localStorage.getItem('analytics:queue') ?? '[]') as { name: string; props: unknown }[])
@@ -73,7 +73,7 @@ const box = (name: string) => screen.getByRole('checkbox', { name }) as HTMLInpu
 
 describe('SettingsView', () => {
   beforeEach(() => {
-    Object.assign(state, { animationsEnabled: true, ttsEnabled: false, gamificationEnabled: true, dailyMode: false, isAdmin: false, serverFeatures: true, isTinted: false });
+    Object.assign(state, { animationsEnabled: true, ttsEnabled: false, gamificationEnabled: true, dailyMode: false, adminAccess: 'not_admin', reports: true, isTinted: false });
     vi.clearAllMocks();
     localStorage.removeItem('analytics:queue');
   });
@@ -168,7 +168,7 @@ describe('SettingsView', () => {
   });
 
   it('leaves the report link out where reports cannot be sent', () => {
-    state.serverFeatures = false;
+    state.reports = false;
     show();
     expect(screen.queryByRole('link', { name: 'feedback.settings.qaLink' })).toBeNull();
     expect(within(section('settingsHelpHeading')).queryByRole('navigation')).toBeNull();
@@ -182,7 +182,15 @@ describe('SettingsView', () => {
     expect(about.queryByRole('link', { name: 'feedback.settings.adminLink' })).toBeNull();
     expect(about.queryByRole('link', { name: 'feedback.settings.qaLink' })).toBeNull();
     unmount();
-    state.isAdmin = true;
+    // Not while the server is still being asked, nor when it could not be asked.
+    for (const adminAccess of ['checking', 'unknown']) {
+      state.adminAccess = adminAccess;
+      const shown = show();
+      expect(within(section('aboutHeading')).getByRole('link', { name: 'feedback.settings.planLink' })).toBeTruthy();
+      expect(screen.queryByRole('link', { name: 'feedback.settings.adminLink' }), adminAccess).toBeNull();
+      shown.unmount();
+    }
+    state.adminAccess = 'admin';
     show();
     expect(within(section('aboutHeading')).getByRole('link', { name: 'feedback.settings.adminLink' }).getAttribute('href')).toBe('/admin');
   });

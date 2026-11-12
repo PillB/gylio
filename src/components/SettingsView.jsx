@@ -15,8 +15,8 @@ import { Link } from 'react-router-dom';
 import AdSlot from '../features/ads/AdSlot';
 import YourDataSection from '../features/account/YourDataSection';
 import SignOutCard from '../features/account/SignOutSection';
-import { useEntitlement } from '../features/billing/EntitlementContext';
-import { serverFeaturesEnabled } from '../core/utils/serverFeatures';
+import { useAdminAccess } from '../features/admin/useAdminAccess';
+import { reportsEnabled } from '../core/utils/serverFeatures';
 import SettingToggle from './settings/SettingToggle';
 import { Events, track } from '../core/analytics';
 import { version as packageVersion } from '../../package.json';
@@ -26,16 +26,16 @@ const APP_VERSION = import.meta.env.VITE_APP_VERSION ?? packageVersion;
 
 /**
  * Links out of Settings, in the section they belong to: reporting a problem (where reports can be
- * sent: serverFeatures.ts) under Help; the plan and, for admins, the admin console under About.
+ * sent: reportsEnabled in serverFeatures.ts) under Help; the plan and, for admins, the admin console under About.
  */
 function SettingsLinks({ only }) {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const { entitlement } = useEntitlement();
+  const admin = useAdminAccess() === 'admin';
   const linkStyle = { color: theme.colors.primary, fontWeight: 600, minHeight: 44, lineHeight: '44px' };
   const links = only === 'help'
-    ? [serverFeaturesEnabled() && { to: '/qa', label: t('feedback.settings.qaLink') }]
-    : [{ to: '/pricing', label: t('feedback.settings.planLink') }, entitlement?.isAdmin && { to: '/admin', label: t('feedback.settings.adminLink') }];
+    ? [reportsEnabled() && { to: '/qa', label: t('feedback.settings.qaLink') }]
+    : [{ to: '/pricing', label: t('feedback.settings.planLink') }, admin && { to: '/admin', label: t('feedback.settings.adminLink') }];
   const shown = links.filter(Boolean);
   if (shown.length === 0) return null;
   return (

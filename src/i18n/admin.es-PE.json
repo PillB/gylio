@@ -3,6 +3,7 @@
   "loading": "Cargando…",
   "notAllowed": "Esta página es solo para administradores de Gylio.",
   "error": "No funcionó. Inténtalo de nuevo.",
+  "accessUnknown": "No se pudo comprobar si puedes abrir esta página. Revisa tu conexión y vuelve a cargarla.",
   "tab": {
     "pro": "Acceso Pro",
     "qa": "Bandeja de pruebas",

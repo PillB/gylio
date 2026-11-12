@@ -33,7 +33,7 @@ vi.mock('@clerk/clerk-react', () => ({
 vi.mock('./features/feedback/QaPage', () => ({ default: () => <p>report page</p> }));
 vi.mock('./features/admin/AdminPage', () => ({ default: () => <p>admin page</p> }));
 
-import App, { serverOnlyRoutes } from './App.jsx';
+import App, { reportRoutes } from './App.jsx';
 import { Navigate } from 'react-router-dom';
 import { OnboardingFlowProvider } from './hooks/useOnboardingFlow.jsx';
 import { ThemeProvider } from './core/context/ThemeContext';
@@ -181,19 +181,25 @@ describe('a build without the full server (the Cloudflare site, GitHub Pages)', 
     expect(await screen.findByRole('button', { name: '✦ Upgrade' })).toBeTruthy();
   });
 
-  it('sends an old link to the report or admin page to Tasks, and opens them in a build with the server', async () => {
+  it('sends an old link to the report or admin page to Tasks without a server for reports, and opens them with one', async () => {
     vi.stubEnv('VITE_BILLING_ENABLED', 'false');
-    const off = serverOnlyRoutes();
+    vi.stubEnv('VITE_SYNC_ENABLED', 'false');
+    const off = reportRoutes();
     expect(off.map((route) => route.path)).toEqual(['qa', 'admin']);
     off.forEach((route) => {
       expect(route.element.type).toBe(Navigate);
       expect(route.element.props.to).toBe('/tasks');
     });
-    vi.stubEnv('VITE_BILLING_ENABLED', 'true');
-    // Each page is downloaded when it is opened, so it shows a moment after its route does.
-    const [qa, admin] = serverOnlyRoutes();
-    render(<>{qa.element}{admin.element}</>);
-    expect(await screen.findByText('report page')).toBeTruthy();
-    expect(await screen.findByText('admin page')).toBeTruthy();
+    // The full server, or the Worker of the build that syncs.
+    for (const [billing, sync] of [['true', 'false'], ['false', 'true']]) {
+      vi.stubEnv('VITE_BILLING_ENABLED', billing);
+      vi.stubEnv('VITE_SYNC_ENABLED', sync);
+      // Each page is downloaded when it is opened, so it shows a moment after its route does.
+      const [qa, admin] = reportRoutes();
+      render(<>{qa.element}{admin.element}</>);
+      expect(await screen.findByText('report page')).toBeTruthy();
+      expect(await screen.findByText('admin page')).toBeTruthy();
+      cleanup();
+    }
   });
 });

@@ -1,12 +1,13 @@
 /**
- * AdminPage — Pro gifts for friends, family and testers, a list of everyone
- * who has Pro and why, and the QA inbox. The server enforces admin access on
- * every call (ADMIN_USER_IDS); this page only hides itself for everyone else.
+ * AdminPage — the QA inbox, the analytics summary and, with the full server, Pro gifts for friends, family and
+ * testers with a list of everyone who has Pro and why. The server enforces admin access on every call
+ * (ADMIN_USER_IDS on the full server, ADMIN_SUBJECTS on the Worker); this page only hides itself for everyone else.
  */
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../core/context/ThemeContext';
-import { useEntitlement } from '../billing/EntitlementContext';
+import { serverFeaturesEnabled } from '../../core/utils/serverFeatures';
+import { useAdminAccess } from './useAdminAccess';
 import AnalyticsTab from './AnalyticsTab';
 import { adminApi, type FeedbackReport, type FeedbackStatus, type Gift, type ProUser } from '../billing/billingApi';
 
@@ -251,25 +252,29 @@ function QaInboxTab() {
   );
 }
 
+type Tab = 'pro' | 'qa' | 'analytics';
+
+// Pro gifts need the billing server; the Worker answers the inbox and the analytics.
+const tabsOfThisBuild = (): Tab[] => (serverFeaturesEnabled() ? ['pro', 'qa', 'analytics'] : ['qa', 'analytics']);
+
+const ACCESS_MESSAGE = { checking: 'admin.loading', not_admin: 'admin.notAllowed', unknown: 'admin.accessUnknown' } as const;
+
 export function AdminPage() {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const styles = useStyles();
-  const { entitlement, loading } = useEntitlement();
-  const [tab, setTab] = useState<'pro' | 'qa' | 'analytics'>('pro');
-  // isAdmin is only known after the server answers; until then this is loading, not "not allowed".
-  if (!entitlement?.isAdmin) {
-    const unknown = loading || entitlement === null || entitlement.isAdmin === undefined;
-    return <p role="status">{unknown ? t('admin.loading') : t('admin.notAllowed')}</p>;
-  }
-  const tabButton = (key: 'pro' | 'qa' | 'analytics') => (
-    <button type="button" role="tab" aria-selected={tab === key} onClick={() => setTab(key)}
+  const access = useAdminAccess();
+  const tabs = tabsOfThisBuild();
+  const [tab, setTab] = useState<Tab>(tabs[0]);
+  if (access !== 'admin') return <p role={access === 'unknown' ? 'alert' : 'status'}>{t(ACCESS_MESSAGE[access])}</p>;
+  const tabButton = (key: Tab) => (
+    <button key={key} type="button" role="tab" aria-selected={tab === key} onClick={() => setTab(key)}
       style={tab === key ? styles.button : styles.quiet}>{t(`admin.tab.${key}`)}</button>
   );
   return (
     <main aria-labelledby="admin-heading" style={{ display: 'grid', gap: theme.spacing.lg, maxWidth: 900, margin: '0 auto' }}>
       <h1 id="admin-heading" style={{ margin: 0 }}>{t('admin.heading')}</h1>
-      <div role="tablist" aria-label={t('admin.heading')} style={{ display: 'flex', gap: 8 }}>{tabButton('pro')}{tabButton('qa')}{tabButton('analytics')}</div>
+      <div role="tablist" aria-label={t('admin.heading')} style={{ display: 'flex', gap: 8 }}>{tabs.map(tabButton)}</div>
       <div role="tabpanel">{tab === 'pro' ? <ProAccessTab /> : tab === 'qa' ? <QaInboxTab /> : <AnalyticsTab />}</div>
     </main>
   );

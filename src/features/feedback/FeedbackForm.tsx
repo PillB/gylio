@@ -9,7 +9,7 @@ import React, { useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 import { useTheme } from '../../core/context/ThemeContext';
-import { track } from '../../core/analytics';
+import { Events, track } from '../../core/analytics';
 import { ApiRequestError, feedbackApi, type FeedbackKind, type FeedbackReport, type Severity } from '../billing/billingApi';
 import { collectDiagnostics } from './diagnostics';
 
@@ -146,11 +146,12 @@ export function FeedbackForm({ onSubmitted, initialKind = 'bug' }: { onSubmitted
     setState({ busy: true, error: null });
     try {
       const report = await feedbackApi.submit(buildPayload(draft, location.pathname, includeDiagnostics ? diagnostics : undefined));
-      track('feedback_submitted', { kind: draft.kind });
+      track(Events.FEEDBACK_SUBMITTED, { kind: draft.kind });
       setDraft({ ...EMPTY, kind: draft.kind });
       setState({ busy: false, error: null });
       onSubmitted(report);
     } catch (error) {
+      track(Events.FEEDBACK_FAILED, { kind: draft.kind, status: error instanceof ApiRequestError ? error.status : 0 });
       setState({ busy: false, error: describeError(error, t) });
     }
   };

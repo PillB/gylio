@@ -14,9 +14,13 @@ import i18n from 'i18next';
 import { ThemeProvider } from '../../core/context/ThemeContext';
 import FeedbackForm from './FeedbackForm';
 
+const { track } = vi.hoisted(() => ({ track: vi.fn() }));
+vi.mock('../../core/analytics', async (original) => ({ ...(await original<object>()), track }));
+
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
+  track.mockClear();
 });
 
 async function renderForm(onSubmitted = vi.fn()) {
@@ -55,6 +59,7 @@ describe('FeedbackForm', () => {
       kind: 'bug', title: 'Timer stops', severity: 'high', stepsToReproduce: '1. Start timer 2. Switch tab', route: '/calendar',
     });
     expect(body.context).toEqual(expect.objectContaining({ locale: 'en', viewport: expect.stringMatching(/^\d+x\d+$/) }));
+    expect(track.mock.calls).toEqual([['feedback_submitted', { kind: 'bug' }]]);
   });
 
   it('drops bug-only fields for an idea and omits diagnostics when unticked', async () => {
@@ -85,5 +90,18 @@ describe('FeedbackForm', () => {
     fill(/qué pasó\?/i, 'El temporizador se reinicia solo.');
     fireEvent.click(screen.getByRole('button', { name: 'Enviar' }));
     expect((await screen.findByRole('alert')).textContent).toMatch(/inicia sesión/i);
+    expect(track.mock.calls).toEqual([['feedback_failed', { kind: 'bug', status: 401 }]]);
+  });
+
+  it('counts a report that got no answer at all as failed with status 0', async () => {
+    await i18n.changeLanguage('en');
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')));
+    await renderForm();
+    fireEvent.click(screen.getByLabelText('Question'));
+    fill(/short summary/i, 'Sync question');
+    fill(/what would you like to know/i, 'Does my data sync between devices?');
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }));
+    expect(await screen.findByRole('alert')).toBeTruthy();
+    expect(track.mock.calls).toEqual([['feedback_failed', { kind: 'question', status: 0 }]]);
   });
 });
