@@ -8,14 +8,30 @@ const StepSchema = new mongoose.Schema(
   { _id: false }
 );
 
-const withUserScope = (definition, options = {}) =>
-  new mongoose.Schema(
+/**
+ * Every synced record carries `version` (optimistic locking: a write that
+ * names the version it read is refused if someone else changed the record
+ * since) and an optional `idempotencyKey` (a retried create returns the
+ * record the first attempt made instead of a duplicate). The unique index is
+ * partial so records without a key never collide.
+ */
+const withUserScope = (definition, options = {}) => {
+  const schema = new mongoose.Schema(
     {
       userId: { type: String, required: true, index: true },
+      version: { type: Number, default: 1, min: 1 },
+      idempotencyKey: { type: String, default: undefined },
       ...definition
     },
-    options
+    // Mongoose's own __v guards array edits only; `version` is the API contract.
+    { versionKey: false, ...options }
   );
+  schema.index(
+    { userId: 1, idempotencyKey: 1 },
+    { unique: true, partialFilterExpression: { idempotencyKey: { $type: 'string' } } }
+  );
+  return schema;
+};
 
 const TaskSchema = withUserScope(
   {

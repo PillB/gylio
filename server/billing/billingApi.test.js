@@ -391,6 +391,22 @@ describe('saved app state', () => {
     expect(stale.body.state).toMatchObject({ version: 2, data: { gylio_sqlite: '{"tasks":[1,2]}' } });
   });
 
+  it('treats a retry of a save whose reply was lost as success, but still refuses different data at an old version', async () => {
+    const put = (body) => request(app).put('/api/state').set(as('user_retry')).send(body);
+    await put({ baseVersion: 0, data: { k: 'a' } });
+    const landed = await put({ baseVersion: 1, data: { k: 'b' } });
+    expect(landed.body.state.version).toBe(2);
+
+    // The reply above is "lost": the device sends the same save again with the version it still holds.
+    const retry = await put({ baseVersion: 1, data: { k: 'b' } });
+    expect(retry.status).toBe(200);
+    expect(retry.body).toMatchObject({ saved: true, state: { version: 2, data: { k: 'b' } } });
+
+    const different = await put({ baseVersion: 1, data: { k: 'c' } });
+    expect(different.status).toBe(409);
+    expect(different.body.saved).toBe(false);
+  });
+
   it('accepts a snapshot larger than the global 256 kB limit but refuses one over 2 MB', async () => {
     const big = 'x'.repeat(600 * 1024);
     expect((await request(app).put('/api/state').set(as('user_big')).send({ baseVersion: 0, data: { k: big } })).status).toBe(200);

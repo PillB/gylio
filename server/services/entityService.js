@@ -9,16 +9,16 @@ const createEntityService = (repository) => ({
     }
     return record;
   },
-  create: (payload, userId) => repository.create(payload, userId),
-  replace: async (id, payload, userId) => {
-    const record = await repository.replace(id, payload, userId);
+  create: (payload, userId, options) => repository.create(payload, userId, options),
+  replace: async (id, payload, userId, options) => {
+    const record = await repository.replace(id, payload, userId, options);
     if (!record) {
       throw new ApiError(404, 'NOT_FOUND', 'Resource not found');
     }
     return record;
   },
-  update: async (id, payload, userId) => {
-    const record = await repository.update(id, payload, userId);
+  update: async (id, payload, userId, options) => {
+    const record = await repository.update(id, payload, userId, options);
     if (!record) {
       throw new ApiError(404, 'NOT_FOUND', 'Resource not found');
     }

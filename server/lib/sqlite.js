@@ -2,6 +2,8 @@ const SQLITE_SCHEMA = [
   `CREATE TABLE IF NOT EXISTS tasks (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     userId TEXT,
+    version INTEGER NOT NULL DEFAULT 1,
+    idempotencyKey TEXT,
     title TEXT NOT NULL,
     status TEXT NOT NULL DEFAULT 'pending',
     subtasks TEXT NOT NULL DEFAULT '[]',
@@ -14,6 +16,8 @@ const SQLITE_SCHEMA = [
   `CREATE TABLE IF NOT EXISTS events (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     userId TEXT,
+    version INTEGER NOT NULL DEFAULT 1,
+    idempotencyKey TEXT,
     title TEXT NOT NULL,
     description TEXT,
     startDate TEXT NOT NULL,
@@ -26,6 +30,8 @@ const SQLITE_SCHEMA = [
   `CREATE TABLE IF NOT EXISTS budgets (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     userId TEXT,
+    version INTEGER NOT NULL DEFAULT 1,
+    idempotencyKey TEXT,
     month TEXT NOT NULL,
     income TEXT NOT NULL DEFAULT '[]',
     categories TEXT NOT NULL DEFAULT '[]',
@@ -34,6 +40,8 @@ const SQLITE_SCHEMA = [
   `CREATE TABLE IF NOT EXISTS transactions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     userId TEXT,
+    version INTEGER NOT NULL DEFAULT 1,
+    idempotencyKey TEXT,
     budgetMonth TEXT NOT NULL,
     amount REAL NOT NULL,
     categoryName TEXT NOT NULL,
@@ -45,6 +53,8 @@ const SQLITE_SCHEMA = [
   `CREATE TABLE IF NOT EXISTS debts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     userId TEXT,
+    version INTEGER NOT NULL DEFAULT 1,
+    idempotencyKey TEXT,
     name TEXT NOT NULL,
     balance REAL NOT NULL,
     annualRate REAL NOT NULL,
@@ -112,7 +122,49 @@ const ensureDebtDueDayColumn = async (db) => {
   }
 };
 
+/**
+ * Databases created before optimistic locking existed gain the two columns.
+ * Existing rows start at version 1. The unique index is partial so rows
+ * without a key never collide, and it is per user so keys cannot be probed
+ * across accounts.
+ */
+const ensureConcurrencyColumns = async (db) => {
+  for (const tableName of USER_SCOPED_TABLES) {
+    if (!(await hasColumn(db, tableName, 'version'))) {
+      await run(db, `ALTER TABLE ${tableName} ADD COLUMN version INTEGER NOT NULL DEFAULT 1`);
+    }
+    if (!(await hasColumn(db, tableName, 'idempotencyKey'))) {
+      await run(db, `ALTER TABLE ${tableName} ADD COLUMN idempotencyKey TEXT`);
+    }
+    await run(
+      db,
+      `CREATE UNIQUE INDEX IF NOT EXISTS idx_${tableName}_idem ON ${tableName}(userId, idempotencyKey) WHERE idempotencyKey IS NOT NULL`
+    );
+  }
+};
+
+/**
+ * One SQLite connection serves the whole process, so contention is between
+ * this process's writes and any other reader (a backup, a second dev server).
+ * WAL lets readers proceed during a write; busy_timeout makes a blocked writer
+ * wait instead of failing at once with SQLITE_BUSY; NORMAL sync is safe under
+ * WAL (a power cut may lose the last commit, never corrupt the file).
+ */
+const SQLITE_PRAGMAS = [
+  'PRAGMA journal_mode = WAL',
+  'PRAGMA busy_timeout = 5000',
+  'PRAGMA synchronous = NORMAL',
+  'PRAGMA foreign_keys = ON'
+];
+
+const configureSqlite = async (db) => {
+  for (const pragma of SQLITE_PRAGMAS) {
+    await all(db, pragma);
+  }
+};
+
 const ensureSqliteSchema = async (db) => {
+  await configureSqlite(db);
   for (const stmt of SQLITE_SCHEMA) {
     // eslint-disable-next-line no-await-in-loop
     await run(db, stmt);
@@ -120,11 +172,13 @@ const ensureSqliteSchema = async (db) => {
 
   await ensureUserScopeColumns(db);
   await ensureDebtDueDayColumn(db);
+  await ensureConcurrencyColumns(db);
 };
 
 module.exports = {
   run,
   get,
   all,
+  configureSqlite,
   ensureSqliteSchema
 };

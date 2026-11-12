@@ -184,3 +184,29 @@ describeSqlite('entityRepository — debts', () => {
     expect(await debtRepo.list(USER_B)).toHaveLength(0);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Upgrading a database created before optimistic locking and idempotency keys
+// ---------------------------------------------------------------------------
+
+describeSqlite('ensureSqliteSchema — legacy database', () => {
+  it('adds version and idempotencyKey, keeps existing rows at version 1, and stays repeatable', async () => {
+    const legacy = new sqlite3pkg.Database(':memory:');
+    await run(legacy, `CREATE TABLE tasks (id INTEGER PRIMARY KEY AUTOINCREMENT, userId TEXT, title TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'pending', subtasks TEXT NOT NULL DEFAULT '[]', plannedDate TEXT,
+      calendarEventId INTEGER, focusPresetMinutes INTEGER,
+      createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, updatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)`);
+    await run(legacy, "INSERT INTO tasks (userId, title) VALUES ('u', 'old row')");
+
+    await ensureSqliteSchema(legacy);
+    await ensureSqliteSchema(legacy);
+
+    const repo = createEntityRepository(noModels, legacy, ENTITY_CONFIG.tasks);
+    const [row] = await repo.list('u');
+    expect(row).toMatchObject({ title: 'old row', version: 1 });
+    const a = await repo.create({ title: 'k' }, 'u', { idempotencyKey: 'same' });
+    const b = await repo.create({ title: 'k' }, 'u', { idempotencyKey: 'same' });
+    expect(b.id).toBe(a.id);
+    legacy.close();
+  });
+});

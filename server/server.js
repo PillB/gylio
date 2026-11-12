@@ -22,6 +22,7 @@ const { createAnalyticsRouter } = require('./routes/analytics');
 const { initBilling, getBillingService } = require('./billing');
 
 const { sqlite } = require('./db/sqliteClient');
+const { mongoConnectionOptions } = require('./db/connectionOptions');
 const { ensureSqliteSchema } = require('./lib/sqlite');
 const { notFoundHandler, errorHandler } = require('./middleware/errorHandler');
 const { requireAuth, optionalAuth, requireAdmin, requirePro } = require('./middleware/auth');
@@ -73,7 +74,8 @@ app.use(
       callback(null, false);
     },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Authorization', 'Content-Type'],
+    allowedHeaders: ['Authorization', 'Content-Type', 'If-Match', 'Idempotency-Key'],
+    exposedHeaders: ['ETag', 'Retry-After'],
     maxAge: 600,
   })
 );
@@ -99,9 +101,9 @@ let persistenceReady = false;
  */
 async function initializePersistence() {
   if (mongoUri) {
-    await mongoose.connect(mongoUri, {
-      serverSelectionTimeoutMS: 10_000,
-    });
+    mongoose.connection.on('disconnected', () => console.warn('MongoDB disconnected; the driver will reconnect, requests answer 503 meanwhile'));
+    mongoose.connection.on('reconnected', () => console.log('MongoDB reconnected'));
+    await mongoose.connect(mongoUri, mongoConnectionOptions());
     await initBilling('mongodb');
     persistenceReady = true;
     console.log('Connected to MongoDB');
@@ -158,12 +160,41 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 3001;
 
+/**
+ * A deploy sends SIGTERM. Stop taking new connections, let in-flight requests
+ * finish (a half-applied write is the failure to avoid), then release the
+ * pool. A hard deadline keeps a stuck request from blocking the restart.
+ */
+const SHUTDOWN_DEADLINE_MS = 10_000;
+
+function installShutdownHandlers(server) {
+  let stopping = false;
+  const shutdown = (signal) => {
+    if (stopping) return;
+    stopping = true;
+    console.log(`${signal} received; draining requests`);
+    const deadline = setTimeout(() => process.exit(1), SHUTDOWN_DEADLINE_MS);
+    deadline.unref();
+    server.close(async () => {
+      try {
+        if (mongoUri) await mongoose.disconnect();
+      } finally {
+        process.exit(0);
+      }
+    });
+  };
+  process.once('SIGTERM', () => shutdown('SIGTERM'));
+  process.once('SIGINT', () => shutdown('SIGINT'));
+}
+
 async function startServer() {
   try {
     await initializePersistence();
-    return app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {
       console.log(`Server listening on port ${PORT}`);
     });
+    installShutdownHandlers(server);
+    return server;
   } catch (error) {
     console.error('Server startup failed before accepting traffic:', error);
     process.exitCode = 1;
