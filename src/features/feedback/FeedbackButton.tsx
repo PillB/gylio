@@ -6,11 +6,29 @@ import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../../core/context/ThemeContext';
+import { useAppAuth } from '../../core/context/AuthContext';
+import { serverFeaturesEnabled } from '../../core/utils/serverFeatures';
 import FeedbackForm from './FeedbackForm';
+
+/** Sign-in first where only signed-in reports are taken (the Worker); the full server also takes them signed out. */
+function SignInFirst({ onLeave }: { onLeave: () => void }) {
+  const { t } = useTranslation();
+  const { theme } = useTheme();
+  return (
+    <div style={{ display: 'grid', gap: theme.spacing.sm, marginTop: theme.spacing.md }}>
+      <p style={{ margin: 0 }}>{t('feedback.qa.signInToReport')}</p>
+      <Link to="/sign-in" onClick={onLeave} style={{ color: theme.colors.primary, fontWeight: 600, minHeight: 44, lineHeight: '44px' }}>
+        {t('shell.signInTitle')}
+      </Link>
+    </div>
+  );
+}
 
 export function FeedbackButton() {
   const { t } = useTranslation();
   const { theme } = useTheme();
+  const { userId } = useAppAuth();
+  const signInFirst = !userId && !serverFeaturesEnabled();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [sentId, setSentId] = useState<string | null>(null);
   // The form is only mounted while the dialog is open: a fresh form each time,
@@ -43,7 +61,8 @@ export function FeedbackButton() {
             minWidth: 44, minHeight: 44, border: 'none', background: 'transparent', color: theme.colors.text, fontSize: '1.25rem', cursor: 'pointer',
           }}>×</button>
         </div>
-        {isOpen && (sentId ? (
+        {isOpen && signInFirst && <SignInFirst onLeave={close} />}
+        {isOpen && !signInFirst && (sentId ? (
           <div role="status" style={{ display: 'grid', gap: theme.spacing.sm, marginTop: theme.spacing.md }}>
             <p style={{ margin: 0 }}>{t('feedback.thanks')}</p>
             <Link to="/qa" onClick={close} style={{ color: theme.colors.primary, fontWeight: 600, minHeight: 44, lineHeight: '44px' }}>
