@@ -48,7 +48,12 @@ function createStateRouter({ store = getBillingStore, clock = () => new Date() }
   router.put('/', asyncHandler(async (req, res) => {
     const { baseVersion, serialized } = validatePut(req.body);
     const result = await store().putUserState(req.user.id, { data: serialized, baseVersion, now: clock().toISOString() });
-    res.status(result.ok ? 200 : 409).json({ saved: result.ok, state: parseState(result.state) });
+    // A retry whose first attempt landed but whose reply was lost arrives with
+    // the old baseVersion and the same bytes. The server already holds exactly
+    // what the caller wants, so that is success, not a conflict to resolve.
+    const alreadySaved = !result.ok && result.state?.data === serialized;
+    const saved = result.ok || alreadySaved;
+    res.status(saved ? 200 : 409).json({ saved, state: parseState(result.state) });
   }));
 
   return router;

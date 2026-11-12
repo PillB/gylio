@@ -22,19 +22,37 @@ const shouldUseMongo = () => {
   return true;
 };
 
+const DUPLICATE_KEY = 11000;
+const isDuplicateKey = (error) =>
+  error?.code === DUPLICATE_KEY || error?.code === 'SQLITE_CONSTRAINT' || /UNIQUE constraint/i.test(error?.message || '');
+
+// The idempotency key is a server-side bookkeeping detail; clients never see it back.
 const toApiRecord = (record) => {
   if (!record) return null;
-  if (record.id !== undefined) return record;
-  const { _id, ...rest } = record;
+  const { _id, idempotencyKey: _key, ...rest } = record;
   return {
-    id: typeof _id === 'string' ? _id : String(_id),
-    ...rest
+    id: record.id !== undefined ? record.id : typeof _id === 'string' ? _id : String(_id),
+    ...rest,
+    // Documents written before optimistic locking have no version: they are version 1.
+    version: Number(rest.version ?? 1)
   };
+};
+
+const versionConflict = (current) =>
+  new ApiError(412, 'VERSION_CONFLICT', 'This record changed since you loaded it', { current });
+
+// Mongo filter for "still at the version the caller saw"; a missing field counts as 1.
+const versionFilter = (expectedVersion) => {
+  if (expectedVersion === undefined || expectedVersion === null) return {};
+  return expectedVersion === 1
+    ? { $or: [{ version: 1 }, { version: { $exists: false } }] }
+    : { version: expectedVersion };
 };
 
 const parseSqliteRow = (row, jsonFields, numericFields) => {
   if (!row) return null;
-  const normalized = { ...row, id: Number(row.id) };
+  const { idempotencyKey: _key, ...rest } = row;
+  const normalized = { ...rest, id: Number(row.id) };
 
   jsonFields.forEach((field) => {
     if (typeof normalized[field] === 'string') {
@@ -119,10 +137,27 @@ const createEntityRepository = (models, sqlite, config) => {
       return parseSqliteRow(row, config.jsonFields, config.numericFields);
     },
 
-    async create(payload, userId) {
+    /**
+     * With an idempotency key, a retried create (the first response was lost)
+     * returns the record the first attempt made. The unique (userId, key)
+     * index decides the race, so two concurrent retries cannot both insert.
+     */
+    async create(payload, userId, { idempotencyKey } = {}) {
       const data = { ...buildCreatePayload(payload, config), userId };
+      if (idempotencyKey) data.idempotencyKey = idempotencyKey;
       assertHasRequired(data, config.requiredOnCreate);
 
+      try {
+        return await this.insert(data, userId);
+      } catch (error) {
+        if (!idempotencyKey || !isDuplicateKey(error)) throw error;
+        const existing = await this.findByIdempotencyKey(idempotencyKey, userId);
+        if (!existing) throw error;
+        return existing;
+      }
+    },
+
+    async insert(data, userId) {
       if (shouldUseMongo()) {
         const created = await mongoModel.create(data);
         return toApiRecord(created.toObject());
@@ -141,71 +176,78 @@ const createEntityRepository = (models, sqlite, config) => {
       return this.getById(result.lastID, userId);
     },
 
-    async replace(id, payload, userId) {
+    async findByIdempotencyKey(idempotencyKey, userId) {
+      if (shouldUseMongo()) {
+        return toApiRecord(await mongoModel.findOne({ userId, idempotencyKey }).lean().exec());
+      }
+      const row = await get(sqlite, `SELECT * FROM ${config.tableName} WHERE userId = ? AND idempotencyKey = ?`, [userId, idempotencyKey]);
+      return parseSqliteRow(row, config.jsonFields, config.numericFields);
+    },
+
+    /**
+     * `expectedVersion` (from If-Match) makes the write conditional: it lands
+     * only if the record is still at the version the caller read, otherwise
+     * a 412 carries the current copy. Omitted = unconditional (old clients).
+     */
+    async replace(id, payload, userId, { expectedVersion } = {}) {
       const data = { ...buildCreatePayload(payload, config), userId };
       assertHasRequired(data, config.requiredOnCreate);
 
       if (shouldUseMongo()) {
-        const updated = await mongoModel
-          .findOneAndReplace({ _id: String(id), userId }, data, {
-            new: true,
-            runValidators: true
-          })
-          .lean()
-          .exec();
-        return toApiRecord(updated);
+        return this.mongoWrite(id, userId, { $set: data, $inc: { version: 1 } }, expectedVersion);
       }
 
       const sqliteId = Number(id);
       if (!Number.isInteger(sqliteId) || sqliteId <= 0) return null;
 
-      const existing = await this.getById(sqliteId, userId);
-      if (!existing) return null;
+      return this.sqliteWrite(sqliteId, userId, data, expectedVersion);
+    },
 
-      const encoded = encodeSqlitePayload(data, config.jsonFields);
+    /** Compare-and-set in one statement: the version check and the write cannot be separated by another writer. */
+    async sqliteWrite(sqliteId, userId, fields, expectedVersion) {
+      const encoded = encodeSqlitePayload(fields, config.jsonFields);
       const columns = Object.keys(encoded);
       const assignments = columns.map((field) => `${field} = ?`).join(', ');
       const values = columns.map((key) => encoded[key]);
+      const unconditional = expectedVersion === undefined || expectedVersion === null;
 
-      await run(
+      const result = await run(
         sqlite,
-        `UPDATE ${config.tableName} SET ${assignments}${config.hasUpdatedAt ? ', updatedAt = CURRENT_TIMESTAMP' : ''} WHERE id = ? AND userId = ?`,
-        [...values, sqliteId, userId]
+        `UPDATE ${config.tableName} SET ${assignments}, version = version + 1${config.hasUpdatedAt ? ', updatedAt = CURRENT_TIMESTAMP' : ''} WHERE id = ? AND userId = ?${unconditional ? '' : ' AND version = ?'}`,
+        unconditional ? [...values, sqliteId, userId] : [...values, sqliteId, userId, expectedVersion]
       );
-      return this.getById(sqliteId, userId);
+      if (result.changes > 0) return this.getById(sqliteId, userId);
+      const current = await this.getById(sqliteId, userId);
+      if (!current) return null;
+      throw versionConflict(current);
     },
 
-    async update(id, payload, userId) {
+    async mongoWrite(id, userId, update, expectedVersion) {
+      const updated = await mongoModel
+        .findOneAndUpdate({ _id: String(id), userId, ...versionFilter(expectedVersion) }, update, { new: true, runValidators: true })
+        .lean()
+        .exec();
+      if (updated) return toApiRecord(updated);
+      if (expectedVersion === undefined || expectedVersion === null) return null;
+      const current = await mongoModel.findOne({ _id: String(id), userId }).lean().exec();
+      if (!current) return null;
+      throw versionConflict(toApiRecord(current));
+    },
+
+    async update(id, payload, userId, { expectedVersion } = {}) {
       const updates = buildUpdatePayload(payload, config);
       if (!Object.keys(updates).length) {
         throw new ApiError(400, 'VALIDATION_ERROR', 'At least one updatable field is required');
       }
 
       if (shouldUseMongo()) {
-        const updated = await mongoModel
-          .findOneAndUpdate({ _id: String(id), userId }, updates, { new: true, runValidators: true })
-          .lean()
-          .exec();
-        return toApiRecord(updated);
+        return this.mongoWrite(id, userId, { $set: updates, $inc: { version: 1 } }, expectedVersion);
       }
 
       const sqliteId = Number(id);
       if (!Number.isInteger(sqliteId) || sqliteId <= 0) return null;
 
-      const existing = await this.getById(sqliteId, userId);
-      if (!existing) return null;
-
-      const encoded = encodeSqlitePayload(updates, config.jsonFields);
-      const columns = Object.keys(encoded);
-      const assignments = columns.map((field) => `${field} = ?`).join(', ');
-      const values = columns.map((key) => encoded[key]);
-
-      await run(
-        sqlite,
-        `UPDATE ${config.tableName} SET ${assignments}${config.hasUpdatedAt ? ', updatedAt = CURRENT_TIMESTAMP' : ''} WHERE id = ? AND userId = ?`,
-        [...values, sqliteId, userId]
-      );
-      return this.getById(sqliteId, userId);
+      return this.sqliteWrite(sqliteId, userId, updates, expectedVersion);
     },
 
     async remove(id, userId) {
