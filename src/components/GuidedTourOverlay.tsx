@@ -144,7 +144,7 @@ export default function GuidedTourOverlay() {
 
   return (
     <>
-      {target.rect && <TourSpotlight rect={target.rect} animate={animate} />}
+      {target.rect && <TourSpotlight rect={target.rect} />}
       {view.centred && <TourBackdrop />}
 
       <div
