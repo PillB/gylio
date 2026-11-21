@@ -11,6 +11,11 @@ import { COMPLEXITY_BASELINE, COMPLEXITY_CEILING } from './eslint.complexity.js'
 const HEX_COLOR = String.raw`(^|[(,]\s*|(\d(px|r?em|%)?|solid|dashed|dotted|double|inset)\s+)#([0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})\b`;
 const rawHexMessage = 'Use a theme token (src/core/themes.ts) or readableTextOn() instead of a raw hex colour.';
 
+// A calendar day cut out of an ISO timestamp is the UTC day, not the person's. Use localDateKey() (src/core/utils/dateKey.ts).
+const utcDayKeySlice = "CallExpression[callee.property.name=/^(slice|substring|substr)$/][callee.object.type='CallExpression'][callee.object.callee.property.name='toISOString']";
+const utcDayKeySplit = "MemberExpression[computed=true][property.value=0] > CallExpression[callee.property.name='split'][callee.object.type='CallExpression'][callee.object.callee.property.name='toISOString']";
+const utcDayKeyMessage = 'toISOString() names the UTC day. Use localDateKey() from src/core/utils/dateKey.ts for the day a person lives in.';
+
 const unusedVarsOptions = { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrors: 'none' };
 
 export default [
@@ -65,6 +70,10 @@ export default [
         'error',
         { selector: `Literal[value=/${HEX_COLOR}/]`, message: rawHexMessage },
         { selector: `TemplateElement[value.raw=/${HEX_COLOR}/]`, message: rawHexMessage },
+        // `new Date().toISOString().slice(0, 10)` (or .split('T')[0]) is the UTC day: tomorrow in Lima after 19:00 and,
+        // for a local-midnight Date, yesterday in Europe and Asia. It broke streaks and recurrence once (dateKey.ts).
+        { selector: utcDayKeySlice, message: utcDayKeyMessage },
+        { selector: utcDayKeySplit, message: utcDayKeyMessage },
       ],
     },
   },
