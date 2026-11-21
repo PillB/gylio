@@ -2,23 +2,30 @@
 
 Every route below that can name an object (an id in the path) or return a list reads the owner from the **verified sign-in token only**, never from the path, query or body. The owner is an internal id (`identities` maps the provider's subject to it). Every database statement on a person's data is scoped by `userId = ?` bound to that value. Nothing is deployed yet; this is the list to run once it is.
 
-`worker/test/separation.test.ts` runs the whole check automatically (person A stores data; person B tries every route with A's real ids). `worker/test/node/separation.test.ts` keeps this table honest: it fails when a route is added, removed or moved without this file changing, and when any statement on `records`, `user_seq` or `identities` lacks the owner filter.
+`worker/test/separation.test.ts` runs the whole check automatically (person A stores data; person B tries every route with A's real ids). `worker/test/node/separation.test.ts` keeps this table honest: it fails when a route is added, removed or moved without this file changing, and when any statement on `records`, `user_seq`, `identities` or `feedback_reports` lacks the owner filter (the admin console's, behind its gate, excepted).
 
 ## Worker routes (`worker/src/index.ts`)
 
-The owner is set once, in the middleware at line 91 (`c.set('userId', userId)`, line 98), from the verified token. No route reads an owner from anywhere else.
+The owner is set once, in the middleware at line 131 (`c.set('userId', userId)`, line 138), from the verified token. No route reads an owner from anywhere else.
 
 | Method and path | Route at line | Ownership check at line | What the check is |
 |---|---|---|---|
-| `GET /api/v1/health` | 55 | none, on purpose | No person's data; booleans and the allowed origin only. |
-| `GET /api/sync/pull` | 115 | 120 | `WHERE userId = ? AND seq > ?`, owner bound at 121. |
-| `GET /api/me/export` | 131 | 133 | `WHERE userId = ? AND deleted = 0`, owner bound at 134. |
-| `DELETE /api/me` | 140 | 143 | Three deletes, each `WHERE userId = ?` (records, counters, sign-in mapping). |
-| `GET /api/:entity/:id` | 153 | 157 | `WHERE userId = ? AND entity = ? AND id = ? AND deleted = 0`. Someone else's id answers 404, the same as an id that does not exist. |
-| `PUT /api/:entity/:id` | 197 | 173 | The read (`currentRow`) is `WHERE userId = ? AND entity = ? AND id = ?`. |
-| | | 233 | The update is `WHERE userId = ? AND entity = ? AND id = ? AND version = ?`. |
-| | | 238 | The insert is keyed `(userId, entity, id)`: the same id under another person is a different row. |
-| `DELETE /api/:entity/:id` | 251 | 260 | `WHERE userId = ? AND entity = ? AND id = ? AND deleted = 0`. Deleting an id you do not own changes nothing and still answers 204. |
+| `GET /api/v1/health` | 60 | none, on purpose | No person's data; booleans and the allowed origin only. |
+| `POST /api/analytics/events` | 105 | none, on purpose | No person's data: events carry no account id and are stored without one (`analytics_events` has no owner column). Open to visitors, from the app's own address only. |
+| `POST /api/feedback` | 147 | 154 | The report is stored under the owner (`VALUES (?, ?, ...`, owner bound at 163); the daily count is `WHERE userId = ?`. |
+| `GET /api/feedback/mine` | 170 | 172 | `WHERE userId = ?`. The admin's note is left out. |
+| `GET /api/me/admin` | 182 | the sign-in itself | Answers only whether the person signed in may open the admin console (their verified sign-in subject is in `ADMIN_SUBJECTS`). Names no one else and reads no data. |
+| `GET /api/admin/analytics` | 194 | admins only, gate at 185 | Analytics carry no owner. Only sign-in subjects in `ADMIN_SUBJECTS` (set at deploy) pass the gate. |
+| `GET /api/admin/feedback` | 208 | admins only, gate at 185 | Every report, on purpose: this is the QA inbox. |
+| `PATCH /api/admin/feedback/:id` | 227 | admins only, gate at 185 | Changes status, severity and the admin's note only. |
+| `GET /api/sync/pull` | 252 | 257 | `WHERE userId = ? AND seq > ?`, owner bound at 258. |
+| `GET /api/me/export` | 268 | 270 | `WHERE userId = ? AND deleted = 0`, owner bound at 271. |
+| `DELETE /api/me` | 279 | 282 | Four deletes, each `WHERE userId = ?` (records, counters, sign-in mapping, reports). |
+| `GET /api/:entity/:id` | 293 | 297 | `WHERE userId = ? AND entity = ? AND id = ? AND deleted = 0`. Someone else's id answers 404, the same as an id that does not exist. |
+| `PUT /api/:entity/:id` | 337 | 313 | The read (`currentRow`) is `WHERE userId = ? AND entity = ? AND id = ?`. |
+| | | 373 | The update is `WHERE userId = ? AND entity = ? AND id = ? AND version = ?`. |
+| | | 378 | The insert is keyed `(userId, entity, id)`: the same id under another person is a different row. |
+| `DELETE /api/:entity/:id` | 391 | 400 | `WHERE userId = ? AND entity = ? AND id = ? AND deleted = 0`. Deleting an id you do not own changes nothing and still answers 204. |
 
 Choices worth knowing about:
 - The same record id may exist under two people. Ids are chosen by the app, so they are only unique per person; a stranger cannot collide with or overwrite yours.

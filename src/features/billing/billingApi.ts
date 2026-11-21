@@ -154,6 +154,8 @@ export type AnalyticsSummary = {
 };
 
 export const adminApi = {
+  /** Whether the person signed in may open the admin console (the Cloudflare Worker; the full server says it in the entitlement). */
+  me: () => request<{ admin: boolean }>('/api/me/admin'),
   analytics: (days: number) => request<AnalyticsSummary>(`/api/admin/analytics?days=${days}`),
   proAccess: () => request<{ users: ProUser[]; gifts: Gift[] }>('/api/admin/pro-access'),
   grantGift: (gift: GiftRequest) => request<Gift>('/api/admin/gifts', { method: 'POST', body: gift }),

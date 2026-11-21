@@ -1,7 +1,7 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('../utils/authToken', () => ({ authHeaders: async (extra?: Record<string, string>) => ({ ...(extra ?? {}) }) }));
-import { uploadOnce } from './upload';
+import { analyticsUploadEnabled, startAnalyticsUpload, uploadOnce } from './upload';
 
 const queue = (n: number) => Array.from({ length: n }, (_, i) => ({ id: `evt-${String(i).padStart(4, '0')}`, signedIn: true, name: 'paywall_viewed', sessionId: 's', ts: i }));
 
@@ -34,5 +34,29 @@ describe('uploadOnce', () => {
     });
     await uploadOnce(fetchImpl);
     expect(JSON.parse(localStorage.getItem('analytics:queue') as string)).toEqual([{ id: 'evt-late', name: 'trial_started', sessionId: 's', ts: 9 }]);
+  });
+});
+
+describe('which builds send analytics', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+  });
+
+  it.each([
+    ['the Cloudflare build (the Worker stores them)', { VITE_SYNC_ENABLED: 'true', VITE_BILLING_ENABLED: 'false' }, true],
+    ['a build with the old server', { VITE_SYNC_ENABLED: '', VITE_BILLING_ENABLED: 'true' }, true],
+    ['the GitHub Pages preview, which has no API', { VITE_SYNC_ENABLED: '', VITE_BILLING_ENABLED: 'false' }, false],
+  ])('%s', async (_build, flags, sends) => {
+    for (const [name, value] of Object.entries(flags)) vi.stubEnv(name, value);
+    localStorage.setItem('analytics:queue', JSON.stringify(queue(3)));
+    const fetchMock = vi.fn(async (_url: RequestInfo | URL, _init?: RequestInit) => new Response('{}', { status: 202 }));
+    vi.stubGlobal('fetch', fetchMock);
+    expect(analyticsUploadEnabled()).toBe(sends);
+    const stop = startAnalyticsUpload();
+    await vi.waitFor(() => expect(fetchMock.mock.calls.length > 0).toBe(sends));
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(fetchMock.mock.calls.map(([url]) => new URL(String(url)).pathname)).toEqual(sends ? ['/api/analytics/events'] : []);
+    stop();
   });
 });

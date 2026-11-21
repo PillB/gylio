@@ -20,7 +20,7 @@ That thread guides, in its order: the separate Free Cloudflare account `gylio`, 
 | `bash worker/scripts/redeploy.sh` | The everyday command. Stops unless you are on `main` with nothing uncommitted, pulls, installs from the lockfiles, then runs setup. |
 | `bash worker/scripts/setup.sh` | Checks the Clerk key and the token, finds or creates the database `gylio` (exact name), writes its id into your local `worker/wrangler.jsonc` ("LOCAL change: do not commit"), applies migrations, builds the site at the root path (always same-origin API, billing off, whatever stray `.env` files are on your Mac), adds `_headers` and security.txt, deploys. |
 | `bash worker/scripts/export.sh [file]` | Backs up the database to a file outside the repository (default `~/gylio-backups/`), readable only by you. |
-| `bash worker/scripts/secret.sh NAME` | Sets one secret at wrangler's own hidden prompt. There are no secrets today. |
+| `bash worker/scripts/secret.sh NAME` | Sets one secret at wrangler's own hidden prompt. The only one today is `ADMIN_SUBJECTS` (section 4c). |
 
 At the prompts: type the account id (visible) and paste the token (hidden; it prints only "Token received (N characters)"). If the values are already exported in the window, it offers them with [Y/n]. Cloudflare refusing the token lets you try three times; no internet or a strange answer stops it. Every stop ends with "Nothing was deployed."
 
@@ -59,6 +59,16 @@ Peru's personal-data law (Ley 29733) requires the holder of the data to be named
 
 Do not announce sign-up publicly before `signupOpen` shows `true` in the health check and the app is connected to the Worker (section 6).
 
+## 4c. Open the admin console for yourself (optional, any time after the first deploy)
+The admin console (the QA inbox with everyone's bug reports, and the analytics summary) opens only for the sign-in ids in the `ADMIN_SUBJECTS` secret. With no secret set it opens for no one, which is safe. The list stays out of the repository.
+
+1. Sign in on `https://gylio.app` once, so your account exists.
+2. Clerk dashboard (production instance), Users, open your user, copy the **User ID** (it starts with `user_`).
+3. On your Mac, from the repository root: `bash worker/scripts/secret.sh ADMIN_SUBJECTS`. At the hidden prompt, paste the id. For more than one admin, paste the ids separated by commas, for example `user_aaa,user_bbb`.
+4. Reload Gylio. Settings, About now shows **Admin console**. It takes effect at once, needs no deploy, and stays set across deploys. To remove someone, run the same command with the shorter list.
+
+The Worker checks the list again on every admin request, so the link appearing is never what grants access.
+
 ## 5. Protect it (free)
 0. GitHub, repository Settings, Rules, Rulesets: create a ruleset for the `main` branch with "Restrict deletions" and "Block force pushes" on, and "Require a pull request before merging" with "Require review from Code Owners" (the owners are listed in `.github/CODEOWNERS`) and the CI checks required. This cannot be done from code; it is the one repository setting that stops a mistaken push from reaching the deploy path. Because you are the only owner, GitHub will let you bypass the review for yourself; that is acceptable and keeps you from locking yourself out.
 1. Cloudflare dashboard, Security, WAF, Rate limiting rules: the Free plan allows a 10-second period and a 10-second block. The setup thread creates the rule. The path is anything starting with `/api/`; a sensible value is 100 requests per 10 seconds per IP, then Block. Sign-in itself happens on Clerk's own host, so there is no sign-in path on our domain to protect.
@@ -71,10 +81,14 @@ The app is already connected to the Worker (device-generated ids, push and pull 
 What the Cloudflare build calls, all on `https://gylio.app` and all under `/api/` (sign-in itself happens on Clerk's own host, so the rate-limit rule in section 5 covers every path we serve):
 - `GET /api/sync/pull?since=<cursor>&limit=<n>`: fetching changes, signed in only.
 - `PUT /api/<entity>/<id>` and `DELETE /api/<entity>/<id>`, for `tasks`, `events`, `budgets`, `transactions` and `debts`: sending changes, signed in only.
+- `POST /api/feedback` and `GET /api/feedback/mine`: sending a bug report, idea or question from the Feedback button or the report page, and seeing what happened to your own, signed in only. At most 20 reports a day per person.
+- `GET /api/me/admin`: whether to show the admin console to the person signed in (section 4c), asked once per visit when Settings or the console opens.
+- `GET /api/admin/feedback`, `PATCH /api/admin/feedback/<id>` and `GET /api/admin/analytics?days=<n>`: the admin console (QA inbox, triage and the analytics summary), for the ids in `ADMIN_SUBJECTS` only; everyone else gets 403.
+- `POST /api/analytics/events`: product-analytics events (what happened, never who: no account id and nothing a person typed), signed in or not, from `https://gylio.app` only. The Worker stops taking them at half of any daily allowance, so they can never be what pauses sync; the app keeps them queued and sends them later.
 - `GET /api/v1/health`: only the deploy scripts and your checks; the app never calls it.
 - `GET /api/me/export` and `DELETE /api/me` exist on the Worker for the account thread; the app does not call them yet.
 
-What it does not call, because the Worker has no route for them: Pro status, plans, trial and checkout (`/api/billing/*`), bug reports (`/api/feedback*`), the admin pages (`/api/admin/*`), the analytics upload (`/api/analytics/events`), AI suggestions (`/api/ai/*`), the old whole-device save (`/api/state`) and the old sync queue (`/api/tasks`, `/api/events`, `/api/transactions`). The build switches each of them off (`VITE_BILLING_ENABLED=false`, `VITE_SYNC_ENABLED=true`, an empty `VITE_API_BASE_URL`; `src/core/utils/serverFeatures.ts`), so the Feedback button, the report and admin pages and the AI suggestion box do not show there. The GitHub Pages site has no sign-in and calls none of these addresses.
+What it does not call, because the Worker has no route for them: Pro status, plans, trial and checkout (`/api/billing/*`), Pro gifts and the list of Pro users (`/api/admin/pro-access`, `/api/admin/gifts`), AI suggestions (`/api/ai/*`), the old whole-device save (`/api/state`) and the old sync queue (`/api/tasks`, `/api/events`, `/api/transactions`). The build switches each of them off (`VITE_BILLING_ENABLED=false`, `VITE_SYNC_ENABLED=true`, an empty `VITE_API_BASE_URL`; `src/core/utils/serverFeatures.ts`), so the upgrade button, the console's Pro access tab and the AI suggestion box do not show there. The GitHub Pages site has no sign-in and calls none of these addresses.
 
 ## If something goes wrong
 - "Not on main" or "Uncommitted changes": the script is protecting you from deploying something that is not on `main`. The only change it allows is the database id in `worker/wrangler.jsonc`.

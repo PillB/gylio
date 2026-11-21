@@ -77,7 +77,7 @@ beforeEach(async () => {
   localStorage.clear();
   localStorage.setItem('onboardingFlowState', ONBOARDED);
   await i18n.changeLanguage('en');
-  // The report and admin pages, and the header's Feedback button, exist only in a build with the full server.
+  // The report and admin pages, and the header's Feedback button, exist only in a build with a server for reports.
   vi.stubEnv('VITE_BILLING_ENABLED', 'true');
   media.phone = false;
   media.listeners.clear();
@@ -128,6 +128,18 @@ describe('the header when the window changes width', () => {
     await waitFor(() => expect(screen.queryByRole('button', { name: 'Feedback' })).toBeNull());
     act(() => resizeTo(false));
     expect(await screen.findByRole('button', { name: 'Feedback' })).toBeTruthy();
+  });
+
+  it('shows it where a report can be sent: with the full server or the Worker, not on GitHub Pages', async () => {
+    const builds: [billing: string, sync: string, shown: boolean][] = [['false', 'true', true], ['false', 'false', false]];
+    for (const [billing, sync, shown] of builds) {
+      vi.stubEnv('VITE_BILLING_ENABLED', billing);
+      vi.stubEnv('VITE_SYNC_ENABLED', sync);
+      openAppAt('/settings');
+      await screen.findByRole('heading', { level: 2, name: 'Settings' });
+      expect(Boolean(screen.queryByRole('button', { name: 'Feedback' })), `billing ${billing}, sync ${sync}`).toBe(shown);
+      cleanup();
+    }
   });
 
   it('opens without it on a phone', async () => {

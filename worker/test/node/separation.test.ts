@@ -33,6 +33,21 @@ describe('the data separation list matches the code', () => {
       .concat(rows.filter((r) => r[0] === '' && /^\d+$/.test(r[2] ?? '')).map((r) => Number(r[2])));
     expect(cited.length).toBeGreaterThanOrEqual(8);
     for (const line of cited) expect(lines[line - 1], `line ${line}`).toMatch(/userId/);
+    const bound = [...doc.matchAll(/owner bound at (\d+)/g)].map((m) => Number(m[1]));
+    expect(bound.length).toBeGreaterThanOrEqual(3);
+    for (const line of bound) expect(lines[line - 1], `line ${line}`).toMatch(/userId/);
+  });
+
+  it('names the middleware that sets the owner, and the admin gate, at their lines', () => {
+    const [, middleware, set] = /in the middleware at line (\d+) \(`c\.set\('userId', userId\)`, line (\d+)\)/.exec(doc) ?? [];
+    expect(lines[Number(middleware) - 1]).toMatch(/^app\.use\('\/api\/\*'/);
+    expect(lines[Number(set) - 1]).toMatch(/c\.set\('userId', userId\)/);
+    const gates = [...doc.matchAll(/admins only, gate at (\d+)/g)].map((m) => Number(m[1]));
+    expect(gates.length).toBeGreaterThanOrEqual(3);
+    for (const line of gates) expect(lines[line - 1], `line ${line}`).toMatch(/^app\.use\('\/api\/admin\/\*'/);
+    // Every admin route comes after the gate, so the gate runs first.
+    const gateLine = gates[0];
+    for (const route of registered.filter((r) => r.path.startsWith('/api/admin/'))) expect(route.line).toBeGreaterThan(gateLine);
   });
 
   it('sets the owner once, from the verified sign-in, and nowhere else', () => {
@@ -44,10 +59,16 @@ describe('the data separation list matches the code', () => {
   it("scopes every statement on a person's rows by owner", () => {
     // Every quoted or template string that names one of the owner-keyed tables must carry the owner column.
     // The health probe (SELECT 1 ... LIMIT 1) returns no row to anyone and is the only exemption.
+    // The admin console reads every report on purpose; its routes sit behind the admin gate (checked above).
+    const adminRanges = registered
+      .filter((r) => r.path.startsWith('/api/admin/'))
+      .map((r) => [r.line, registered.find((next) => next.line > r.line)?.line ?? lines.length] as const);
+    const inAdmin = (line: number) => adminRanges.some(([from, to]) => line >= from && line < to);
     const literals = [...source.matchAll(/`[^`]*`|'[^'\n]*'/g)]
       .map((m) => ({ text: m[0], line: source.slice(0, m.index).split('\n').length }))
-      .filter(({ text }) => /\b(FROM|UPDATE|INTO)\s+(records|user_seq|identities)\b/.test(text))
-      .filter(({ text }) => !/^'SELECT 1 FROM \w+ LIMIT 1'$/.test(text));
+      .filter(({ text }) => /\b(FROM|UPDATE|INTO)\s+(records|user_seq|identities|feedback_reports)\b/.test(text))
+      .filter(({ text }) => !/^'SELECT 1 FROM \w+ LIMIT 1'$/.test(text))
+      .filter(({ line }) => !inAdmin(line));
     expect(literals.length).toBeGreaterThanOrEqual(8);
     for (const { text, line } of literals) expect(text, `line ${line}`).toMatch(/\buserId\b/);
   });

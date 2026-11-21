@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { serverFeaturesEnabled } from './serverFeatures';
+import { reportsEnabled, serverFeaturesEnabled } from './serverFeatures';
 
 afterEach(() => vi.unstubAllEnvs());
 
@@ -15,5 +15,21 @@ describe('serverFeaturesEnabled', () => {
     expect(serverFeaturesEnabled()).toBe(false);
     vi.stubEnv('VITE_BILLING_ENABLED', 'true');
     expect(serverFeaturesEnabled()).toBe(true);
+  });
+});
+
+describe('reportsEnabled', () => {
+  it('is on with the full server or with the Worker, and off with neither (GitHub Pages)', () => {
+    const cases: [billing: string, sync: string, expected: boolean][] = [
+      ['true', 'false', true],
+      ['false', 'true', true],
+      ['true', 'true', true],
+      ['false', 'false', false],
+    ];
+    cases.forEach(([billing, sync, expected]) => {
+      vi.stubEnv('VITE_BILLING_ENABLED', billing);
+      vi.stubEnv('VITE_SYNC_ENABLED', sync);
+      expect(reportsEnabled(), `billing ${billing}, sync ${sync}`).toBe(expected);
+    });
   });
 });

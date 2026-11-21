@@ -50,17 +50,17 @@ import DailyCommandCenter from './features/dashboard/DailyCommandCenter';
 import { EntitlementProvider } from './features/billing/EntitlementContext';
 import TrialBanner from './features/billing/TrialBanner';
 import FeedbackButton from './features/feedback/FeedbackButton';
-import { serverFeaturesEnabled } from './core/utils/serverFeatures';
+import { reportsEnabled, serverFeaturesEnabled } from './core/utils/serverFeatures';
 import { installErrorCapture } from './features/feedback/diagnostics';
 import { startAnalyticsUpload } from './core/analytics/upload';
 import { AccountSyncProvider } from './features/account/AccountSyncContext';
 import SyncConflictBanner from './features/account/SyncConflictBanner';
 import { NotFoundPage, RouteErrorPage } from './features/routeProblem/RouteProblem';
 
-// Phones reach feedback from Settings → Report a bug or idea, so the header stays one line. Reports go to the full
-// server, so a build without it (serverFeatures.ts: the Cloudflare site, GitHub Pages) shows no button that cannot send.
+// Phones reach feedback from Settings → Report a bug or idea, so the header stays one line. A build with nowhere to
+// send a report (reportsEnabled in serverFeatures.ts: GitHub Pages) shows no button that cannot send.
 function HeaderFeedback({ isOnboarding, isMobile }) {
-  return isOnboarding || isMobile || !serverFeaturesEnabled() ? null : <FeedbackButton />;
+  return isOnboarding || isMobile || !reportsEnabled() ? null : <FeedbackButton />;
 }
 
 // Pages most visits never open (the legal texts alone are 90 kB) are downloaded when first opened.
@@ -81,10 +81,10 @@ function OnDemand({ children }) {
 // so a screen reader's list of headings starts with the page the person is on.
 const OWN_TITLE = { handle: { ownTitle: true } };
 
-// The report page and the admin pages only work with the full server; without it, an old link opens Tasks.
-export function serverOnlyRoutes() {
+// The report page and the admin console need a server that takes reports; without one, an old link opens Tasks.
+export function reportRoutes() {
   const pages = { qa: <OnDemand><QaPage /></OnDemand>, admin: <OnDemand><AdminPage /></OnDemand> };
-  return Object.entries(pages).map(([path, page]) => ({ path, ...OWN_TITLE, element: serverFeaturesEnabled() ? page : <Navigate to="/tasks" replace /> }));
+  return Object.entries(pages).map(([path, page]) => ({ path, ...OWN_TITLE, element: reportsEnabled() ? page : <Navigate to="/tasks" replace /> }));
 }
 
 /** The app name: the page's title on screens that have no title of their own, plain text on those that do. */
@@ -539,7 +539,7 @@ function buildAuthRouter(clerkEnabled) {
             element: clerkEnabled ? <ProtectedLayoutAuthed /> : <ProtectedLayoutNoAuth />,
             children: [
               { path: 'onboarding', element: <OnboardingRoute /> },
-              ...serverOnlyRoutes(),
+              ...reportRoutes(),
               { element: <TabsLayout />, children: tabRoutes },
             ],
           },

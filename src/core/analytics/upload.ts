@@ -1,13 +1,15 @@
 /**
  * upload — sends queued analytics events to the Gylio API in small batches.
  *
- * Only runs when the build has a backend (VITE_BILLING_ENABLED=true); static
- * previews keep events local. Events leave the queue only after the server
+ * Runs when the build has an API to send them to: the Cloudflare build (the
+ * Worker stores them; VITE_SYNC_ENABLED=true) or a build with the old server
+ * (VITE_BILLING_ENABLED=true). The GitHub Pages preview keeps events local. Events leave the queue only after the server
  * accepted them, so going offline loses nothing.
  */
 import { authHeaders } from '../utils/authToken';
 import { apiUrl } from '../utils/apiUrl';
 import { serverFeaturesEnabled } from '../utils/serverFeatures';
+import { syncEnabled } from '../sync/flag';
 
 const QUEUE_KEY = 'analytics:queue';
 const BATCH = 50;
@@ -60,8 +62,11 @@ export async function uploadOnce(fetchImpl: typeof fetch = fetch): Promise<numbe
   }
 }
 
+/** Whether this build has an API that stores analytics. */
+export const analyticsUploadEnabled = (): boolean => syncEnabled() || serverFeaturesEnabled();
+
 export function startAnalyticsUpload(): () => void {
-  if (!serverFeaturesEnabled()) return () => undefined;
+  if (!analyticsUploadEnabled()) return () => undefined;
   const timer = window.setInterval(() => { void uploadOnce(); }, INTERVAL_MS);
   const onHide = () => { if (document.visibilityState === 'hidden') void uploadOnce(); };
   document.addEventListener('visibilitychange', onHide);

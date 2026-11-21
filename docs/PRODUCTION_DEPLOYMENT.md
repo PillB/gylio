@@ -24,7 +24,7 @@ There are no other hosts. Hosting files for other services (`firebase.json`, `ve
 
 ## The older Express API (`server/`)
 
-Not deployed. It still holds Pro billing, bug reports, the admin pages, the analytics upload and AI suggestions. The Cloudflare build turns each of those off (`src/core/utils/serverFeatures.ts`), so they do not show in production; the full list is in the go-live manual, section 6. It runs locally for development (`npm run start`, see the README). Moving those features to the Worker is a separate piece of work.
+Not deployed. The Worker now takes the analytics, bug reports and the admin console (QA inbox and analytics summary). The Express server still holds Pro billing, Pro gifts and AI suggestions; the Cloudflare build turns those off (`src/core/utils/serverFeatures.ts`), so they do not show in production. The full list of what the app calls is in the go-live manual, section 6. It runs locally for development (`npm run start`, see the README).
 
 ## After a deploy
 

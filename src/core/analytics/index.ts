@@ -204,6 +204,11 @@ export const Events = {
   ACCOUNT_FORM_FAILED:             'account_form_failed',
   ACCOUNT_FORM_RETRIED:            'account_form_retried',
 
+  // A bug report, idea or question sent from the feedback form: { kind }. "Failed" is one the server did not take:
+  // { kind, status } with the HTTP status, or 0 when there was no answer (offline).
+  FEEDBACK_SUBMITTED:              'feedback_submitted',
+  FEEDBACK_FAILED:                 'feedback_failed',
+
   // An on/off switch in Settings: { setting: 'animations' | 'read_aloud' | 'rewards' | 'daily_view', on }
   SETTING_CHANGED:                 'setting_changed',
 
