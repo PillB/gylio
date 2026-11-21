@@ -1,9 +1,9 @@
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { themes } from '../core/themes';
 import { track } from '../core/analytics';
-import WelcomeBackBanner from './WelcomeBackBanner';
+import WelcomeBackBanner, { touchLastActive } from './WelcomeBackBanner';
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -21,7 +21,8 @@ vi.mock('../core/analytics', () => ({
 // The banner compares two stored ISO dates, so month and year boundaries are
 // where a slip in the date arithmetic shows up.
 function openOn(today: string, lastActive: string) {
-  vi.setSystemTime(new Date(`${today}T12:00:00Z`));
+  // Local noon: the banner reads the local day, and noon is a day away from either edge in every zone.
+  vi.setSystemTime(new Date(`${today}T12:00:00`));
   localStorage.setItem('gylio:lastActiveDate', lastActive);
   render(<WelcomeBackBanner />);
 }
@@ -53,5 +54,38 @@ describe('WelcomeBackBanner gap between visits', () => {
 
     expect(screen.queryByRole('complementary')).toBeNull();
     expect(track).not.toHaveBeenCalled();
+  });
+});
+
+// The stamp that says "I was here today" is a calendar day. It is read from the local clock; the UTC day would be
+// tomorrow from 19:00 in Lima, and a dismissal made at 18:00 would stop holding at 20:00.
+describe('WelcomeBackBanner day stamp in Lima', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    process.env.TZ = 'America/Lima';
+    vi.useFakeTimers({ toFake: ['Date'] });
+  });
+  afterEach(() => {
+    cleanup();
+    vi.useRealTimers();
+    delete process.env.TZ;
+  });
+
+  it('stamps the local day in the evening', () => {
+    vi.setSystemTime(new Date('2026-11-21T01:30:00Z')); // Fri 20 Nov, 20:30 in Lima
+    touchLastActive();
+    expect(localStorage.getItem('gylio:lastActiveDate')).toBe('2026-11-20');
+  });
+
+  it('stays dismissed for the rest of the local day', () => {
+    vi.setSystemTime(new Date('2026-11-20T23:00:00Z')); // 18:00 in Lima
+    localStorage.setItem('gylio:lastActiveDate', '2026-11-10');
+    const first = render(<WelcomeBackBanner />);
+    fireEvent.click(screen.getByRole('button', { name: 'welcomeBack.continueAriaLabel' }));
+    first.unmount();
+
+    vi.setSystemTime(new Date('2026-11-21T01:30:00Z')); // 20:30 the same day in Lima
+    render(<WelcomeBackBanner />);
+    expect(screen.queryByRole('complementary')).toBeNull();
   });
 });

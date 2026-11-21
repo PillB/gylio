@@ -1,24 +1,15 @@
+import { daysBetweenKeys, localDateKey, mondayKeyOf } from './dateKey';
+
 export const POINTS_PER_LEVEL = 100;
 
 export const calculateLevel = (points: number) => Math.max(1, Math.floor(points / POINTS_PER_LEVEL) + 1);
 
-export const formatDateKey = (date: Date) => date.toISOString().slice(0, 10);
+/** The local calendar day, the one a streak counts (see dateKey.ts for why not `toISOString()`). */
+export const formatDateKey = (date: Date) => localDateKey(date);
 
-const parseDateKey = (value: string) => {
-  const date = new Date(`${value}T00:00:00`);
-  return Number.isNaN(date.getTime()) ? null : date;
-};
+const isDateKey = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}T00:00:00Z`));
 
-const getWeekStart = (date: Date) => {
-  const day = date.getDay();
-  const diff = (day + 6) % 7;
-  const weekStart = new Date(date);
-  weekStart.setDate(date.getDate() - diff);
-  weekStart.setHours(0, 0, 0, 0);
-  return weekStart;
-};
-
-export const formatWeekKey = (date: Date) => formatDateKey(getWeekStart(date));
+export const formatWeekKey = (date: Date) => mondayKeyOf(date);
 
 type StreakInput = {
   currentKey: string;
@@ -50,13 +41,11 @@ export const getNextStreakState = ({
     return { nextStreak: currentStreak, nextSkipTokens: skipTokens, nextLastKey: lastKey, usedSkipToken: false };
   }
 
-  const lastDate = parseDateKey(lastKey);
-  const currentDate = parseDateKey(currentKey);
-  if (!lastDate || !currentDate) {
+  if (!isDateKey(lastKey) || !isDateKey(currentKey)) {
     return { nextStreak: 1, nextSkipTokens: skipTokens, nextLastKey: currentKey, usedSkipToken: false };
   }
 
-  const diffDays = Math.round((currentDate.getTime() - lastDate.getTime()) / 86400000);
+  const diffDays = daysBetweenKeys(lastKey, currentKey);
   if (diffDays === intervalDays) {
     return {
       nextStreak: currentStreak + 1,

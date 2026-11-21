@@ -9,6 +9,7 @@ import { useTheme } from '../../core/context/ThemeContext';
 import { useEntitlement } from '../billing/EntitlementContext';
 import AnalyticsTab from './AnalyticsTab';
 import { adminApi, type FeedbackReport, type FeedbackStatus, type Gift, type ProUser } from '../billing/billingApi';
+import { localDateKey } from '../../core/utils/dateKey';
 
 const DURATIONS = ['7', '30', '90', '365', 'indefinite'] as const;
 const REASONS = ['tester', 'friend', 'family', 'support', 'promo', 'other'];
@@ -220,7 +221,7 @@ function QaInboxTab() {
     const blob = new Blob([JSON.stringify(reports ?? [], null, 2)], { type: 'application/json' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `gylio-feedback-${new Date().toISOString().slice(0, 10)}.json`;
+    link.download = `gylio-feedback-${localDateKey()}.json`;
     link.click();
     URL.revokeObjectURL(link.href);
   };

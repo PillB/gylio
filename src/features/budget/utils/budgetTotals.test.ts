@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { localDateKey } from '../../../core/utils/dateKey';
 import {
   latestTransactionDate,
   actualByCategory,
@@ -73,7 +74,7 @@ describe('categoryProgress', () => {
 describe('latestTransactionDate', () => {
   it('picks the newest valid date and skips missing or invalid ones', () => {
     const latest = latestTransactionDate([{ date: '2026-09-02' }, { date: null }, { date: 'soon' }, { date: '2026-09-20' }]);
-    expect(latest?.toISOString().slice(0, 10)).toBe('2026-09-20');
+    expect(latest && localDateKey(latest)).toBe('2026-09-20');
   });
 
   it('is null when nothing has a usable date', () => {
