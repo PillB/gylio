@@ -199,6 +199,11 @@ export const Events = {
   LANGUAGE_CHANGED:                'language_changed',
   LANGUAGE_LOAD_FAILED:            'language_load_failed',
 
+  // The sign-in or sign-up form could not load (offline, or the account service blocked): { form: 'sign_in' | 'sign_up' }.
+  // "Retried" is the Try again button on that message.
+  ACCOUNT_FORM_FAILED:             'account_form_failed',
+  ACCOUNT_FORM_RETRIED:            'account_form_retried',
+
   // An on/off switch in Settings: { setting: 'animations' | 'read_aloud' | 'rewards' | 'daily_view', on }
   SETTING_CHANGED:                 'setting_changed',
 

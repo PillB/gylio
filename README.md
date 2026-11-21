@@ -6,19 +6,19 @@ GYLIO is an accessibility-first life-management web/PWA that connects tasks, cal
 
 The current repository ships **web/PWA only**.
 
-The application boots through `src/index.jsx` with `ReactDOM.createRoot` and uses browser routing. Historical Expo/React-Native-shaped abstractions and browser shims remain in parts of the codebase, but there is no native iOS/Android application entry point in the current production architecture.
+The application boots through `src/index.jsx` with `ReactDOM.createRoot` and uses browser routing. Device features (local database, reminders, read aloud) have browser implementations in `src/core/device/`, which keep the function names of the Expo modules the code was first written against; there is no native iOS/Android application entry point in the current production architecture.
 
 The repository contains:
 
 - a Vite + React web/PWA;
 - local-first browser persistence and background synchronization;
-- an Express API with MongoDB production persistence;
-- an explicit local/development SQLite server fallback;
+- a Cloudflare Worker API with a D1 database (`worker/`), served from the same origin as the site;
+- an older Express API (`server/`, MongoDB with a local SQLite fallback) that still holds billing, reports, admin and AI suggestions; it is not deployed, and the app hides those features when it is absent;
 - Clerk-based authentication for protected API calls;
 - EN and Peruvian-Spanish production localization;
 - unit tests and a multi-viewport Playwright browser/layout audit.
 
-For the deployment procedure, see [`docs/PRODUCTION_DEPLOYMENT.md`](docs/PRODUCTION_DEPLOYMENT.md).
+For where the app runs and how it is deployed, see [`docs/PRODUCTION_DEPLOYMENT.md`](docs/PRODUCTION_DEPLOYMENT.md).
 
 For the broader Solarize audit, see [`docs/production-readiness-solarize-v6.md`](docs/production-readiness-solarize-v6.md).
 
@@ -55,11 +55,11 @@ Use `npm install` only when intentionally changing dependencies and regenerating
 npm run dev
 ```
 
-Vite runs locally at `http://localhost:5173`. The default repository base path remains `/gylio/` for GitHub Pages; set `VITE_BASE_PATH=/` for root-hosted Firebase builds.
+Vite runs locally at `http://localhost:5173`. The default repository base path remains `/gylio/` for GitHub Pages; the Cloudflare deploy builds with `VITE_BASE_PATH=/`.
 
-## Run the API locally
+## Run the older Express API locally
 
-The root convenience command remains available:
+Only billing, reports, admin and AI suggestions use it (with `VITE_BILLING_ENABLED=true`). The root convenience command remains available:
 
 ```bash
 npm run start
@@ -75,7 +75,7 @@ npm ci --ignore-scripts
 npm start
 ```
 
-The `server/` package has its own `package.json` and committed `package-lock.json`; this is the dependency graph intended for Hostinger deployment.
+The `server/` package has its own `package.json` and committed `package-lock.json`; CI checks this dependency graph on its own.
 
 `/api` and `/api/health` are public health/diagnostic routes. Protected domain routes require Clerk authentication.
 
@@ -123,14 +123,7 @@ VITE_BASE_PATH=/gylio/
 VITE_BILLING_ENABLED=false
 ```
 
-For Firebase + Hostinger production:
-
-```dotenv
-VITE_CLERK_PUBLISHABLE_KEY=pk_live_replace_me
-VITE_API_BASE_URL=https://api.example.com
-VITE_BASE_PATH=/
-VITE_BILLING_ENABLED=false
-```
+Production on Cloudflare needs none of this by hand: `worker/scripts/setup.sh` builds the site with the API on the same origin (`VITE_API_BASE_URL` blank), `VITE_BASE_PATH=/` and billing off.
 
 All browser API calls should resolve through `src/core/utils/apiUrl.ts`; this keeps local same-origin/proxy development and split-origin production consistent.
 
@@ -186,56 +179,16 @@ The CI workflow additionally:
 - blocks high/critical dependency advisories in the deployable API graph;
 - retains browser/layout and dependency evidence artifacts.
 
-The root dependency advisory inventory is still retained as engineering debt evidence. The Hostinger API deploys the isolated `server/` dependency graph instead of the root Node dependency tree.
+The root dependency advisory inventory is still retained as engineering debt evidence. The isolated `server/` dependency graph is what the Express API would install, not the root Node dependency tree.
 
-## Recommended production deployment
+## Deployment
 
-```text
-Firebase Hosting (Spark)  ->  React/Vite web/PWA
-          |
-          | HTTPS
-          v
-Hostinger Node.js         ->  server/ Express API
-          |
-          v
-MongoDB Atlas Free        ->  production database
+| Where | What | How |
+| --- | --- | --- |
+| `https://gylio.app` | Production: the site and the Worker API on one origin, data in Cloudflare D1 | `bash worker/scripts/redeploy.sh` from `main`, on the maintainer's machine; see [`docs/CLOUDFLARE_GO_LIVE_MANUAL.md`](docs/CLOUDFLARE_GO_LIVE_MANUAL.md) |
+| GitHub Pages, under `/gylio/` | Preview of `main` without the API | `.github/workflows/pages.yml`, after CI passes on the exact commit |
 
-Clerk Hobby               ->  authentication
-OpenAI                    ->  optional AI feature
-```
-
-The detailed setup, cost posture, health checks, smoke tests and rollback process are in [`docs/PRODUCTION_DEPLOYMENT.md`](docs/PRODUCTION_DEPLOYMENT.md).
-
-### GitHub Pages
-
-GitHub Pages can remain a demo/preview path. Its build base is `/gylio/`.
-
-Automatic Pages deployment is gated on successful CI for the exact `main` commit being deployed.
-
-### Firebase Hosting
-
-For a root-hosted static SPA:
-
-```bash
-VITE_BASE_PATH=/ npm run build
-firebase deploy --only hosting
-```
-
-`firebase.json` serves `dist/`, rewrites SPA routes to `/index.html`, gives hashed assets long-lived caching and keeps the service worker uncached.
-
-### Hostinger API
-
-Host the `server/` package, not the full root workspace dependency graph.
-
-Typical install/start contract:
-
-```bash
-cd server
-npm ci --ignore-scripts
-npm start
-```
-
-Configure `CORS_ORIGINS` and `CLERK_AUTHORIZED_PARTIES` to exact production frontend origins. Verify `/api/health` before pointing the production frontend at the API.
+The older Express API in `server/` is not deployed anywhere. [`docs/PRODUCTION_DEPLOYMENT.md`](docs/PRODUCTION_DEPLOYMENT.md) has the details, including the smoke test after a deploy.
 
 ## Project structure
 
@@ -289,7 +242,8 @@ A dyslexia-specific font may be offered as a preference, but should not be marke
 
 ## Documentation
 
-- `docs/PRODUCTION_DEPLOYMENT.md` — current production architecture, setup, smoke tests and rollback.
+- `docs/PRODUCTION_DEPLOYMENT.md` — where the app runs, the checks after a deploy, and rollback.
+- `docs/CLOUDFLARE_GO_LIVE_MANUAL.md` — the Cloudflare deploy, step by step.
 - `docs/design-document.md` — earlier product/design architecture.
 - `docs/research-manual.md` — behavioral/accessibility rationale and sources.
 - `docs/production-readiness-solarize-v6.md` — Solarize audit, visual strategy and release gates.

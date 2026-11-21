@@ -95,12 +95,4 @@ SectionCard.propTypes = {
   action: PropTypes.node,
 };
 
-SectionCard.defaultProps = {
-  ariaLabel: undefined,
-  subtitle: undefined,
-  children: null,
-  badge: null,
-  action: null,
-};
-
 export default SectionCard;

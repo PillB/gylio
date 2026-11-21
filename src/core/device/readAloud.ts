@@ -1,3 +1,4 @@
+/** Read aloud with the browser's speech synthesis. The function names are those of expo-speech. */
 export type SpeechOptions = {
   language?: string;
   onDone?: () => void;

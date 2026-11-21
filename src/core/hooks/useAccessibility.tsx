@@ -169,17 +169,7 @@ function useAccessibilityInternal(): AccessibilityContextValue {
     if (speechModuleRef.current) return speechModuleRef.current;
 
     try {
-      const av = await import('expo-av');
-      if (av?.Speech) {
-        speechModuleRef.current = av.Speech as SpeechModule;
-        return speechModuleRef.current;
-      }
-    } catch (error) {
-      // Fallback to expo-speech below.
-    }
-
-    try {
-      const speech = await import('expo-speech');
+      const speech = await import('../device/readAloud');
       speechModuleRef.current = speech as SpeechModule;
       return speechModuleRef.current;
     } catch (error) {

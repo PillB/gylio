@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cancelScheduledNotificationAsync, scheduleNotificationAsync } from './expo-notifications';
+import { cancelScheduledNotificationAsync, scheduleNotificationAsync } from './reminders';
 
 const shown: string[] = [];
 

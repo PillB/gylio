@@ -109,6 +109,32 @@ test.describe('layout review', () => {
     expect(checked, 'spotlight was not detected on enough steps').toBeGreaterThanOrEqual(4);
   });
 
+  // The page scrolls to each step's target. The ring has to move with it frame by frame: a ring that eased towards
+  // each new position trailed the target by up to 290px during the scroll, and in WebKit stayed 8px off it after,
+  // so the card, placed against the real target, sat on the ring.
+  test('the highlight ring stays on its target while the page scrolls to it', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await seedOnboarded(page);
+    await page.goto('./tasks');
+    await page.getByRole('button', { name: /guide/i }).first().click();
+    await page.getByRole('dialog').getByRole('button', { name: /Rewards walkthrough/ }).click();
+    await expect(page.getByRole('dialog').getByRole('heading', { level: 3 })).toHaveText(/Rewards/);
+    await page.getByRole('button', { name: /next step/i }).first().click();
+    const samples = await page.evaluate(() => new Promise<{ placed: number; drawn: number }[]>((resolve) => {
+      const out: { placed: number; drawn: number }[] = [];
+      const start = performance.now();
+      const tick = () => {
+        const ring = document.querySelector<HTMLElement>('div[aria-hidden="true"][style*="box-shadow"]');
+        if (ring) out.push({ placed: parseFloat(ring.style.top), drawn: ring.getBoundingClientRect().y });
+        if (performance.now() - start < 1500) requestAnimationFrame(tick); else resolve(out);
+      };
+      tick();
+    }));
+    expect(samples.length, 'the ring never appeared').toBeGreaterThan(5);
+    const worst = Math.max(...samples.map(({ placed, drawn }) => Math.abs(placed - drawn)));
+    expect(worst, 'pixels between where the ring is placed and where it is drawn').toBeLessThanOrEqual(1);
+  });
+
   // On a phone the card is about half the screen tall, so where the page is scrolled to decides whether the card
   // lands on the thing it explains. Centring the target (the old behaviour) put the card on top of it on 28 of the
   // 47 steps at 320x568. Three walkthroughs cover the cases: a field behind "Add details" (Tasks), a view that

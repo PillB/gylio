@@ -1,6 +1,6 @@
 /**
  * Imported first by src/index.jsx, so a removal asked for at sign-out (removeDeviceData.ts) finishes before any
- * other module reads storage: the database stand-in (src/shims/expo-sqlite.ts) loads its copy as it is imported.
+ * other module reads storage: the database stand-in (src/core/device/localDatabase.ts) loads its copy as it is imported.
  */
 import { finishRequestedRemoval } from './removeDeviceData';
 

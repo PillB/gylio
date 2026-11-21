@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { DATA_CHANGED, LOCAL_WRITE } from '../core/dataEvents';
+import { DATA_CHANGED, LOCAL_WRITE } from '../dataEvents';
 
-type Shim = typeof import('./expo-sqlite');
+type Shim = typeof import('./localDatabase');
 
 /** Each test gets a fresh copy of the shim, so the copy a test is done with must stop listening for storage events. */
 const listeners: EventListener[] = [];
@@ -13,7 +13,7 @@ const load = async (): Promise<Shim> => {
     if (type === 'storage') listeners.push(listener as EventListener);
     add(type, listener, options);
   });
-  const shim = await import('./expo-sqlite');
+  const shim = await import('./localDatabase');
   spy.mockRestore();
   return shim;
 };
@@ -166,7 +166,7 @@ describe('the web database shim', () => {
 
 // Regression tests for the silent-data-loss bug: UPDATE/DELETE statements with a literal WHERE value
 // (e.g. `WHERE id = 1`) were silently ignored because the parser only accepted `WHERE col = ?`.
-describe('expo-sqlite web shim', () => {
+describe('the local database', () => {
   beforeEach(() => {
     localStorage.clear();
   });

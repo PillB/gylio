@@ -206,7 +206,7 @@ function useSupabaseClient() {
 
 ## 6. Environment Variables
 
-### Frontend (Vercel)
+### Frontend (build variables)
 ```
 VITE_SUPABASE_URL=https://[ref].supabase.co
 VITE_SUPABASE_ANON_KEY=eyJ...

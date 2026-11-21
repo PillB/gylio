@@ -10,5 +10,10 @@
   "privacyPolicy": "Privacy Policy",
   "legalLinks": "Legal",
   "legalLastUpdated": "Last updated: {{date}}",
-  "languageLoadFailed": "Could not load that language. Check your connection and try again."
+  "languageLoadFailed": "Could not load that language. Check your connection and try again.",
+  "signInTitle": "Sign in",
+  "signUpTitle": "Create your account",
+  "accountFormLoading": "Loading the form…",
+  "accountFormFailed": "The form couldn't load. Check your connection, then try again.",
+  "accountFormRetry": "Try again"
 }

@@ -110,8 +110,4 @@ NavBar.propTypes = {
   languageToggle: PropTypes.node,
 };
 
-NavBar.defaultProps = {
-  languageToggle: null,
-};
-
 export default NavBar;

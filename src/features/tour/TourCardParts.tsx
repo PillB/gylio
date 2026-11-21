@@ -49,8 +49,12 @@ export function TourSignInNudge({ onSignIn }: { onSignIn: () => void }) {
   );
 }
 
-/** The ring around the step's target; everything outside it is dimmed. */
-export function TourSpotlight({ rect, animate }: { rect: DOMRect; animate: boolean }) {
+/**
+ * The ring around the step's target; everything outside it is dimmed. It moves with its target on every frame, with no easing of its own: the page scrolls smoothly to each step, so the
+ * ring already glides there. An eased ring restarted its easing on every frame of that scroll and trailed the target
+ * (by up to 290px), and the card, placed against the real target, could end up on the ring.
+ */
+export function TourSpotlight({ rect }: { rect: DOMRect }) {
   const { theme } = useTheme();
   const { ring } = TOUR_LAYOUT;
   return (
@@ -66,7 +70,6 @@ export function TourSpotlight({ rect, animate }: { rect: DOMRect; animate: boole
         boxShadow: `0 0 0 3px ${theme.colors.primary}, 0 0 0 9999px rgba(0,0,0,0.48)`,
         pointerEvents: 'none',
         zIndex: theme.zIndex.tour,
-        transition: animate ? 'top 250ms ease-out, left 250ms ease-out, width 250ms ease-out, height 250ms ease-out' : 'none',
       }}
     />
   );

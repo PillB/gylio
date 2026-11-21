@@ -30,7 +30,7 @@ In Clerk Dashboard → your production instance → **API Keys**:
 
 | Key | Where it goes |
 |---|---|
-| **Publishable Key** (`pk_live_...`) | Vercel env var: `VITE_CLERK_PUBLISHABLE_KEY` |
+| **Publishable Key** (`pk_live_...`) | The deploy script's prompt (`VITE_CLERK_PUBLISHABLE_KEY`; see `CLOUDFLARE_GO_LIVE_MANUAL.md`) |
 | **Secret Key** (`sk_live_...`) | Backend env var: `CLERK_SECRET_KEY` |
 
 Also collect from **API Keys → Show JWT Public Key** (or derive from JWKS URL):
@@ -54,8 +54,7 @@ CLERK_ISSUER=https://clerk.gylio.com
 In Clerk Dashboard → instance → **Paths** (or **Domains**):
 
 1. Add your production frontend URL under **Allowed redirect URIs**, e.g.:
-   - `https://gylio.vercel.app/gylio/sign-in#`
-   - `https://app.gylio.com/gylio/sign-in#`
+   - `https://gylio.app/sign-in`
 2. Add your domain under **Authorized parties** if shown
 
 ---
@@ -174,7 +173,7 @@ When going from development to production:
 
 1. **Never** reuse `sk_test_` keys
 2. Generate new keys from the production instance
-3. Update Vercel env vars: `VITE_CLERK_PUBLISHABLE_KEY` = `pk_live_...`
+3. Deploy with the new publishable key (`pk_live_...`) at the deploy script's prompt
 4. Update backend env vars: `CLERK_SECRET_KEY`, `CLERK_JWKS_URL`, `CLERK_ISSUER`
 5. Deploy both frontend and backend
 6. Verify sign-in/sign-up flow in production

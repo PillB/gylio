@@ -36,9 +36,9 @@ export const resolveApiUrl = (
 /**
  * Runtime resolver used by the web/PWA.
  *
- * Local development can use the Vite proxy with no VITE_API_BASE_URL. Static
- * production hosting (for example Firebase Hosting) should set
- * VITE_API_BASE_URL to the HTTPS origin of the Hostinger API.
+ * Local development can use the Vite proxy with no VITE_API_BASE_URL. Production
+ * on Cloudflare serves the site and the API from one origin, so it leaves it
+ * blank too; set it only to reach an API on another origin.
  */
 export const apiUrl = (path: string): string =>
   resolveApiUrl(
