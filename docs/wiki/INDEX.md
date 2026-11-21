@@ -17,6 +17,14 @@
 
 ## Findings Log
 
+### TZ-1 · FIXED · Calendar days read from the UTC clock (found by simulating environment drift, 2026-11-21)
+- **Severity:** P1 (streaks), P2 (recurrence, welcome-back) · **Status:** fix-committed; verified in Chromium with the browser in America/Lima and a mocked clock (fails with the old code, passes with the fix)
+- **Found by:** running the unit suite with `TZ=Pacific/Kiritimati`; two tests failed, which led to a grep for the same pattern in code.
+- **Impact:** `formatDateKey` (rewards) used the UTC day, so a completion at 20:30 in Lima got tomorrow's key and "tonight after yesterday" reset a 4-day streak to 1. `getWeekStart` and the recurring `addDays` turned local midnight back into UTC, so in Europe and Asia (UTC+1 and up) a daily recurring task's next date was the date it was last made, and the weekly bucket began on Sunday. The welcome-back card used the UTC day for "dismissed today" and "last seen", so a card dismissed at 18:00 in Lima reappeared at 20:00.
+- **Root cause:** a calendar day is not an instant. Three parallel helpers (`toDateKey`, `formatLocalDateKey`, rewards `formatDateKey`) existed, only two were local, and nothing enforced the choice. Tests ran in the author's zone (UTC on CI), so they could not see it.
+- **Fix:** `src/core/utils/dateKey.ts` (local key now, UTC arithmetic for adding days and counting days); rewards, recurrence, welcome-back, ad rotation and admin export use it; ESLint ban with a test pinning what it flags; `useZoneAndClock` test helper; CI job runs the suite in Lima and Kiritimati; two zone-dependent tests corrected (they asserted a UTC string for a local date).
+- **Left as is (trade-offs in the PR):** `toDateKey` and `formatLocalDateKey` and `useClock.getLocalDateKey` still duplicate `localDateKey`; monthly recurrence keeps `setMonth` overflow (31 Jan to 3 Mar).
+
 ### SM-1 … SM-9 · FIXED+VERIFIED · Implicit state machines (round SM-1, 2026-11-11)
 - **Severity:** P1 (SM-2, SM-3, SM-9 focus streak), P2 (the rest) · **Status:** fix-committed, verified in Chrome (Playwright, fake clock)
 - **Full analysis and diagrams:** [docs/state-machines.md](../state-machines.md)
@@ -86,6 +94,7 @@
 
 | Issue pattern | First seen | Recurred in | Preemption note |
 |---|---|---|---|
+| A calendar day taken from the UTC clock (`toISOString().slice(0, 10)`) or a local-midnight Date turned back into UTC | routines helper fix (earlier), e2e Flow A evening failure | TZ-1 (streaks, recurrence, welcome-back); CI-001/002 were the same family (time of day) | Use `localDateKey` / key arithmetic in `src/core/utils/dateKey.ts`. Guards: ESLint ban (`src/test/utcDayKeyBan.test.ts`), `useZoneAndClock` tests, CI `time-zones` job (Lima, Kiritimati). |
 | A displayed state used as the record of *why* (SM-1) | SM-1 | — | Keep the cause (pause reason, deadline, owner) in its own field; the shown state is derived from it, never read back as a fact. |
 | Side effects and time inside state updaters / tick counting (SM-2, SM-3) | SM-2 | — | Timers keep a wall-clock deadline; reducers stay pure (StrictMode runs them twice); a queue, not a slot, for anything that must not be lost. |
 | Two paths to one server write without a shared lock, and async answers after the user changed (SM-5, SM-7) | SM-5 | — | Every write path takes the same lock; every `await` that ends in state or storage checks it is still for the same person. |
