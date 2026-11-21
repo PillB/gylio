@@ -48,7 +48,9 @@ describe('taskForm helpers', () => {
   it('parses planned date safely', () => {
     expect(parsePlannedDate(null)).toBeNull();
     expect(parsePlannedDate('not-a-date')).toBeNull();
-    expect(parsePlannedDate('2026-03-28')?.toISOString().startsWith('2026-03-28')).toBe(true);
+    // A planned day is the person's local day; its UTC rendering is a day earlier east of UTC.
+    const parsed = parsePlannedDate('2026-03-28');
+    expect([parsed?.getFullYear(), parsed?.getMonth(), parsed?.getDate()]).toEqual([2026, 2, 28]);
   });
 
   it('chunks checklist into predictable 3-7 sized groups', () => {

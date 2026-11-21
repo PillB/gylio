@@ -14,6 +14,7 @@ import useDB from '../../core/hooks/useDB';
 import { useToast } from '../../core/context/ToastContext';
 import { track, Events } from '../../core/analytics';
 import { getLocalDateKey } from '../../core/hooks/useClock';
+import { addDaysToKey, addMonthsToKey } from '../../core/utils/dateKey';
 import {
   DEFAULT_META,
   readMeta,
@@ -47,28 +48,20 @@ export interface ReliabilityState {
 // Internal date helpers
 // ---------------------------------------------------------------------------
 
-function addDays(dateKey: string, n: number): string {
-  const d = new Date(`${dateKey}T00:00:00`);
-  d.setDate(d.getDate() + n);
-  return d.toISOString().slice(0, 10);
-}
-
-function computeNextExpected(
+export function computeNextExpected(
   recurrence: string,
   lastGenerated: string | null,
   today: string,
 ): string {
   if (!lastGenerated) return today;
   const lower = (recurrence ?? '').toLowerCase();
-  if (lower === 'daily') return addDays(lastGenerated, 1);
-  if (lower === 'weekly') return addDays(lastGenerated, 7);
+  if (lower === 'daily') return addDaysToKey(lastGenerated, 1);
+  if (lower === 'weekly') return addDaysToKey(lastGenerated, 7);
   if (lower === 'monthly') {
-    const d = new Date(`${lastGenerated}T00:00:00`);
-    d.setMonth(d.getMonth() + 1);
-    return d.toISOString().slice(0, 10);
+    return addMonthsToKey(lastGenerated, 1);
   }
   // Fallback: treat as daily
-  return addDays(lastGenerated, 1);
+  return addDaysToKey(lastGenerated, 1);
 }
 
 function deriveLastGlobalCheck(store: RecurringMetaStore): number | null {

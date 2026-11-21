@@ -70,6 +70,11 @@ jobs:
         continue-on-error: true
         run: npm run lint
 
+      - name: Complexity ceiling (billing, feedback, admin, sync and timer code)
+        id: complexity
+        continue-on-error: true
+        run: npm run lint:complexity
+
       - name: Typecheck task domain
         id: typecheck
         continue-on-error: true
@@ -126,20 +131,54 @@ jobs:
         if: always()
         env:
           LINT: ${{ steps.lint.outcome }}
+          COMPLEXITY: ${{ steps.complexity.outcome }}
           TYPECHECK: ${{ steps.typecheck.outcome }}
           I18N: ${{ steps.i18n.outcome }}
           UNIT: ${{ steps.unit.outcome }}
           BUILD: ${{ steps.build.outcome }}
           SERVER: ${{ steps.server.outcome }}
         run: |
-          printf 'lint=%s\ntypecheck=%s\ni18n=%s\nunit=%s\nbuild=%s\nserver=%s\n' \
-            "$LINT" "$TYPECHECK" "$I18N" "$UNIT" "$BUILD" "$SERVER"
-          for result in "$LINT" "$TYPECHECK" "$I18N" "$UNIT" "$BUILD" "$SERVER"; do
+          printf 'lint=%s\ncomplexity=%s\ntypecheck=%s\ni18n=%s\nunit=%s\nbuild=%s\nserver=%s\n' \
+            "$LINT" "$COMPLEXITY" "$TYPECHECK" "$I18N" "$UNIT" "$BUILD" "$SERVER"
+          for result in "$LINT" "$COMPLEXITY" "$TYPECHECK" "$I18N" "$UNIT" "$BUILD" "$SERVER"; do
             if [ "$result" != "success" ]; then
               echo "One or more quality gates failed. Review the named step logs above."
               exit 1
             fi
           done
+
+  # The unit suite again with the machine's clock in the zones the product has to hold: Peru (UTC-5, where the UTC day
+  # is tomorrow from 19:00) and the far east (UTC+14, where local midnight is the day before in UTC). Europe and Asia
+  # sit between. Passing in UTC alone hid a streak reset and a recurring task stuck on one date until this job existed.
+  time-zones:
+    name: Unit tests (time zone ${{ matrix.tz }})
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        tz: [America/Lima, Pacific/Kiritimati]
+    env:
+      CI: true
+      TZ: ${{ matrix.tz }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Unit tests with the clock in ${{ matrix.tz }}
+        run: |
+          node -e "console.log('TZ=' + process.env.TZ, 'now=' + new Date().toString())"
+          npm test
 
   browser:
     name: Browser and layout audit

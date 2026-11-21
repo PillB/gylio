@@ -16,8 +16,25 @@ Give particular focus to:
 
 ### Test discipline — every task, every round
 - **A test for every task and every round**, written with the code it verifies. Tautological tests (tests that pass by construction, restate the implementation, or assert the mock) are **considered harmful** and must not be merged; a test must be able to fail.
-- Include a `chore(lint)` commit enforcing a **cyclomatic complexity ceiling** (existing scripts: `npm run lint:complexity`, ceiling = 10). Extend the file list when new complex logic lands.
+- Include a `chore(lint)` commit enforcing a **cyclomatic complexity ceiling** (ceiling = 10: `npm run lint` for `src` via `eslint.complexity.js`, plus `npm run lint:complexity` for server/billing/sync files; CI runs both). Extend the file list when new complex logic lands; never raise a cap.
 - Test every UI change by **actually browsing it in Chrome** — not just unit tests. Each round must include a Chrome browsing pass over the affected flows, checking console for errors, network for failed requests, and interactions for broken flows.
+
+### Pre-execution rounds — choose the route before building it
+- Before implementing a non-trivial fix, write down **at least two candidate routes**, test the risky assumption of each cheaply (a repro, a spike, a failing test), and pick on evidence. Record the rejected routes and why in the PR (trade-off disclosure applies).
+- Reproduce the failure **before** changing code: the regression test must fail on the old code and pass on the new. Check by reverting the fix, not by reading the test.
+
+### Fail verbose
+- A test, script or CI step must fail with what it expected, what it saw, the inputs, and the environment that matters (time zone, clock, browser, locale, versions). `expect(x)` on a bare boolean is not enough: use a message or compare values that print.
+- A guard that cannot run (wrong pool, missing browser, blocked service) throws a sentence naming the cause, never passes silently (see `src/test/timeZone.ts`).
+
+### Future drift — assume the environment will change
+- Run unit tests under more than one **time zone** (CI `time-zones` job: Lima UTC-5, Kiritimati UTC+14) and write date tests with `useZoneAndClock`. Passing in UTC alone is not evidence.
+- A calendar day is a **local-clock key** (`src/core/utils/dateKey.ts`), never `toISOString().slice(0, 10)` (lint-banned). Arithmetic on keys is UTC-based so daylight saving cannot add or drop a day.
+- Other drift to simulate when touching the area: dependency majors (lockfile + `declaredTypes` test), browser engines (Firefox/WebKit e2e), clock jumps across midnight/month/year, offline/slow network, storage refused.
+
+### Repeated issues become gates
+- An issue seen twice is promoted in `docs/wiki/INDEX.md` Recurring Issues **and** gets an automated guard (lint rule with a test that pins what it flags, a CI job, or a contract test). A note alone is not a preemption.
+- End every round with a retrospective in `docs/wiki/LEDGER.md`: what worked, what did not, what changes next round.
 
 ### Error-fix discipline
 - If an **error-fix hypothesis fails once, research the error online** (web search for how others have solved a similar issue) **before a second attempt**. Do not loop on blind retries.

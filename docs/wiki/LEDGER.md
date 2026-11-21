@@ -170,3 +170,19 @@ Trade-offs stated: loss carry-forward is unlimited inside the 36-month horizon (
 - **Status:** done
 - **Wiki ref:** SM-1 … SM-9
 
+### STEP-HARDEN-001 · 2026-11-21 · Hardening round (drift simulation)
+- **Action:** Surveyed the rules, wiki, ledger and past audits; ran the green suite under shifted time zones (Kiritimati UTC+14 failed 2 tests; Lima and Pago Pago passed); grepped the code for the same pattern and found it in streaks, recurrence and the welcome-back card. Compared routes (see PR): fix each site with `formatLocalDateKey` imported from routines (rejected: wrong module direction), one shared `dateKey.ts` (chosen), switch the whole app to a date library (rejected: new dependency for four functions, bundle budget is 330 kB). Added the lint ban, the CI time-zone job and the CI complexity step (it was not in CI), and the AGENTS.md rules for pre-execution rounds, fail-verbose, drift and repeated-issue gates; AGENT.md points to AGENTS.md; CLAUDE.md names both paths.
+- **Artifacts:** src/core/utils/dateKey.ts (+test), rewards.ts (+rewards.timezone.test.ts), WelcomeBackBanner.tsx (+tests), useRecurringReliability.ts (+computeNextExpected.test.ts), AdSlot.tsx, AdminPage.tsx, src/test/timeZone.ts, src/test/utcDayKeyBan.test.ts, eslint.config.js, e2e/time-zone.spec.ts, .github/workflows/ci.yml, AGENTS.md, AGENT.md, CLAUDE.md
+- **Verification:** each new test failed on the old code (rewards, banner, e2e mutation-checked by reverting the fix; recurrence shown with the old expression in Node under Kiritimati and Madrid); full vitest 1388/1388 in Kiritimati, Lima, Madrid and UTC; lint, lint:complexity, typecheck, i18n, build, bundle budget (302.5 of 330 kB) pass; Chromium e2e in America/Lima.
+- **Not done / blocked:** server tests (`npm run test:server`) are not in CI: `mongodb-memory-server` downloads a MongoDB binary at run time, an external resource the project does not control, and the server is not deployed. Firefox/WebKit run of the new e2e left to CI (only Chromium is installed here, and the repo's Playwright version does not match the preinstalled browser, so a local config pointing at it was used and not committed).
+- **Status:** done
+- **Wiki ref:** TZ-1
+
+#### Retrospective — hardening round (2026-11-21)
+| Question | Answer |
+|---|---|
+| What worked? | Changing one environment variable (TZ) on a green suite found a real defect class in minutes; grepping for the pattern then found the production sites. Writing the failing test first for each site made the fix cheap to trust. |
+| What didn't? | The same family had appeared three times (routines helper, e2e Flow A, CI-001/002) and each time only the single site was fixed and a comment left. A note is not a guard. Also: the first draft of my new banner test failed for the wrong reason (label text), which showed a failing test is not yet a *meaningful* failing test; check the failure message. |
+| What to change next round? | Simulate the next drift axes the same way: `LANG`/locale (es-PE number and date formats), `prefers-reduced-motion`, a dependency major (run the suite against `npm update` in a scratch copy), and clock jumps over DST in a zone that has it. Consolidate the remaining duplicate date-key helpers when no other branch is touching calendar/routines. |
+| Preemptions? | ESLint ban on UTC-day slicing, CI time-zone job, `useZoneAndClock`. |
+

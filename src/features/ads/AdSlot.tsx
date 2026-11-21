@@ -19,6 +19,7 @@ import {
 } from './adConfig';
 import { track } from '../../core/analytics';
 import { serverFeaturesEnabled } from '../../core/utils/serverFeatures';
+import { localDateKey } from '../../core/utils/dateKey';
 
 const ADSENSE_SRC = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js';
 const HOUSE_ADS = ['billing.ads.house.noAds', 'billing.ads.house.routines', 'billing.ads.house.ai'];
@@ -65,7 +66,7 @@ function AdFrame({ children, label }: { children: React.ReactNode; label: string
 function HouseAd({ placement }: { placement: AdPlacement }) {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const key = HOUSE_ADS[houseAdIndex(new Date().toISOString().slice(0, 10), HOUSE_ADS.length)];
+  const key = HOUSE_ADS[houseAdIndex(localDateKey(), HOUSE_ADS.length)];
   // Cap read once at mount; the ad stays visible for this mount even if the
   // counter now sits at the cap (one exposure, never a mid-view vanish).
   const [capReached] = useState(() => houseAdCapReached(sessionStorage, placement));

@@ -14,6 +14,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../core/context/ThemeContext';
 import { track, Events } from '../core/analytics';
+import { localDateKey } from '../core/utils/dateKey';
 
 const LAST_ACTIVE_KEY        = 'gylio:lastActiveDate';
 const DISMISSED_KEY          = 'gylio:welcomeBackDismissed';
@@ -32,7 +33,7 @@ function daysBetween(a: string, b: string): number {
 }
 
 function todayISO(): string {
-  return new Date().toISOString().slice(0, 10);
+  return localDateKey();
 }
 
 type Props = {
@@ -300,5 +301,5 @@ export function persistStreakSnapshot(currentStreak: number): void {
 }
 
 export function touchLastActive(): void {
-  localStorage.setItem(LAST_ACTIVE_KEY, new Date().toISOString().slice(0, 10));
+  localStorage.setItem(LAST_ACTIVE_KEY, todayISO());
 }
