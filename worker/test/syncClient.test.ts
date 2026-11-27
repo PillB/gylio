@@ -274,6 +274,26 @@ describe('refusals and conflicts from the real Worker', () => {
     expect(last(laptop.applier.records).data).toEqual({ title: 'phone, later' });
   });
 
+  it('the real Worker refuses a stale queued delete and the engine retains the newer edit', async () => {
+    const time = new FakeTime();
+    const phone = device('stale_delete_person', { time });
+    const laptop = device('stale_delete_person', { time });
+    await change(phone, 'tasks', 'keep', { title: 'original' });
+    await time.advance(5 * SECOND);
+    laptop.engine.kick('manual');
+    await time.advance(5 * SECOND);
+    const early = time.now() - 60 * MINUTE;
+    await change(phone, 'tasks', 'keep', { title: 'newer edit' });
+    await time.advance(5 * SECOND);
+    await laptop.engine.recordChange({ entity: 'tasks', id: 'keep', op: 'delete', data: null, localUpdatedAt: early });
+    await time.advance(5 * SECOND);
+    expect(laptop.sent.filter(r => r.method === 'DELETE')).toEqual([
+      { method: 'DELETE', path: '/api/tasks/keep?baseVersion=1', status: 409 }
+    ]);
+    expect(last(laptop.applier.records).data).toMatchObject({ title: 'newer edit' });
+    expect(laptop.engine.snapshot()).toMatchObject({ pending: 0, refused: 0 });
+  });
+
   it('an edit made here survives a delete made on another device', async () => {
     const time = new FakeTime();
     const phone = device('resurrect_person', { time });
