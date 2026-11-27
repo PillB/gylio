@@ -1,44 +1,46 @@
 import type { ChoiceId, PracticeLesson } from '../data/lessons';
 
-/** Ephemeral, per-visit state: no names, messages, or relationship history are stored. */
-export type PracticeState = {
-  lessonId: string;
-  turnIndex: number;
-  selected: ChoiceId | null;
-  practiced: number;
-  finished: boolean;
-};
+/** The discriminant makes answered/skipped/completed mutually exclusive. No personal answers are persisted. */
+type Base = { lessonId: string; turnIndex: number; practiced: number };
+export type PracticeState = Base & (
+  | { phase: 'prompt'; selected: null }
+  | { phase: 'feedback'; selected: ChoiceId }
+  | { phase: 'complete'; selected: null }
+);
 
 export const beginPractice = (lesson: PracticeLesson): PracticeState => ({
   lessonId: lesson.id,
   turnIndex: 0,
   selected: null,
   practiced: 0,
-  finished: false
+  phase: 'prompt'
 });
 
-/** Invalid or repeated submissions cannot earn extra credit or change a prior answer. */
+const validTurn = (state: PracticeState, lesson: PracticeLesson) =>
+  state.lessonId === lesson.id && Number.isInteger(state.turnIndex) &&
+  state.turnIndex >= 0 && state.turnIndex < lesson.turns.length;
+
+/** Feedback is a terminal decision for this scene; repeated submissions have no effect. */
 export function selectChoice(
   state: PracticeState,
   lesson: PracticeLesson,
   choice: string
 ): PracticeState {
-  if (state.lessonId !== lesson.id || state.finished || state.selected) return state;
+  if (state.phase !== 'prompt' || !validTurn(state, lesson)) return state;
   const turn = lesson.turns[state.turnIndex];
-  if (!turn || !Object.prototype.hasOwnProperty.call(turn.choices, choice)) return state;
-  return { ...state, selected: choice as ChoiceId, practiced: state.practiced + 1 };
+  if (!Object.prototype.hasOwnProperty.call(turn.choices, choice)) return state;
+  return { ...state, phase: 'feedback', selected: choice as ChoiceId, practiced: state.practiced + 1 };
 }
 
-/** Skip is available without penalty; skipped turns do not count as practiced. */
+/** Only unanswered scenes can be skipped. An answered scene can only advance. */
 export function nextTurn(
   state: PracticeState,
   lesson: PracticeLesson,
   skip = false
 ): PracticeState {
-  if (state.lessonId !== lesson.id || state.finished) return state;
-  if (!skip && !state.selected) return state;
+  if (!validTurn(state, lesson) || state.phase !== (skip ? 'prompt' : 'feedback')) return state;
   if (state.turnIndex + 1 >= lesson.turns.length) {
-    return { ...state, finished: true, selected: null };
+    return { ...state, phase: 'complete', selected: null };
   }
-  return { ...state, turnIndex: state.turnIndex + 1, selected: null };
+  return { ...state, turnIndex: state.turnIndex + 1, phase: 'prompt', selected: null };
 }

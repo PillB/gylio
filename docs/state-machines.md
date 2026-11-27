@@ -311,3 +311,88 @@ is stopped or another one starts; its time is dropped when the task is missing, 
   reopening never takes points back. Chosen to stay non-punitive.
 - **A missing account copy is re-uploaded.** If a future feature deletes account data on purpose, it must also clear
   each device's saved version, or the device will bring the data back.
+
+
+## Supplemental state-machine audit — 2026-11-27
+
+**Scope:** source inspection of the current navigation, Connection Lab, monthly budget selection,
+calendar links and record sync. The earlier 14-row inventory and its historical four red-team
+rounds remain intact. These additional candidates are not a claim of exhaustive execution or
+production validation. PR #143 covers the Worker protocol; PR #144 covers the UI transitions.
+
+| Machine / owner | States and invariant | Finding / evidence |
+|---|---|---|
+| Connection Lab `features/connectionLab/model/practice.ts` | prompt → feedback → next prompt or completed; prompt may skip; completed may restart | A scene could be counted as both answered and skipped. Separate lesson IDs could disagree. Explicit phase and one identity; 96 two-scene combinations in model tests; 36 answer controls per locale in browser tests, CI pending. |
+| Monthly budget `features/budget/hooks/useBudgetData.ts` | typed month → existing row or no row → create → active | Old active ID survived typing an uncreated month. A write could target the previous month. Derive from month; two-period browser regression added, CI pending. |
+| Linked calendar/task `features/calendar/hooks/useCalendarData.ts` | unlinked → event created → reciprocal link → event removed → task unlinked | Two separate DB writes; interrupted operations or concurrent conversions may leave orphan/multiple links. Cross-tab lifecycle test added; atomic link mutation and recovery still needed. |
+| Budget form / undo `features/budget/hooks/useValidatedForm.ts`, `useUndoableRemovals.ts` | editing → invalid or submit → saved; remove → undo window → expiry | Need prove double submit, failure, undo across navigation, and pending async write cannot change a different period. |
+| Routine `features/routines/hooks/useRoutines.ts` | loading → due/steps → done today → recurrence | Local DB; no routine entity in record sync. Review clock rollover, repeat taps, skipped days, and device isolation. |
+| Social plan `features/social/hooks/useSocialPlans.ts` | loading → planned → steps → reminder scheduled/denied/expired | Local DB and notification ID map; review remount, cancellation, permissions and duplicate reminders. Not a synchronized entity. |
+| PWA update `core/utils/serviceWorker.ts` | not registered → installed/waiting → active / offline cache | Old client compatibility matters for new DELETE query; real upgrade test still required. |
+| Record-level quota / conflict `worker/src/index.ts` | absent → create → live/versioned update → tombstone | SQL experiment reproduced check-then-insert and stale delete. PR #143 uses transaction-level quota and guarded delete; Worker runtime tests pending. |
+
+### Connection Lab candidate (explicit phase, not an adaptive social simulation)
+
+```mermaid
+stateDiagram-v2
+    [*] --> Selection
+    Selection --> Prompt: select lesson
+    Prompt --> Feedback: choose answer once
+    Prompt --> Advance: skip
+    Feedback --> Advance: next / finish
+    Advance --> Prompt: next independent situation
+    Advance --> Complete: last situation
+    Complete --> Prompt: restart
+    Prompt --> Selection: back
+    Feedback --> Selection: back
+    Complete --> Selection: back
+```
+
+The fictional reaction is not a prediction about a real person. The six lessons have independent
+scenes, not a branching dialogue tree. Do not treat the skip count as learning or infer consent.
+The proposed 24-lesson expansion (#125) needs separate learning objectives, actual branches,
+research-to-content mapping and an opt-in evaluation with users.
+
+### Budget and linked-event invariants
+
+```mermaid
+flowchart TD
+    M[Selected month] --> F{Budget for this month?}
+    F -->|Yes| A[Render and mutate matching budget]
+    F -->|No| B[Empty period]
+    B -->|Open / add income| C[Create budget for selected month]
+    C --> A
+    A -->|Change month| M
+    T[Task: unlinked] -->|Convert| E[Create linked event]
+    E --> L[Update reciprocal task link]
+    L -->|Delete event| U[Clear task link; keep task]
+    E -. Interrupted write .-> R[Recovery / atomicity gap]
+```
+
+Cross-tab contract: clicking a tab changes navigation, not account ownership or stored data.
+Tasks and Calendar share the task/event relationship; Budget and debt-related task actions share
+explicit links, not unrelated totals. Only tasks, events, budgets, transactions and debts belong to
+the current record-sync allowlist (`core/sync/appData.ts`). Routines, social plans, Connection Lab
+progress and rewards must not be described as synced through that protocol. Connection Lab
+choices and focus selection are view-local; navigation resets the practice session.
+
+### Four-pass review ledger (targeted source review; execution pending)
+
+1. **Transition safety:** reject duplicate answers and skip-after-answer; eliminate stale budget
+   selection; identify calendar multi-write risk. Model and browser regressions authored.
+2. **Concurrency/data ownership:** SQLite reproduced two Worker SQL defects. D1 guards and
+   two-client tests authored; existing owner-scoping route documentation kept in lockstep.
+   No new Mongo pool, distributed lock, or infrastructure.
+3. **Integration/compatibility:** retain old unversioned DELETE callers temporarily (they can
+   still delete a newer record if they do not send a version), retain existing navigation
+   gating, bilingual text and independent practice semantics; test all eight tabs after actions.
+   Unverified: old/new PWA upgrade, remote conflict recovery, failure/undo across reload.
+4. **Evidence and release:** distinguish six shipped exercises from 24 planned; no field study
+   demonstrates improved relationships. Browser tests are not deployment proof. Full CI,
+   live health, non-destructive public smoke and separate disposable two-account tests remain gates.
+
+**Sources:** [Playwright best practices](https://playwright.dev/docs/best-practices),
+[Cloudflare D1 batch](https://developers.cloudflare.com/d1/worker-api/d1-database/),
+[Cloudflare D1 consistency](https://developers.cloudflare.com/d1/worker-api/d1-database/#withsession).
+See the [deployment runbook](PRODUCTION_DEPLOYMENT.md) and
+[research ledger](research/connection-lab-ledger.md). No production claim without a live check.

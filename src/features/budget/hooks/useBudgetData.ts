@@ -46,7 +46,6 @@ export const useBudgetData = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [debts, setDebts] = useState<Debt[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeBudgetId, setActiveBudgetId] = useState<number | null>(null);
   const [monthInput, setMonthInput] = useState(getDefaultBudgetMonth());
   const [monthTouched, setMonthTouched] = useState(false);
   // Undo runs seconds after a delete; it must patch the budget as it is then, not as it was.
@@ -62,7 +61,6 @@ export const useBudgetData = () => {
         setTransactions(loadedTransactions);
         setDebts(loadedDebts);
         if (loadedBudgets.length > 0) {
-          setActiveBudgetId(loadedBudgets[0].id);
           setMonthInput(loadedBudgets[0].month);
         }
       })
@@ -82,15 +80,10 @@ export const useBudgetData = () => {
       .catch(logFailure('refresh budget data'));
   });
 
-  // Typing an existing month switches to that budget.
-  useEffect(() => {
-    const matching = budgets.find((budget) => budget.month === monthInput);
-    if (matching && matching.id !== activeBudgetId) setActiveBudgetId(matching.id);
-  }, [activeBudgetId, monthInput, budgets]);
-
+  // The displayed month is the sole selection source. A new month has no active budget yet.
   const activeBudget = useMemo(
-    () => budgets.find((budget) => budget.id === activeBudgetId) ?? null,
-    [activeBudgetId, budgets]
+    () => budgets.find((budget) => budget.month === monthInput.trim()) ?? null,
+    [monthInput, budgets]
   );
 
   const changeMonth = useCallback((value: string) => {
@@ -99,7 +92,6 @@ export const useBudgetData = () => {
   }, []);
 
   const selectBudget = useCallback((budget: Budget) => {
-    setActiveBudgetId(budget.id);
     setMonthInput(budget.month);
   }, []);
 
@@ -113,12 +105,10 @@ export const useBudgetData = () => {
     }
     const existing = budgets.find((budget) => budget.month === month);
     if (existing) {
-      setActiveBudgetId(existing.id);
       return Promise.resolve(existing);
     }
     return insertBudget(month, [], []).then((created) => {
       setBudgets((prev) => [created, ...prev]);
-      setActiveBudgetId(created.id);
       return created;
     });
   }, [activeBudget, monthInput, budgets, insertBudget]);
@@ -261,7 +251,6 @@ export const useBudgetData = () => {
       .then((deleted) => {
         if (!deleted) return false;
         setBudgets(withoutId(activeBudget.id));
-        setActiveBudgetId(null);
         return true;
       })
       .catch((error) => {

@@ -1,6 +1,6 @@
 {
   "title": "Connection Lab",
-  "intro": "Practice conversation, dating, and relationship skills through short, fictional choices. There is no perfect script or guaranteed outcome.",
+  "intro": "Practice conversation, dating, and relationship skills through short, independent fictional situations. There is no perfect script or guaranteed outcome.",
   "privacy": "Your practice choices and personal stories are not saved here. Usage analytics records lesson IDs and scene counts, not the response you picked. Skip freely.",
   "choose": "Choose a skill to practice",
   "back": "Back to skills",
@@ -289,5 +289,6 @@
         }
       }
     }
-  }
+  },
+  "independentScene": "A separate practice situation. This is not a prediction of what happened after your previous choice."
 }

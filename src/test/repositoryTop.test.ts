@@ -11,7 +11,15 @@ const root = process.cwd();
 describe('the top of the repository', () => {
   it('has only the README and the instructions for people and agents as Markdown', () => {
     const markdown = fs.readdirSync(root).filter((file) => file.endsWith('.md')).sort();
-    expect(markdown).toEqual(['AGENTS.md', 'CLAUDE.md', 'README.md']);
+    expect(markdown).toEqual(['AGENT.md', 'AGENTS.md', 'CLAUDE.md', 'README.md']);
+  });
+
+  it('keeps the singular agent alias a pointer, not a second instructions file', () => {
+    const alias = fs.readFileSync(path.join(root, 'AGENT.md'), 'utf8');
+    const canonical = fs.readFileSync(path.join(root, 'AGENTS.md'), 'utf8');
+    expect(alias).toMatch(/\[\x60AGENTS\.md\x60\]\(AGENTS\.md\)/);
+    expect(alias.split(/\r?\n/).filter((line) => line.trim().length > 0).length).toBeLessThanOrEqual(5);
+    expect(canonical).toContain('Agent operating rules');
   });
 
   it('keeps the moved notes, with an index that names each of them', () => {

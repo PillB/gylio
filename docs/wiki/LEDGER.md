@@ -186,3 +186,13 @@ Trade-offs stated: loss carry-forward is unlimited inside the 36-month horizon (
 | What to change next round? | Simulate the next drift axes the same way: `LANG`/locale (es-PE number and date formats), `prefers-reduced-motion`, a dependency major (run the suite against `npm update` in a scratch copy), and clock jumps over DST in a zone that has it. Consolidate the remaining duplicate date-key helpers when no other branch is touching calendar/routines. |
 | Preemptions? | ESLint ban on UTC-day slicing, CI time-zone job, `useZoneAndClock`. |
 
+
+
+## 2026-11-27 — integration and state review
+
+- Main and three Dependabot CI runs shared the stale root Markdown allowlist failure; PR #142 keeps the intentional AGENT.md pointer and tests it. Do not rerun the old commits unchanged.
+- SQL-only experiments reproduced a stale DELETE erasing a newer edit and two creates overshooting a record cap. Candidate #143 adds guarded D1 statements, version-aware client deletion and real-Worker/fake-server regression tests. Legacy cached clients remain a compatibility risk until upgraded. No migration or MongoDB pool in the shipping Worker.
+- Candidate #144 removes contradictory Connection Lab skip/answer states, duplicate lesson identity and duplicate budget month identity. Added two cross-tab first-use/period tests and a bilingual choice matrix. Source-level red team in docs/state-machines.md, including unaddressed calendar link atomicity and local-only routine/social data. All latest CI runs must finish before merge.
+- Claude PR #136 touches undeployed Express; do not claim its changes improve the shipping D1 backend. Review compatibility independently. Updated CLAUDE.md stack references.
+- Live production could not be reached from this environment (DNS resolution failure for gylio.app); do not infer site downtime or mark deployed. No Cloudflare credential or deployment action available here. Repository runbook is the declared topology, not independent live verification.
+- Next: fully green #142; reconcile three dependency branches; finish #143/#144, run combined main CI, publish preview, use existing maintainer redeploy script and verify live health plus disposable QA accounts. Revisit actual branching and learning outcomes separately.
