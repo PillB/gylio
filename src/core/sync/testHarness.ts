@@ -113,13 +113,19 @@ export class FakeServer {
 
   private handle(req: HttpRequest, headers: Record<string, string>): HttpResponse {
     if (req.method === 'GET') return this.pull(req.path, headers);
-    const [, , entity, id] = req.path.split('/');
-    return req.method === 'DELETE' ? this.remove(entity, id, headers) : this.put(entity, id, req.body, headers);
+    const url = new URL(req.path, 'https://x.test');
+    const [, , entity, id] = url.pathname.split('/');
+    return req.method === 'DELETE'
+      ? this.remove(entity, id, headers, Number(url.searchParams.get('baseVersion') ?? 0))
+      : this.put(entity, id, req.body, headers);
   }
 
-  private remove(entity: string, id: string, headers: Record<string, string>): HttpResponse {
+  private remove(entity: string, id: string, headers: Record<string, string>, base: number): HttpResponse {
     const current = this.records.get(`${entity}:${id}`);
-    if (current && !current.deleted) this.store(`${entity}:${id}`, entity, id, current.version + 1, true, undefined);
+    if (current && !current.deleted) {
+      if (current.version !== base) return response(409, { error: { code: 'CONFLICT', message: 'changed' }, current }, headers);
+      this.store(`${entity}:${id}`, entity, id, current.version + 1, true, undefined);
+    }
     return response(204, undefined, headers);
   }
 

@@ -328,6 +328,18 @@ const hasRoom = async (db: MeteredDb, userId: string, cap: number, now: number):
 const conflict = (c: Context<{ Bindings: Env; Variables: Vars }>, current: Row | null) =>
   c.json({ error: { code: 'CONFLICT', message: 'Server copy changed since your version' }, current: current ? toRecord(current) : null }, 409);
 
+/** A concurrent creator may win even when the quota is now full. Preserve retry idempotency. */
+const resolveCreateRace = async (
+  c: Context<{ Bindings: Env; Variables: Vars }>, userId: string, entity: string, id: string, json: string,
+) => {
+  const latest = await currentRow(c.get('db'), userId, entity, id);
+  if (latest) {
+    if (!latest.deleted && latest.data === json) return c.json(toRecord(latest), 200);
+    return conflict(c, latest);
+  }
+  return c.json({ error: { code: 'QUOTA_EXCEEDED', message: 'Record limit reached' } }, 413);
+};
+
 /**
  * Versioned upsert keyed by a client-chosen id, so a retried offline write never duplicates.
  * The body names the `baseVersion` the device last saw (0 or absent for a new record). The version
@@ -363,8 +375,9 @@ app.put('/api/:entity/:id', async (c) => {
   } else if (baseVersion !== 0) {
     return conflict(c, null);
   }
-  if (!current && !(await hasRoom(db, userId, Number(c.env.MAX_RECORDS_PER_USER ?? 5000), now))) {
-    return c.json({ error: { code: 'QUOTA_EXCEEDED', message: 'Record limit reached' } }, 413);
+  const cap = Number(c.env.MAX_RECORDS_PER_USER ?? 5000);
+  if (!current && !(await hasRoom(db, userId, cap, now))) {
+    return resolveCreateRace(c, userId, entity, id, json);
   }
 
   const write = current
@@ -374,9 +387,12 @@ app.put('/api/:entity/:id', async (c) => {
         json, now, userId, userId, entity, id, baseVersion,
       )
     : db.prepare(
-        `INSERT INTO records (userId, entity, id, data, updatedAt, deleted, version, seq) VALUES (?, ?, ?, ?, ?, 0, 1, ${NEXT_SEQ})
+        // The preflight count can be stale when two requests race. Enforce the cap inside the insert.
+        `INSERT INTO records (userId, entity, id, data, updatedAt, deleted, version, seq)
+         SELECT ?, ?, ?, ?, ?, 0, 1, ${NEXT_SEQ}
+         WHERE (SELECT rows FROM user_seq WHERE userId = ?) < ?
          ON CONFLICT (userId, entity, id) DO NOTHING RETURNING ${COLUMNS}`,
-        userId, entity, id, json, now, userId,
+        userId, entity, id, json, now, userId, userId, cap,
       );
   // One batch is one transaction: the sequence bump, the guarded write and the counter succeed or fail together.
   // The guard in the write itself still decides a true race between two devices.
@@ -384,24 +400,47 @@ app.put('/api/:entity/:id', async (c) => {
   if (!current) statements.push(db.prepare(ADD_CHANGES, userId));
   const [, result] = await db.batch(statements);
   const saved = (result.results as Row[])[0];
-  if (!saved) return conflict(c, await currentRow(db, userId, entity, id));
+  if (!saved) {
+    if (!current) return resolveCreateRace(c, userId, entity, id, json);
+    const latest = await currentRow(db, userId, entity, id);
+    if (latest && !latest.deleted && latest.data === json) return c.json(toRecord(latest), 200);
+    return conflict(c, latest);
+  }
   return c.json(toRecord(saved), current ? 200 : 201);
 });
 
+/** Old cached clients may omit a version; new clients always send one. */
+const parseDeleteVersion = (raw: string | undefined): number | undefined | null => {
+  if (raw === undefined) return undefined;
+  if (!/^\d+$/.test(raw)) return null;
+  const version = Number(raw);
+  return Number.isSafeInteger(version) ? version : null;
+};
+
 app.delete('/api/:entity/:id', async (c) => {
   const entity = entityOr404(c.req.param('entity'));
+  const id = c.req.param('id');
   if (!entity) return c.json({ error: { code: 'NOT_FOUND', message: 'Unknown resource' } }, 404);
+  if (!ID_PATTERN.test(id)) return c.json({ error: { code: 'VALIDATION_ERROR', message: 'Invalid record id' } }, 400);
+  const base = parseDeleteVersion(c.req.query('baseVersion'));
+  if (base === null) return c.json({ error: { code: 'VALIDATION_ERROR', message: 'baseVersion must be a whole number >= 0' } }, 400);
   const userId = c.get('userId');
   const db = c.get('db');
-  await db.batch([
+  const current = await currentRow(db, userId, entity, id);
+  // Repeated deletes of a tombstone or missing record do not consume a write.
+  if (!current || current.deleted) return c.body(null, 204);
+  if (base !== undefined && base !== current.version) return conflict(c, current);
+  const [, result] = await db.batch([
     db.prepare(BUMP_SEQ, userId),
     db.prepare(
       `UPDATE records SET deleted = 1, data = '{}', updatedAt = ?, version = version + 1, seq = ${NEXT_SEQ}
-       WHERE userId = ? AND entity = ? AND id = ? AND deleted = 0`,
-      Date.now(), userId, userId, entity, c.req.param('id'),
+       WHERE userId = ? AND entity = ? AND id = ? AND deleted = 0 AND version = ? RETURNING ${COLUMNS}`,
+      Date.now(), userId, userId, entity, id, current.version,
     ),
   ]);
-  return c.body(null, 204);
+  if ((result.results as Row[]).length > 0) return c.body(null, 204);
+  const latest = await currentRow(db, userId, entity, id);
+  return latest && !latest.deleted ? conflict(c, latest) : c.body(null, 204);
 });
 
 app.notFound((c) => c.json({ error: { code: 'NOT_FOUND', message: 'Route not found' } }, 404));

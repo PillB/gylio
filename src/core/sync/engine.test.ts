@@ -539,6 +539,19 @@ describe('two devices changing the same record', () => {
     expect(rig.server.records.get('tasks:a')).toMatchObject({ deleted: false, data: { title: 'edited after it was deleted elsewhere' } });
   });
 
+  it('a queued old delete yields to a newer remote edit instead of erasing it', async () => {
+    const rig = makeRig();
+    await save(rig, 'a', 'original');
+    const early = rig.time.now();
+    await rig.time.advance(10 * SECOND);
+    rig.server.otherDeviceSets('tasks', 'a', { title: 'newer edit' });
+    await rig.engine.recordChange({ entity: 'tasks', id: 'a', op: 'delete', data: null, localUpdatedAt: early });
+    await rig.time.advance(4 * SECOND);
+    expect(rig.server.requests((r) => r.method === 'DELETE').map(r => r.path)).toEqual(['/api/tasks/a?baseVersion=1']);
+    expect(rig.server.records.get('tasks:a')).toMatchObject({ deleted: false, version: 2, data: { title: 'newer edit' } });
+    expect(rig.engine.snapshot()).toMatchObject({ pending: 0, refused: 0 });
+  });
+
   it('a delete here and a delete there settle without error', async () => {
     const rig = makeRig();
     await save(rig, 'a', 'original');

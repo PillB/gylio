@@ -158,6 +158,35 @@ describe('records', () => {
     expect((await put('/api/debts/g1', { ...debt, baseVersion: 2 }, 'user_ghost')).status).toBe(200);
   });
 
+  it('a stale versioned delete cannot erase a newer edit', async () => {
+    const path = '/api/debts/versioned-delete';
+    const as = 'user_stale_delete';
+    expect((await put(path, debt, as)).status).toBe(201);
+    expect((await put(path, { ...debt, balance: 333, baseVersion: 1 }, as)).status).toBe(200);
+    const stale = await call(path + '?baseVersion=1', { method: 'DELETE', as });
+    expect(stale.status).toBe(409);
+    expect(await stale.json()).toMatchObject({ current: { version: 2, deleted: false, data: { balance: 333 } } });
+    expect(await (await call(path, { as })).json()).toMatchObject({ version: 2, data: { balance: 333 } });
+    expect((await call(path + '?baseVersion=1.5', { method: 'DELETE', as })).status).toBe(400);
+    expect((await call(path + '?baseVersion=2', { method: 'DELETE', as })).status).toBe(204);
+    expect((await call(path + '?baseVersion=2', { method: 'DELETE', as })).status).toBe(204);
+    expect((await call(path, { as })).status).toBe(404);
+  });
+
+  it('enforces quota within concurrent create transactions and accepts the winning retry', async () => {
+    const as = 'user_racing_quota';
+    for (const id of ['one', 'two', 'three', 'four']) expect((await put('/api/debts/' + id, debt, as)).status).toBe(201);
+    const ids = ['five', 'six', 'seven', 'eight'];
+    const results = await Promise.all(ids.map(id => put('/api/debts/' + id, debt, as)));
+    expect(results.map(r => r.status).sort()).toEqual([201, 413, 413, 413]);
+    const winner = ids[results.findIndex(r => r.status === 201)];
+    expect((await put('/api/debts/' + winner, debt, as)).status).toBe(200);
+    const count = await e.DB.prepare(
+      'SELECT s.rows AS n, (SELECT COUNT(*) FROM records r WHERE r.userId=s.userId) AS actual FROM user_seq s JOIN identities i ON i.userId=s.userId WHERE i.subject=?'
+    ).bind(as).first();
+    expect(count).toEqual({ n: 5, actual: 5 });
+  });
+
   it('deletes with a tombstone that a pull reports, and a repeated delete is a no-op', async () => {
     await put('/api/debts/z1', debt, 'user_del');
     const before = (await (await call('/api/sync/pull?since=0', { as: 'user_del' })).json()) as { cursor: number };
