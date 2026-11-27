@@ -1,6 +1,6 @@
 # Data separation: the route list for the two-account check
 
-Every route below that can name an object (an id in the path) or return a list reads the owner from the **verified sign-in token only**, never from the path, query or body. The owner is an internal id (`identities` maps the provider's subject to it). Every database statement on a person's data is scoped by `userId = ?` bound to that value. Nothing is deployed yet; this is the list to run once it is.
+Every route below that can name an object (an id in the path) or return a list reads the owner from the **verified sign-in token only**, never from the path, query or body. The owner is an internal id (`identities` maps the provider's subject to it). Every database statement on a person's data is scoped by `userId = ?` bound to that value. The following source-level inventory must be checked against the deployed Worker before claiming a production isolation test.
 
 `worker/test/separation.test.ts` runs the whole check automatically (person A stores data; person B tries every route with A's real ids). `worker/test/node/separation.test.ts` keeps this table honest: it fails when a route is added, removed or moved without this file changing, and when any statement on `records`, `user_seq`, `identities` or `feedback_reports` lacks the owner filter (the admin console's, behind its gate, excepted).
 
@@ -22,10 +22,10 @@ The owner is set once, in the middleware at line 131 (`c.set('userId', userId)`,
 | `GET /api/me/export` | 268 | 270 | `WHERE userId = ? AND deleted = 0`, owner bound at 271. |
 | `DELETE /api/me` | 279 | 282 | Four deletes, each `WHERE userId = ?` (records, counters, sign-in mapping, reports). |
 | `GET /api/:entity/:id` | 293 | 297 | `WHERE userId = ? AND entity = ? AND id = ? AND deleted = 0`. Someone else's id answers 404, the same as an id that does not exist. |
-| `PUT /api/:entity/:id` | 337 | 313 | The read (`currentRow`) is `WHERE userId = ? AND entity = ? AND id = ?`. |
-| | | 373 | The update is `WHERE userId = ? AND entity = ? AND id = ? AND version = ?`. |
-| | | 378 | The insert is keyed `(userId, entity, id)`: the same id under another person is a different row. |
-| `DELETE /api/:entity/:id` | 391 | 400 | `WHERE userId = ? AND entity = ? AND id = ? AND deleted = 0`. Deleting an id you do not own changes nothing and still answers 204. |
+| `PUT /api/:entity/:id` | 349 | 313 | The read (`currentRow`) is `WHERE userId = ? AND entity = ? AND id = ?`. |
+| | | 386 | The update is `WHERE userId = ? AND entity = ? AND id = ? AND version = ?`. |
+| | | 391 | The insert is keyed `(userId, entity, id)`: the same id under another person is a different row. |
+| `DELETE /api/:entity/:id` | 420 | 437 | `WHERE userId = ? AND entity = ? AND id = ? AND deleted = 0 AND version = ?`. Deleting an id you do not own changes nothing and still answers 204. |
 
 Choices worth knowing about:
 - The same record id may exist under two people. Ids are chosen by the app, so they are only unique per person; a stranger cannot collide with or overwrite yours.
@@ -36,9 +36,9 @@ Choices worth knowing about:
 
 All five record routers (`tasks`, `events`, `budgets` and `budget`, `transactions`, `debts`) share `server/routes/createCrudRouter.js`, which passes `req.user.id` from `requireAuth` to the service on every call (lines 12, 20, 30, 40, 50, 59). The scoping is in `server/repositories/entityRepository.js`: list at 104 and 107, get at 113 and 118, replace at 150 and 172, update at 186 and 205, remove at 213 and 218. `ai`, `billing` and `auth/me` take no object id. This server is replaced by the Worker and is kept only until the app is connected to it.
 
-## The manual two-account check (after the first deploy)
+## The manual two-account check (dedicated disposable QA accounts only)
 
-Until the app is connected to the Worker (the next change), the app itself does not create server records, so do this from the browser console on `https://gylio.app` while signed in. Paste this helper once per window (it uses the signed-in session; it is not tested against a live Clerk session yet, so if `window.Clerk` is missing, tell me what the console prints):
+Never use actual personal accounts for this destructive test. On two dedicated, disposable QA accounts, do this from the browser console on `https://gylio.app` while signed in. Paste this helper once per window (it uses the signed-in session; it is not tested against a live Clerk session yet, so if `window.Clerk` is missing, tell me what the console prints):
 
 ```js
 const api = async (method, path, body) => {
@@ -55,4 +55,4 @@ const api = async (method, path, body) => {
    - `await api('PUT', '/api/tasks/two-acct-1', { title: 'B text' })` answers `201`: it makes B's own record with the same id.
    - `await api('DELETE', '/api/tasks/two-acct-1')` answers `204` and deletes only B's record.
 3. Window 1 again: `await api('GET', '/api/tasks/two-acct-1')` still shows `A private plan`, and `await api('GET', '/api/me/export')` lists it.
-4. Clean up: in each window, `await api('DELETE', '/api/me')` answers `204` and erases that person's data and sign-in mapping.
+4. Clean up **only after confirming both accounts are disposable QA accounts**: in each window, `await api('DELETE', '/api/me')` answers `204` and erases that person's data and sign-in mapping.
