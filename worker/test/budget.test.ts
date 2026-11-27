@@ -42,9 +42,12 @@ const put = (id: string, as: string, extra: object = {}) => cost(`/api/debts/${i
 // so a change that quietly makes an endpoint more expensive fails here. The usage-gate read is included (the test
 // turns its cache off); in production that one read is cached, so real reads are lower.
 const BUDGET = {
-  create: { reads: 5, writes: 5 },
+  // Measured 6 in Workers CI: one additional indexed quota read inside the atomic INSERT.
+  // Retain a bounded ceiling; writes are unchanged.
+  create: { reads: 6, writes: 5 },
   update: { reads: 6, writes: 4 },
-  remove: { reads: 4, writes: 5 },
+  // A version-aware delete reads the existing record before its guarded UPDATE.
+  remove: { reads: 5, writes: 5 },
   getOne: { reads: 3, writes: 0 },
   pullIdle: { reads: 3, writes: 0 },
   pullFivePerRecord: 2,
@@ -65,7 +68,7 @@ describe('per-endpoint row budgets', () => {
     within(await cost('/api/debts/b1', u), BUDGET.getOne);
     within(await cost('/api/sync/pull?since=9999', u), BUDGET.pullIdle);
     within(await cost('/api/me/export', u), BUDGET.export);
-    within(await cost('/api/debts/b2', u, { method: 'DELETE' }), BUDGET.remove);
+    within(await cost('/api/debts/b2?baseVersion=1', u, { method: 'DELETE' }), BUDGET.remove);
   });
 
   it('writes nothing for an unchanged edit, an exact retry or a stale write', async () => {
