@@ -1,6 +1,6 @@
 {
   "title": "Laboratorio de conexión",
-  "intro": "Practica conversaciones, citas y relaciones con decisiones breves y ficticias. No hay un guion perfecto ni resultados garantizados.",
+  "intro": "Practica conversaciones, citas y relaciones con situaciones breves, ficticias e independientes. No hay un guion perfecto ni resultados garantizados.",
   "privacy": "Tus decisiones y tus historias personales no se guardan aquí. Las estadísticas de uso registran identificadores de lecciones y cantidades de escenas, no la opción que elegiste. Puedes omitir pasos.",
   "choose": "Elige una habilidad para practicar",
   "back": "Volver a las habilidades",
@@ -289,5 +289,6 @@
         }
       }
     }
-  }
+  },
+  "independentScene": "Una situación de práctica independiente. No predice lo que pasó después de tu respuesta anterior."
 }
