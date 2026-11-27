@@ -73,6 +73,7 @@ function TurnPanel({ lesson, turn, practice, onChoose, onMove }: TurnProps) {
         {t('connectionLab.step', { current: practice.turnIndex + 1, total: lesson.turns.length })}
       </p>
       <h3>{t(`${base}.prompt`)}</h3>
+      {practice.turnIndex > 0 && <p>{t('connectionLab.independentScene')}</p>}
       <p>{t('connectionLab.chooseResponse')}</p>
       <div style={{ display: 'grid', gap: theme.spacing.sm }}>
         {(Object.keys(turn.choices) as ChoiceId[]).map((id) => (
@@ -106,9 +107,11 @@ function TurnPanel({ lesson, turn, practice, onChoose, onMove }: TurnProps) {
             {t(practice.turnIndex === lesson.turns.length - 1 ? 'connectionLab.finish' : 'connectionLab.next')}
           </button>
         )}
-        <button type="button" onClick={() => onMove(true)} style={buttonStyle(theme)}>
-          {t('connectionLab.skip')}
-        </button>
+        {practice.phase === 'prompt' && (
+          <button type="button" onClick={() => onMove(true)} style={buttonStyle(theme)}>
+            {t('connectionLab.skip')}
+          </button>
+        )}
       </div>
     </div>
   );
@@ -183,7 +186,7 @@ function PracticeSession({ lesson, practice, minutes, onMinutes, onBack, onResta
           {t('connectionLab.timeboxHint', { count: minutes })}
         </p>
       </fieldset>
-      {practice.finished ? (
+      {practice.phase === 'complete' ? (
         <FinishedPanel lesson={lesson} practice={practice} onRestart={onRestart} />
       ) : (
         <TurnPanel
@@ -202,15 +205,13 @@ function PracticeSession({ lesson, practice, minutes, onMinutes, onBack, onResta
 export default function ConnectionLabView() {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const [lessonId, setLessonId] = useState<string | null>(null);
   const [practice, setPractice] = useState<PracticeState | null>(null);
   const [minutes, setMinutes] = useState<FocusMinutes>(5);
-  const lesson = findLesson(lessonId ?? '');
+  const lesson = findLesson(practice?.lessonId ?? '');
 
   useEffect(() => { track(Events.CONNECTION_LAB_VIEWED); }, []);
 
   const start = (nextLesson: PracticeLesson) => {
-    setLessonId(nextLesson.id);
     setPractice(beginPractice(nextLesson));
     setMinutes(nextLesson.minutes);
     track(Events.CONNECTION_LAB_STARTED, { lesson: nextLesson.id });
@@ -230,11 +231,10 @@ export default function ConnectionLabView() {
     if (next === practice) return;
     setPractice(next);
     if (skip) track(Events.CONNECTION_LAB_SKIPPED, { lesson: lesson.id, turn: practice.turnIndex });
-    if (next.finished) track(Events.CONNECTION_LAB_FINISHED, { lesson: lesson.id, practiced: next.practiced });
+    if (next.phase === 'complete') track(Events.CONNECTION_LAB_FINISHED, { lesson: lesson.id, practiced: next.practiced });
   };
 
   const returnToLessons = () => {
-    setLessonId(null);
     setPractice(null);
   };
 
