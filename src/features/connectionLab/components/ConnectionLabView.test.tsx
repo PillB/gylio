@@ -25,9 +25,11 @@ describe('Connection Lab UI', () => {
     expect(screen.getByText('connectionLab.lessons.approach.turns.open.prompt')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'connectionLab.lessons.approach.turns.open.options.a.text' }));
     expect(screen.getByText('connectionLab.feedback.strong')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'connectionLab.skip' })).toBeNull();
     expect(screen.getByText('connectionLab.lessons.approach.turns.open.options.a.response')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'connectionLab.next' }));
     expect(screen.getByText('connectionLab.lessons.approach.turns.follow.prompt')).toBeTruthy();
+    expect(screen.getByText('connectionLab.independentScene')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'connectionLab.skip' }));
     expect(screen.getByText('connectionLab.finished')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'connectionLab.repeat' }));
