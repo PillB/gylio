@@ -482,7 +482,9 @@ export class SyncEngine {
 
   private request(entry: OutboxEntry, baseVersion: number): Omit<HttpRequest, 'token'> {
     const path = `/api/${entry.entity}/${entry.id}`;
-    return entry.op === 'delete' ? { method: 'DELETE', path } : { method: 'PUT', path, body: { ...entry.data, baseVersion } };
+    return entry.op === 'delete'
+      ? { method: 'DELETE', path: `${path}?baseVersion=${baseVersion}` }
+      : { method: 'PUT', path, body: { ...entry.data, baseVersion } };
   }
 
   /** Up to three tries per record per pass: a conflict is settled and the same change is sent again on top. */
