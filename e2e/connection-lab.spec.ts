@@ -33,8 +33,10 @@ test('English: conversation exercise works in Chromium and analytics excludes se
   await expect(page.getByText(/At a community event/)).toBeVisible();
   await page.getByRole('button', { name: /Have you tried any of these activities/ }).click();
   await expect(page.getByText(/One possible reaction/)).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Skip without penalty' })).toHaveCount(0);
   await expect(page.getByText(/respects the other person's agency/)).toBeVisible();
   await page.getByRole('button', { name: 'Next scene' }).click();
+  await expect(page.getByText(/A separate practice situation/)).toBeVisible();
   await page.getByRole('button', { name: 'Skip without penalty' }).click();
   await expect(page.getByRole('heading', { name: 'Practice finished' })).toBeVisible();
 
@@ -117,3 +119,37 @@ test('screenshots: six es-PE lesson scenes and feedback at 320px', async ({ page
     await page.getByRole('button', { name: 'Volver a las habilidades' }).click();
   }
 });
+
+/** Exercise every response and transition via accessible controls, in both languages. */
+for (const locale of ['en', 'es-PE'] as const) {
+  test(`all 36 response choices and focus presets: ${locale}`, async ({ page }) => {
+    test.setTimeout(120_000);
+    await page.setViewportSize({ width: locale === 'en' ? 1280 : 320, height: 800 });
+    await openLab(page, locale);
+    const catalog = JSON.parse(fs.readFileSync(`src/i18n/connectionLab.${locale}.json`, 'utf8'));
+    const main = page.locator('main');
+    for (const lessonId of ['approach', 'flow', 'flirt', 'connect', 'rejection', 'repair']) {
+      const lesson = catalog.lessons[lessonId];
+      for (const id of ['a', 'b', 'c']) {
+        await main.getByRole('button', { name: new RegExp(lesson.title) }).click();
+        const turns = Object.values(lesson.turns) as {prompt: string; options: Record<string, {text: string; response: string}>}[];
+        for (const [index, turn] of turns.entries()) {
+          await expect(main.getByText(turn.prompt, { exact: true })).toBeVisible();
+          for (const count of [5, 10, 25, 45]) {
+            const control = main.getByRole('button', { name: `${count} min`, exact: true });
+            await control.click();
+            await expect(control).toHaveAttribute('aria-pressed', 'true');
+          }
+          const button = main.getByRole('button', { name: turn.options[id].text, exact: true });
+          await button.click();
+          await expect(button).toBeDisabled();
+          await expect(main.getByText(turn.options[id].response, { exact: true })).toBeVisible();
+          await expect(main.getByRole('button', { name: catalog.skip, exact: true })).toHaveCount(0);
+          await main.getByRole('button', { name: index === turns.length - 1 ? catalog.finish : catalog.next, exact: true }).click();
+        }
+        await expect(main.getByRole('heading', { name: catalog.finished, exact: true })).toBeVisible();
+        await main.getByRole('button', { name: catalog.back, exact: true }).click();
+      }
+    }
+  });
+}
